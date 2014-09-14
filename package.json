@@ -1,0 +1,12 @@
+{   "name": "hanzi-writer"
+  , "version": "0.1.0"
+  , "author": "David Chanin <chanindav@gmail.com>"
+  , "devDependencies": {
+      "coffee-script": "*"
+    , "grunt-contrib-coffee": "*"
+    , "grunt-contrib-concat": "*"
+    , "grunt-contrib-copy": "*"
+    , "grunt-contrib-clean": "*"
+    , "grunt": "*"
+  }
+}

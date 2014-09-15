@@ -1,5 +1,5 @@
 (function() {
-  var Character, Drawable, Stroke,
+  var Character, CharacterPositioner, ComboStroke, Drawable, Stroke,
     __hasProp = {}.hasOwnProperty,
     __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
@@ -51,17 +51,31 @@
     __extends(Character, _super);
 
     function Character(pathStrings, options) {
-      var pathString;
+      var comboStrokeBuffer, pathString, rawStrokes, stroke, _i, _len;
       this.options = options != null ? options : {};
-      this.strokes = (function() {
+      this.strokes = [];
+      rawStrokes = (function() {
         var _i, _len, _results;
         _results = [];
         for (_i = 0, _len = pathStrings.length; _i < _len; _i++) {
           pathString = pathStrings[_i];
-          _results.push(new Stroke(pathString, this.options.strokeAttrs));
+          _results.push(new Stroke(pathString, this.options));
         }
         return _results;
       }).call(this);
+      comboStrokeBuffer = [];
+      for (_i = 0, _len = rawStrokes.length; _i < _len; _i++) {
+        stroke = rawStrokes[_i];
+        if (stroke.isComplete && comboStrokeBuffer.length === 0) {
+          this.strokes.push(stroke);
+        } else if (stroke.isComplete) {
+          comboStrokeBuffer.push(stroke);
+          this.strokes.push(new ComboStroke(comboStrokeBuffer, this.options));
+          comboStrokeBuffer = [];
+        } else {
+          comboStrokeBuffer.push(stroke);
+        }
+      }
     }
 
     Character.prototype.getBounds = function() {
@@ -93,40 +107,37 @@
       return bounds;
     };
 
-    Character.prototype.nestSvg = function(svg) {
-      var bounds, scale, scaleX, scaleY;
-      bounds = this.getBounds();
-      scaleX = this.options.width / (bounds[1].x - bounds[0].x);
-      scaleY = this.options.height / (bounds[1].y - bounds[0].y);
-      scale = Math.min(scaleX, scaleY);
-      return svg.group().move(-1 * bounds[0].x, -1 * bounds[0].y).transform({
-        scaleX: scale,
-        scaleY: scale
-      });
-    };
-
     Character.prototype.draw = function(svg) {
       var stroke, _i, _len, _ref, _results;
       _ref = this.strokes;
       _results = [];
       for (_i = 0, _len = _ref.length; _i < _len; _i++) {
         stroke = _ref[_i];
-        _results.push(stroke.draw(this.nestSvg(svg)));
+        _results.push(stroke.draw(svg));
       }
       return _results;
     };
 
-    Character.prototype.animate = function(svg) {
-      return this.animateStroke(this.nestSvg(svg), 0);
+    Character.prototype.animate = function(svg, onComplete) {
+      if (onComplete == null) {
+        onComplete = function() {};
+      }
+      return this.animateStroke(svg, onComplete, 0);
     };
 
-    Character.prototype.animateStroke = function(svg, strokeNum) {
+    Character.prototype.animateStroke = function(svg, onComplete, strokeNum) {
       var stroke;
       stroke = this.strokes[strokeNum];
       return stroke.animate(svg, (function(_this) {
         return function() {
+          var nextStroke;
           if (strokeNum < _this.strokes.length - 1) {
-            return _this.animateStroke(svg, strokeNum + 1);
+            nextStroke = function() {
+              return _this.animateStroke(svg, onComplete, strokeNum + 1);
+            };
+            return setTimeout(nextStroke, _this.options.delayBetweenStrokes);
+          } else {
+            return onComplete();
           }
         };
       })(this));
@@ -155,9 +166,9 @@
 
     Stroke.REVERSE_FORWARD_SLASH_STROKE = 8;
 
-    function Stroke(zdtPathData, attrs) {
+    function Stroke(zdtPathData, options) {
       var metadataString, pathString, pointString, _ref;
-      this.attrs = attrs != null ? attrs : {};
+      this.options = options != null ? options : {};
       _ref = zdtPathData.split(':'), metadataString = _ref[0], pathString = _ref[1];
       pathString = pathString.replace(/;?\s*$/, '');
       this.points = (function() {
@@ -172,6 +183,7 @@
       }).call(this);
       this.isComplete = metadataString[2] === 'P';
       this.strokeType = parseInt(metadataString[1]);
+      this.animationSpeedupRatio = 1;
     }
 
     Stroke.prototype.getPathString = function() {
@@ -198,6 +210,10 @@
 
     Stroke.prototype.drawPath = function(svg) {
       return svg.path(this.getPathString(), this.attrs);
+    };
+
+    Stroke.prototype.setAnimationSpeedupRatio = function(animationSpeedupRatio) {
+      this.animationSpeedupRatio = animationSpeedupRatio;
     };
 
     Stroke.prototype.getStrokeAnimationStartingPoint = function() {
@@ -276,11 +292,135 @@
       }
       start = this.getStrokeAnimationStartingPoint();
       mask = svg.circle(0).center(start.x, start.y);
-      stroke = this.drawPath(svg).clipWith(mask);
-      return mask.animate().radius(this.getStrokeAnimationDistance()).after(onComplete);
+      stroke = this.drawPath(svg).attr(this.options.strokeAttrs).clipWith(mask);
+      return mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
     };
 
     return Stroke;
+
+  })(Drawable);
+
+  ComboStroke = (function(_super) {
+    __extends(ComboStroke, _super);
+
+    function ComboStroke(strokes, options) {
+      var stroke, _i, _len, _ref;
+      this.strokes = strokes;
+      this.options = options != null ? options : {};
+      _ref = this.strokes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stroke = _ref[_i];
+        stroke.setAnimationSpeedupRatio(this.strokes.length);
+      }
+    }
+
+    ComboStroke.prototype.draw = function(svg) {
+      var stroke, _i, _len, _ref, _results;
+      _ref = this.strokes;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stroke = _ref[_i];
+        _results.push(stroke.draw(svg));
+      }
+      return _results;
+    };
+
+    ComboStroke.prototype.animate = function(svg, onComplete) {
+      if (onComplete == null) {
+        onComplete = function() {};
+      }
+      return this.animateStroke(svg, onComplete, 0);
+    };
+
+    ComboStroke.prototype.getBounds = function() {
+      var maxX, maxY, midX, midY, minX, minY, strokeBoundingPoints, _ref, _ref1;
+      strokeBoundingPoints = this.getAllStrokeBounds();
+      _ref = this.getExtremes(this.getAllYs(strokeBoundingPoints)), maxY = _ref[0], midY = _ref[1], minY = _ref[2];
+      _ref1 = this.getExtremes(this.getAllXs(strokeBoundingPoints)), maxX = _ref1[0], midX = _ref1[1], minX = _ref1[2];
+      return [
+        {
+          x: minX,
+          y: minY
+        }, {
+          x: maxX,
+          y: maxY
+        }
+      ];
+    };
+
+    ComboStroke.prototype.getAllStrokeBounds = function() {
+      var bounds, stroke, strokeBounds, _i, _len, _ref;
+      bounds = [];
+      _ref = this.strokes;
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stroke = _ref[_i];
+        strokeBounds = stroke.getBounds();
+        bounds.push(strokeBounds[0]);
+        bounds.push(strokeBounds[1]);
+      }
+      return bounds;
+    };
+
+    ComboStroke.prototype.animateStroke = function(svg, onComplete, strokeNum) {
+      var stroke;
+      stroke = this.strokes[strokeNum];
+      return stroke.animate(svg, (function(_this) {
+        return function() {
+          if (strokeNum < _this.strokes.length - 1) {
+            return _this.animateStroke(svg, onComplete, strokeNum + 1);
+          } else {
+            return onComplete();
+          }
+        };
+      })(this));
+    };
+
+    return ComboStroke;
+
+  })(Drawable);
+
+  CharacterPositioner = (function(_super) {
+    __extends(CharacterPositioner, _super);
+
+    function CharacterPositioner(character, options) {
+      this.character = character;
+      this.options = options != null ? options : {};
+    }
+
+    CharacterPositioner.prototype.getBounds = function() {
+      return this.character.getBounds();
+    };
+
+    CharacterPositioner.prototype.nestSvg = function(svg) {
+      var bounds, effectiveHeight, effectiveWidth, preScaledHeight, preScaledWidth, scale, scaleX, scaleY, xCenteringBuffer, yCenteringBuffer;
+      bounds = this.getBounds();
+      preScaledWidth = bounds[1].x - bounds[0].x;
+      preScaledHeight = bounds[1].y - bounds[0].y;
+      effectiveWidth = this.options.width - 2 * this.options.padding;
+      effectiveHeight = this.options.height - 2 * this.options.padding;
+      scaleX = effectiveWidth / preScaledWidth;
+      scaleY = effectiveHeight / preScaledHeight;
+      scale = Math.min(scaleX, scaleY);
+      xCenteringBuffer = this.options.padding + (effectiveWidth - scale * preScaledWidth) / 2;
+      yCenteringBuffer = this.options.padding + (effectiveHeight - scale * preScaledHeight) / 2;
+      return svg.group().move(-1 * bounds[0].x * scale + xCenteringBuffer, -1 * bounds[0].y * scale + yCenteringBuffer).transform({
+        scaleX: scale,
+        scaleY: scale
+      });
+    };
+
+    CharacterPositioner.prototype.draw = function(svg) {
+      return this.character.draw(this.nestSvg(svg));
+    };
+
+    CharacterPositioner.prototype.animate = function(svg, onComplete) {
+      if (onComplete == null) {
+        onComplete = function() {};
+      }
+      return this.character.animate(this.nestSvg(svg), onComplete);
+    };
+
+    return CharacterPositioner;
 
   })(Drawable);
 
@@ -291,8 +431,11 @@
       },
       width: null,
       height: null,
+      padding: 20,
+      strokeAnimationDuration: 300,
+      delayBetweenStrokes: 1000,
       strokeAttrs: {
-        fill: '#EEE'
+        fill: '#333'
       }
     };
 
@@ -307,13 +450,14 @@
         this.options[key] = value;
       }
       this.setCharacter(character);
-      this.character.animate(this.svg);
+      this.positioner.animate(this.svg);
     }
 
     HanziWriter.prototype.setCharacter = function(char) {
       var pathStrings;
       pathStrings = this.options.charDataLoader(char);
-      return this.character = new Character(pathStrings, this.options);
+      this.character = new Character(pathStrings, this.options);
+      return this.positioner = new CharacterPositioner(this.character, this.options);
     };
 
     return HanziWriter;

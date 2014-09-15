@@ -1,7 +1,18 @@
 class Character extends Drawable
 
-	constructor: (pathStrings, @options = {}) ->	
-		@strokes = (new Stroke(pathString, @options.strokeAttrs) for pathString in pathStrings)
+	constructor: (pathStrings, @options = {}) ->
+		@strokes = []
+		rawStrokes = (new Stroke(pathString, @options) for pathString in pathStrings)
+		comboStrokeBuffer = []
+		for stroke in rawStrokes
+			if stroke.isComplete and comboStrokeBuffer.length == 0
+				@strokes.push(stroke)
+			else if stroke.isComplete
+				comboStrokeBuffer.push(stroke)
+				@strokes.push(new ComboStroke(comboStrokeBuffer, @options))
+				comboStrokeBuffer = []
+			else
+				comboStrokeBuffer.push(stroke)
 
 	getBounds: ->
 		strokeBoundingPoints = @getAllStrokeBounds()
@@ -17,22 +28,14 @@ class Character extends Drawable
 			bounds.push strokeBounds[1]
 		return bounds
 
-	nestSvg: (svg) ->
-		bounds = @getBounds()
-		scaleX = @options.width / (bounds[1].x - bounds[0].x)
-		scaleY = @options.height / (bounds[1].y - bounds[0].y)
-		scale = Math.min(scaleX, scaleY)
-		svg
-			.group()
-			.move(-1 * bounds[0].x, -1 * bounds[0].y)
-			.transform(scaleX: scale, scaleY: scale)
+	draw: (svg) -> stroke.draw(svg) for stroke in @strokes
+	animate: (svg, onComplete = ->) -> @animateStroke(svg, onComplete, 0)
 
-	draw: (svg) ->
-		stroke.draw(@nestSvg(svg)) for stroke in @strokes
-
-	animate: (svg) -> @animateStroke(@nestSvg(svg), 0)
-
-	animateStroke: (svg, strokeNum) ->
+	animateStroke: (svg, onComplete, strokeNum) ->
 		stroke = @strokes[strokeNum]
 		stroke.animate svg, =>
-			@animateStroke(svg, strokeNum + 1) if strokeNum < @strokes.length - 1
+			if strokeNum < @strokes.length - 1
+				nextStroke = => @animateStroke(svg, onComplete, strokeNum + 1)
+				setTimeout nextStroke, @options.delayBetweenStrokes
+			else
+				onComplete()

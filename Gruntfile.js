@@ -18,7 +18,7 @@ module.exports = function(grunt) {
         separator: "\n"
       },
       main: {
-        src: 'src/**.coffee',
+        src: ['src/Drawable.coffee', 'src/Character.coffee', 'src/Stroke.coffee', 'src/HanziWriter.coffee'],
         dest: 'dist/hanzi-writer.coffee'
       }
     },

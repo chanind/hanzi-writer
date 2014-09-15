@@ -1,9 +1,13 @@
-class Stroke
+class Stroke extends Drawable
 
 	@HORIZONTAL_STROKE = 1
 	@BACK_SLASH_STROKE = 2
 	@VERTICAL_STROKE = 3
 	@FORWARD_SLASH_STROKE = 4
+	@REVERSE_HORIZONTAL_STROKE = 5
+	@REVERSE_BACK_SLASH_STROKE = 6
+	@REVERSE_VERTICAL_STROKE = 7
+	@REVERSE_FORWARD_SLASH_STROKE = 8
 
 	constructor: (zdtPathData, @attrs = {}) ->
 		[metadataString, pathString] = zdtPathData.split ':'
@@ -15,57 +19,61 @@ class Stroke
 	getPathString: ->
 		start = @points[0]
 		remainingPoints = @points[1..-1]
-		pathString = "M #{start[0]} #{start[1]}"
+		pathString = "M #{start.x} #{start.y}"
 		for  point in remainingPoints
-			pathString += " L #{point[0]} #{point[1]}"
+			pathString += " L #{point.x} #{point.y}"
 		pathString += " z"
 		return pathString
 
-	parsePoint: (pointString) -> parseInt(point) for point in pointString.split(',')
+	parsePoint: (pointString) ->
+		pointArr = pointString.split(',')
+		return {x: pointArr[0], y: pointArr[1]}
 
 	drawPath: (svg) -> svg.path(@getPathString(), @attrs)
 
-	getStrokeAnimationStartingPoint: ->
-		[maxY, midY, minY] = @getExtremes(@getAllYs())
-		[maxX, midX, minX] = @getExtremes(@getAllXs())
-		switch @strokeType
-			when Stroke.HORIZONTAL_STROKE then [minX, midY]
-			when Stroke.BACK_SLASH_STROKE then [minX, minY]
-			when Stroke.VERTICAL_STROKE then [midX, minY]
-			when Stroke.FORWARD_SLASH_STROKE then [maxX, minY]
+	getStrokeAnimationStartingPoint: -> @getStrokeAnimationExtremePoint(@strokeType, false)
+	getStrokeAnimationEndingPoint: -> @getStrokeAnimationExtremePoint(@strokeType, true)
 
-	getStrokeAnimationEndingPoint: ->
-		[maxY, midY, minY] = @getExtremes(@getAllYs())
-		[maxX, midX, minX] = @getExtremes(@getAllXs())
-		switch @strokeType
-			when Stroke.HORIZONTAL_STROKE then [maxX, midY]
-			when Stroke.BACK_SLASH_STROKE then [maxX, maxY]
-			when Stroke.VERTICAL_STROKE then [midX, maxY]
-			when Stroke.FORWARD_SLASH_STROKE then [minX, maxY]
+	# where to start or end drawing the stroke based on the stroke type
+	getStrokeAnimationExtremePoint: (strokeType, isReverse) ->
+		extremeYs = @getExtremes(@getAllYs(@points))
+		extremeXs = @getExtremes(@getAllXs(@points))
 
-	getExtremes: (numArray) ->
-		max = Math.max.apply(null, numArray)
-		min = Math.min.apply(null, numArray)
-		mid = (max + min) / 2
-		return [max, mid, min]
+		# handle reversed strokes
+		if strokeType > Stroke.FORWARD_SLASH_STROKE
+			strokeType = strokeType - Stroke.FORWARD_SLASH_STROKE
+			isReverse = !isReverse
 
-	getAllXs: -> point[0] for point in @points
-	getAllYs: -> point[1] for point in @points
+		minIndex = if isReverse then 0 else 2
+		maxIndex = if isReverse then 2 else 0
+		midIndex = 1
+
+		switch strokeType
+			when Stroke.HORIZONTAL_STROKE then {x: extremeXs[minIndex], y: extremeYs[midIndex]}
+			when Stroke.BACK_SLASH_STROKE then {x: extremeXs[minIndex], y: extremeYs[minIndex]}
+			when Stroke.VERTICAL_STROKE then {x: extremeXs[midIndex], y: extremeYs[minIndex]}
+			when Stroke.FORWARD_SLASH_STROKE then {x: extremeXs[maxIndex], y: extremeYs[minIndex]}
+
+
+
+	getBounds: ->
+		[maxY, midY, minY] = @getExtremes(@getAllYs(@points))
+		[maxX, midX, minX] = @getExtremes(@getAllXs(@points))
+		return [{x: minX, y: minY}, {x: maxX, y: maxY}]
 
 	getStrokeAnimationDistance: ->
 		start = @getStrokeAnimationStartingPoint()
 		end = @getStrokeAnimationEndingPoint()
-		return Math.sqrt(Math.pow(end[0] - start[0], 2) + Math.pow(end[1] - start[1], 2))
+		return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))
 
 	draw: (svg) -> @drawPath(svg)
 
 	animate: (svg, onComplete = ->) ->
 		start = @getStrokeAnimationStartingPoint()
-		mask = svg.circle(0).center(start[0], start[1])
+		mask = svg.circle(0).center(start.x, start.y)
 		stroke = @drawPath(svg).clipWith(mask)
 
 		mask.animate()
 			.radius(@getStrokeAnimationDistance())
-			.center(start[0], start[1])
 			.after(onComplete)
 

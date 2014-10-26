@@ -4205,7 +4205,7 @@ module.exports = Drawable;
 
 
 },{}],6:[function(require,module,exports){
-var Character, CharacterPositioner, SVG;
+var Character, CharacterPositioner, HanziWriter, SVG, previousHanziWriter;
 
 Character = require('./Character.coffee');
 
@@ -4213,7 +4213,7 @@ CharacterPositioner = require('./CharacterPositioner.coffee');
 
 SVG = require('svg.js');
 
-window.HanziWriter = (function() {
+HanziWriter = (function() {
   HanziWriter.prototype.options = {
     charDataLoader: function(char) {
       return hanziData[char];
@@ -4254,6 +4254,19 @@ window.HanziWriter = (function() {
   return HanziWriter;
 
 })();
+
+if (typeof window !== 'undefined') {
+  previousHanziWriter = window.HanziWriter;
+  HanziWriter.noConflict = function() {
+    window.HanziWriter = previousHanziWriter;
+    return HanziWriter;
+  };
+  window.HanziWriter = HanziWriter;
+}
+
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = HanziWriter;
+}
 
 
 

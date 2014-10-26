@@ -1,3 +1,5 @@
+Drawable = require('./Drawable.coffee')
+
 class Stroke extends Drawable
 
 	@HORIZONTAL_STROKE = 1
@@ -80,3 +82,4 @@ class Stroke extends Drawable
 			.radius(@getStrokeAnimationDistance())
 			.after(onComplete)
 
+module.exports = Stroke

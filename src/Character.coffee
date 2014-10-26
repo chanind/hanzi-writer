@@ -1,3 +1,7 @@
+Stroke = require('./Stroke.coffee')
+ComboStroke = require('./ComboStroke.coffee')
+Drawable = require('./Drawable.coffee')
+
 class Character extends Drawable
 
 	constructor: (pathStrings, @options = {}) ->
@@ -39,3 +43,5 @@ class Character extends Drawable
 				setTimeout nextStroke, @options.delayBetweenStrokes
 			else
 				onComplete()
+
+module.exports = Character

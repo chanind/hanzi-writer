@@ -1,3 +1,5 @@
+Drawable = require('./Drawable.coffee')
+
 class CharacterPositioner extends Drawable
 
 	constructor: (@character, @options = {}) ->
@@ -24,3 +26,5 @@ class CharacterPositioner extends Drawable
 
 	draw: (svg) -> @character.draw(@nestSvg(svg))
 	animate: (svg, onComplete = ->) -> @character.animate(@nestSvg(svg), onComplete)
+
+module.exports = CharacterPositioner

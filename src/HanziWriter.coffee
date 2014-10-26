@@ -1,3 +1,7 @@
+Character = require('./Character.coffee')
+CharacterPositioner = require('./CharacterPositioner.coffee')
+SVG = require('svg.js')
+
 class window.HanziWriter
 
 	options:
@@ -9,6 +13,8 @@ class window.HanziWriter
 		delayBetweenStrokes: 1000
 		strokeAttrs:
 			fill: '#333'
+			stroke: '#333'
+			'stroke-width': 2
 
 	constructor: (element, character, options = {}) ->
 		@svg = SVG(element)

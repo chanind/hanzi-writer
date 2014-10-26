@@ -1,5 +1,7 @@
 # this is a stroke composed of several stroke parts
 
+Drawable = require('./Drawable.coffee')
+
 class ComboStroke extends Drawable
 
 	constructor: (@strokes, @options = {}) ->
@@ -30,3 +32,5 @@ class ComboStroke extends Drawable
 				@animateStroke(svg, onComplete, strokeNum + 1)
 			else
 				onComplete()
+
+module.exports = ComboStroke

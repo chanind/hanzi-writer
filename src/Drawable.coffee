@@ -14,3 +14,5 @@ class Drawable
 
 	getAllXs: (points) -> point.x for point in points
 	getAllYs: (points) -> point.y for point in points
+
+module.exports = Drawable

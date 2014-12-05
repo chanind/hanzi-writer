@@ -12,6 +12,8 @@ class Path extends Drawable
 
 	drawPath: (svg) -> svg.path(@getPathString())
 
+	getPoints: -> @points
+
 	getBounds: ->
 		[maxY, midY, minY] = @getExtremes(@getAllYs(@points))
 		[maxX, midX, minX] = @getExtremes(@getAllXs(@points))

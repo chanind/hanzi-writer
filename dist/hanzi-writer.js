@@ -3906,6 +3906,8 @@ Drawable = require('./Drawable.coffee');
 Character = (function(_super) {
   __extends(Character, _super);
 
+  Character.DISTANCE_THRESHOLD = 30;
+
   function Character(pathStrings, options) {
     var comboStrokeBuffer, pathString, rawStrokes, stroke, _i, _len;
     this.options = options != null ? options : {};
@@ -3961,6 +3963,25 @@ Character = (function(_super) {
       bounds.push(strokeBounds[1]);
     }
     return bounds;
+  };
+
+  Character.prototype.getMatchingStroke = function(points) {
+    var avgDist, bestAvgDist, closestStroke, stroke, _i, _len, _ref;
+    closestStroke = null;
+    bestAvgDist = 0;
+    _ref = this.strokes;
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      avgDist = stroke.getAverageDistance(points);
+      if (avgDist < bestAvgDist || !closestStroke) {
+        closestStroke = stroke;
+        bestAvgDist = avgDist;
+      }
+    }
+    console.log(bestAvgDist);
+    if (bestAvgDist < Character.DISTANCE_THRESHOLD) {
+      return closestStroke;
+    }
   };
 
   Character.prototype.draw = function(svg) {
@@ -4026,8 +4047,33 @@ CharacterPositioner = (function(_super) {
     return this.character.getBounds();
   };
 
+  CharacterPositioner.prototype.convertExternalPoints = function(points) {
+    var point, _i, _len, _results;
+    _results = [];
+    for (_i = 0, _len = points.length; _i < _len; _i++) {
+      point = points[_i];
+      _results.push(this.convertExternalPoint(point));
+    }
+    return _results;
+  };
+
+  CharacterPositioner.prototype.convertExternalPoint = function(point) {
+    return {
+      x: (point.x - this.xOffset) / this.scale,
+      y: (point.x - this.xOffset) / this.scale
+    };
+  };
+
   CharacterPositioner.prototype.nestSvg = function(svg) {
-    var bounds, effectiveHeight, effectiveWidth, preScaledHeight, preScaledWidth, scale, scaleX, scaleY, xCenteringBuffer, yCenteringBuffer;
+    this.calculateScaleAndOffset();
+    return svg.group().move(this.xOffset, this.yOffset).transform({
+      scaleX: this.scale,
+      scaleY: this.scale
+    });
+  };
+
+  CharacterPositioner.prototype.calculateScaleAndOffset = function() {
+    var bounds, effectiveHeight, effectiveWidth, preScaledHeight, preScaledWidth, scaleX, scaleY, xCenteringBuffer, yCenteringBuffer;
     bounds = this.getBounds();
     preScaledWidth = bounds[1].x - bounds[0].x;
     preScaledHeight = bounds[1].y - bounds[0].y;
@@ -4035,13 +4081,11 @@ CharacterPositioner = (function(_super) {
     effectiveHeight = this.options.height - 2 * this.options.padding;
     scaleX = effectiveWidth / preScaledWidth;
     scaleY = effectiveHeight / preScaledHeight;
-    scale = Math.min(scaleX, scaleY);
-    xCenteringBuffer = this.options.padding + (effectiveWidth - scale * preScaledWidth) / 2;
-    yCenteringBuffer = this.options.padding + (effectiveHeight - scale * preScaledHeight) / 2;
-    return svg.group().move(-1 * bounds[0].x * scale + xCenteringBuffer, -1 * bounds[0].y * scale + yCenteringBuffer).transform({
-      scaleX: scale,
-      scaleY: scale
-    });
+    this.scale = Math.min(scaleX, scaleY);
+    xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
+    yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
+    this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
+    return this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
   };
 
   CharacterPositioner.prototype.draw = function(svg) {
@@ -4102,6 +4146,31 @@ ComboStroke = (function(_super) {
     return this.animateStroke(svg, onComplete, 0);
   };
 
+  ComboStroke.prototype.getDistance = function(point) {
+    var distances, stroke;
+    distances = (function() {
+      var _i, _len, _ref, _results;
+      _ref = this.strokes;
+      _results = [];
+      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+        stroke = _ref[_i];
+        _results.push(stroke.getDistance(point));
+      }
+      return _results;
+    }).call(this);
+    return Math.min.call(Math, distances);
+  };
+
+  ComboStroke.prototype.getAverageDistance = function(points) {
+    var point, totalDist, _i, _len;
+    totalDist = 0;
+    for (_i = 0, _len = points.length; _i < _len; _i++) {
+      point = points[_i];
+      totalDist += this.getDistance(point);
+    }
+    return totalDist / points.length;
+  };
+
   ComboStroke.prototype.getBounds = function() {
     var maxX, maxY, midX, midY, minX, minY, strokeBoundingPoints, _ref, _ref1;
     strokeBoundingPoints = this.getAllStrokeBounds();
@@ -4129,6 +4198,17 @@ ComboStroke = (function(_super) {
       bounds.push(strokeBounds[1]);
     }
     return bounds;
+  };
+
+  ComboStroke.prototype.highlight = function() {
+    var stroke, _i, _len, _ref, _results;
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.highlight());
+    }
+    return _results;
   };
 
   ComboStroke.prototype.animateStroke = function(svg, onComplete, strokeNum) {
@@ -4228,6 +4308,8 @@ HanziWriter = (function() {
     height: null,
     padding: 20,
     strokeAnimationDuration: 300,
+    strokeHighlightDuration: 600,
+    strokeHighlightColor: '#AAF',
     userStrokeFadeDuration: 300,
     delayBetweenStrokes: 1000,
     userStrokeAttrs: {
@@ -4284,12 +4366,10 @@ HanziWriter = (function() {
 
   HanziWriter.prototype.startUserStroke = function(point) {
     if (this.userStroke) {
-      this.userStroke.fadeAndRemove();
-      return this.userStroke = null;
-    } else {
-      this.userStroke = new UserStroke(point, this.options);
-      return this.userStroke.draw(this.svg);
+      return this.endUserStroke();
     }
+    this.userStroke = new UserStroke(point, this.options);
+    return this.userStroke.draw(this.svg);
   };
 
   HanziWriter.prototype.continueUserStroke = function(point) {
@@ -4299,6 +4379,16 @@ HanziWriter = (function() {
   };
 
   HanziWriter.prototype.endUserStroke = function() {
+    var translatedPoints;
+    if (!this.userStroke) {
+      return;
+    }
+    translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
+    this.matchingStroke = this.character.getMatchingStroke(translatedPoints);
+    if (this.matchingStroke) {
+      this.matchingStroke.highlight();
+    }
+    console.log(this.matchingStroke);
     this.userStroke.fadeAndRemove();
     return this.userStroke = null;
   };
@@ -4357,6 +4447,10 @@ Path = (function(_super) {
 
   Path.prototype.drawPath = function(svg) {
     return svg.path(this.getPathString());
+  };
+
+  Path.prototype.getPoints = function() {
+    return this.points;
   };
 
   Path.prototype.getBounds = function() {
@@ -4449,6 +4543,26 @@ Stroke = (function(_super) {
     this.animationSpeedupRatio = animationSpeedupRatio;
   };
 
+  Stroke.prototype.getDistance = function(point) {
+    var dx, dy, end, length, start;
+    start = this.getStrokeAnimationStartingPoint();
+    end = this.getStrokeAnimationEndingPoint();
+    dx = end.x - start.x;
+    dy = end.y - start.y;
+    length = this.getStrokeAnimationDistance();
+    return Math.abs(dy * point.x - dx * point.y - start.x * end.y + start.y * end.x) / length;
+  };
+
+  Stroke.prototype.getAverageDistance = function(points) {
+    var point, totalDist, _i, _len;
+    totalDist = 0;
+    for (_i = 0, _len = points.length; _i < _len; _i++) {
+      point = points[_i];
+      totalDist += this.getDistance(point);
+    }
+    return totalDist / points.length;
+  };
+
   Stroke.prototype.getStrokeAnimationStartingPoint = function() {
     return this.getStrokeAnimationExtremePoint(this.strokeType, false);
   };
@@ -4499,14 +4613,34 @@ Stroke = (function(_super) {
     return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
   };
 
+  Stroke.prototype.highlight = function() {
+    var animateHl;
+    animateHl = (function(_this) {
+      return function(color, onComplete) {
+        if (onComplete == null) {
+          onComplete = function() {};
+        }
+        return _this.path.animate(_this.options.strokeHighlightDuration).attr({
+          fill: color,
+          stroke: color
+        }).after(onComplete);
+      };
+    })(this);
+    return animateHl(this.options.strokeHighlightColor, (function(_this) {
+      return function() {
+        return animateHl(_this.options.strokeAttrs.fill);
+      };
+    })(this));
+  };
+
   Stroke.prototype.animate = function(svg, onComplete) {
-    var mask, start, stroke;
+    var mask, start;
     if (onComplete == null) {
       onComplete = function() {};
     }
     start = this.getStrokeAnimationStartingPoint();
     mask = svg.circle(0).center(start.x, start.y);
-    stroke = this.drawPath(svg).attr(this.options.strokeAttrs).clipWith(mask);
+    this.path = this.drawPath(svg).attr(this.options.strokeAttrs).clipWith(mask);
     return mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
   };
 

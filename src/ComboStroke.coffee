@@ -11,6 +11,15 @@ class ComboStroke extends Drawable
 
 	animate: (svg, onComplete = ->) -> @animateStroke(svg, onComplete, 0)
 
+	getDistance: (point) ->
+		distances = (stroke.getDistance(point) for stroke in @strokes)
+		return Math.min.call(Math, distances)
+
+	getAverageDistance: (points) ->
+		totalDist = 0
+		totalDist += @getDistance(point) for point in points
+		return totalDist / points.length
+
 	getBounds: ->
 		strokeBoundingPoints = @getAllStrokeBounds()
 		[maxY, midY, minY] = @getExtremes(@getAllYs(strokeBoundingPoints))
@@ -24,6 +33,8 @@ class ComboStroke extends Drawable
 			bounds.push strokeBounds[0]
 			bounds.push strokeBounds[1]
 		return bounds
+
+	highlight: -> stroke.highlight() for stroke in @strokes
 
 	animateStroke: (svg, onComplete, strokeNum) ->
 		stroke = @strokes[strokeNum]

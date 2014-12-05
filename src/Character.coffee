@@ -4,6 +4,8 @@ Drawable = require('./Drawable.coffee')
 
 class Character extends Drawable
 
+	@DISTANCE_THRESHOLD = 30
+
 	constructor: (pathStrings, @options = {}) ->
 		@strokes = []
 		rawStrokes = (new Stroke(pathString, @options) for pathString in pathStrings)
@@ -31,6 +33,20 @@ class Character extends Drawable
 			bounds.push strokeBounds[0]
 			bounds.push strokeBounds[1]
 		return bounds
+
+	getMatchingStroke: (points) ->
+		closestStroke = null
+		bestAvgDist = 0
+		for stroke in @strokes
+			avgDist = stroke.getAverageDistance(points)
+			if avgDist < bestAvgDist or !closestStroke
+				closestStroke = stroke
+				bestAvgDist = avgDist
+
+		console.log bestAvgDist
+
+		return closestStroke if bestAvgDist < Character.DISTANCE_THRESHOLD
+
 
 	draw: (svg) -> stroke.draw(svg) for stroke in @strokes
 	animate: (svg, onComplete = ->) -> @animateStroke(svg, onComplete, 0)

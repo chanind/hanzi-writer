@@ -11,6 +11,8 @@ class HanziWriter
 		height: null
 		padding: 20
 		strokeAnimationDuration: 300
+		strokeHighlightDuration: 600
+		strokeHighlightColor: '#AAF'
 		userStrokeFadeDuration: 300
 		delayBetweenStrokes: 1000
 		userStrokeAttrs:
@@ -40,6 +42,7 @@ class HanziWriter
 		document.addEventListener 'mouseup', (e) => @endUserStroke()
 
 	startUserStroke: (point) ->
+		@point = point
 		return @endUserStroke() if @userStroke
 		@userStroke = new UserStroke(point, @options)
 		@userStroke.draw(@svg)
@@ -47,6 +50,10 @@ class HanziWriter
 		@userStroke.appendPoint(point) if @userStroke
 	endUserStroke: ->
 		return unless @userStroke
+		translatedPoints = @positioner.convertExternalPoints(@userStroke.getPoints())
+		@matchingStroke = @character.getMatchingStroke(translatedPoints)
+		@matchingStroke.highlight() if @matchingStroke
+		console.log(@matchingStroke)
 		@userStroke.fadeAndRemove()
 		@userStroke = null
 

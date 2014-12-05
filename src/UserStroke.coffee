@@ -9,9 +9,9 @@ class UserStroke extends Path
 		@points.push(point)
 		@path.plot(@getPathString())
 
-	animate: (svg, onComplete = ->) -> onComplete()
+	animate: (onComplete = ->) -> onComplete()
 
-	draw: (svg) -> super.attr(@options.userStrokeAttrs)
+	draw: -> super.attr(@options.userStrokeAttrs)
 
 	fadeAndRemove: ->
 		@path.animate(@options.userStrokeFadeDuration)

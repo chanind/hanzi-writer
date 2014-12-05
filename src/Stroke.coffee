@@ -72,8 +72,8 @@ class Stroke extends Path
 	markAnimationPoints: ->
 		start = @getStrokeAnimationStartingPoint()
 		end = @getStrokeAnimationEndingPoint()
-		@svg.circle(10).attr(fill: '#9F9').move(start.x, start.y)
-		@svg.circle(10).attr(fill: '#9F9').move(end.x, end.y)
+		@canvas.circle(10).attr(fill: '#9F9').move(start.x, start.y)
+		@canvas.circle(10).attr(fill: '#9F9').move(end.x, end.y)
 
 	highlight: ->
 		animateHl = (color, onComplete = ->) =>
@@ -82,10 +82,25 @@ class Stroke extends Path
 			 	.after(onComplete)
 		animateHl(@options.strokeHighlightColor, => animateHl(@options.strokeAttrs.fill))
 
-	animate: (@svg, onComplete = ->) ->
+	draw: ->
+		super.attr(@options.strokeAttrs).attr(opacity: 0)
+
+	show: (animationOptions = {}) ->
+		@path.animate(animationOptions.duration || 300)
+			.opacity(1)
+			.after(animationOptions.onComplete || ->)
+
+	hide: (animationOptions = {}) ->
+		@path.animate(animationOptions.duration || 300)
+			.opacity(0)
+			.after(animationOptions.onComplete || ->)
+
+	animate: (onComplete = ->) ->
 		start = @getStrokeAnimationStartingPoint()
-		mask = @svg.circle(0).center(start.x, start.y)
-		@path = @drawPath(@svg)
+		mask = @canvas.circle(0).center(start.x, start.y)
+		@drawPath() unless @path
+		@path
+			.attr(opacity: 1)
 			.attr(@options.strokeAttrs)
 			.clipWith(mask)
 

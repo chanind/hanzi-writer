@@ -44,15 +44,26 @@ class Character extends Drawable
 				bestAvgDist = avgDist
 		return closestStroke if bestAvgDist < Character.DISTANCE_THRESHOLD
 
+	show: (animationOptions = {}) ->
+		stroke.show(animationOptions) for stroke in @strokes
 
-	draw: (svg) -> stroke.draw(svg) for stroke in @strokes
-	animate: (svg, onComplete = ->) -> @animateStroke(svg, onComplete, 0)
+	hide: (animationOptions = {}) ->
+		stroke.hide(animationOptions) for stroke in @strokes
 
-	animateStroke: (svg, onComplete, strokeNum) ->
+	draw: -> stroke.draw() for stroke in @strokes
+	animate: (onComplete = ->) ->
+		@hide 
+			onComplete: => @animateStroke(onComplete, 0)
+
+	setCanvas: (canvas) ->
+		super
+		stroke.setCanvas(canvas) for stroke in @strokes
+
+	animateStroke: (onComplete, strokeNum) ->
 		stroke = @strokes[strokeNum]
-		stroke.animate svg, =>
+		stroke.animate =>
 			if strokeNum < @strokes.length - 1
-				nextStroke = => @animateStroke(svg, onComplete, strokeNum + 1)
+				nextStroke = => @animateStroke(onComplete, strokeNum + 1)
 				setTimeout nextStroke, @options.delayBetweenStrokes
 			else
 				onComplete()

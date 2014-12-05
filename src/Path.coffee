@@ -10,7 +10,7 @@ class Path extends Drawable
 			pathString += " L #{point.x} #{point.y}"
 		return pathString
 
-	drawPath: (svg) -> svg.path(@getPathString())
+	drawPath: -> @path = @canvas.path(@getPathString())
 
 	getPoints: -> @points
 
@@ -19,6 +19,6 @@ class Path extends Drawable
 		[maxX, midX, minX] = @getExtremes(@getAllXs(@points))
 		return [{x: minX, y: minY}, {x: maxX, y: maxY}]
 
-	draw: (svg) -> @path = @drawPath(svg)
+	draw: -> @drawPath()
 
 module.exports = Path

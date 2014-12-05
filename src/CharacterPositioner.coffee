@@ -11,9 +11,9 @@ class CharacterPositioner extends Drawable
 		x: (point.x - @xOffset) / @scale
 		y: (point.y - @yOffset) / @scale
 
-	nestSvg: (svg) ->
+	getNestedCanvas: ->
 		@calculateScaleAndOffset()
-		svg
+		@canvas
 			.group()
 			.move(@xOffset, @yOffset)
 			.transform(scaleX: @scale, scaleY: @scale)
@@ -34,7 +34,10 @@ class CharacterPositioner extends Drawable
 		@xOffset = -1 * bounds[0].x * @scale + xCenteringBuffer
 		@yOffset = -1 * bounds[0].y * @scale + yCenteringBuffer
 
-	draw: (svg) -> @character.draw(@nestSvg(svg))
-	animate: (svg, onComplete = ->) -> @character.animate(@nestSvg(svg), onComplete)
+	draw: -> @character.draw()
+	animate: (svg, onComplete = ->) -> @character.animate(onComplete)
+	setCanvas: (canvas) ->
+		super
+		@character.setCanvas(@getNestedCanvas())
 
 module.exports = CharacterPositioner

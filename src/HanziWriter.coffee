@@ -29,12 +29,17 @@ class HanziWriter
 		@options[key] = value for key, value of options
 		@setCharacter(character)
 		@setupListeners()
-		@positioner.animate(@svg)
+		@character.draw()
+
+	showCharacter: (animationOptions) -> @character.show(animationOptions)
+	hideCharacter: (animationOptions) -> @character.hide(animationOptions)
+	animateCharacter: (animationOptions) -> @character.animate() 
 
 	setCharacter: (char) ->
 		pathStrings = @options.charDataLoader(char)
 		@character = new Character(pathStrings, @options)
 		@positioner = new CharacterPositioner(@character, @options)
+		@positioner.setCanvas(@svg)
 
 	setupListeners: ->
 		@svg.node.addEventListener 'mousedown', (e) => @startUserStroke(@getPoint(e))
@@ -45,10 +50,12 @@ class HanziWriter
 		@point = point
 		return @endUserStroke() if @userStroke
 		@userStroke = new UserStroke(point, @options)
+		@userStroke.setCanvas(@svg)
 		window.lastUserStroke = @userStroke
-		@userStroke.draw(@svg)
+		@userStroke.draw()
 	continueUserStroke: (point) ->
 		@userStroke.appendPoint(point) if @userStroke
+
 	endUserStroke: ->
 		return unless @userStroke
 		translatedPoints = @positioner.convertExternalPoints(@userStroke.getPoints())

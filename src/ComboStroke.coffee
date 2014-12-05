@@ -7,9 +7,15 @@ class ComboStroke extends Drawable
 	constructor: (@strokes, @options = {}) ->
 		stroke.setAnimationSpeedupRatio(@strokes.length) for stroke in @strokes
 
-	draw: (svg) -> stroke.draw(svg) for stroke in @strokes
+	show: (animationOptions = {}) ->
+		stroke.show(animationOptions) for stroke in @strokes
 
-	animate: (svg, onComplete = ->) -> @animateStroke(svg, onComplete, 0)
+	hide: (animationOptions = {}) ->
+		stroke.hide(animationOptions) for stroke in @strokes
+
+	draw: -> stroke.draw(@canvas) for stroke in @strokes
+
+	animate: (onComplete = ->) -> @animateStroke(onComplete, 0)
 
 	getDistance: (point) ->
 		distances = (stroke.getDistance(point) for stroke in @strokes)
@@ -34,13 +40,17 @@ class ComboStroke extends Drawable
 			bounds.push strokeBounds[1]
 		return bounds
 
+	setCanvas: (canvas) ->
+		super
+		stroke.setCanvas(canvas) for stroke in @strokes
+
 	highlight: -> stroke.highlight() for stroke in @strokes
 
-	animateStroke: (svg, onComplete, strokeNum) ->
+	animateStroke: (onComplete, strokeNum) ->
 		stroke = @strokes[strokeNum]
-		stroke.animate svg, =>
+		stroke.animate =>
 			if strokeNum < @strokes.length - 1
-				@animateStroke(svg, onComplete, strokeNum + 1)
+				@animateStroke(onComplete, strokeNum + 1)
 			else
 				onComplete()
 

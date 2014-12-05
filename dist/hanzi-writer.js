@@ -3978,39 +3978,84 @@ Character = (function(_super) {
         bestAvgDist = avgDist;
       }
     }
-    console.log(bestAvgDist);
     if (bestAvgDist < Character.DISTANCE_THRESHOLD) {
       return closestStroke;
     }
   };
 
-  Character.prototype.draw = function(svg) {
+  Character.prototype.show = function(animationOptions) {
+    var stroke, _i, _len, _ref, _results;
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.show(animationOptions));
+    }
+    return _results;
+  };
+
+  Character.prototype.hide = function(animationOptions) {
+    var stroke, _i, _len, _ref, _results;
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.hide(animationOptions));
+    }
+    return _results;
+  };
+
+  Character.prototype.draw = function() {
     var stroke, _i, _len, _ref, _results;
     _ref = this.strokes;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       stroke = _ref[_i];
-      _results.push(stroke.draw(svg));
+      _results.push(stroke.draw());
     }
     return _results;
   };
 
-  Character.prototype.animate = function(svg, onComplete) {
+  Character.prototype.animate = function(onComplete) {
     if (onComplete == null) {
       onComplete = function() {};
     }
-    return this.animateStroke(svg, onComplete, 0);
+    return this.hide({
+      onComplete: (function(_this) {
+        return function() {
+          return _this.animateStroke(onComplete, 0);
+        };
+      })(this)
+    });
   };
 
-  Character.prototype.animateStroke = function(svg, onComplete, strokeNum) {
+  Character.prototype.setCanvas = function(canvas) {
+    var stroke, _i, _len, _ref, _results;
+    Character.__super__.setCanvas.apply(this, arguments);
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.setCanvas(canvas));
+    }
+    return _results;
+  };
+
+  Character.prototype.animateStroke = function(onComplete, strokeNum) {
     var stroke;
     stroke = this.strokes[strokeNum];
-    return stroke.animate(svg, (function(_this) {
+    return stroke.animate((function(_this) {
       return function() {
         var nextStroke;
         if (strokeNum < _this.strokes.length - 1) {
           nextStroke = function() {
-            return _this.animateStroke(svg, onComplete, strokeNum + 1);
+            return _this.animateStroke(onComplete, strokeNum + 1);
           };
           return setTimeout(nextStroke, _this.options.delayBetweenStrokes);
         } else {
@@ -4064,9 +4109,9 @@ CharacterPositioner = (function(_super) {
     };
   };
 
-  CharacterPositioner.prototype.nestSvg = function(svg) {
+  CharacterPositioner.prototype.getNestedCanvas = function() {
     this.calculateScaleAndOffset();
-    return svg.group().move(this.xOffset, this.yOffset).transform({
+    return this.canvas.group().move(this.xOffset, this.yOffset).transform({
       scaleX: this.scale,
       scaleY: this.scale
     });
@@ -4088,15 +4133,20 @@ CharacterPositioner = (function(_super) {
     return this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
   };
 
-  CharacterPositioner.prototype.draw = function(svg) {
-    return this.character.draw(this.nestSvg(svg));
+  CharacterPositioner.prototype.draw = function() {
+    return this.character.draw();
   };
 
   CharacterPositioner.prototype.animate = function(svg, onComplete) {
     if (onComplete == null) {
       onComplete = function() {};
     }
-    return this.character.animate(this.nestSvg(svg), onComplete);
+    return this.character.animate(onComplete);
+  };
+
+  CharacterPositioner.prototype.setCanvas = function(canvas) {
+    CharacterPositioner.__super__.setCanvas.apply(this, arguments);
+    return this.character.setCanvas(this.getNestedCanvas());
   };
 
   return CharacterPositioner;
@@ -4128,22 +4178,50 @@ ComboStroke = (function(_super) {
     }
   }
 
-  ComboStroke.prototype.draw = function(svg) {
+  ComboStroke.prototype.show = function(animationOptions) {
+    var stroke, _i, _len, _ref, _results;
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.show(animationOptions));
+    }
+    return _results;
+  };
+
+  ComboStroke.prototype.hide = function(animationOptions) {
+    var stroke, _i, _len, _ref, _results;
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.hide(animationOptions));
+    }
+    return _results;
+  };
+
+  ComboStroke.prototype.draw = function() {
     var stroke, _i, _len, _ref, _results;
     _ref = this.strokes;
     _results = [];
     for (_i = 0, _len = _ref.length; _i < _len; _i++) {
       stroke = _ref[_i];
-      _results.push(stroke.draw(svg));
+      _results.push(stroke.draw(this.canvas));
     }
     return _results;
   };
 
-  ComboStroke.prototype.animate = function(svg, onComplete) {
+  ComboStroke.prototype.animate = function(onComplete) {
     if (onComplete == null) {
       onComplete = function() {};
     }
-    return this.animateStroke(svg, onComplete, 0);
+    return this.animateStroke(onComplete, 0);
   };
 
   ComboStroke.prototype.getDistance = function(point) {
@@ -4200,6 +4278,18 @@ ComboStroke = (function(_super) {
     return bounds;
   };
 
+  ComboStroke.prototype.setCanvas = function(canvas) {
+    var stroke, _i, _len, _ref, _results;
+    ComboStroke.__super__.setCanvas.apply(this, arguments);
+    _ref = this.strokes;
+    _results = [];
+    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
+      stroke = _ref[_i];
+      _results.push(stroke.setCanvas(canvas));
+    }
+    return _results;
+  };
+
   ComboStroke.prototype.highlight = function() {
     var stroke, _i, _len, _ref, _results;
     _ref = this.strokes;
@@ -4211,13 +4301,13 @@ ComboStroke = (function(_super) {
     return _results;
   };
 
-  ComboStroke.prototype.animateStroke = function(svg, onComplete, strokeNum) {
+  ComboStroke.prototype.animateStroke = function(onComplete, strokeNum) {
     var stroke;
     stroke = this.strokes[strokeNum];
-    return stroke.animate(svg, (function(_this) {
+    return stroke.animate((function(_this) {
       return function() {
         if (strokeNum < _this.strokes.length - 1) {
-          return _this.animateStroke(svg, onComplete, strokeNum + 1);
+          return _this.animateStroke(onComplete, strokeNum + 1);
         } else {
           return onComplete();
         }
@@ -4239,15 +4329,19 @@ var Drawable;
 Drawable = (function() {
   function Drawable() {}
 
-  Drawable.prototype.draw = function(svg) {};
+  Drawable.prototype.draw = function() {};
 
-  Drawable.prototype.animate = function(svg, onComplete) {
+  Drawable.prototype.animate = function(onComplete) {
     if (onComplete == null) {
       onComplete = function() {};
     }
   };
 
   Drawable.prototype.getBounds = function() {};
+
+  Drawable.prototype.setCanvas = function(canvas) {
+    this.canvas = canvas;
+  };
 
 
   /* convenience methods for children */
@@ -4336,14 +4430,27 @@ HanziWriter = (function() {
     }
     this.setCharacter(character);
     this.setupListeners();
-    this.positioner.animate(this.svg);
+    this.character.draw();
   }
+
+  HanziWriter.prototype.showCharacter = function(animationOptions) {
+    return this.character.show(animationOptions);
+  };
+
+  HanziWriter.prototype.hideCharacter = function(animationOptions) {
+    return this.character.hide(animationOptions);
+  };
+
+  HanziWriter.prototype.animateCharacter = function(animationOptions) {
+    return this.character.animate();
+  };
 
   HanziWriter.prototype.setCharacter = function(char) {
     var pathStrings;
     pathStrings = this.options.charDataLoader(char);
     this.character = new Character(pathStrings, this.options);
-    return this.positioner = new CharacterPositioner(this.character, this.options);
+    this.positioner = new CharacterPositioner(this.character, this.options);
+    return this.positioner.setCanvas(this.svg);
   };
 
   HanziWriter.prototype.setupListeners = function() {
@@ -4370,8 +4477,9 @@ HanziWriter = (function() {
       return this.endUserStroke();
     }
     this.userStroke = new UserStroke(point, this.options);
+    this.userStroke.setCanvas(this.svg);
     window.lastUserStroke = this.userStroke;
-    return this.userStroke.draw(this.svg);
+    return this.userStroke.draw();
   };
 
   HanziWriter.prototype.continueUserStroke = function(point) {
@@ -4390,7 +4498,6 @@ HanziWriter = (function() {
     if (this.matchingStroke) {
       this.matchingStroke.highlight();
     }
-    console.log(this.matchingStroke);
     this.userStroke.fadeAndRemove();
     return this.userStroke = null;
   };
@@ -4447,8 +4554,8 @@ Path = (function(_super) {
     return pathString;
   };
 
-  Path.prototype.drawPath = function(svg) {
-    return svg.path(this.getPathString());
+  Path.prototype.drawPath = function() {
+    return this.path = this.canvas.path(this.getPathString());
   };
 
   Path.prototype.getPoints = function() {
@@ -4470,8 +4577,8 @@ Path = (function(_super) {
     ];
   };
 
-  Path.prototype.draw = function(svg) {
-    return this.path = this.drawPath(svg);
+  Path.prototype.draw = function() {
+    return this.drawPath();
   };
 
   return Path;
@@ -4619,10 +4726,10 @@ Stroke = (function(_super) {
     var end, start;
     start = this.getStrokeAnimationStartingPoint();
     end = this.getStrokeAnimationEndingPoint();
-    this.svg.circle(10).attr({
+    this.canvas.circle(10).attr({
       fill: '#9F9'
     }).move(start.x, start.y);
-    return this.svg.circle(10).attr({
+    return this.canvas.circle(10).attr({
       fill: '#9F9'
     }).move(end.x, end.y);
   };
@@ -4647,15 +4754,39 @@ Stroke = (function(_super) {
     })(this));
   };
 
-  Stroke.prototype.animate = function(svg, onComplete) {
+  Stroke.prototype.draw = function() {
+    return Stroke.__super__.draw.apply(this, arguments).attr(this.options.strokeAttrs).attr({
+      opacity: 0
+    });
+  };
+
+  Stroke.prototype.show = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    return this.path.animate(animationOptions.duration || 300).opacity(1).after(animationOptions.onComplete || function() {});
+  };
+
+  Stroke.prototype.hide = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    return this.path.animate(animationOptions.duration || 300).opacity(0).after(animationOptions.onComplete || function() {});
+  };
+
+  Stroke.prototype.animate = function(onComplete) {
     var mask, start;
-    this.svg = svg;
     if (onComplete == null) {
       onComplete = function() {};
     }
     start = this.getStrokeAnimationStartingPoint();
-    mask = this.svg.circle(0).center(start.x, start.y);
-    this.path = this.drawPath(this.svg).attr(this.options.strokeAttrs).clipWith(mask);
+    mask = this.canvas.circle(0).center(start.x, start.y);
+    if (!this.path) {
+      this.drawPath();
+    }
+    this.path.attr({
+      opacity: 1
+    }).attr(this.options.strokeAttrs).clipWith(mask);
     return mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
   };
 
@@ -4687,14 +4818,14 @@ UserStroke = (function(_super) {
     return this.path.plot(this.getPathString());
   };
 
-  UserStroke.prototype.animate = function(svg, onComplete) {
+  UserStroke.prototype.animate = function(onComplete) {
     if (onComplete == null) {
       onComplete = function() {};
     }
     return onComplete();
   };
 
-  UserStroke.prototype.draw = function(svg) {
+  UserStroke.prototype.draw = function() {
     return UserStroke.__super__.draw.apply(this, arguments).attr(this.options.userStrokeAttrs);
   };
 

@@ -2,6 +2,7 @@ Character = require('./Character.coffee')
 UserStroke = require('./UserStroke.coffee')
 CharacterPositioner = require('./CharacterPositioner.coffee')
 SVG = require('svg.js')
+extend = require('util')._extend
 
 class HanziWriter
 
@@ -23,22 +24,33 @@ class HanziWriter
 			fill: '#555'
 			stroke: '#555'
 			'stroke-width': 2
+		hintAttrs:
+			fill: '#DDD'
+			stroke: '#DDD'
+			'stroke-width': 2
 
 	constructor: (element, character, options = {}) ->
 		@svg = SVG(element)
 		@options[key] = value for key, value of options
 		@setCharacter(character)
 		@setupListeners()
+		@hint.draw()
 		@character.draw()
 
 	showCharacter: (animationOptions) -> @character.show(animationOptions)
 	hideCharacter: (animationOptions) -> @character.hide(animationOptions)
 	animateCharacter: (animationOptions) -> @character.animate() 
 
+	showHint: (animationOptions) -> @hint.show(animationOptions)
+	hideHint: (animationOptions) -> @hint.hide(animationOptions)
+
 	setCharacter: (char) ->
 		pathStrings = @options.charDataLoader(char)
 		@character = new Character(pathStrings, @options)
+		@hint = new Character(pathStrings, @getHintOptions())
 		@positioner = new CharacterPositioner(@character, @options)
+		@hintPositioner = new CharacterPositioner(@hint, @options)
+		@hintPositioner.setCanvas(@svg)
 		@positioner.setCanvas(@svg)
 
 	setupListeners: ->
@@ -65,6 +77,11 @@ class HanziWriter
 		@userStroke = null
 
 	getPoint: (evt) -> {x: evt.offsetX, y: evt.offsetY}
+
+	getHintOptions: ->
+		hintOptions = extend({}, @options)
+		hintOptions.strokeAttrs = @options.hintAttrs
+		hintOptions
 
 # set up window.HanziWriter if we're in the browser
 if typeof window != 'undefined'

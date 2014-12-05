@@ -11,6 +11,12 @@ window.onload = function() {
 	document.querySelector('.js-hide').addEventListener('click', function() {
 		writer.hideCharacter();
 	});
+	document.querySelector('.js-show-hint').addEventListener('click', function() {
+		writer.showHint();
+	});
+	document.querySelector('.js-hide-hint').addEventListener('click', function() {
+		writer.hideHint();
+	});
 	document.querySelector('.js-animate').addEventListener('click', function() {
 		writer.animateCharacter();
 	});

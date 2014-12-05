@@ -1,6 +1,6 @@
-Drawable = require('./Drawable.coffee')
+Path = require('./Path.coffee')
 
-class Stroke extends Drawable
+class Stroke extends Path
 
 	@HORIZONTAL_STROKE = 1
 	@BACK_SLASH_STROKE = 2
@@ -19,20 +19,11 @@ class Stroke extends Drawable
 		@strokeType = parseInt(metadataString[1])
 		@animationSpeedupRatio = 1
 
-	getPathString: ->
-		start = @points[0]
-		remainingPoints = @points[1..-1]
-		pathString = "M #{start.x} #{start.y}"
-		for  point in remainingPoints
-			pathString += " L #{point.x} #{point.y}"
-		pathString += " z"
-		return pathString
+	getPathString: -> super + ' z'
 
 	parsePoint: (pointString) ->
 		pointArr = pointString.split(',')
 		return {x: pointArr[0], y: pointArr[1]}
-
-	drawPath: (svg) -> svg.path(@getPathString(), @attrs)
 
 	setAnimationSpeedupRatio: (@animationSpeedupRatio) ->
 
@@ -59,17 +50,10 @@ class Stroke extends Drawable
 			when Stroke.VERTICAL_STROKE then {x: extremeXs[midIndex], y: extremeYs[minIndex]}
 			when Stroke.FORWARD_SLASH_STROKE then {x: extremeXs[maxIndex], y: extremeYs[minIndex]}
 
-	getBounds: ->
-		[maxY, midY, minY] = @getExtremes(@getAllYs(@points))
-		[maxX, midX, minX] = @getExtremes(@getAllXs(@points))
-		return [{x: minX, y: minY}, {x: maxX, y: maxY}]
-
 	getStrokeAnimationDistance: ->
 		start = @getStrokeAnimationStartingPoint()
 		end = @getStrokeAnimationEndingPoint()
 		return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))
-
-	draw: (svg) -> @drawPath(svg)
 
 	animate: (svg, onComplete = ->) ->
 		start = @getStrokeAnimationStartingPoint()

@@ -1,7 +1,7 @@
 class Drawable
 
-	draw: -> # implement in children
-	animate: -> # implement in children
+	draw: (svg) -> # implement in children
+	animate: (svg, onComplete = ->) -> # implement in children
 	getBounds: -> # implement in children
 
 	### convenience methods for children ###

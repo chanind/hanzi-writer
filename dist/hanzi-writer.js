@@ -4007,7 +4007,7 @@ module.exports = Character;
 
 
 
-},{"./ComboStroke.coffee":4,"./Drawable.coffee":5,"./Stroke.coffee":7}],3:[function(require,module,exports){
+},{"./ComboStroke.coffee":4,"./Drawable.coffee":5,"./Stroke.coffee":8}],3:[function(require,module,exports){
 var CharacterPositioner, Drawable,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
@@ -4159,9 +4159,13 @@ var Drawable;
 Drawable = (function() {
   function Drawable() {}
 
-  Drawable.prototype.draw = function() {};
+  Drawable.prototype.draw = function(svg) {};
 
-  Drawable.prototype.animate = function() {};
+  Drawable.prototype.animate = function(svg, onComplete) {
+    if (onComplete == null) {
+      onComplete = function() {};
+    }
+  };
 
   Drawable.prototype.getBounds = function() {};
 
@@ -4205,9 +4209,11 @@ module.exports = Drawable;
 
 
 },{}],6:[function(require,module,exports){
-var Character, CharacterPositioner, HanziWriter, SVG, previousHanziWriter;
+var Character, CharacterPositioner, HanziWriter, SVG, UserStroke, previousHanziWriter;
 
 Character = require('./Character.coffee');
+
+UserStroke = require('./UserStroke.coffee');
 
 CharacterPositioner = require('./CharacterPositioner.coffee');
 
@@ -4222,10 +4228,16 @@ HanziWriter = (function() {
     height: null,
     padding: 20,
     strokeAnimationDuration: 300,
+    userStrokeFadeDuration: 300,
     delayBetweenStrokes: 1000,
-    strokeAttrs: {
-      fill: '#333',
+    userStrokeAttrs: {
+      fill: 'none',
       stroke: '#333',
+      'stroke-width': 4
+    },
+    strokeAttrs: {
+      fill: '#555',
+      stroke: '#555',
       'stroke-width': 2
     }
   };
@@ -4241,6 +4253,7 @@ HanziWriter = (function() {
       this.options[key] = value;
     }
     this.setCharacter(character);
+    this.setupListeners();
     this.positioner.animate(this.svg);
   }
 
@@ -4249,6 +4262,52 @@ HanziWriter = (function() {
     pathStrings = this.options.charDataLoader(char);
     this.character = new Character(pathStrings, this.options);
     return this.positioner = new CharacterPositioner(this.character, this.options);
+  };
+
+  HanziWriter.prototype.setupListeners = function() {
+    this.svg.node.addEventListener('mousedown', (function(_this) {
+      return function(e) {
+        return _this.startUserStroke(_this.getPoint(e));
+      };
+    })(this));
+    this.svg.node.addEventListener('mousemove', (function(_this) {
+      return function(e) {
+        return _this.continueUserStroke(_this.getPoint(e));
+      };
+    })(this));
+    return document.addEventListener('mouseup', (function(_this) {
+      return function(e) {
+        return _this.endUserStroke();
+      };
+    })(this));
+  };
+
+  HanziWriter.prototype.startUserStroke = function(point) {
+    if (this.userStroke) {
+      this.userStroke.fadeAndRemove();
+      return this.userStroke = null;
+    } else {
+      this.userStroke = new UserStroke(point, this.options);
+      return this.userStroke.draw(this.svg);
+    }
+  };
+
+  HanziWriter.prototype.continueUserStroke = function(point) {
+    if (this.userStroke) {
+      return this.userStroke.appendPoint(point);
+    }
+  };
+
+  HanziWriter.prototype.endUserStroke = function() {
+    this.userStroke.fadeAndRemove();
+    return this.userStroke = null;
+  };
+
+  HanziWriter.prototype.getPoint = function(evt) {
+    return {
+      x: evt.offsetX,
+      y: evt.offsetY
+    };
   };
 
   return HanziWriter;
@@ -4270,12 +4329,69 @@ if (typeof module !== 'undefined' && module.exports) {
 
 
 
-},{"./Character.coffee":2,"./CharacterPositioner.coffee":3,"svg.js":1}],7:[function(require,module,exports){
-var Drawable, Stroke,
+},{"./Character.coffee":2,"./CharacterPositioner.coffee":3,"./UserStroke.coffee":9,"svg.js":1}],7:[function(require,module,exports){
+var Drawable, Path,
   __hasProp = {}.hasOwnProperty,
   __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
 
 Drawable = require('./Drawable.coffee');
+
+Path = (function(_super) {
+  __extends(Path, _super);
+
+  function Path() {
+    return Path.__super__.constructor.apply(this, arguments);
+  }
+
+  Path.prototype.getPathString = function() {
+    var pathString, point, remainingPoints, start, _i, _len;
+    start = this.points[0];
+    remainingPoints = this.points.slice(1);
+    pathString = "M " + start.x + " " + start.y;
+    for (_i = 0, _len = remainingPoints.length; _i < _len; _i++) {
+      point = remainingPoints[_i];
+      pathString += " L " + point.x + " " + point.y;
+    }
+    return pathString;
+  };
+
+  Path.prototype.drawPath = function(svg) {
+    return svg.path(this.getPathString());
+  };
+
+  Path.prototype.getBounds = function() {
+    var maxX, maxY, midX, midY, minX, minY, _ref, _ref1;
+    _ref = this.getExtremes(this.getAllYs(this.points)), maxY = _ref[0], midY = _ref[1], minY = _ref[2];
+    _ref1 = this.getExtremes(this.getAllXs(this.points)), maxX = _ref1[0], midX = _ref1[1], minX = _ref1[2];
+    return [
+      {
+        x: minX,
+        y: minY
+      }, {
+        x: maxX,
+        y: maxY
+      }
+    ];
+  };
+
+  Path.prototype.draw = function(svg) {
+    return this.path = this.drawPath(svg);
+  };
+
+  return Path;
+
+})(Drawable);
+
+module.exports = Path;
+
+
+
+},{"./Drawable.coffee":5}],8:[function(require,module,exports){
+var Path, Stroke,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Path = require('./Path.coffee');
 
 Stroke = (function(_super) {
   __extends(Stroke, _super);
@@ -4317,16 +4433,7 @@ Stroke = (function(_super) {
   }
 
   Stroke.prototype.getPathString = function() {
-    var pathString, point, remainingPoints, start, _i, _len;
-    start = this.points[0];
-    remainingPoints = this.points.slice(1);
-    pathString = "M " + start.x + " " + start.y;
-    for (_i = 0, _len = remainingPoints.length; _i < _len; _i++) {
-      point = remainingPoints[_i];
-      pathString += " L " + point.x + " " + point.y;
-    }
-    pathString += " z";
-    return pathString;
+    return Stroke.__super__.getPathString.apply(this, arguments) + ' z';
   };
 
   Stroke.prototype.parsePoint = function(pointString) {
@@ -4336,10 +4443,6 @@ Stroke = (function(_super) {
       x: pointArr[0],
       y: pointArr[1]
     };
-  };
-
-  Stroke.prototype.drawPath = function(svg) {
-    return svg.path(this.getPathString(), this.attrs);
   };
 
   Stroke.prototype.setAnimationSpeedupRatio = function(animationSpeedupRatio) {
@@ -4389,30 +4492,11 @@ Stroke = (function(_super) {
     }
   };
 
-  Stroke.prototype.getBounds = function() {
-    var maxX, maxY, midX, midY, minX, minY, _ref, _ref1;
-    _ref = this.getExtremes(this.getAllYs(this.points)), maxY = _ref[0], midY = _ref[1], minY = _ref[2];
-    _ref1 = this.getExtremes(this.getAllXs(this.points)), maxX = _ref1[0], midX = _ref1[1], minX = _ref1[2];
-    return [
-      {
-        x: minX,
-        y: minY
-      }, {
-        x: maxX,
-        y: maxY
-      }
-    ];
-  };
-
   Stroke.prototype.getStrokeAnimationDistance = function() {
     var end, start;
     start = this.getStrokeAnimationStartingPoint();
     end = this.getStrokeAnimationEndingPoint();
     return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
-  };
-
-  Stroke.prototype.draw = function(svg) {
-    return this.drawPath(svg);
   };
 
   Stroke.prototype.animate = function(svg, onComplete) {
@@ -4428,10 +4512,59 @@ Stroke = (function(_super) {
 
   return Stroke;
 
-})(Drawable);
+})(Path);
 
 module.exports = Stroke;
 
 
 
-},{"./Drawable.coffee":5}]},{},[2,3,4,5,6,7]);
+},{"./Path.coffee":7}],9:[function(require,module,exports){
+var Path, UserStroke,
+  __hasProp = {}.hasOwnProperty,
+  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+
+Path = require('./Path.coffee');
+
+UserStroke = (function(_super) {
+  __extends(UserStroke, _super);
+
+  function UserStroke(startingPoint, options) {
+    this.options = options != null ? options : {};
+    this.points = [startingPoint];
+  }
+
+  UserStroke.prototype.appendPoint = function(point) {
+    this.points.push(point);
+    return this.path.plot(this.getPathString());
+  };
+
+  UserStroke.prototype.animate = function(svg, onComplete) {
+    if (onComplete == null) {
+      onComplete = function() {};
+    }
+    return onComplete();
+  };
+
+  UserStroke.prototype.draw = function(svg) {
+    return UserStroke.__super__.draw.apply(this, arguments).attr(this.options.userStrokeAttrs);
+  };
+
+  UserStroke.prototype.fadeAndRemove = function() {
+    return this.path.animate(this.options.userStrokeFadeDuration).attr({
+      opacity: 0
+    }).after((function(_this) {
+      return function() {
+        return _this.path.remove();
+      };
+    })(this));
+  };
+
+  return UserStroke;
+
+})(Path);
+
+module.exports = UserStroke;
+
+
+
+},{"./Path.coffee":7}]},{},[2,3,4,5,6,7,8,9]);

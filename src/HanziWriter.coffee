@@ -1,4 +1,5 @@
 Character = require('./Character.coffee')
+UserStroke = require('./UserStroke.coffee')
 CharacterPositioner = require('./CharacterPositioner.coffee')
 SVG = require('svg.js')
 
@@ -10,22 +11,46 @@ class HanziWriter
 		height: null
 		padding: 20
 		strokeAnimationDuration: 300
+		userStrokeFadeDuration: 300
 		delayBetweenStrokes: 1000
-		strokeAttrs:
-			fill: '#333'
+		userStrokeAttrs:
+			fill: 'none'
 			stroke: '#333'
+			'stroke-width': 4
+		strokeAttrs:
+			fill: '#555'
+			stroke: '#555'
 			'stroke-width': 2
 
 	constructor: (element, character, options = {}) ->
 		@svg = SVG(element)
 		@options[key] = value for key, value of options
 		@setCharacter(character)
+		@setupListeners()
 		@positioner.animate(@svg)
 
 	setCharacter: (char) ->
 		pathStrings = @options.charDataLoader(char)
 		@character = new Character(pathStrings, @options)
 		@positioner = new CharacterPositioner(@character, @options)
+
+	setupListeners: ->
+		@svg.node.addEventListener 'mousedown', (e) => @startUserStroke(@getPoint(e))
+		@svg.node.addEventListener 'mousemove', (e) => @continueUserStroke(@getPoint(e))
+		document.addEventListener 'mouseup', (e) => @endUserStroke()
+
+	startUserStroke: (point) ->
+		return @endUserStroke() if @userStroke
+		@userStroke = new UserStroke(point, @options)
+		@userStroke.draw(@svg)
+	continueUserStroke: (point) ->
+		@userStroke.appendPoint(point) if @userStroke
+	endUserStroke: ->
+		return unless @userStroke
+		@userStroke.fadeAndRemove()
+		@userStroke = null
+
+	getPoint: (evt) -> {x: evt.offsetX, y: evt.offsetY}
 
 # set up window.HanziWriter if we're in the browser
 if typeof window != 'undefined'

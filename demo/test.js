@@ -5,6 +5,9 @@ window.onload = function() {
 		height: 400
 	});
 
+	writer.showHint();
+	writer.showCharacter();
+
 	document.querySelector('.js-show').addEventListener('click', function() {
 		writer.showCharacter();
 	});
@@ -19,5 +22,11 @@ window.onload = function() {
 	});
 	document.querySelector('.js-animate').addEventListener('click', function() {
 		writer.animateCharacter();
+	});
+	document.querySelector('.js-quiz').addEventListener('click', function() {
+		writer.quiz({
+			enforceStrokeOrder: true,
+			showHint: true
+		});
 	});
 }

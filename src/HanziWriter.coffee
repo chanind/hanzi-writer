@@ -12,7 +12,7 @@ class HanziWriter
 		height: null
 		padding: 20
 		strokeAnimationDuration: 300
-		strokeHighlightDuration: 600
+		strokeHighlightDuration: 500
 		strokeHighlightColor: '#AAF'
 		userStrokeFadeDuration: 300
 		delayBetweenStrokes: 1000
@@ -37,12 +37,21 @@ class HanziWriter
 		@hint.draw()
 		@character.draw()
 
-	showCharacter: (animationOptions) -> @character.show(animationOptions)
-	hideCharacter: (animationOptions) -> @character.hide(animationOptions)
-	animateCharacter: (animationOptions) -> @character.animate() 
+	showCharacter: (animationOptions = {}) -> @character.show(animationOptions)
+	hideCharacter: (animationOptions = {}) -> @character.hide(animationOptions)
+	animateCharacter: (animationOptions = {}) -> @character.animate() 
 
-	showHint: (animationOptions) -> @hint.show(animationOptions)
-	hideHint: (animationOptions) -> @hint.hide(animationOptions)
+	showHint: (animationOptions = {}) -> @hint.show(animationOptions)
+	hideHint: (animationOptions = {}) -> @hint.hide(animationOptions)
+
+	quiz: (quizOptions = {}) ->
+		@isQuizzing = true
+		@hideCharacter(quizOptions)
+		if quizOptions.showHint then @showHint() else @hideHint()
+		@enforceStrokeOrder = quizOptions.enforceStrokeOrder
+		@currentStrokeIndex = 0
+		@numRecentMistakes = 0
+		@drawnStrokes = []
 
 	setCharacter: (char) ->
 		pathStrings = @options.charDataLoader(char)
@@ -71,10 +80,20 @@ class HanziWriter
 	endUserStroke: ->
 		return unless @userStroke
 		translatedPoints = @positioner.convertExternalPoints(@userStroke.getPoints())
-		@matchingStroke = @character.getMatchingStroke(translatedPoints)
-		@matchingStroke.highlight() if @matchingStroke
+		matchingStroke = @character.getMatchingStroke(translatedPoints)
 		@userStroke.fadeAndRemove()
 		@userStroke = null
+		return unless @isQuizzing
+		isValidStroke = matchingStroke and matchingStroke not in @drawnStrokes
+		if isValidStroke and (!@enforceStrokeOrder or matchingStroke == @character.getStroke(@currentStrokeIndex))
+			@drawnStrokes.push(matchingStroke)
+			@currentStrokeIndex += 1
+			@numRecentMistakes = 0
+			matchingStroke.show()
+			@isQuizzing = false if @drawnStrokes.length == @character.getNumStrokes()
+		else
+			@numRecentMistakes += 1
+			@character.getStroke(@currentStrokeIndex).highlight() if @numRecentMistakes > 3
 
 	getPoint: (evt) -> {x: evt.offsetX, y: evt.offsetY}
 

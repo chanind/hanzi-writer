@@ -50,6 +50,11 @@ class Character extends Drawable
 	hide: (animationOptions = {}) ->
 		stroke.hide(animationOptions) for stroke in @strokes
 
+	showStroke: (strokeNum, animationOptions = {}) -> @getStroke(strokeNum).show(animationOptions)
+
+	getStroke: (strokeNum) -> @strokes[strokeNum]
+	getNumStrokes: -> @strokes.length
+
 	draw: -> stroke.draw() for stroke in @strokes
 	animate: (onComplete = ->) ->
 		@hide 

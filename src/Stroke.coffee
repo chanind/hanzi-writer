@@ -76,11 +76,15 @@ class Stroke extends Path
 		@canvas.circle(10).attr(fill: '#9F9').move(end.x, end.y)
 
 	highlight: ->
-		animateHl = (color, onComplete = ->) =>
-			 @path.animate(@options.strokeHighlightDuration)
-			 	.attr({ fill: color, stroke: color })
-			 	.after(onComplete)
-		animateHl(@options.strokeHighlightColor, => animateHl(@options.strokeAttrs.fill))
+		@path.animate(@options.strokeHighlightDuration)
+			.attr
+				fill: @options.strokeHighlightColor
+				stroke: @options.strokeHighlightColor
+				opacity: 1
+			.after =>
+				@path.animate(@options.strokeHighlightDuration)
+					.attr opacity: 0
+					.after => @path.attr(@options.strokeAttrs)
 
 	draw: ->
 		super.attr(@options.strokeAttrs).attr(opacity: 0)

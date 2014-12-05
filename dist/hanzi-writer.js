@@ -4698,6 +4698,21 @@ Character = (function(_super) {
     return _results;
   };
 
+  Character.prototype.showStroke = function(strokeNum, animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
+    return this.getStroke(strokeNum).show(animationOptions);
+  };
+
+  Character.prototype.getStroke = function(strokeNum) {
+    return this.strokes[strokeNum];
+  };
+
+  Character.prototype.getNumStrokes = function() {
+    return this.strokes.length;
+  };
+
   Character.prototype.draw = function() {
     var stroke, _i, _len, _ref, _results;
     _ref = this.strokes;
@@ -5070,7 +5085,8 @@ module.exports = Drawable;
 
 
 },{}],10:[function(require,module,exports){
-var Character, CharacterPositioner, HanziWriter, SVG, UserStroke, extend, previousHanziWriter;
+var Character, CharacterPositioner, HanziWriter, SVG, UserStroke, extend, previousHanziWriter,
+  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
 
 Character = require('./Character.coffee');
 
@@ -5091,7 +5107,7 @@ HanziWriter = (function() {
     height: null,
     padding: 20,
     strokeAnimationDuration: 300,
-    strokeHighlightDuration: 600,
+    strokeHighlightDuration: 500,
     strokeHighlightColor: '#AAF',
     userStrokeFadeDuration: 300,
     delayBetweenStrokes: 1000,
@@ -5129,23 +5145,55 @@ HanziWriter = (function() {
   }
 
   HanziWriter.prototype.showCharacter = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
     return this.character.show(animationOptions);
   };
 
   HanziWriter.prototype.hideCharacter = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
     return this.character.hide(animationOptions);
   };
 
   HanziWriter.prototype.animateCharacter = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
     return this.character.animate();
   };
 
   HanziWriter.prototype.showHint = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
     return this.hint.show(animationOptions);
   };
 
   HanziWriter.prototype.hideHint = function(animationOptions) {
+    if (animationOptions == null) {
+      animationOptions = {};
+    }
     return this.hint.hide(animationOptions);
+  };
+
+  HanziWriter.prototype.quiz = function(quizOptions) {
+    if (quizOptions == null) {
+      quizOptions = {};
+    }
+    this.isQuizzing = true;
+    this.hideCharacter(quizOptions);
+    if (quizOptions.showHint) {
+      this.showHint();
+    } else {
+      this.hideHint();
+    }
+    this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
+    this.currentStrokeIndex = 0;
+    this.numRecentMistakes = 0;
+    return this.drawnStrokes = [];
   };
 
   HanziWriter.prototype.setCharacter = function(char) {
@@ -5195,17 +5243,32 @@ HanziWriter = (function() {
   };
 
   HanziWriter.prototype.endUserStroke = function() {
-    var translatedPoints;
+    var isValidStroke, matchingStroke, translatedPoints;
     if (!this.userStroke) {
       return;
     }
     translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-    this.matchingStroke = this.character.getMatchingStroke(translatedPoints);
-    if (this.matchingStroke) {
-      this.matchingStroke.highlight();
-    }
+    matchingStroke = this.character.getMatchingStroke(translatedPoints);
     this.userStroke.fadeAndRemove();
-    return this.userStroke = null;
+    this.userStroke = null;
+    if (!this.isQuizzing) {
+      return;
+    }
+    isValidStroke = matchingStroke && __indexOf.call(this.drawnStrokes, matchingStroke) < 0;
+    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
+      this.drawnStrokes.push(matchingStroke);
+      this.currentStrokeIndex += 1;
+      this.numRecentMistakes = 0;
+      matchingStroke.show();
+      if (this.drawnStrokes.length === this.character.getNumStrokes()) {
+        return this.isQuizzing = false;
+      }
+    } else {
+      this.numRecentMistakes += 1;
+      if (this.numRecentMistakes > 3) {
+        return this.character.getStroke(this.currentStrokeIndex).highlight();
+      }
+    }
   };
 
   HanziWriter.prototype.getPoint = function(evt) {
@@ -5448,21 +5511,17 @@ Stroke = (function(_super) {
   };
 
   Stroke.prototype.highlight = function() {
-    var animateHl;
-    animateHl = (function(_this) {
-      return function(color, onComplete) {
-        if (onComplete == null) {
-          onComplete = function() {};
-        }
-        return _this.path.animate(_this.options.strokeHighlightDuration).attr({
-          fill: color,
-          stroke: color
-        }).after(onComplete);
-      };
-    })(this);
-    return animateHl(this.options.strokeHighlightColor, (function(_this) {
+    return this.path.animate(this.options.strokeHighlightDuration).attr({
+      fill: this.options.strokeHighlightColor,
+      stroke: this.options.strokeHighlightColor,
+      opacity: 1
+    }).after((function(_this) {
       return function() {
-        return animateHl(_this.options.strokeAttrs.fill);
+        return _this.path.animate(_this.options.strokeHighlightDuration).attr({
+          opacity: 0
+        }).after(function() {
+          return _this.path.attr(_this.options.strokeAttrs);
+        });
       };
     })(this));
   };

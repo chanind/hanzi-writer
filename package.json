@@ -4,6 +4,7 @@
   , "devDependencies": {
       "svg.js": "*"
     , "grunt-contrib-copy": "*"
+    , "grunt-contrib-uglify": "*"
     , "grunt-contrib-clean": "*"
     , "grunt-browserify": "*"
     , "coffeeify": "*"

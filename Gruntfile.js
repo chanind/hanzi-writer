@@ -23,16 +23,25 @@ module.exports = function(grunt) {
       }
     },
 
+    uglify: {
+      dist: {
+        files: {
+          'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js']
+        }
+      }
+    },
+
     clean: {
       pre: ['dist'],
-      post: ['dist/**.coffee', 'dist/**.js', '!dist/hanzi-writer.js', '!dist/data.js']
+      post: ['dist/**.coffee', 'dist/**.js', '!dist/hanzi-writer.js', '!dist/hanzi-writer.min.js', '!dist/data.js']
     }
 
   });
 
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
+  grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-browserify');
 
-  grunt.registerTask('default', ['clean:pre', 'copy:main', 'browserify:dist', 'clean:post']);
+  grunt.registerTask('default', ['clean:pre', 'copy:main', 'browserify:dist', 'uglify:dist', 'clean:post']);
 };

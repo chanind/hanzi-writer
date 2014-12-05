@@ -9,7 +9,7 @@ class CharacterPositioner extends Drawable
 	convertExternalPoints: (points) -> (@convertExternalPoint(point) for point in points)
 	convertExternalPoint: (point) ->
 		x: (point.x - @xOffset) / @scale
-		y: (point.x - @xOffset) / @scale
+		y: (point.y - @yOffset) / @scale
 
 	nestSvg: (svg) ->
 		@calculateScaleAndOffset()

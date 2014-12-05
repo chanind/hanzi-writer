@@ -69,6 +69,12 @@ class Stroke extends Path
 		end = @getStrokeAnimationEndingPoint()
 		return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2))
 
+	markAnimationPoints: ->
+		start = @getStrokeAnimationStartingPoint()
+		end = @getStrokeAnimationEndingPoint()
+		@svg.circle(10).attr(fill: '#9F9').move(start.x, start.y)
+		@svg.circle(10).attr(fill: '#9F9').move(end.x, end.y)
+
 	highlight: ->
 		animateHl = (color, onComplete = ->) =>
 			 @path.animate(@options.strokeHighlightDuration)
@@ -76,10 +82,10 @@ class Stroke extends Path
 			 	.after(onComplete)
 		animateHl(@options.strokeHighlightColor, => animateHl(@options.strokeAttrs.fill))
 
-	animate: (svg, onComplete = ->) ->
+	animate: (@svg, onComplete = ->) ->
 		start = @getStrokeAnimationStartingPoint()
-		mask = svg.circle(0).center(start.x, start.y)
-		@path = @drawPath(svg)
+		mask = @svg.circle(0).center(start.x, start.y)
+		@path = @drawPath(@svg)
 			.attr(@options.strokeAttrs)
 			.clipWith(mask)
 

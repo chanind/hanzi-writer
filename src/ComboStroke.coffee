@@ -13,7 +13,7 @@ class ComboStroke extends Drawable
 
 	getDistance: (point) ->
 		distances = (stroke.getDistance(point) for stroke in @strokes)
-		return Math.min.call(Math, distances)
+		return Math.min.apply(Math, distances)
 
 	getAverageDistance: (points) ->
 		totalDist = 0

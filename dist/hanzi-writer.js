@@ -4060,7 +4060,7 @@ CharacterPositioner = (function(_super) {
   CharacterPositioner.prototype.convertExternalPoint = function(point) {
     return {
       x: (point.x - this.xOffset) / this.scale,
-      y: (point.x - this.xOffset) / this.scale
+      y: (point.y - this.yOffset) / this.scale
     };
   };
 
@@ -4158,7 +4158,7 @@ ComboStroke = (function(_super) {
       }
       return _results;
     }).call(this);
-    return Math.min.call(Math, distances);
+    return Math.min.apply(Math, distances);
   };
 
   ComboStroke.prototype.getAverageDistance = function(points) {
@@ -4365,10 +4365,12 @@ HanziWriter = (function() {
   };
 
   HanziWriter.prototype.startUserStroke = function(point) {
+    this.point = point;
     if (this.userStroke) {
       return this.endUserStroke();
     }
     this.userStroke = new UserStroke(point, this.options);
+    window.lastUserStroke = this.userStroke;
     return this.userStroke.draw(this.svg);
   };
 
@@ -4613,6 +4615,18 @@ Stroke = (function(_super) {
     return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
   };
 
+  Stroke.prototype.markAnimationPoints = function() {
+    var end, start;
+    start = this.getStrokeAnimationStartingPoint();
+    end = this.getStrokeAnimationEndingPoint();
+    this.svg.circle(10).attr({
+      fill: '#9F9'
+    }).move(start.x, start.y);
+    return this.svg.circle(10).attr({
+      fill: '#9F9'
+    }).move(end.x, end.y);
+  };
+
   Stroke.prototype.highlight = function() {
     var animateHl;
     animateHl = (function(_this) {
@@ -4635,12 +4649,13 @@ Stroke = (function(_super) {
 
   Stroke.prototype.animate = function(svg, onComplete) {
     var mask, start;
+    this.svg = svg;
     if (onComplete == null) {
       onComplete = function() {};
     }
     start = this.getStrokeAnimationStartingPoint();
-    mask = svg.circle(0).center(start.x, start.y);
-    this.path = this.drawPath(svg).attr(this.options.strokeAttrs).clipWith(mask);
+    mask = this.svg.circle(0).center(start.x, start.y);
+    this.path = this.drawPath(this.svg).attr(this.options.strokeAttrs).clipWith(mask);
     return mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
   };
 

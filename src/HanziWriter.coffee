@@ -45,6 +45,7 @@ class HanziWriter
 		@point = point
 		return @endUserStroke() if @userStroke
 		@userStroke = new UserStroke(point, @options)
+		window.lastUserStroke = @userStroke
 		@userStroke.draw(@svg)
 	continueUserStroke: (point) ->
 		@userStroke.appendPoint(point) if @userStroke
@@ -53,7 +54,6 @@ class HanziWriter
 		translatedPoints = @positioner.convertExternalPoints(@userStroke.getPoints())
 		@matchingStroke = @character.getMatchingStroke(translatedPoints)
 		@matchingStroke.highlight() if @matchingStroke
-		console.log(@matchingStroke)
 		@userStroke.fadeAndRemove()
 		@userStroke = null
 

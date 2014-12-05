@@ -42,9 +42,6 @@ class Character extends Drawable
 			if avgDist < bestAvgDist or !closestStroke
 				closestStroke = stroke
 				bestAvgDist = avgDist
-
-		console.log bestAvgDist
-
 		return closestStroke if bestAvgDist < Character.DISTANCE_THRESHOLD
 
 

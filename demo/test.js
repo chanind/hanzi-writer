@@ -1,12 +1,25 @@
+var writer;
 
-window.onload = function() {
-	window.writer = new HanziWriter('target', '我', {
+function updateCharacter() {
+	document.querySelector('#target').innerHTML = '';
+
+	var character = document.querySelector('.js-char').value
+	writer = new HanziWriter('target', character, {
 		width: 400,
 		height: 400
 	});
-
 	writer.showHint();
 	writer.showCharacter();
+	window.writer = writer;
+}
+
+window.onload = function() {
+	updateCharacter();
+
+	document.querySelector('.js-char-form').addEventListener('submit', function(evt) {
+		evt.preventDefault();
+		updateCharacter();
+	});
 
 	document.querySelector('.js-show').addEventListener('click', function() {
 		writer.showCharacter();

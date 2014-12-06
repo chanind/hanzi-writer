@@ -63,9 +63,20 @@ class HanziWriter
 		@positioner.setCanvas(@svg)
 
 	setupListeners: ->
-		@svg.node.addEventListener 'mousedown', (e) => @startUserStroke(@getPoint(e))
-		@svg.node.addEventListener 'mousemove', (e) => @continueUserStroke(@getPoint(e))
+		@svg.node.addEventListener 'mousedown', (e) => 
+			e.preventDefault()
+			@startUserStroke(@getMousePoint(e))
+		@svg.node.addEventListener 'touchstart', (e) => 
+			e.preventDefault()
+			@startUserStroke(@getTouchPoint(e))
+		@svg.node.addEventListener 'mousemove', (e) => 
+			e.preventDefault()
+			@continueUserStroke(@getMousePoint(e))
+		@svg.node.addEventListener 'touchmove', (e) => 
+			e.preventDefault()
+			@continueUserStroke(@getTouchPoint(e))
 		document.addEventListener 'mouseup', (e) => @endUserStroke()
+		document.addEventListener 'touchend', (e) => @endUserStroke()
 
 	startUserStroke: (point) ->
 		@point = point
@@ -95,7 +106,10 @@ class HanziWriter
 			@numRecentMistakes += 1
 			@character.getStroke(@currentStrokeIndex).highlight() if @numRecentMistakes > 3
 
-	getPoint: (evt) -> {x: evt.offsetX, y: evt.offsetY}
+	getMousePoint: (evt) -> {x: evt.offsetX, y: evt.offsetY}
+	getTouchPoint: (evt) ->
+		x: evt.touches[0].pageX - @svg.node.offsetLeft
+		y: evt.touches[0].pageY - @svg.node.offsetTop
 
 	getHintOptions: ->
 		hintOptions = extend({}, @options)

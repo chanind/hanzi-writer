@@ -5210,15 +5210,34 @@ HanziWriter = (function() {
   HanziWriter.prototype.setupListeners = function() {
     this.svg.node.addEventListener('mousedown', (function(_this) {
       return function(e) {
-        return _this.startUserStroke(_this.getPoint(e));
+        e.preventDefault();
+        return _this.startUserStroke(_this.getMousePoint(e));
+      };
+    })(this));
+    this.svg.node.addEventListener('touchstart', (function(_this) {
+      return function(e) {
+        e.preventDefault();
+        return _this.startUserStroke(_this.getTouchPoint(e));
       };
     })(this));
     this.svg.node.addEventListener('mousemove', (function(_this) {
       return function(e) {
-        return _this.continueUserStroke(_this.getPoint(e));
+        e.preventDefault();
+        return _this.continueUserStroke(_this.getMousePoint(e));
       };
     })(this));
-    return document.addEventListener('mouseup', (function(_this) {
+    this.svg.node.addEventListener('touchmove', (function(_this) {
+      return function(e) {
+        e.preventDefault();
+        return _this.continueUserStroke(_this.getTouchPoint(e));
+      };
+    })(this));
+    document.addEventListener('mouseup', (function(_this) {
+      return function(e) {
+        return _this.endUserStroke();
+      };
+    })(this));
+    return document.addEventListener('touchend', (function(_this) {
       return function(e) {
         return _this.endUserStroke();
       };
@@ -5271,10 +5290,17 @@ HanziWriter = (function() {
     }
   };
 
-  HanziWriter.prototype.getPoint = function(evt) {
+  HanziWriter.prototype.getMousePoint = function(evt) {
     return {
       x: evt.offsetX,
       y: evt.offsetY
+    };
+  };
+
+  HanziWriter.prototype.getTouchPoint = function(evt) {
+    return {
+      x: evt.touches[0].pageX - this.svg.node.offsetLeft,
+      y: evt.touches[0].pageY - this.svg.node.offsetTop
     };
   };
 

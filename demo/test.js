@@ -1,4 +1,6 @@
 var writer;
+var isCharVisible;
+var isHintVisible;
 
 function updateCharacter() {
 	document.querySelector('#target').innerHTML = '';
@@ -10,6 +12,8 @@ function updateCharacter() {
 	});
 	writer.showHint();
 	writer.showCharacter();
+	isCharVisible = true;
+	isHintVisible = true;
 	window.writer = writer;
 }
 
@@ -21,17 +25,13 @@ window.onload = function() {
 		updateCharacter();
 	});
 
-	document.querySelector('.js-show').addEventListener('click', function() {
-		writer.showCharacter();
+	document.querySelector('.js-toggle').addEventListener('click', function() {
+		isCharVisible ? writer.hideCharacter() : writer.showCharacter();
+		isCharVisible = !isCharVisible;
 	});
-	document.querySelector('.js-hide').addEventListener('click', function() {
-		writer.hideCharacter();
-	});
-	document.querySelector('.js-show-hint').addEventListener('click', function() {
-		writer.showHint();
-	});
-	document.querySelector('.js-hide-hint').addEventListener('click', function() {
-		writer.hideHint();
+	document.querySelector('.js-toggle-hint').addEventListener('click', function() {
+		isHintVisible ? writer.hideHint() : writer.showHint();
+		isHintVisible = !isHintVisible;
 	});
 	document.querySelector('.js-animate').addEventListener('click', function() {
 		writer.animateCharacter();

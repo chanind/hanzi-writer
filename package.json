@@ -7,7 +7,7 @@
     "coffee-loader": "*",
     "coffeeify": "*",
     "grunt": "*",
-    "grunt-browserify": "*",
+    "grunt-webpack": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-uglify": "*",

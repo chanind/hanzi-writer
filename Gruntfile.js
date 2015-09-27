@@ -12,13 +12,23 @@ module.exports = function(grunt) {
       }
     },
 
-    browserify: {
-      dist: {
-        files: {
-          'dist/hanzi-writer.js': ['src/**/*.coffee']
+    webpack: {
+      options: {
+        module: {
+          loaders: [
+            { test: /\.coffee$/, loader: 'coffee-loader' },
+            { test: /\.js$/, loader: 'babel-loader' }
+          ]
         },
-        options: {
-          transform: ['coffeeify']
+        resolve: {
+          // you can now require('file') instead of require('file.coffee')
+          extensions: ['', '.js', '.json', '.coffee'] 
+        }
+      },
+      dist: {
+        entry: './src/HanziWriter.coffee',
+        output: {
+          filename: 'dist/hanzi-writer.js'       
         }
       }
     },
@@ -41,7 +51,7 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-browserify');
+  grunt.loadNpmTasks('grunt-webpack');
 
-  grunt.registerTask('default', ['clean:pre', 'copy:main', 'browserify:dist', 'uglify:dist', 'clean:post']);
+  grunt.registerTask('default', ['clean:pre', 'copy:main', 'webpack:dist', 'uglify:dist', 'clean:post']);
 };

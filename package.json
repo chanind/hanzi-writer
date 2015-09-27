@@ -1,13 +1,17 @@
-{   "name": "hanzi-writer"
-  , "version": "0.1.0"
-  , "author": "David Chanin <chanindav@gmail.com>"
-  , "devDependencies": {
-      "svg.js": "*"
-    , "grunt-contrib-copy": "*"
-    , "grunt-contrib-uglify": "*"
-    , "grunt-contrib-clean": "*"
-    , "grunt-browserify": "*"
-    , "coffeeify": "*"
-    , "grunt": "*"
+{
+  "name": "hanzi-writer",
+  "version": "0.1.0",
+  "author": "David Chanin <chanindav@gmail.com>",
+  "devDependencies": {
+    "babel-loader": "*",
+    "coffee-loader": "*",
+    "coffeeify": "*",
+    "grunt": "*",
+    "grunt-browserify": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-uglify": "*",
+    "svg.js": "*",
+    "webpack": "^1.12.2"
   }
 }

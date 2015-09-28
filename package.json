@@ -11,7 +11,7 @@
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-uglify": "*",
-    "svg.js": "*",
+    "svg.js": "1.1.0",
     "webpack": "^1.12.2"
   }
 }

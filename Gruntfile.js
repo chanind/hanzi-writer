@@ -26,7 +26,7 @@ module.exports = function(grunt) {
         }
       },
       dist: {
-        entry: './src/HanziWriter.coffee',
+        entry: './src/HanziWriter.js',
         output: {
           filename: 'dist/hanzi-writer.js'       
         }

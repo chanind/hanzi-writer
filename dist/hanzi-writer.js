@@ -44,249 +44,261 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Character, CharacterPositioner, HanziWriter, SVG, UserStroke, extend, previousHanziWriter,
-	  __indexOf = [].indexOf || function(item) { for (var i = 0, l = this.length; i < l; i++) { if (i in this && this[i] === item) return i; } return -1; };
+	'use strict';
 
-	Character = __webpack_require__(1);
+	Object.defineProperty(exports, '__esModule', {
+		value: true
+	});
 
-	UserStroke = __webpack_require__(6);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	CharacterPositioner = __webpack_require__(7);
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	SVG = __webpack_require__(8);
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	extend = __webpack_require__(9)._extend;
+	var _Character = __webpack_require__(1);
 
-	HanziWriter = (function() {
-	  HanziWriter.prototype.options = {
-	    charDataLoader: function(char) {
-	      return hanziData[char];
-	    },
-	    width: null,
-	    height: null,
-	    padding: 20,
-	    strokeAnimationDuration: 300,
-	    strokeHighlightDuration: 500,
-	    strokeHighlightColor: '#AAF',
-	    userStrokeFadeDuration: 300,
-	    delayBetweenStrokes: 1000,
-	    userStrokeAttrs: {
-	      fill: 'none',
-	      stroke: '#333',
-	      'stroke-width': 4
-	    },
-	    strokeAttrs: {
-	      fill: '#555',
-	      stroke: '#555',
-	      'stroke-width': 2
-	    },
-	    hintAttrs: {
-	      fill: '#DDD',
-	      stroke: '#DDD',
-	      'stroke-width': 2
-	    }
-	  };
+	var _Character2 = _interopRequireDefault(_Character);
 
-	  function HanziWriter(element, character, options) {
-	    var key, value;
-	    if (options == null) {
-	      options = {};
-	    }
-	    this.svg = SVG(element);
-	    for (key in options) {
-	      value = options[key];
-	      this.options[key] = value;
-	    }
-	    this.setCharacter(character);
-	    this.setupListeners();
-	    this.hint.draw();
-	    this.character.draw();
-	  }
+	var _UserStroke = __webpack_require__(6);
 
-	  HanziWriter.prototype.showCharacter = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    return this.character.show(animationOptions);
-	  };
+	var _UserStroke2 = _interopRequireDefault(_UserStroke);
 
-	  HanziWriter.prototype.hideCharacter = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    return this.character.hide(animationOptions);
-	  };
+	var _CharacterPositioner = __webpack_require__(7);
 
-	  HanziWriter.prototype.animateCharacter = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    return this.character.animate();
-	  };
+	var _CharacterPositioner2 = _interopRequireDefault(_CharacterPositioner);
 
-	  HanziWriter.prototype.showHint = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    return this.hint.show(animationOptions);
-	  };
+	var _utils = __webpack_require__(8);
 
-	  HanziWriter.prototype.hideHint = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    return this.hint.hide(animationOptions);
-	  };
+	var _utils2 = _interopRequireDefault(_utils);
 
-	  HanziWriter.prototype.quiz = function(quizOptions) {
-	    if (quizOptions == null) {
-	      quizOptions = {};
-	    }
-	    this.isQuizzing = true;
-	    this.hideCharacter(quizOptions);
-	    if (quizOptions.showHint) {
-	      this.showHint();
-	    } else {
-	      this.hideHint();
-	    }
-	    this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
-	    this.currentStrokeIndex = 0;
-	    this.numRecentMistakes = 0;
-	    return this.drawnStrokes = [];
-	  };
+	var _svgJs = __webpack_require__(9);
 
-	  HanziWriter.prototype.setCharacter = function(char) {
-	    var pathStrings;
-	    pathStrings = this.options.charDataLoader(char);
-	    this.character = new Character(pathStrings, this.options);
-	    this.hint = new Character(pathStrings, this.getHintOptions());
-	    this.positioner = new CharacterPositioner(this.character, this.options);
-	    this.hintPositioner = new CharacterPositioner(this.hint, this.options);
-	    this.hintPositioner.setCanvas(this.svg);
-	    return this.positioner.setCanvas(this.svg);
-	  };
+	var _svgJs2 = _interopRequireDefault(_svgJs);
 
-	  HanziWriter.prototype.setupListeners = function() {
-	    this.svg.node.addEventListener('mousedown', (function(_this) {
-	      return function(e) {
-	        e.preventDefault();
-	        return _this.startUserStroke(_this.getMousePoint(e));
-	      };
-	    })(this));
-	    this.svg.node.addEventListener('touchstart', (function(_this) {
-	      return function(e) {
-	        e.preventDefault();
-	        return _this.startUserStroke(_this.getTouchPoint(e));
-	      };
-	    })(this));
-	    this.svg.node.addEventListener('mousemove', (function(_this) {
-	      return function(e) {
-	        e.preventDefault();
-	        return _this.continueUserStroke(_this.getMousePoint(e));
-	      };
-	    })(this));
-	    this.svg.node.addEventListener('touchmove', (function(_this) {
-	      return function(e) {
-	        e.preventDefault();
-	        return _this.continueUserStroke(_this.getTouchPoint(e));
-	      };
-	    })(this));
-	    document.addEventListener('mouseup', (function(_this) {
-	      return function(e) {
-	        return _this.endUserStroke();
-	      };
-	    })(this));
-	    return document.addEventListener('touchend', (function(_this) {
-	      return function(e) {
-	        return _this.endUserStroke();
-	      };
-	    })(this));
-	  };
+	var _util = __webpack_require__(10);
 
-	  HanziWriter.prototype.startUserStroke = function(point) {
-	    this.point = point;
-	    if (this.userStroke) {
-	      return this.endUserStroke();
-	    }
-	    this.userStroke = new UserStroke(point, this.options);
-	    this.userStroke.setCanvas(this.svg);
-	    window.lastUserStroke = this.userStroke;
-	    return this.userStroke.draw();
-	  };
+	var defaultOptions = {
+		charDataLoader: function charDataLoader(char) {
+			return hanziData[char];
+		},
+		width: null,
+		height: null,
+		padding: 20,
+		strokeAnimationDuration: 300,
+		strokeHighlightDuration: 500,
+		strokeHighlightColor: '#AAF',
+		userStrokeFadeDuration: 300,
+		delayBetweenStrokes: 1000,
+		userStrokeAttrs: {
+			fill: 'none',
+			stroke: '#333',
+			'stroke-width': 4
+		},
+		strokeAttrs: {
+			fill: '#555',
+			stroke: '#555',
+			'stroke-width': 2
+		},
+		hintAttrs: {
+			fill: '#DDD',
+			stroke: '#DDD',
+			'stroke-width': 2
+		}
+	};
 
-	  HanziWriter.prototype.continueUserStroke = function(point) {
-	    if (this.userStroke) {
-	      return this.userStroke.appendPoint(point);
-	    }
-	  };
+	// todo: better clone
+	var clone = function clone(obj) {
+		return (0, _util._extend)({}, obj);
+	};
 
-	  HanziWriter.prototype.endUserStroke = function() {
-	    var isValidStroke, matchingStroke, translatedPoints;
-	    if (!this.userStroke) {
-	      return;
-	    }
-	    translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-	    matchingStroke = this.character.getMatchingStroke(translatedPoints);
-	    this.userStroke.fadeAndRemove();
-	    this.userStroke = null;
-	    if (!this.isQuizzing) {
-	      return;
-	    }
-	    isValidStroke = matchingStroke && __indexOf.call(this.drawnStrokes, matchingStroke) < 0;
-	    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-	      this.drawnStrokes.push(matchingStroke);
-	      this.currentStrokeIndex += 1;
-	      this.numRecentMistakes = 0;
-	      matchingStroke.show();
-	      if (this.drawnStrokes.length === this.character.getNumStrokes()) {
-	        return this.isQuizzing = false;
-	      }
-	    } else {
-	      this.numRecentMistakes += 1;
-	      if (this.numRecentMistakes > 3) {
-	        return this.character.getStroke(this.currentStrokeIndex).highlight();
-	      }
-	    }
-	  };
+	var HanziWriter = (function () {
+		function HanziWriter(element, character) {
+			var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
-	  HanziWriter.prototype.getMousePoint = function(evt) {
-	    return {
-	      x: evt.offsetX,
-	      y: evt.offsetY
-	    };
-	  };
+			_classCallCheck(this, HanziWriter);
 
-	  HanziWriter.prototype.getTouchPoint = function(evt) {
-	    return {
-	      x: evt.touches[0].pageX - this.svg.node.offsetLeft,
-	      y: evt.touches[0].pageY - this.svg.node.offsetTop
-	    };
-	  };
+			this.svg = (0, _svgJs2['default'])(element);
+			this.options = (0, _util._extend)(clone(defaultOptions), options);
+			this.setCharacter(character);
+			this.setupListeners();
+			this.hint.draw();
+			this.character.draw();
+		}
 
-	  HanziWriter.prototype.getHintOptions = function() {
-	    var hintOptions;
-	    hintOptions = extend({}, this.options);
-	    hintOptions.strokeAttrs = this.options.hintAttrs;
-	    return hintOptions;
-	  };
+		_createClass(HanziWriter, [{
+			key: 'showCharacter',
+			value: function showCharacter() {
+				var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	  return HanziWriter;
+				this.character.show(animationOptions);
+			}
+		}, {
+			key: 'hideCharacter',
+			value: function hideCharacter() {
+				var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
+				this.character.hide(animationOptions);
+			}
+		}, {
+			key: 'animateCharacter',
+			value: function animateCharacter() {
+				var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+				this.character.animate();
+			}
+		}, {
+			key: 'showHint',
+			value: function showHint() {
+				var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+				this.hint.show(animationOptions);
+			}
+		}, {
+			key: 'hideHint',
+			value: function hideHint() {
+				var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+				this.hint.hide(animationOptions);
+			}
+		}, {
+			key: 'quiz',
+			value: function quiz() {
+				var quizOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+				this.isQuizzing = true;
+				this.hideCharacter(quizOptions);
+				quizOptions.showHint ? this.showHint() : this.hideHint();
+				this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
+				this.currentStrokeIndex = 0;
+				this.numRecentMistakes = 0;
+				this.drawnStrokes = [];
+			}
+		}, {
+			key: 'setCharacter',
+			value: function setCharacter(char) {
+				var pathStrings = this.options.charDataLoader(char);
+				this.character = new _Character2['default'](pathStrings, this.options);
+				this.hint = new _Character2['default'](pathStrings, this.getHintOptions());
+				this.positioner = new _CharacterPositioner2['default'](this.character, this.options);
+				this.hintPositioner = new _CharacterPositioner2['default'](this.hint, this.options);
+				this.hintPositioner.setCanvas(this.svg);
+				this.positioner.setCanvas(this.svg);
+			}
+		}, {
+			key: 'setupListeners',
+			value: function setupListeners() {
+				var _this = this;
+
+				this.svg.node.addEventListener('mousedown', function (e) {
+					e.preventDefault();
+					_this.startUserStroke(_this.getMousePoint(e));
+				});
+				this.svg.node.addEventListener('touchstart', function (e) {
+					e.preventDefault();
+					_this.startUserStroke(_this.getTouchPoint(e));
+				});
+				this.svg.node.addEventListener('mousemove', function (e) {
+					e.preventDefault();
+					_this.continueUserStroke(_this.getMousePoint(e));
+				});
+				this.svg.node.addEventListener('touchmove', function (e) {
+					e.preventDefault();
+					_this.continueUserStroke(_this.getTouchPoint(e));
+				});
+				document.addEventListener('mouseup', function (e) {
+					return _this.endUserStroke();
+				});
+				document.addEventListener('touchend', function (e) {
+					return _this.endUserStroke();
+				});
+			}
+		}, {
+			key: 'startUserStroke',
+			value: function startUserStroke(point) {
+				this.point = point;
+				if (this.userStroke) return this.endUserStroke();
+				this.userStroke = new _UserStroke2['default'](point, this.options);
+				this.userStroke.setCanvas(this.svg);
+				window.lastUserStroke = this.userStroke;
+				this.userStroke.draw();
+			}
+		}, {
+			key: 'continueUserStroke',
+			value: function continueUserStroke(point) {
+				if (this.userStroke) this.userStroke.appendPoint(point);
+			}
+		}, {
+			key: 'endUserStroke',
+			value: function endUserStroke() {
+				if (!this.userStroke) return;
+				var translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
+				var matchingStroke = this.character.getMatchingStroke(translatedPoints);
+				this.userStroke.fadeAndRemove();
+				this.userStroke = null;
+				if (!this.isQuizzing) return;
+				var isValidStroke = matchingStroke && !(0, _utils2['default'])(matchingStroke, this.drawnStrokes);
+				if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
+					this.drawnStrokes.push(matchingStroke);
+					this.currentStrokeIndex += 1;
+					this.numRecentMistakes = 0;
+					matchingStroke.show();
+					if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
+				} else {
+					this.numRecentMistakes += 1;
+					if (this.numRecentMistakes > 3) this.character.getStroke(this.currentStrokeIndex).highlight();
+				}
+			}
+		}, {
+			key: 'getMousePoint',
+			value: function getMousePoint(evt) {
+				return {
+					x: evt.offsetX,
+					y: evt.offsetY
+				};
+			}
+		}, {
+			key: 'getTouchPoint',
+			value: function getTouchPoint(evt) {
+				return {
+					x: evt.touches[0].pageX - this.svg.node.offsetLeft,
+					y: evt.touches[0].pageY - this.svg.node.offsetTop
+				};
+			}
+		}, {
+			key: 'getHintOptions',
+			value: function getHintOptions() {
+				var hintOptions = (0, _util._extend)({}, this.options);
+				hintOptions.strokeAttrs = this.options.hintAttrs;
+				return hintOptions;
+			}
+		}]);
+
+		return HanziWriter;
 	})();
 
+	;
+
+	// set up window.HanziWriter if we're in the browser
 	if (typeof window !== 'undefined') {
-	  previousHanziWriter = window.HanziWriter;
-	  HanziWriter.noConflict = function() {
-	    window.HanziWriter = previousHanziWriter;
-	    return HanziWriter;
-	  };
-	  window.HanziWriter = HanziWriter;
+		(function () {
+
+			// store whatever used to be called HanziWriter in case of a conflict
+			var previousHanziWriter = window.HanziWriter;
+
+			// add a jQuery-esque noConflict method to restore the previous window.HanziWriter if necessary
+			HanziWriter.noConflict = function () {
+				window.HanziWriter = previousHanziWriter;
+				return HanziWriter;
+			};
+
+			window.HanziWriter = HanziWriter;
+		})();
 	}
 
-	if (typeof module !== 'undefined' && module.exports) {
-	  module.exports = HanziWriter;
-	}
-
+	// set up module.exports if we're in node/webpack
+	exports['default'] = HanziWriter;
+	module.exports = exports['default'];
 
 /***/ },
 /* 1 */
@@ -1124,6 +1136,48 @@
 
 /***/ },
 /* 8 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	    value: true
+	});
+	exports.inArray = inArray;
+
+	function inArray(val, array) {
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+
+	    try {
+	        for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	            var arrayVal = _step.value;
+
+	            if (val === arrayVal) return true;
+	        }
+	    } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	    } finally {
+	        try {
+	            if (!_iteratorNormalCompletion && _iterator["return"]) {
+	                _iterator["return"]();
+	            }
+	        } finally {
+	            if (_didIteratorError) {
+	                throw _iteratorError;
+	            }
+	        }
+	    }
+
+	    return false;
+	}
+
+	;
+
+/***/ },
+/* 9 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* svg.js 1.1.0 - svg selector inventor polyfill regex default color array pointarray patharray number viewbox bbox rbox element parent container fx relative event defs group arrange mask clip gradient pattern doc shape symbol use rect ellipse line poly path image text textpath nested hyperlink marker sugar set data memory helpers - svgjs.com/license */'use strict';;(function(root,factory){if(true){!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));}else if(typeof exports === 'object'){module.exports = factory();}else {root.SVG = factory();}})(undefined,function(){var SVG=this.SVG = function(element){if(SVG.supported){element = new SVG.Doc(element);if(!SVG.parser)SVG.prepare(element);return element;}}; // Default namespaces
@@ -1545,7 +1599,7 @@
 	function idFromReference(url){var m=url.toString().match(SVG.regex.reference);if(m)return m[1];}return SVG;});
 
 /***/ },
-/* 9 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -2040,7 +2094,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(11);
+	exports.isBuffer = __webpack_require__(12);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -2077,7 +2131,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(12);
+	exports.inherits = __webpack_require__(13);
 
 	exports._extend = function (origin, add) {
 	  // Don't do anything if add isn't an object
@@ -2094,10 +2148,10 @@
 	function hasOwnProperty(obj, prop) {
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(10)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -2199,7 +2253,7 @@
 	};
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2209,7 +2263,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	'use strict';

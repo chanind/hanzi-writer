@@ -17,8 +17,12 @@ module.exports = function(grunt) {
         module: {
           loaders: [
             { test: /\.coffee$/, loader: 'coffee-loader' },
-            { test: /\.js$/, loader: 'babel-loader' }
-          ]
+            { test: /\.js$/, loader: 'babel-loader' },
+            { test: /\.js$/, loader: 'eslint-loader' }
+          ],
+        },
+        eslint: {  
+          configFile: '.eslintrc.js'
         },
         resolve: {
           // you can now require('file') instead of require('file.coffee')

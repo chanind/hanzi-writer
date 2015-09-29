@@ -12,6 +12,9 @@
     "grunt-contrib-copy": "*",
     "grunt-contrib-uglify": "*",
     "svg.js": "1.1.0",
-    "webpack": "^1.12.2"
+    "webpack": "^1.12.2",
+    "eslint-loader": "*",
+    "eslint-config-airbnb": "*",
+    "eslint-plugin-react": "*"
   }
 }

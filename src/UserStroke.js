@@ -17,7 +17,7 @@ class UserStroke extends Path {
   }
 
   draw() {
-    super.attr(this.options.userStrokeAttrs);
+    return super.draw().attr(this.options.userStrokeAttrs);
   }
 
   fadeAndRemove() {

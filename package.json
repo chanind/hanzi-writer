@@ -4,8 +4,6 @@
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
     "babel-loader": "*",
-    "coffee-loader": "*",
-    "coffeeify": "*",
     "grunt": "*",
     "grunt-webpack": "*",
     "grunt-contrib-clean": "*",

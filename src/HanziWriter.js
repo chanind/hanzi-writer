@@ -1,7 +1,7 @@
 import Character from './Character';
 import UserStroke from './UserStroke';
 import CharacterPositioner from './CharacterPositioner';
-import inArray from './utils';
+import {inArray} from './utils';
 import svg from 'svg.js';
 import {_extend as extend} from 'util';
 

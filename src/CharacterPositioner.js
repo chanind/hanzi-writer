@@ -14,9 +14,7 @@ class CharacterPositioner extends Drawable {
   }
 
   convertExternalPoints(points) {
-    for (const point of points) {
-      this.convertExternalPoint(point);
-    }
+    return points.map((point) => this.convertExternalPoint(point));
   }
 
   convertExternalPoint(point) {

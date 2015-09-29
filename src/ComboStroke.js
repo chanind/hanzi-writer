@@ -1,4 +1,4 @@
-import Drawable from './Drawable.coffee';
+import Drawable from './Drawable';
 import {emptyFunc} from './utils';
 
 // this is a stroke composed of several stroke parts

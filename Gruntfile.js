@@ -16,7 +16,6 @@ module.exports = function(grunt) {
       options: {
         module: {
           loaders: [
-            { test: /\.coffee$/, loader: 'coffee-loader' },
             { test: /\.js$/, loader: 'babel-loader' },
             { test: /\.js$/, loader: 'eslint-loader' }
           ],

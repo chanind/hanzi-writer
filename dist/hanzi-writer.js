@@ -70,8 +70,6 @@
 
 	var _utils = __webpack_require__(5);
 
-	var _utils2 = _interopRequireDefault(_utils);
-
 	var _svgJs = __webpack_require__(9);
 
 	var _svgJs2 = _interopRequireDefault(_svgJs);
@@ -243,7 +241,7 @@
 	      this.userStroke.fadeAndRemove();
 	      this.userStroke = null;
 	      if (!this.isQuizzing) return;
-	      var isValidStroke = matchingStroke && !(0, _utils2['default'])(matchingStroke, this.drawnStrokes);
+	      var isValidStroke = matchingStroke && !(0, _utils.inArray)(matchingStroke, this.drawnStrokes);
 	      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
 	        this.drawnStrokes.push(matchingStroke);
 	        this.currentStrokeIndex += 1;
@@ -830,7 +828,7 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      _get(Object.getPrototypeOf(Stroke.prototype), 'draw', this).call(this).attr(this.options.strokeAttrs).attr({ opacity: 0 });
+	      return _get(Object.getPrototypeOf(Stroke.prototype), 'draw', this).call(this).attr(this.options.strokeAttrs).attr({ opacity: 0 });
 	    }
 	  }, {
 	    key: 'show',
@@ -878,125 +876,188 @@
 /* 3 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Drawable, Path,
-	  __hasProp = {}.hasOwnProperty,
-	  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+	'use strict';
 
-	Drawable = __webpack_require__(4);
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
 
-	Path = (function(_super) {
-	  __extends(Path, _super);
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Drawable2 = __webpack_require__(4);
+
+	var _Drawable3 = _interopRequireDefault(_Drawable2);
+
+	var Path = (function (_Drawable) {
+	  _inherits(Path, _Drawable);
 
 	  function Path() {
-	    return Path.__super__.constructor.apply(this, arguments);
+	    _classCallCheck(this, Path);
+
+	    _get(Object.getPrototypeOf(Path.prototype), 'constructor', this).apply(this, arguments);
 	  }
 
-	  Path.prototype.getPathString = function() {
-	    var pathString, point, remainingPoints, start, _i, _len;
-	    start = this.points[0];
-	    remainingPoints = this.points.slice(1);
-	    pathString = "M " + start.x + " " + start.y;
-	    for (_i = 0, _len = remainingPoints.length; _i < _len; _i++) {
-	      point = remainingPoints[_i];
-	      pathString += " L " + point.x + " " + point.y;
-	    }
-	    return pathString;
-	  };
+	  _createClass(Path, [{
+	    key: 'getPathString',
+	    value: function getPathString() {
+	      var start = this.points[0];
+	      var remainingPoints = this.points.slice(1);
+	      var pathString = 'M ' + start.x + ' ' + start.y;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
 
-	  Path.prototype.drawPath = function() {
-	    return this.path = this.canvas.path(this.getPathString());
-	  };
+	      try {
+	        for (var _iterator = remainingPoints[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var point = _step.value;
 
-	  Path.prototype.getPoints = function() {
-	    return this.points;
-	  };
-
-	  Path.prototype.getBounds = function() {
-	    var maxX, maxY, midX, midY, minX, minY, _ref, _ref1;
-	    _ref = this.getExtremes(this.getAllYs(this.points)), maxY = _ref[0], midY = _ref[1], minY = _ref[2];
-	    _ref1 = this.getExtremes(this.getAllXs(this.points)), maxX = _ref1[0], midX = _ref1[1], minX = _ref1[2];
-	    return [
-	      {
-	        x: minX,
-	        y: minY
-	      }, {
-	        x: maxX,
-	        y: maxY
+	          pathString += ' L ' + point.x + ' ' + point.y;
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
 	      }
-	    ];
-	  };
 
-	  Path.prototype.draw = function() {
-	    return this.drawPath();
-	  };
+	      return pathString;
+	    }
+	  }, {
+	    key: 'drawPath',
+	    value: function drawPath() {
+	      this.path = this.canvas.path(this.getPathString());
+	      return this.path;
+	    }
+	  }, {
+	    key: 'getPoints',
+	    value: function getPoints() {
+	      return this.points;
+	    }
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      var _getExtremes = this.getExtremes(this.getAllYs(this.points));
+
+	      var _getExtremes2 = _slicedToArray(_getExtremes, 3);
+
+	      var maxY = _getExtremes2[0];
+	      var minY = _getExtremes2[2];
+
+	      var _getExtremes3 = this.getExtremes(this.getAllXs(this.points));
+
+	      var _getExtremes32 = _slicedToArray(_getExtremes3, 3);
+
+	      var maxX = _getExtremes32[0];
+	      var minX = _getExtremes32[2];
+
+	      return [{ x: minX, y: minY }, { x: maxX, y: maxY }];
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      return this.drawPath();
+	    }
+	  }]);
 
 	  return Path;
+	})(_Drawable3['default']);
 
-	})(Drawable);
-
-	module.exports = Path;
-
+	exports['default'] = Path;
+	module.exports = exports['default'];
 
 /***/ },
 /* 4 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	var Drawable;
+	'use strict';
 
-	Drawable = (function() {
-	  function Drawable() {}
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
 
-	  Drawable.prototype.draw = function() {};
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	  Drawable.prototype.animate = function(onComplete) {
-	    if (onComplete == null) {
-	      onComplete = function() {};
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _utils = __webpack_require__(5);
+
+	var Drawable = (function () {
+	  function Drawable() {
+	    _classCallCheck(this, Drawable);
+	  }
+
+	  _createClass(Drawable, [{
+	    key: 'draw',
+	    value: function draw() {}
+	    // implement in children
+
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
 	    }
-	  };
+	    // implement in children
 
-	  Drawable.prototype.getBounds = function() {};
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {}
+	    // implement in children
 
-	  Drawable.prototype.setCanvas = function(canvas) {
-	    this.canvas = canvas;
-	  };
-
-
-	  /* convenience methods for children */
-
-	  Drawable.prototype.getExtremes = function(numArray) {
-	    var max, mid, min;
-	    max = Math.max.apply(null, numArray);
-	    min = Math.min.apply(null, numArray);
-	    mid = (max + min) / 2;
-	    return [max, mid, min];
-	  };
-
-	  Drawable.prototype.getAllXs = function(points) {
-	    var point, _i, _len, _results;
-	    _results = [];
-	    for (_i = 0, _len = points.length; _i < _len; _i++) {
-	      point = points[_i];
-	      _results.push(point.x);
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      this.canvas = canvas;
 	    }
-	    return _results;
-	  };
 
-	  Drawable.prototype.getAllYs = function(points) {
-	    var point, _i, _len, _results;
-	    _results = [];
-	    for (_i = 0, _len = points.length; _i < _len; _i++) {
-	      point = points[_i];
-	      _results.push(point.y);
+	    // ---- convenience methods for children ----
+
+	  }, {
+	    key: 'getExtremes',
+	    value: function getExtremes(numArray) {
+	      var max = Math.max.apply(null, numArray);
+	      var min = Math.min.apply(null, numArray);
+	      var mid = (max + min) / 2;
+	      return [max, mid, min];
 	    }
-	    return _results;
-	  };
+	  }, {
+	    key: 'getAllXs',
+	    value: function getAllXs(points) {
+	      return points.map(function (point) {
+	        return point.x;
+	      });
+	    }
+	  }, {
+	    key: 'getAllYs',
+	    value: function getAllYs(points) {
+	      return points.map(function (point) {
+	        return point.y;
+	      });
+	    }
+	  }]);
 
 	  return Drawable;
-
 	})();
 
-	module.exports = Drawable;
-
+	exports['default'] = Drawable;
+	module.exports = exports['default'];
 
 /***/ },
 /* 5 */
@@ -1063,9 +1124,9 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _DrawableCoffee = __webpack_require__(4);
+	var _Drawable2 = __webpack_require__(4);
 
-	var _DrawableCoffee2 = _interopRequireDefault(_DrawableCoffee);
+	var _Drawable3 = _interopRequireDefault(_Drawable2);
 
 	var _utils = __webpack_require__(5);
 
@@ -1368,7 +1429,7 @@
 	  }]);
 
 	  return ComboStroke;
-	})(_DrawableCoffee2['default']);
+	})(_Drawable3['default']);
 
 	exports['default'] = ComboStroke;
 	module.exports = exports['default'];
@@ -1426,7 +1487,7 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      _get(Object.getPrototypeOf(UserStroke.prototype), 'attr', this).call(this, this.options.userStrokeAttrs);
+	      return _get(Object.getPrototypeOf(UserStroke.prototype), 'draw', this).call(this).attr(this.options.userStrokeAttrs);
 	    }
 	  }, {
 	    key: 'fadeAndRemove',
@@ -1492,30 +1553,11 @@
 	  }, {
 	    key: 'convertExternalPoints',
 	    value: function convertExternalPoints(points) {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	      var _this = this;
 
-	      try {
-	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var point = _step.value;
-
-	          this.convertExternalPoint(point);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator['return']) {
-	            _iterator['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
+	      return points.map(function (point) {
+	        return _this.convertExternalPoint(point);
+	      });
 	    }
 	  }, {
 	    key: 'convertExternalPoint',

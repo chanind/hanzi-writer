@@ -106,7 +106,7 @@ class Stroke extends Path {
   }
 
   draw() {
-    super.draw().attr(this.options.strokeAttrs).attr({opacity: 0});
+    return super.draw().attr(this.options.strokeAttrs).attr({opacity: 0});
   }
 
   show(animationOptions = {}) {

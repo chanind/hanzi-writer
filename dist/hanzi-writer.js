@@ -60,15 +60,15 @@
 
 	var _Character2 = _interopRequireDefault(_Character);
 
-	var _UserStroke = __webpack_require__(6);
+	var _UserStroke = __webpack_require__(7);
 
 	var _UserStroke2 = _interopRequireDefault(_UserStroke);
 
-	var _CharacterPositioner = __webpack_require__(7);
+	var _CharacterPositioner = __webpack_require__(8);
 
 	var _CharacterPositioner2 = _interopRequireDefault(_CharacterPositioner);
 
-	var _utils = __webpack_require__(8);
+	var _utils = __webpack_require__(5);
 
 	var _utils2 = _interopRequireDefault(_utils);
 
@@ -329,7 +329,7 @@
 
 	var _Stroke2 = _interopRequireDefault(_Stroke);
 
-	var _ComboStroke = __webpack_require__(5);
+	var _ComboStroke = __webpack_require__(6);
 
 	var _ComboStroke2 = _interopRequireDefault(_ComboStroke);
 
@@ -652,208 +652,225 @@
 /* 2 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var Path, Stroke,
-	  __hasProp = {}.hasOwnProperty,
-	  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+	'use strict';
 
-	Path = __webpack_require__(3);
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
-	Stroke = (function(_super) {
-	  __extends(Stroke, _super);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	  Stroke.HORIZONTAL_STROKE = 1;
+	var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-	  Stroke.BACK_SLASH_STROKE = 2;
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
-	  Stroke.VERTICAL_STROKE = 3;
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	  Stroke.FORWARD_SLASH_STROKE = 4;
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	  Stroke.REVERSE_HORIZONTAL_STROKE = 5;
+	var _Path2 = __webpack_require__(3);
 
-	  Stroke.REVERSE_BACK_SLASH_STROKE = 6;
+	var _Path3 = _interopRequireDefault(_Path2);
 
-	  Stroke.REVERSE_VERTICAL_STROKE = 7;
+	var _utils = __webpack_require__(5);
 
-	  Stroke.REVERSE_FORWARD_SLASH_STROKE = 8;
+	var Stroke = (function (_Path) {
+	  _inherits(Stroke, _Path);
 
-	  function Stroke(zdtPathData, options) {
-	    var metadataString, pathString, pointString, _ref;
-	    this.options = options != null ? options : {};
-	    _ref = zdtPathData.split(':'), metadataString = _ref[0], pathString = _ref[1];
-	    pathString = pathString.replace(/;?\s*$/, '');
-	    this.points = (function() {
-	      var _i, _len, _ref1, _results;
-	      _ref1 = pathString.split(';');
-	      _results = [];
-	      for (_i = 0, _len = _ref1.length; _i < _len; _i++) {
-	        pointString = _ref1[_i];
-	        _results.push(this.parsePoint(pointString));
-	      }
-	      return _results;
-	    }).call(this);
+	  function Stroke(zdtPathData) {
+	    var _this = this;
+
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, Stroke);
+
+	    _get(Object.getPrototypeOf(Stroke.prototype), 'constructor', this).call(this);
+	    this.options = options;
+
+	    var _zdtPathData$split = zdtPathData.split(':');
+
+	    var _zdtPathData$split2 = _slicedToArray(_zdtPathData$split, 2);
+
+	    var metadataString = _zdtPathData$split2[0];
+	    var rawPathString = _zdtPathData$split2[1];
+
+	    var pathString = rawPathString.replace(/;?\s*$/, '');
+	    this.points = pathString.split(';').map(function (pointString) {
+	      return _this.parsePoint(pointString);
+	    });
 	    this.isComplete = metadataString[2] === 'P';
-	    this.strokeType = parseInt(metadataString[1]);
+	    this.strokeType = parseInt(metadataString[1], 10);
 	    this.animationSpeedupRatio = 1;
 	  }
 
-	  Stroke.prototype.getPathString = function() {
-	    return Stroke.__super__.getPathString.apply(this, arguments) + ' z';
-	  };
-
-	  Stroke.prototype.parsePoint = function(pointString) {
-	    var pointArr;
-	    pointArr = pointString.split(',');
-	    return {
-	      x: pointArr[0],
-	      y: pointArr[1]
-	    };
-	  };
-
-	  Stroke.prototype.setAnimationSpeedupRatio = function(animationSpeedupRatio) {
-	    this.animationSpeedupRatio = animationSpeedupRatio;
-	  };
-
-	  Stroke.prototype.getDistance = function(point) {
-	    var dx, dy, end, length, start;
-	    start = this.getStrokeAnimationStartingPoint();
-	    end = this.getStrokeAnimationEndingPoint();
-	    dx = end.x - start.x;
-	    dy = end.y - start.y;
-	    length = this.getStrokeAnimationDistance();
-	    return Math.abs(dy * point.x - dx * point.y - start.x * end.y + start.y * end.x) / length;
-	  };
-
-	  Stroke.prototype.getAverageDistance = function(points) {
-	    var point, totalDist, _i, _len;
-	    totalDist = 0;
-	    for (_i = 0, _len = points.length; _i < _len; _i++) {
-	      point = points[_i];
-	      totalDist += this.getDistance(point);
+	  _createClass(Stroke, [{
+	    key: 'getPathString',
+	    value: function getPathString() {
+	      return _get(Object.getPrototypeOf(Stroke.prototype), 'getPathString', this).call(this) + ' z';
 	    }
-	    return totalDist / points.length;
-	  };
-
-	  Stroke.prototype.getStrokeAnimationStartingPoint = function() {
-	    return this.getStrokeAnimationExtremePoint(this.strokeType, false);
-	  };
-
-	  Stroke.prototype.getStrokeAnimationEndingPoint = function() {
-	    return this.getStrokeAnimationExtremePoint(this.strokeType, true);
-	  };
-
-	  Stroke.prototype.getStrokeAnimationExtremePoint = function(strokeType, isReverse) {
-	    var extremeXs, extremeYs, maxIndex, midIndex, minIndex;
-	    extremeYs = this.getExtremes(this.getAllYs(this.points));
-	    extremeXs = this.getExtremes(this.getAllXs(this.points));
-	    if (strokeType > Stroke.FORWARD_SLASH_STROKE) {
-	      strokeType = strokeType - Stroke.FORWARD_SLASH_STROKE;
-	      isReverse = !isReverse;
+	  }, {
+	    key: 'parsePoint',
+	    value: function parsePoint(pointString) {
+	      var pointArr = pointString.split(',');
+	      return { x: pointArr[0], y: pointArr[1] };
 	    }
-	    minIndex = isReverse ? 0 : 2;
-	    maxIndex = isReverse ? 2 : 0;
-	    midIndex = 1;
-	    switch (strokeType) {
-	      case Stroke.HORIZONTAL_STROKE:
-	        return {
-	          x: extremeXs[minIndex],
-	          y: extremeYs[midIndex]
-	        };
-	      case Stroke.BACK_SLASH_STROKE:
-	        return {
-	          x: extremeXs[minIndex],
-	          y: extremeYs[minIndex]
-	        };
-	      case Stroke.VERTICAL_STROKE:
-	        return {
-	          x: extremeXs[midIndex],
-	          y: extremeYs[minIndex]
-	        };
-	      case Stroke.FORWARD_SLASH_STROKE:
-	        return {
-	          x: extremeXs[maxIndex],
-	          y: extremeYs[minIndex]
-	        };
+	  }, {
+	    key: 'setAnimationSpeedupRatio',
+	    value: function setAnimationSpeedupRatio(animationSpeedupRatio) {
+	      this.animationSpeedupRatio = animationSpeedupRatio;
 	    }
-	  };
 
-	  Stroke.prototype.getStrokeAnimationDistance = function() {
-	    var end, start;
-	    start = this.getStrokeAnimationStartingPoint();
-	    end = this.getStrokeAnimationEndingPoint();
-	    return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
-	  };
+	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+	  }, {
+	    key: 'getDistance',
+	    value: function getDistance(point) {
+	      var start = this.getStrokeAnimationStartingPoint();
+	      var end = this.getStrokeAnimationEndingPoint();
+	      var dx = end.x - start.x;
+	      var dy = end.y - start.y;
+	      var length = this.getStrokeAnimationDistance();
+	      return Math.abs(dy * point.x - dx * point.y - start.x * end.y + start.y * end.x) / length;
+	    }
+	  }, {
+	    key: 'getAverageDistance',
+	    value: function getAverageDistance(points) {
+	      var totalDist = 0;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
 
-	  Stroke.prototype.markAnimationPoints = function() {
-	    var end, start;
-	    start = this.getStrokeAnimationStartingPoint();
-	    end = this.getStrokeAnimationEndingPoint();
-	    this.canvas.circle(10).attr({
-	      fill: '#9F9'
-	    }).move(start.x, start.y);
-	    return this.canvas.circle(10).attr({
-	      fill: '#9F9'
-	    }).move(end.x, end.y);
-	  };
+	      try {
+	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var point = _step.value;
 
-	  Stroke.prototype.highlight = function() {
-	    return this.path.animate(this.options.strokeHighlightDuration).attr({
-	      fill: this.options.strokeHighlightColor,
-	      stroke: this.options.strokeHighlightColor,
-	      opacity: 1
-	    }).after((function(_this) {
-	      return function() {
-	        return _this.path.animate(_this.options.strokeHighlightDuration).attr({
-	          opacity: 0
-	        }).after(function() {
-	          return _this.path.attr(_this.options.strokeAttrs);
+	          totalDist += this.getDistance(point);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return totalDist / points.length;
+	    }
+	  }, {
+	    key: 'getStrokeAnimationStartingPoint',
+	    value: function getStrokeAnimationStartingPoint() {
+	      return this.getStrokeAnimationExtremePoint(this.strokeType, false);
+	    }
+	  }, {
+	    key: 'getStrokeAnimationEndingPoint',
+	    value: function getStrokeAnimationEndingPoint() {
+	      return this.getStrokeAnimationExtremePoint(this.strokeType, true);
+	    }
+
+	    // where to start or end drawing the stroke based on the stroke type
+	  }, {
+	    key: 'getStrokeAnimationExtremePoint',
+	    value: function getStrokeAnimationExtremePoint(strokeType, isReverse) {
+	      var adjStrokeType = strokeType;
+	      var adjIsReverse = isReverse;
+	      var extremeYs = this.getExtremes(this.getAllYs(this.points));
+	      var extremeXs = this.getExtremes(this.getAllXs(this.points));
+
+	      // handle reversed strokes
+	      if (strokeType > Stroke.FORWARD_SLASH_STROKE) {
+	        adjStrokeType = strokeType - Stroke.FORWARD_SLASH_STROKE;
+	        adjIsReverse = !isReverse;
+	      }
+
+	      var minIndex = adjIsReverse ? 0 : 2;
+	      var maxIndex = adjIsReverse ? 2 : 0;
+	      var midIndex = 1;
+
+	      if (adjStrokeType === Stroke.HORIZONTAL_STROKE) return { x: extremeXs[minIndex], y: extremeYs[midIndex] };
+	      if (adjStrokeType === Stroke.BACK_SLASH_STROKE) return { x: extremeXs[minIndex], y: extremeYs[minIndex] };
+	      if (adjStrokeType === Stroke.VERTICAL_STROKE) return { x: extremeXs[midIndex], y: extremeYs[minIndex] };
+	      if (adjStrokeType === Stroke.FORWARD_SLASH_STROKE) return { x: extremeXs[maxIndex], y: extremeYs[minIndex] };
+	    }
+	  }, {
+	    key: 'getStrokeAnimationDistance',
+	    value: function getStrokeAnimationDistance() {
+	      var start = this.getStrokeAnimationStartingPoint();
+	      var end = this.getStrokeAnimationEndingPoint();
+	      return Math.sqrt(Math.pow(end.x - start.x, 2) + Math.pow(end.y - start.y, 2));
+	    }
+	  }, {
+	    key: 'markAnimationPoints',
+	    value: function markAnimationPoints() {
+	      var start = this.getStrokeAnimationStartingPoint();
+	      var end = this.getStrokeAnimationEndingPoint();
+	      this.canvas.circle(10).attr({ fill: '#9F9' }).move(start.x, start.y);
+	      this.canvas.circle(10).attr({ fill: '#9F9' }).move(end.x, end.y);
+	    }
+	  }, {
+	    key: 'highlight',
+	    value: function highlight() {
+	      var _this2 = this;
+
+	      this.path.animate(this.options.strokeHighlightDuration).attr({
+	        fill: this.options.strokeHighlightColor,
+	        stroke: this.options.strokeHighlightColor,
+	        opacity: 1
+	      }).after(function () {
+	        _this2.path.animate(_this2.options.strokeHighlightDuration).attr({ opacity: 0 }).after(function () {
+	          return _this2.path.attr(_this2.options.strokeAttrs);
 	        });
-	      };
-	    })(this));
-	  };
-
-	  Stroke.prototype.draw = function() {
-	    return Stroke.__super__.draw.apply(this, arguments).attr(this.options.strokeAttrs).attr({
-	      opacity: 0
-	    });
-	  };
-
-	  Stroke.prototype.show = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
+	      });
 	    }
-	    return this.path.animate(animationOptions.duration || 300).opacity(1).after(animationOptions.onComplete || function() {});
-	  };
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      _get(Object.getPrototypeOf(Stroke.prototype), 'draw', this).call(this).attr(this.options.strokeAttrs).attr({ opacity: 0 });
+	    }
+	  }, {
+	    key: 'show',
+	    value: function show() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	  Stroke.prototype.hide = function(animationOptions) {
-	    if (animationOptions == null) {
-	      animationOptions = {};
+	      this.path.animate(animationOptions.duration || 300).opacity(1).after(animationOptions.onComplete || _utils.emptyFunc);
 	    }
-	    return this.path.animate(animationOptions.duration || 300).opacity(0).after(animationOptions.onComplete || function() {});
-	  };
+	  }, {
+	    key: 'hide',
+	    value: function hide() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	  Stroke.prototype.animate = function(onComplete) {
-	    var mask, start;
-	    if (onComplete == null) {
-	      onComplete = function() {};
+	      this.path.animate(animationOptions.duration || 300).opacity(0).after(animationOptions.onComplete || _utils.emptyFunc);
 	    }
-	    start = this.getStrokeAnimationStartingPoint();
-	    mask = this.canvas.circle(0).center(start.x, start.y);
-	    if (!this.path) {
-	      this.drawPath();
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
+
+	      var start = this.getStrokeAnimationStartingPoint();
+	      var mask = this.canvas.circle(0).center(start.x, start.y);
+	      if (!this.path) this.drawPath();
+	      this.path.attr({ opacity: 1 }).attr(this.options.strokeAttrs).clipWith(mask);
+
+	      mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
 	    }
-	    this.path.attr({
-	      opacity: 1
-	    }).attr(this.options.strokeAttrs).clipWith(mask);
-	    return mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.getStrokeAnimationDistance()).after(onComplete);
-	  };
+	  }]);
 
 	  return Stroke;
+	})(_Path3['default']);
 
-	})(Path);
+	Stroke.HORIZONTAL_STROKE = 1;
+	Stroke.BACK_SLASH_STROKE = 2;
+	Stroke.VERTICAL_STROKE = 3;
+	Stroke.FORWARD_SLASH_STROKE = 4;
+	Stroke.REVERSE_HORIZONTAL_STROKE = 5;
+	Stroke.REVERSE_BACK_SLASH_STROKE = 6;
+	Stroke.REVERSE_VERTICAL_STROKE = 7;
+	Stroke.REVERSE_FORWARD_SLASH_STROKE = 8;
 
 	module.exports = Stroke;
-
 
 /***/ },
 /* 3 */
@@ -981,6 +998,49 @@
 
 /***/ },
 /* 5 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.inArray = inArray;
+	exports.emptyFunc = emptyFunc;
+
+	function inArray(val, array) {
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+
+	  try {
+	    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var arrayVal = _step.value;
+
+	      if (val === arrayVal) return true;
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator["return"]) {
+	        _iterator["return"]();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+
+	  return false;
+	}
+
+	function emptyFunc() {}
+
+/***/ },
+/* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var ComboStroke, Drawable,
@@ -1148,181 +1208,204 @@
 
 
 /***/ },
-/* 6 */
-/***/ function(module, exports, __webpack_require__) {
-
-	var Path, UserStroke,
-	  __hasProp = {}.hasOwnProperty,
-	  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
-
-	Path = __webpack_require__(3);
-
-	UserStroke = (function(_super) {
-	  __extends(UserStroke, _super);
-
-	  function UserStroke(startingPoint, options) {
-	    this.options = options != null ? options : {};
-	    this.points = [startingPoint];
-	  }
-
-	  UserStroke.prototype.appendPoint = function(point) {
-	    this.points.push(point);
-	    return this.path.plot(this.getPathString());
-	  };
-
-	  UserStroke.prototype.animate = function(onComplete) {
-	    if (onComplete == null) {
-	      onComplete = function() {};
-	    }
-	    return onComplete();
-	  };
-
-	  UserStroke.prototype.draw = function() {
-	    return UserStroke.__super__.draw.apply(this, arguments).attr(this.options.userStrokeAttrs);
-	  };
-
-	  UserStroke.prototype.fadeAndRemove = function() {
-	    return this.path.animate(this.options.userStrokeFadeDuration).attr({
-	      opacity: 0
-	    }).after((function(_this) {
-	      return function() {
-	        return _this.path.remove();
-	      };
-	    })(this));
-	  };
-
-	  return UserStroke;
-
-	})(Path);
-
-	module.exports = UserStroke;
-
-
-/***/ },
 /* 7 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var CharacterPositioner, Drawable,
-	  __hasProp = {}.hasOwnProperty,
-	  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+	'use strict';
 
-	Drawable = __webpack_require__(4);
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
 
-	CharacterPositioner = (function(_super) {
-	  __extends(CharacterPositioner, _super);
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	  function CharacterPositioner(character, options) {
-	    this.character = character;
-	    this.options = options != null ? options : {};
+	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Path2 = __webpack_require__(3);
+
+	var _Path3 = _interopRequireDefault(_Path2);
+
+	var UserStroke = (function (_Path) {
+	  _inherits(UserStroke, _Path);
+
+	  function UserStroke(startingPoint) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, UserStroke);
+
+	    _get(Object.getPrototypeOf(UserStroke.prototype), 'constructor', this).call(this);
+	    this.options = options;
+	    this.points = [startingPoint];
 	  }
 
-	  CharacterPositioner.prototype.getBounds = function() {
-	    return this.character.getBounds();
-	  };
-
-	  CharacterPositioner.prototype.convertExternalPoints = function(points) {
-	    var point, _i, _len, _results;
-	    _results = [];
-	    for (_i = 0, _len = points.length; _i < _len; _i++) {
-	      point = points[_i];
-	      _results.push(this.convertExternalPoint(point));
+	  _createClass(UserStroke, [{
+	    key: 'appendPoint',
+	    value: function appendPoint(point) {
+	      this.points.push(point);
+	      this.path.plot(this.getPathString());
 	    }
-	    return _results;
-	  };
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
 
-	  CharacterPositioner.prototype.convertExternalPoint = function(point) {
-	    return {
-	      x: (point.x - this.xOffset) / this.scale,
-	      y: (point.y - this.yOffset) / this.scale
-	    };
-	  };
-
-	  CharacterPositioner.prototype.getNestedCanvas = function() {
-	    this.calculateScaleAndOffset();
-	    return this.canvas.group().move(this.xOffset, this.yOffset).transform({
-	      scaleX: this.scale,
-	      scaleY: this.scale
-	    });
-	  };
-
-	  CharacterPositioner.prototype.calculateScaleAndOffset = function() {
-	    var bounds, effectiveHeight, effectiveWidth, preScaledHeight, preScaledWidth, scaleX, scaleY, xCenteringBuffer, yCenteringBuffer;
-	    bounds = this.getBounds();
-	    preScaledWidth = bounds[1].x - bounds[0].x;
-	    preScaledHeight = bounds[1].y - bounds[0].y;
-	    effectiveWidth = this.options.width - 2 * this.options.padding;
-	    effectiveHeight = this.options.height - 2 * this.options.padding;
-	    scaleX = effectiveWidth / preScaledWidth;
-	    scaleY = effectiveHeight / preScaledHeight;
-	    this.scale = Math.min(scaleX, scaleY);
-	    xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
-	    yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
-	    this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
-	    return this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
-	  };
-
-	  CharacterPositioner.prototype.draw = function() {
-	    return this.character.draw();
-	  };
-
-	  CharacterPositioner.prototype.animate = function(svg, onComplete) {
-	    if (onComplete == null) {
-	      onComplete = function() {};
+	      onComplete();
 	    }
-	    return this.character.animate(onComplete);
-	  };
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      _get(Object.getPrototypeOf(UserStroke.prototype), 'attr', this).call(this, this.options.userStrokeAttrs);
+	    }
+	  }, {
+	    key: 'fadeAndRemove',
+	    value: function fadeAndRemove() {
+	      var _this = this;
 
-	  CharacterPositioner.prototype.setCanvas = function(canvas) {
-	    CharacterPositioner.__super__.setCanvas.apply(this, arguments);
-	    return this.character.setCanvas(this.getNestedCanvas());
-	  };
+	      this.path.animate(this.options.userStrokeFadeDuration).attr({ opacity: 0 }).after(function () {
+	        return _this.path.remove();
+	      });
+	    }
+	  }]);
 
-	  return CharacterPositioner;
+	  return UserStroke;
+	})(_Path3['default']);
 
-	})(Drawable);
-
-	module.exports = CharacterPositioner;
-
+	exports['default'] = UserStroke;
+	module.exports = exports['default'];
 
 /***/ },
 /* 8 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
+	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
-	exports.inArray = inArray;
 
-	function inArray(val, array) {
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	  try {
-	    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var arrayVal = _step.value;
+	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
 
-	      if (val === arrayVal) return true;
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator["return"]) {
-	        _iterator["return"]();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Drawable2 = __webpack_require__(4);
+
+	var _Drawable3 = _interopRequireDefault(_Drawable2);
+
+	var CharacterPositioner = (function (_Drawable) {
+	  _inherits(CharacterPositioner, _Drawable);
+
+	  function CharacterPositioner(character) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, CharacterPositioner);
+
+	    _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'constructor', this).call(this);
+	    this.character = character;
+	    this.options = options;
 	  }
 
-	  return false;
-	}
+	  _createClass(CharacterPositioner, [{
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      return this.character.getBounds();
+	    }
+	  }, {
+	    key: 'convertExternalPoints',
+	    value: function convertExternalPoints(points) {
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var point = _step.value;
+
+	          this.convertExternalPoint(point);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'convertExternalPoint',
+	    value: function convertExternalPoint(point) {
+	      return {
+	        x: (point.x - this.xOffset) / this.scale,
+	        y: (point.y - this.yOffset) / this.scale
+	      };
+	    }
+	  }, {
+	    key: 'getNestedCanvas',
+	    value: function getNestedCanvas() {
+	      this.calculateScaleAndOffset();
+	      return this.canvas.group().move(this.xOffset, this.yOffset).transform({ scaleX: this.scale, scaleY: this.scale });
+	    }
+	  }, {
+	    key: 'calculateScaleAndOffset',
+	    value: function calculateScaleAndOffset() {
+	      var bounds = this.getBounds();
+	      var preScaledWidth = bounds[1].x - bounds[0].x;
+	      var preScaledHeight = bounds[1].y - bounds[0].y;
+	      var effectiveWidth = this.options.width - 2 * this.options.padding;
+	      var effectiveHeight = this.options.height - 2 * this.options.padding;
+	      var scaleX = effectiveWidth / preScaledWidth;
+	      var scaleY = effectiveHeight / preScaledHeight;
+
+	      this.scale = Math.min(scaleX, scaleY);
+
+	      var xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
+	      var yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
+	      this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
+	      this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      this.character.draw();
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(svg) {
+	      var onComplete = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+
+	      this.character.animate(onComplete);
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'setCanvas', this).call(this, canvas);
+	      this.character.setCanvas(this.getNestedCanvas());
+	    }
+	  }]);
+
+	  return CharacterPositioner;
+	})(_Drawable3['default']);
+
+	exports['default'] = CharacterPositioner;
+	module.exports = exports['default'];
 
 /***/ },
 /* 9 */

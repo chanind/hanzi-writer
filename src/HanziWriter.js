@@ -161,7 +161,6 @@ class HanziWriter {
     hintOptions.strokeAttrs = this.options.hintAttrs;
     return hintOptions;
   }
-
 }
 
 // set up window.HanziWriter if we're in the browser

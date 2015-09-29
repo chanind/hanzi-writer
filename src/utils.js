@@ -4,3 +4,5 @@ export function inArray(val, array) {
   }
   return false;
 }
+
+export function emptyFunc() {}

@@ -337,6 +337,8 @@
 
 	var _Drawable3 = _interopRequireDefault(_Drawable2);
 
+	var _utils = __webpack_require__(5);
+
 	var Character = (function (_Drawable) {
 	  _inherits(Character, _Drawable);
 
@@ -586,7 +588,7 @@
 	    value: function animate() {
 	      var _this2 = this;
 
-	      var _onComplete = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
+	      var _onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
 
 	      this.hide({ onComplete: function onComplete() {
 	          return _this2.animateStroke(_onComplete, 0);
@@ -1043,169 +1045,333 @@
 /* 6 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var ComboStroke, Drawable,
-	  __hasProp = {}.hasOwnProperty,
-	  __extends = function(child, parent) { for (var key in parent) { if (__hasProp.call(parent, key)) child[key] = parent[key]; } function ctor() { this.constructor = child; } ctor.prototype = parent.prototype; child.prototype = new ctor(); child.__super__ = parent.prototype; return child; };
+	'use strict';
 
-	Drawable = __webpack_require__(4);
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
 
-	ComboStroke = (function(_super) {
-	  __extends(ComboStroke, _super);
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
 
-	  function ComboStroke(strokes, options) {
-	    var stroke, _i, _len, _ref;
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x5, _x6, _x7) { var _again = true; _function: while (_again) { var object = _x5, property = _x6, receiver = _x7; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x5 = parent; _x6 = property; _x7 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _DrawableCoffee = __webpack_require__(4);
+
+	var _DrawableCoffee2 = _interopRequireDefault(_DrawableCoffee);
+
+	var _utils = __webpack_require__(5);
+
+	// this is a stroke composed of several stroke parts
+
+	var ComboStroke = (function (_Drawable) {
+	  _inherits(ComboStroke, _Drawable);
+
+	  function ComboStroke(strokes) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, ComboStroke);
+
+	    _get(Object.getPrototypeOf(ComboStroke.prototype), 'constructor', this).call(this);
 	    this.strokes = strokes;
-	    this.options = options != null ? options : {};
-	    _ref = this.strokes;
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      stroke.setAnimationSpeedupRatio(this.strokes.length);
+	    this.options = options;
+	    var _iteratorNormalCompletion = true;
+	    var _didIteratorError = false;
+	    var _iteratorError = undefined;
+
+	    try {
+	      for (var _iterator = this.strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	        var stroke = _step.value;
+
+	        stroke.setAnimationSpeedupRatio(this.strokes.length);
+	      }
+	    } catch (err) {
+	      _didIteratorError = true;
+	      _iteratorError = err;
+	    } finally {
+	      try {
+	        if (!_iteratorNormalCompletion && _iterator['return']) {
+	          _iterator['return']();
+	        }
+	      } finally {
+	        if (_didIteratorError) {
+	          throw _iteratorError;
+	        }
+	      }
 	    }
 	  }
 
-	  ComboStroke.prototype.show = function(animationOptions) {
-	    var stroke, _i, _len, _ref, _results;
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    _ref = this.strokes;
-	    _results = [];
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      _results.push(stroke.show(animationOptions));
-	    }
-	    return _results;
-	  };
+	  _createClass(ComboStroke, [{
+	    key: 'show',
+	    value: function show() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
 
-	  ComboStroke.prototype.hide = function(animationOptions) {
-	    var stroke, _i, _len, _ref, _results;
-	    if (animationOptions == null) {
-	      animationOptions = {};
-	    }
-	    _ref = this.strokes;
-	    _results = [];
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      _results.push(stroke.hide(animationOptions));
-	    }
-	    return _results;
-	  };
+	      try {
+	        for (var _iterator2 = this.strokes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var stroke = _step2.value;
 
-	  ComboStroke.prototype.draw = function() {
-	    var stroke, _i, _len, _ref, _results;
-	    _ref = this.strokes;
-	    _results = [];
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      _results.push(stroke.draw(this.canvas));
-	    }
-	    return _results;
-	  };
-
-	  ComboStroke.prototype.animate = function(onComplete) {
-	    if (onComplete == null) {
-	      onComplete = function() {};
-	    }
-	    return this.animateStroke(onComplete, 0);
-	  };
-
-	  ComboStroke.prototype.getDistance = function(point) {
-	    var distances, stroke;
-	    distances = (function() {
-	      var _i, _len, _ref, _results;
-	      _ref = this.strokes;
-	      _results = [];
-	      for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	        stroke = _ref[_i];
-	        _results.push(stroke.getDistance(point));
-	      }
-	      return _results;
-	    }).call(this);
-	    return Math.min.apply(Math, distances);
-	  };
-
-	  ComboStroke.prototype.getAverageDistance = function(points) {
-	    var point, totalDist, _i, _len;
-	    totalDist = 0;
-	    for (_i = 0, _len = points.length; _i < _len; _i++) {
-	      point = points[_i];
-	      totalDist += this.getDistance(point);
-	    }
-	    return totalDist / points.length;
-	  };
-
-	  ComboStroke.prototype.getBounds = function() {
-	    var maxX, maxY, midX, midY, minX, minY, strokeBoundingPoints, _ref, _ref1;
-	    strokeBoundingPoints = this.getAllStrokeBounds();
-	    _ref = this.getExtremes(this.getAllYs(strokeBoundingPoints)), maxY = _ref[0], midY = _ref[1], minY = _ref[2];
-	    _ref1 = this.getExtremes(this.getAllXs(strokeBoundingPoints)), maxX = _ref1[0], midX = _ref1[1], minX = _ref1[2];
-	    return [
-	      {
-	        x: minX,
-	        y: minY
-	      }, {
-	        x: maxX,
-	        y: maxY
-	      }
-	    ];
-	  };
-
-	  ComboStroke.prototype.getAllStrokeBounds = function() {
-	    var bounds, stroke, strokeBounds, _i, _len, _ref;
-	    bounds = [];
-	    _ref = this.strokes;
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      strokeBounds = stroke.getBounds();
-	      bounds.push(strokeBounds[0]);
-	      bounds.push(strokeBounds[1]);
-	    }
-	    return bounds;
-	  };
-
-	  ComboStroke.prototype.setCanvas = function(canvas) {
-	    var stroke, _i, _len, _ref, _results;
-	    ComboStroke.__super__.setCanvas.apply(this, arguments);
-	    _ref = this.strokes;
-	    _results = [];
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      _results.push(stroke.setCanvas(canvas));
-	    }
-	    return _results;
-	  };
-
-	  ComboStroke.prototype.highlight = function() {
-	    var stroke, _i, _len, _ref, _results;
-	    _ref = this.strokes;
-	    _results = [];
-	    for (_i = 0, _len = _ref.length; _i < _len; _i++) {
-	      stroke = _ref[_i];
-	      _results.push(stroke.highlight());
-	    }
-	    return _results;
-	  };
-
-	  ComboStroke.prototype.animateStroke = function(onComplete, strokeNum) {
-	    var stroke;
-	    stroke = this.strokes[strokeNum];
-	    return stroke.animate((function(_this) {
-	      return function() {
-	        if (strokeNum < _this.strokes.length - 1) {
-	          return _this.animateStroke(onComplete, strokeNum + 1);
-	        } else {
-	          return onComplete();
+	          stroke.show(animationOptions);
 	        }
-	      };
-	    })(this));
-	  };
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+	            _iterator2['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'hide',
+	    value: function hide() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
+
+	      try {
+	        for (var _iterator3 = this.strokes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var stroke = _step3.value;
+
+	          stroke.hide(animationOptions);
+	        }
+	      } catch (err) {
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+	            _iterator3['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+
+	      try {
+	        for (var _iterator4 = this.strokes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var stroke = _step4.value;
+
+	          stroke.draw(this.canvas);
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+	            _iterator4['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
+
+	      this.animateStroke(onComplete, 0);
+	    }
+	  }, {
+	    key: 'getDistance',
+	    value: function getDistance(point) {
+	      var distances = this.strokes.map(function (stroke) {
+	        return stroke.getDistance(point);
+	      });
+	      return Math.min.apply(Math, distances);
+	    }
+	  }, {
+	    key: 'getAverageDistance',
+	    value: function getAverageDistance(points) {
+	      var totalDist = 0;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
+
+	      try {
+	        for (var _iterator5 = points[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var point = _step5.value;
+
+	          totalDist += this.getDistance(point);
+	        }
+	      } catch (err) {
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion5 && _iterator5['return']) {
+	            _iterator5['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
+	          }
+	        }
+	      }
+
+	      return totalDist / points.length;
+	    }
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      var strokeBoundingPoints = this.getAllStrokeBounds();
+
+	      var _getExtremes = this.getExtremes(this.getAllYs(strokeBoundingPoints));
+
+	      var _getExtremes2 = _slicedToArray(_getExtremes, 3);
+
+	      var maxY = _getExtremes2[0];
+	      var minY = _getExtremes2[2];
+
+	      var _getExtremes3 = this.getExtremes(this.getAllXs(strokeBoundingPoints));
+
+	      var _getExtremes32 = _slicedToArray(_getExtremes3, 3);
+
+	      var maxX = _getExtremes32[0];
+	      var minX = _getExtremes32[2];
+
+	      return [{ x: minX, y: minY }, { x: maxX, y: maxY }];
+	    }
+	  }, {
+	    key: 'getAllStrokeBounds',
+	    value: function getAllStrokeBounds() {
+	      var bounds = [];
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
+
+	      try {
+	        for (var _iterator6 = this.strokes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var stroke = _step6.value;
+
+	          var strokeBounds = stroke.getBounds();
+	          bounds.push(strokeBounds[0]);
+	          bounds.push(strokeBounds[1]);
+	        }
+	      } catch (err) {
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion6 && _iterator6['return']) {
+	            _iterator6['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
+	          }
+	        }
+	      }
+
+	      return bounds;
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(ComboStroke.prototype), 'setCanvas', this).call(this, canvas);
+	      var _iteratorNormalCompletion7 = true;
+	      var _didIteratorError7 = false;
+	      var _iteratorError7 = undefined;
+
+	      try {
+	        for (var _iterator7 = this.strokes[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
+	          var stroke = _step7.value;
+
+	          stroke.setCanvas(canvas);
+	        }
+	      } catch (err) {
+	        _didIteratorError7 = true;
+	        _iteratorError7 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion7 && _iterator7['return']) {
+	            _iterator7['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError7) {
+	            throw _iteratorError7;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'highlight',
+	    value: function highlight() {
+	      var _iteratorNormalCompletion8 = true;
+	      var _didIteratorError8 = false;
+	      var _iteratorError8 = undefined;
+
+	      try {
+	        for (var _iterator8 = this.strokes[Symbol.iterator](), _step8; !(_iteratorNormalCompletion8 = (_step8 = _iterator8.next()).done); _iteratorNormalCompletion8 = true) {
+	          var stroke = _step8.value;
+
+	          stroke.highlight();
+	        }
+	      } catch (err) {
+	        _didIteratorError8 = true;
+	        _iteratorError8 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion8 && _iterator8['return']) {
+	            _iterator8['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError8) {
+	            throw _iteratorError8;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'animateStroke',
+	    value: function animateStroke(onComplete, strokeNum) {
+	      var _this = this;
+
+	      var stroke = this.strokes[strokeNum];
+	      stroke.animate(function () {
+	        if (strokeNum < _this.strokes.length - 1) {
+	          _this.animateStroke(onComplete, strokeNum + 1);
+	        } else {
+	          onComplete();
+	        }
+	      });
+	    }
+	  }]);
 
 	  return ComboStroke;
+	})(_DrawableCoffee2['default']);
 
-	})(Drawable);
-
-	module.exports = ComboStroke;
-
+	exports['default'] = ComboStroke;
+	module.exports = exports['default'];
 
 /***/ },
 /* 7 */
@@ -1303,6 +1469,8 @@
 
 	var _Drawable3 = _interopRequireDefault(_Drawable2);
 
+	var _utils = __webpack_require__(5);
+
 	var CharacterPositioner = (function (_Drawable) {
 	  _inherits(CharacterPositioner, _Drawable);
 
@@ -1389,7 +1557,7 @@
 	  }, {
 	    key: 'animate',
 	    value: function animate(svg) {
-	      var onComplete = arguments.length <= 1 || arguments[1] === undefined ? function () {} : arguments[1];
+	      var onComplete = arguments.length <= 1 || arguments[1] === undefined ? _utils.emptyFunc : arguments[1];
 
 	      this.character.animate(onComplete);
 	    }

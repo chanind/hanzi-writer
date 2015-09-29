@@ -1,6 +1,7 @@
 import Stroke from './Stroke';
 import ComboStroke from './ComboStroke';
 import Drawable from './Drawable';
+import {emptyFunc} from './utils';
 
 class Character extends Drawable {
 
@@ -85,7 +86,7 @@ class Character extends Drawable {
     }
   }
 
-  animate(onComplete = () => {}) {
+  animate(onComplete = emptyFunc) {
     this.hide({onComplete: () => this.animateStroke(onComplete, 0)});
   }
 

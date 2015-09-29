@@ -1,4 +1,5 @@
 import Drawable from './Drawable';
+import {emptyFunc} from './utils';
 
 class CharacterPositioner extends Drawable {
 
@@ -54,7 +55,7 @@ class CharacterPositioner extends Drawable {
     this.character.draw();
   }
 
-  animate(svg, onComplete = () => {}) {
+  animate(svg, onComplete = emptyFunc) {
     this.character.animate(onComplete);
   }
 

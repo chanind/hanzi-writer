@@ -43,19 +43,6 @@ class Character extends Drawable {
     return bounds;
   }
 
-  getMatchingStroke(points) {
-    let closestStroke = null;
-    let bestAvgDist = 0;
-    for (const stroke of this.strokes) {
-      const avgDist = stroke.getAverageDistance(points);
-      if (avgDist < bestAvgDist || !closestStroke) {
-        closestStroke = stroke;
-        bestAvgDist = avgDist;
-      }
-    }
-    if (bestAvgDist < Character.DISTANCE_THRESHOLD) return closestStroke;
-  }
-
   show(animationOptions = {}) {
     for (const stroke of this.strokes) {
       stroke.show(animationOptions);
@@ -74,6 +61,10 @@ class Character extends Drawable {
 
   getStroke(strokeNum) {
     return this.strokes[strokeNum];
+  }
+
+  getStrokes() {
+    return this.strokes;
   }
 
   getNumStrokes() {
@@ -109,7 +100,5 @@ class Character extends Drawable {
     });
   }
 }
-
-Character.DISTANCE_THRESHOLD = 30;
 
 export default Character;

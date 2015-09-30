@@ -68,13 +68,17 @@
 
 	var _CharacterPositioner2 = _interopRequireDefault(_CharacterPositioner);
 
+	var _StrokeMatcher = __webpack_require__(9);
+
+	var _StrokeMatcher2 = _interopRequireDefault(_StrokeMatcher);
+
 	var _utils = __webpack_require__(5);
 
-	var _svgJs = __webpack_require__(9);
+	var _svgJs = __webpack_require__(10);
 
 	var _svgJs2 = _interopRequireDefault(_svgJs);
 
-	var _util = __webpack_require__(10);
+	var _util = __webpack_require__(11);
 
 	var defaultOptions = {
 	  charDataLoader: function charDataLoader(char) {
@@ -88,6 +92,7 @@
 	  strokeHighlightColor: '#AAF',
 	  userStrokeFadeDuration: 300,
 	  delayBetweenStrokes: 1000,
+	  matchDistanceThreshold: 30,
 	  userStrokeAttrs: {
 	    fill: 'none',
 	    stroke: '#333',
@@ -237,7 +242,8 @@
 	    value: function endUserStroke() {
 	      if (!this.userStroke) return;
 	      var translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-	      var matchingStroke = this.character.getMatchingStroke(translatedPoints);
+	      var strokeMatcher = new _StrokeMatcher2['default'](this.options);
+	      var matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
 	      this.userStroke.fadeAndRemove();
 	      this.userStroke = null;
 	      if (!this.isQuizzing) return;
@@ -443,10 +449,9 @@
 	      return bounds;
 	    }
 	  }, {
-	    key: 'getMatchingStroke',
-	    value: function getMatchingStroke(points) {
-	      var closestStroke = null;
-	      var bestAvgDist = 0;
+	    key: 'show',
+	    value: function show() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	      var _iteratorNormalCompletion3 = true;
 	      var _didIteratorError3 = false;
 	      var _iteratorError3 = undefined;
@@ -455,11 +460,7 @@
 	        for (var _iterator3 = this.strokes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 	          var stroke = _step3.value;
 
-	          var avgDist = stroke.getAverageDistance(points);
-	          if (avgDist < bestAvgDist || !closestStroke) {
-	            closestStroke = stroke;
-	            bestAvgDist = avgDist;
-	          }
+	          stroke.show(animationOptions);
 	        }
 	      } catch (err) {
 	        _didIteratorError3 = true;
@@ -475,12 +476,10 @@
 	          }
 	        }
 	      }
-
-	      if (bestAvgDist < Character.DISTANCE_THRESHOLD) return closestStroke;
 	    }
 	  }, {
-	    key: 'show',
-	    value: function show() {
+	    key: 'hide',
+	    value: function hide() {
 	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	      var _iteratorNormalCompletion4 = true;
 	      var _didIteratorError4 = false;
@@ -490,7 +489,7 @@
 	        for (var _iterator4 = this.strokes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
 	          var stroke = _step4.value;
 
-	          stroke.show(animationOptions);
+	          stroke.hide(animationOptions);
 	        }
 	      } catch (err) {
 	        _didIteratorError4 = true;
@@ -508,35 +507,6 @@
 	      }
 	    }
 	  }, {
-	    key: 'hide',
-	    value: function hide() {
-	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
-
-	      try {
-	        for (var _iterator5 = this.strokes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var stroke = _step5.value;
-
-	          stroke.hide(animationOptions);
-	        }
-	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5['return']) {
-	            _iterator5['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
-	          }
-	        }
-	      }
-	    }
-	  }, {
 	    key: 'showStroke',
 	    value: function showStroke(strokeNum) {
 	      var animationOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
@@ -549,6 +519,11 @@
 	      return this.strokes[strokeNum];
 	    }
 	  }, {
+	    key: 'getStrokes',
+	    value: function getStrokes() {
+	      return this.strokes;
+	    }
+	  }, {
 	    key: 'getNumStrokes',
 	    value: function getNumStrokes() {
 	      return this.strokes.length;
@@ -556,27 +531,27 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      var _iteratorNormalCompletion6 = true;
-	      var _didIteratorError6 = false;
-	      var _iteratorError6 = undefined;
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
 
 	      try {
-	        for (var _iterator6 = this.strokes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	          var stroke = _step6.value;
+	        for (var _iterator5 = this.strokes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var stroke = _step5.value;
 
 	          stroke.draw();
 	        }
 	      } catch (err) {
-	        _didIteratorError6 = true;
-	        _iteratorError6 = err;
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion6 && _iterator6['return']) {
-	            _iterator6['return']();
+	          if (!_iteratorNormalCompletion5 && _iterator5['return']) {
+	            _iterator5['return']();
 	          }
 	        } finally {
-	          if (_didIteratorError6) {
-	            throw _iteratorError6;
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
 	          }
 	        }
 	      }
@@ -596,27 +571,27 @@
 	    key: 'setCanvas',
 	    value: function setCanvas(canvas) {
 	      _get(Object.getPrototypeOf(Character.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion7 = true;
-	      var _didIteratorError7 = false;
-	      var _iteratorError7 = undefined;
+	      var _iteratorNormalCompletion6 = true;
+	      var _didIteratorError6 = false;
+	      var _iteratorError6 = undefined;
 
 	      try {
-	        for (var _iterator7 = this.strokes[Symbol.iterator](), _step7; !(_iteratorNormalCompletion7 = (_step7 = _iterator7.next()).done); _iteratorNormalCompletion7 = true) {
-	          var stroke = _step7.value;
+	        for (var _iterator6 = this.strokes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
+	          var stroke = _step6.value;
 
 	          stroke.setCanvas(canvas);
 	        }
 	      } catch (err) {
-	        _didIteratorError7 = true;
-	        _iteratorError7 = err;
+	        _didIteratorError6 = true;
+	        _iteratorError6 = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion7 && _iterator7['return']) {
-	            _iterator7['return']();
+	          if (!_iteratorNormalCompletion6 && _iterator6['return']) {
+	            _iterator6['return']();
 	          }
 	        } finally {
-	          if (_didIteratorError7) {
-	            throw _iteratorError7;
+	          if (_didIteratorError6) {
+	            throw _iteratorError6;
 	          }
 	        }
 	      }
@@ -642,8 +617,6 @@
 
 	  return Character;
 	})(_Drawable3['default']);
-
-	Character.DISTANCE_THRESHOLD = 30;
 
 	exports['default'] = Character;
 	module.exports = exports['default'];
@@ -759,6 +732,13 @@
 	      }
 
 	      return totalDist / points.length;
+	    }
+	  }, {
+	    key: 'getLength',
+	    value: function getLength() {
+	      var start = this.getStrokeAnimationStartingPoint();
+	      var end = this.getStrokeAnimationEndingPoint();
+	      return Math.sqrt(Math.pow(start.x - end.x, 2) + Math.pow(start.y - end.y, 2));
 	    }
 	  }, {
 	    key: 'getStrokeAnimationStartingPoint',
@@ -1619,6 +1599,71 @@
 
 /***/ },
 /* 9 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var StrokeMatcher = (function () {
+	  function StrokeMatcher(options) {
+	    _classCallCheck(this, StrokeMatcher);
+
+	    this.options = options;
+	  }
+
+	  _createClass(StrokeMatcher, [{
+	    key: "getMatchingStroke",
+	    value: function getMatchingStroke(points, strokes) {
+	      var closestStroke = null;
+	      var bestAvgDist = 0;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var stroke = _step.value;
+
+	          var avgDist = stroke.getAverageDistance(points);
+	          if (avgDist < bestAvgDist || !closestStroke) {
+	            closestStroke = stroke;
+	            bestAvgDist = avgDist;
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator["return"]) {
+	            _iterator["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      if (bestAvgDist < this.options.matchDistanceThreshold) return closestStroke;
+	    }
+	  }]);
+
+	  return StrokeMatcher;
+	})();
+
+	exports["default"] = StrokeMatcher;
+	module.exports = exports["default"];
+
+/***/ },
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* svg.js 1.1.0 - svg selector inventor polyfill regex default color array pointarray patharray number viewbox bbox rbox element parent container fx relative event defs group arrange mask clip gradient pattern doc shape symbol use rect ellipse line poly path image text textpath nested hyperlink marker sugar set data memory helpers - svgjs.com/license */'use strict';;(function(root,factory){if(true){!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));}else if(typeof exports === 'object'){module.exports = factory();}else {root.SVG = factory();}})(undefined,function(){var SVG=this.SVG = function(element){if(SVG.supported){element = new SVG.Doc(element);if(!SVG.parser)SVG.prepare(element);return element;}}; // Default namespaces
@@ -2040,7 +2085,7 @@
 	function idFromReference(url){var m=url.toString().match(SVG.regex.reference);if(m)return m[1];}return SVG;});
 
 /***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -2535,7 +2580,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(12);
+	exports.isBuffer = __webpack_require__(13);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -2572,7 +2617,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(13);
+	exports.inherits = __webpack_require__(14);
 
 	exports._extend = function (origin, add) {
 	  // Don't do anything if add isn't an object
@@ -2589,10 +2634,10 @@
 	function hasOwnProperty(obj, prop) {
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(11)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(12)))
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -2694,7 +2739,7 @@
 	};
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2704,7 +2749,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	'use strict';

@@ -1,6 +1,7 @@
 import Character from './Character';
 import UserStroke from './UserStroke';
 import CharacterPositioner from './CharacterPositioner';
+import StrokeMatcher from './StrokeMatcher';
 import {inArray} from './utils';
 import svg from 'svg.js';
 import {_extend as extend} from 'util';
@@ -15,6 +16,7 @@ const defaultOptions = {
   strokeHighlightColor: '#AAF',
   userStrokeFadeDuration: 300,
   delayBetweenStrokes: 1000,
+  matchDistanceThreshold: 30,
   userStrokeAttrs: {
     fill: 'none',
     stroke: '#333',
@@ -125,7 +127,8 @@ class HanziWriter {
   endUserStroke() {
     if (!this.userStroke) return;
     const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-    const matchingStroke = this.character.getMatchingStroke(translatedPoints);
+    const strokeMatcher = new StrokeMatcher(this.options);
+    const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
     this.userStroke.fadeAndRemove();
     this.userStroke = null;
     if (!this.isQuizzing) return;

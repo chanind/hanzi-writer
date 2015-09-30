@@ -3,16 +3,24 @@
   "version": "0.1.0",
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
+    "babel-jest": "*",
     "babel-loader": "*",
+    "eslint-config-airbnb": "*",
+    "eslint-loader": "*",
+    "eslint-plugin-react": "*",
     "grunt": "*",
-    "grunt-webpack": "*",
     "grunt-contrib-clean": "*",
     "grunt-contrib-copy": "*",
     "grunt-contrib-uglify": "*",
+    "grunt-webpack": "*",
+    "jest-cli": "^0.5.8",
     "svg.js": "1.1.0",
-    "webpack": "^1.12.2",
-    "eslint-loader": "*",
-    "eslint-config-airbnb": "*",
-    "eslint-plugin-react": "*"
+    "webpack": "^1.12.2"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest"
   }
 }

@@ -2,6 +2,7 @@ import Character from './Character';
 import UserStroke from './UserStroke';
 import CharacterPositioner from './CharacterPositioner';
 import StrokeMatcher from './StrokeMatcher';
+import ZdtPathParser from './ZdtPathParser';
 import {inArray} from './utils';
 import svg from 'svg.js';
 import {_extend as extend} from 'util';
@@ -82,8 +83,9 @@ class HanziWriter {
 
   setCharacter(char) {
     const pathStrings = this.options.charDataLoader(char);
-    this.character = new Character(pathStrings, this.options);
-    this.hint = new Character(pathStrings, this.getHintOptions());
+    const zdtPathParser = new ZdtPathParser();
+    this.character = new Character(zdtPathParser.generateStrokes(pathStrings, this.options), this.options);
+    this.hint = new Character(zdtPathParser.generateStrokes(pathStrings, this.getHintOptions()), this.getHintOptions());
     this.positioner = new CharacterPositioner(this.character, this.options);
     this.hintPositioner = new CharacterPositioner(this.hint, this.options);
     this.hintPositioner.setCanvas(this.svg);

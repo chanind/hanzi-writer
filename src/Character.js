@@ -1,29 +1,12 @@
-import Stroke from './Stroke';
-import ComboStroke from './ComboStroke';
 import Drawable from './Drawable';
 import {emptyFunc} from './utils';
 
 class Character extends Drawable {
 
-  constructor(pathStrings, options = {}) {
+  constructor(strokes, options = {}) {
     super();
     this.options = options;
-    this.strokes = [];
-    const rawStrokes = pathStrings.map((pathString) => {
-      return new Stroke(pathString, this.options);
-    });
-    let comboStrokeBuffer = [];
-    for (const stroke of rawStrokes) {
-      if (stroke.isComplete && comboStrokeBuffer.length === 0) {
-        this.strokes.push(stroke);
-      } else if (stroke.isComplete) {
-        comboStrokeBuffer.push(stroke);
-        this.strokes.push(new ComboStroke(comboStrokeBuffer, this.options));
-        comboStrokeBuffer = [];
-      } else {
-        comboStrokeBuffer.push(stroke);
-      }
-    }
+    this.strokes = strokes;
   }
 
   getBounds() {

@@ -3,26 +3,15 @@ import {emptyFunc} from './utils';
 
 class Stroke extends Path {
 
-  constructor(zdtPathData, options = {}) {
+  constructor(points, strokeType, options = {}) {
     super();
     this.options = options;
-    const [metadataString, rawPathString] = zdtPathData.split(':');
-    const pathString = rawPathString.replace(/;?\s*$/, '');
-    this.points = pathString.split(';').map((pointString) => {
-      return this.parsePoint(pointString);
-    });
-    this.isComplete = metadataString[2] === 'P';
-    this.strokeType = parseInt(metadataString[1], 10);
-    this.animationSpeedupRatio = 1;
+    this.points = points;
+    this.strokeType = strokeType;
   }
 
   getPathString() {
     return super.getPathString() + ' z';
-  }
-
-  parsePoint(pointString) {
-    const pointArr = pointString.split(',');
-    return {x: pointArr[0], y: pointArr[1]};
   }
 
   setAnimationSpeedupRatio(animationSpeedupRatio) {

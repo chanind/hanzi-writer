@@ -60,25 +60,29 @@
 
 	var _Character2 = _interopRequireDefault(_Character);
 
-	var _UserStroke = __webpack_require__(7);
+	var _UserStroke = __webpack_require__(4);
 
 	var _UserStroke2 = _interopRequireDefault(_UserStroke);
 
-	var _CharacterPositioner = __webpack_require__(8);
+	var _CharacterPositioner = __webpack_require__(6);
 
 	var _CharacterPositioner2 = _interopRequireDefault(_CharacterPositioner);
 
-	var _StrokeMatcher = __webpack_require__(9);
+	var _StrokeMatcher = __webpack_require__(7);
 
 	var _StrokeMatcher2 = _interopRequireDefault(_StrokeMatcher);
 
-	var _utils = __webpack_require__(5);
+	var _ZdtPathParser = __webpack_require__(8);
 
-	var _svgJs = __webpack_require__(10);
+	var _ZdtPathParser2 = _interopRequireDefault(_ZdtPathParser);
+
+	var _utils = __webpack_require__(3);
+
+	var _svgJs = __webpack_require__(11);
 
 	var _svgJs2 = _interopRequireDefault(_svgJs);
 
-	var _util = __webpack_require__(11);
+	var _util = __webpack_require__(12);
 
 	var defaultOptions = {
 	  charDataLoader: function charDataLoader(char) {
@@ -187,8 +191,9 @@
 	    key: 'setCharacter',
 	    value: function setCharacter(char) {
 	      var pathStrings = this.options.charDataLoader(char);
-	      this.character = new _Character2['default'](pathStrings, this.options);
-	      this.hint = new _Character2['default'](pathStrings, this.getHintOptions());
+	      var zdtPathParser = new _ZdtPathParser2['default']();
+	      this.character = new _Character2['default'](zdtPathParser.generateStrokes(pathStrings, this.options), this.options);
+	      this.hint = new _Character2['default'](zdtPathParser.generateStrokes(pathStrings, this.getHintOptions()), this.getHintOptions());
 	      this.positioner = new _CharacterPositioner2['default'](this.character, this.options);
 	      this.hintPositioner = new _CharacterPositioner2['default'](this.hint, this.options);
 	      this.hintPositioner.setCanvas(this.svg);
@@ -329,69 +334,23 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _Stroke = __webpack_require__(2);
-
-	var _Stroke2 = _interopRequireDefault(_Stroke);
-
-	var _ComboStroke = __webpack_require__(6);
-
-	var _ComboStroke2 = _interopRequireDefault(_ComboStroke);
-
-	var _Drawable2 = __webpack_require__(4);
+	var _Drawable2 = __webpack_require__(2);
 
 	var _Drawable3 = _interopRequireDefault(_Drawable2);
 
-	var _utils = __webpack_require__(5);
+	var _utils = __webpack_require__(3);
 
 	var Character = (function (_Drawable) {
 	  _inherits(Character, _Drawable);
 
-	  function Character(pathStrings) {
-	    var _this = this;
-
+	  function Character(strokes) {
 	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 	    _classCallCheck(this, Character);
 
 	    _get(Object.getPrototypeOf(Character.prototype), 'constructor', this).call(this);
 	    this.options = options;
-	    this.strokes = [];
-	    var rawStrokes = pathStrings.map(function (pathString) {
-	      return new _Stroke2['default'](pathString, _this.options);
-	    });
-	    var comboStrokeBuffer = [];
-	    var _iteratorNormalCompletion = true;
-	    var _didIteratorError = false;
-	    var _iteratorError = undefined;
-
-	    try {
-	      for (var _iterator = rawStrokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	        var stroke = _step.value;
-
-	        if (stroke.isComplete && comboStrokeBuffer.length === 0) {
-	          this.strokes.push(stroke);
-	        } else if (stroke.isComplete) {
-	          comboStrokeBuffer.push(stroke);
-	          this.strokes.push(new _ComboStroke2['default'](comboStrokeBuffer, this.options));
-	          comboStrokeBuffer = [];
-	        } else {
-	          comboStrokeBuffer.push(stroke);
-	        }
-	      }
-	    } catch (err) {
-	      _didIteratorError = true;
-	      _iteratorError = err;
-	    } finally {
-	      try {
-	        if (!_iteratorNormalCompletion && _iterator['return']) {
-	          _iterator['return']();
-	        }
-	      } finally {
-	        if (_didIteratorError) {
-	          throw _iteratorError;
-	        }
-	      }
-	    }
+	    this.strokes = strokes;
 	  }
 
 	  _createClass(Character, [{
@@ -419,6 +378,39 @@
 	    key: 'getAllStrokeBounds',
 	    value: function getAllStrokeBounds() {
 	      var bounds = [];
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = this.strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var stroke = _step.value;
+
+	          var strokeBounds = stroke.getBounds();
+	          bounds.push(strokeBounds[0]);
+	          bounds.push(strokeBounds[1]);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return bounds;
+	    }
+	  }, {
+	    key: 'show',
+	    value: function show() {
+	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	      var _iteratorNormalCompletion2 = true;
 	      var _didIteratorError2 = false;
 	      var _iteratorError2 = undefined;
@@ -427,9 +419,7 @@
 	        for (var _iterator2 = this.strokes[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 	          var stroke = _step2.value;
 
-	          var strokeBounds = stroke.getBounds();
-	          bounds.push(strokeBounds[0]);
-	          bounds.push(strokeBounds[1]);
+	          stroke.show(animationOptions);
 	        }
 	      } catch (err) {
 	        _didIteratorError2 = true;
@@ -445,12 +435,10 @@
 	          }
 	        }
 	      }
-
-	      return bounds;
 	    }
 	  }, {
-	    key: 'show',
-	    value: function show() {
+	    key: 'hide',
+	    value: function hide() {
 	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 	      var _iteratorNormalCompletion3 = true;
 	      var _didIteratorError3 = false;
@@ -460,7 +448,7 @@
 	        for (var _iterator3 = this.strokes[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
 	          var stroke = _step3.value;
 
-	          stroke.show(animationOptions);
+	          stroke.hide(animationOptions);
 	        }
 	      } catch (err) {
 	        _didIteratorError3 = true;
@@ -473,35 +461,6 @@
 	        } finally {
 	          if (_didIteratorError3) {
 	            throw _iteratorError3;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide() {
-	      var animationOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
-
-	      try {
-	        for (var _iterator4 = this.strokes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var stroke = _step4.value;
-
-	          stroke.hide(animationOptions);
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-	            _iterator4['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
 	          }
 	        }
 	      }
@@ -531,6 +490,46 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+
+	      try {
+	        for (var _iterator4 = this.strokes[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var stroke = _step4.value;
+
+	          stroke.draw();
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+	            _iterator4['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var _this = this;
+
+	      var _onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
+
+	      this.hide({ onComplete: function onComplete() {
+	          return _this.animateStroke(_onComplete, 0);
+	        } });
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(Character.prototype), 'setCanvas', this).call(this, canvas);
 	      var _iteratorNormalCompletion5 = true;
 	      var _didIteratorError5 = false;
 	      var _iteratorError5 = undefined;
@@ -539,7 +538,7 @@
 	        for (var _iterator5 = this.strokes[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
 	          var stroke = _step5.value;
 
-	          stroke.draw();
+	          stroke.setCanvas(canvas);
 	        }
 	      } catch (err) {
 	        _didIteratorError5 = true;
@@ -557,57 +556,17 @@
 	      }
 	    }
 	  }, {
-	    key: 'animate',
-	    value: function animate() {
-	      var _this2 = this;
-
-	      var _onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
-
-	      this.hide({ onComplete: function onComplete() {
-	          return _this2.animateStroke(_onComplete, 0);
-	        } });
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(Character.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion6 = true;
-	      var _didIteratorError6 = false;
-	      var _iteratorError6 = undefined;
-
-	      try {
-	        for (var _iterator6 = this.strokes[Symbol.iterator](), _step6; !(_iteratorNormalCompletion6 = (_step6 = _iterator6.next()).done); _iteratorNormalCompletion6 = true) {
-	          var stroke = _step6.value;
-
-	          stroke.setCanvas(canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError6 = true;
-	        _iteratorError6 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion6 && _iterator6['return']) {
-	            _iterator6['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError6) {
-	            throw _iteratorError6;
-	          }
-	        }
-	      }
-	    }
-	  }, {
 	    key: 'animateStroke',
 	    value: function animateStroke(onComplete, strokeNum) {
-	      var _this3 = this;
+	      var _this2 = this;
 
 	      var stroke = this.strokes[strokeNum];
 	      stroke.animate(function () {
-	        if (strokeNum < _this3.strokes.length - 1) {
+	        if (strokeNum < _this2.strokes.length - 1) {
 	          var nextStroke = function nextStroke() {
-	            return _this3.animateStroke(onComplete, strokeNum + 1);
+	            return _this2.animateStroke(onComplete, strokeNum + 1);
 	          };
-	          setTimeout(nextStroke, _this3.options.delayBetweenStrokes);
+	          setTimeout(nextStroke, _this2.options.delayBetweenStrokes);
 	        } else {
 	          onComplete();
 	        }
@@ -627,7 +586,592 @@
 
 	'use strict';
 
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _utils = __webpack_require__(3);
+
+	var Drawable = (function () {
+	  function Drawable() {
+	    _classCallCheck(this, Drawable);
+	  }
+
+	  _createClass(Drawable, [{
+	    key: 'draw',
+	    value: function draw() {}
+	    // implement in children
+
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
+	    }
+	    // implement in children
+
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {}
+	    // implement in children
+
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      this.canvas = canvas;
+	    }
+
+	    // ---- convenience methods for children ----
+
+	  }, {
+	    key: 'getExtremes',
+	    value: function getExtremes(numArray) {
+	      var max = Math.max.apply(null, numArray);
+	      var min = Math.min.apply(null, numArray);
+	      var mid = (max + min) / 2;
+	      return [max, mid, min];
+	    }
+	  }, {
+	    key: 'getAllXs',
+	    value: function getAllXs(points) {
+	      return points.map(function (point) {
+	        return point.x;
+	      });
+	    }
+	  }, {
+	    key: 'getAllYs',
+	    value: function getAllYs(points) {
+	      return points.map(function (point) {
+	        return point.y;
+	      });
+	    }
+	  }]);
+
+	  return Drawable;
+	})();
+
+	exports['default'] = Drawable;
+	module.exports = exports['default'];
+
+/***/ },
+/* 3 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+	exports.inArray = inArray;
+	exports.emptyFunc = emptyFunc;
+
+	function inArray(val, array) {
+	  var _iteratorNormalCompletion = true;
+	  var _didIteratorError = false;
+	  var _iteratorError = undefined;
+
+	  try {
+	    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	      var arrayVal = _step.value;
+
+	      if (val === arrayVal) return true;
+	    }
+	  } catch (err) {
+	    _didIteratorError = true;
+	    _iteratorError = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion && _iterator["return"]) {
+	        _iterator["return"]();
+	      }
+	    } finally {
+	      if (_didIteratorError) {
+	        throw _iteratorError;
+	      }
+	    }
+	  }
+
+	  return false;
+	}
+
+	function emptyFunc() {}
+
+/***/ },
+/* 4 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Path2 = __webpack_require__(5);
+
+	var _Path3 = _interopRequireDefault(_Path2);
+
+	var UserStroke = (function (_Path) {
+	  _inherits(UserStroke, _Path);
+
+	  function UserStroke(startingPoint) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, UserStroke);
+
+	    _get(Object.getPrototypeOf(UserStroke.prototype), 'constructor', this).call(this);
+	    this.options = options;
+	    this.points = [startingPoint];
+	  }
+
+	  _createClass(UserStroke, [{
+	    key: 'appendPoint',
+	    value: function appendPoint(point) {
+	      this.points.push(point);
+	      this.path.plot(this.getPathString());
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate() {
+	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
+
+	      onComplete();
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      return _get(Object.getPrototypeOf(UserStroke.prototype), 'draw', this).call(this).attr(this.options.userStrokeAttrs);
+	    }
+	  }, {
+	    key: 'fadeAndRemove',
+	    value: function fadeAndRemove() {
+	      var _this = this;
+
+	      this.path.animate(this.options.userStrokeFadeDuration).attr({ opacity: 0 }).after(function () {
+	        return _this.path.remove();
+	      });
+	    }
+	  }]);
+
+	  return UserStroke;
+	})(_Path3['default']);
+
+	exports['default'] = UserStroke;
+	module.exports = exports['default'];
+
+/***/ },
+/* 5 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
 	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Drawable2 = __webpack_require__(2);
+
+	var _Drawable3 = _interopRequireDefault(_Drawable2);
+
+	var Path = (function (_Drawable) {
+	  _inherits(Path, _Drawable);
+
+	  function Path() {
+	    _classCallCheck(this, Path);
+
+	    _get(Object.getPrototypeOf(Path.prototype), 'constructor', this).apply(this, arguments);
+	  }
+
+	  _createClass(Path, [{
+	    key: 'getPathString',
+	    value: function getPathString() {
+	      var start = this.points[0];
+	      var remainingPoints = this.points.slice(1);
+	      var pathString = 'M ' + start.x + ' ' + start.y;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = remainingPoints[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var point = _step.value;
+
+	          pathString += ' L ' + point.x + ' ' + point.y;
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return pathString;
+	    }
+	  }, {
+	    key: 'drawPath',
+	    value: function drawPath() {
+	      this.path = this.canvas.path(this.getPathString());
+	      return this.path;
+	    }
+	  }, {
+	    key: 'getPoints',
+	    value: function getPoints() {
+	      return this.points;
+	    }
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      var _getExtremes = this.getExtremes(this.getAllYs(this.points));
+
+	      var _getExtremes2 = _slicedToArray(_getExtremes, 3);
+
+	      var maxY = _getExtremes2[0];
+	      var minY = _getExtremes2[2];
+
+	      var _getExtremes3 = this.getExtremes(this.getAllXs(this.points));
+
+	      var _getExtremes32 = _slicedToArray(_getExtremes3, 3);
+
+	      var maxX = _getExtremes32[0];
+	      var minX = _getExtremes32[2];
+
+	      return [{ x: minX, y: minY }, { x: maxX, y: maxY }];
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      return this.drawPath();
+	    }
+	  }]);
+
+	  return Path;
+	})(_Drawable3['default']);
+
+	exports['default'] = Path;
+	module.exports = exports['default'];
+
+/***/ },
+/* 6 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _Drawable2 = __webpack_require__(2);
+
+	var _Drawable3 = _interopRequireDefault(_Drawable2);
+
+	var _utils = __webpack_require__(3);
+
+	var CharacterPositioner = (function (_Drawable) {
+	  _inherits(CharacterPositioner, _Drawable);
+
+	  function CharacterPositioner(character) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, CharacterPositioner);
+
+	    _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'constructor', this).call(this);
+	    this.character = character;
+	    this.options = options;
+	  }
+
+	  _createClass(CharacterPositioner, [{
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      return this.character.getBounds();
+	    }
+	  }, {
+	    key: 'convertExternalPoints',
+	    value: function convertExternalPoints(points) {
+	      var _this = this;
+
+	      return points.map(function (point) {
+	        return _this.convertExternalPoint(point);
+	      });
+	    }
+	  }, {
+	    key: 'convertExternalPoint',
+	    value: function convertExternalPoint(point) {
+	      return {
+	        x: (point.x - this.xOffset) / this.scale,
+	        y: (point.y - this.yOffset) / this.scale
+	      };
+	    }
+	  }, {
+	    key: 'getNestedCanvas',
+	    value: function getNestedCanvas() {
+	      this.calculateScaleAndOffset();
+	      return this.canvas.group().move(this.xOffset, this.yOffset).transform({ scaleX: this.scale, scaleY: this.scale });
+	    }
+	  }, {
+	    key: 'calculateScaleAndOffset',
+	    value: function calculateScaleAndOffset() {
+	      var bounds = this.getBounds();
+	      var preScaledWidth = bounds[1].x - bounds[0].x;
+	      var preScaledHeight = bounds[1].y - bounds[0].y;
+	      var effectiveWidth = this.options.width - 2 * this.options.padding;
+	      var effectiveHeight = this.options.height - 2 * this.options.padding;
+	      var scaleX = effectiveWidth / preScaledWidth;
+	      var scaleY = effectiveHeight / preScaledHeight;
+
+	      this.scale = Math.min(scaleX, scaleY);
+
+	      var xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
+	      var yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
+	      this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
+	      this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      this.character.draw();
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(svg) {
+	      var onComplete = arguments.length <= 1 || arguments[1] === undefined ? _utils.emptyFunc : arguments[1];
+
+	      this.character.animate(onComplete);
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'setCanvas', this).call(this, canvas);
+	      this.character.setCanvas(this.getNestedCanvas());
+	    }
+	  }]);
+
+	  return CharacterPositioner;
+	})(_Drawable3['default']);
+
+	exports['default'] = CharacterPositioner;
+	module.exports = exports['default'];
+
+/***/ },
+/* 7 */
+/***/ function(module, exports) {
+
+	"use strict";
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+	var StrokeMatcher = (function () {
+	  function StrokeMatcher(options) {
+	    _classCallCheck(this, StrokeMatcher);
+
+	    this.options = options;
+	  }
+
+	  _createClass(StrokeMatcher, [{
+	    key: "getMatchingStroke",
+	    value: function getMatchingStroke(points, strokes) {
+	      var closestStroke = null;
+	      var bestAvgDist = 0;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var stroke = _step.value;
+
+	          var avgDist = stroke.getAverageDistance(points);
+	          if (avgDist < bestAvgDist || !closestStroke) {
+	            closestStroke = stroke;
+	            bestAvgDist = avgDist;
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator["return"]) {
+	            _iterator["return"]();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      if (bestAvgDist < this.options.matchDistanceThreshold) return closestStroke;
+	    }
+	  }]);
+
+	  return StrokeMatcher;
+	})();
+
+	exports["default"] = StrokeMatcher;
+	module.exports = exports["default"];
+
+/***/ },
+/* 8 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _Stroke = __webpack_require__(9);
+
+	var _Stroke2 = _interopRequireDefault(_Stroke);
+
+	var _ComboStroke = __webpack_require__(10);
+
+	var _ComboStroke2 = _interopRequireDefault(_ComboStroke);
+
+	var ZdtPathParser = (function () {
+	  function ZdtPathParser() {
+	    _classCallCheck(this, ZdtPathParser);
+	  }
+
+	  _createClass(ZdtPathParser, [{
+	    key: 'generateStrokes',
+	    value: function generateStrokes(zdtPathStrings) {
+	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	      var strokes = [];
+	      var comboStrokeBuffer = [];
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = zdtPathStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var zdtPathString = _step.value;
+
+	          var strokeData = this.extractStrokeData(zdtPathString);
+	          var stroke = new _Stroke2['default'](strokeData.points, strokeData.strokeType, options);
+	          if (strokeData.isComplete && comboStrokeBuffer.length === 0) {
+	            strokes.push(stroke);
+	          } else if (strokeData.isComplete) {
+	            comboStrokeBuffer.push(stroke);
+	            strokes.push(new _ComboStroke2['default'](comboStrokeBuffer, options));
+	            comboStrokeBuffer = [];
+	          } else {
+	            comboStrokeBuffer.push(stroke);
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return strokes;
+	    }
+	  }, {
+	    key: 'extractStrokeData',
+	    value: function extractStrokeData(zdtPathString) {
+	      var _this = this;
+
+	      var _zdtPathString$split = zdtPathString.split(':');
+
+	      var _zdtPathString$split2 = _slicedToArray(_zdtPathString$split, 2);
+
+	      var metadataString = _zdtPathString$split2[0];
+	      var rawPathString = _zdtPathString$split2[1];
+
+	      var pathString = rawPathString.replace(/;?\s*$/, '');
+	      var points = pathString.split(';').map(function (pointString) {
+	        return _this.parsePoint(pointString);
+	      });
+	      var isComplete = metadataString[2] === 'P';
+	      var strokeType = parseInt(metadataString[1], 10);
+	      return { points: points, isComplete: isComplete, strokeType: strokeType };
+	    }
+	  }, {
+	    key: 'parsePoint',
+	    value: function parsePoint(pointString) {
+	      var pointArr = pointString.split(',');
+	      return { x: pointArr[0], y: pointArr[1] };
+	    }
+	  }]);
+
+	  return ZdtPathParser;
+	})();
+
+	exports['default'] = ZdtPathParser;
+	module.exports = exports['default'];
+
+/***/ },
+/* 9 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
@@ -639,51 +1183,30 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _Path2 = __webpack_require__(3);
+	var _Path2 = __webpack_require__(5);
 
 	var _Path3 = _interopRequireDefault(_Path2);
 
-	var _utils = __webpack_require__(5);
+	var _utils = __webpack_require__(3);
 
 	var Stroke = (function (_Path) {
 	  _inherits(Stroke, _Path);
 
-	  function Stroke(zdtPathData) {
-	    var _this = this;
-
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  function Stroke(points, strokeType) {
+	    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	    _classCallCheck(this, Stroke);
 
 	    _get(Object.getPrototypeOf(Stroke.prototype), 'constructor', this).call(this);
 	    this.options = options;
-
-	    var _zdtPathData$split = zdtPathData.split(':');
-
-	    var _zdtPathData$split2 = _slicedToArray(_zdtPathData$split, 2);
-
-	    var metadataString = _zdtPathData$split2[0];
-	    var rawPathString = _zdtPathData$split2[1];
-
-	    var pathString = rawPathString.replace(/;?\s*$/, '');
-	    this.points = pathString.split(';').map(function (pointString) {
-	      return _this.parsePoint(pointString);
-	    });
-	    this.isComplete = metadataString[2] === 'P';
-	    this.strokeType = parseInt(metadataString[1], 10);
-	    this.animationSpeedupRatio = 1;
+	    this.points = points;
+	    this.strokeType = strokeType;
 	  }
 
 	  _createClass(Stroke, [{
 	    key: 'getPathString',
 	    value: function getPathString() {
 	      return _get(Object.getPrototypeOf(Stroke.prototype), 'getPathString', this).call(this) + ' z';
-	    }
-	  }, {
-	    key: 'parsePoint',
-	    value: function parsePoint(pointString) {
-	      var pointArr = pointString.split(',');
-	      return { x: pointArr[0], y: pointArr[1] };
 	    }
 	  }, {
 	    key: 'setAnimationSpeedupRatio',
@@ -793,15 +1316,15 @@
 	  }, {
 	    key: 'highlight',
 	    value: function highlight() {
-	      var _this2 = this;
+	      var _this = this;
 
 	      this.path.animate(this.options.strokeHighlightDuration).attr({
 	        fill: this.options.strokeHighlightColor,
 	        stroke: this.options.strokeHighlightColor,
 	        opacity: 1
 	      }).after(function () {
-	        _this2.path.animate(_this2.options.strokeHighlightDuration).attr({ opacity: 0 }).after(function () {
-	          return _this2.path.attr(_this2.options.strokeAttrs);
+	        _this.path.animate(_this.options.strokeHighlightDuration).attr({ opacity: 0 }).after(function () {
+	          return _this.path.attr(_this.options.strokeAttrs);
 	        });
 	      });
 	    }
@@ -853,237 +1376,7 @@
 	module.exports = Stroke;
 
 /***/ },
-/* 3 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(_x, _x2, _x3) { var _again = true; _function: while (_again) { var object = _x, property = _x2, receiver = _x3; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x = parent; _x2 = property; _x3 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var _Drawable2 = __webpack_require__(4);
-
-	var _Drawable3 = _interopRequireDefault(_Drawable2);
-
-	var Path = (function (_Drawable) {
-	  _inherits(Path, _Drawable);
-
-	  function Path() {
-	    _classCallCheck(this, Path);
-
-	    _get(Object.getPrototypeOf(Path.prototype), 'constructor', this).apply(this, arguments);
-	  }
-
-	  _createClass(Path, [{
-	    key: 'getPathString',
-	    value: function getPathString() {
-	      var start = this.points[0];
-	      var remainingPoints = this.points.slice(1);
-	      var pathString = 'M ' + start.x + ' ' + start.y;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = remainingPoints[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var point = _step.value;
-
-	          pathString += ' L ' + point.x + ' ' + point.y;
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator['return']) {
-	            _iterator['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-
-	      return pathString;
-	    }
-	  }, {
-	    key: 'drawPath',
-	    value: function drawPath() {
-	      this.path = this.canvas.path(this.getPathString());
-	      return this.path;
-	    }
-	  }, {
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this.points;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      var _getExtremes = this.getExtremes(this.getAllYs(this.points));
-
-	      var _getExtremes2 = _slicedToArray(_getExtremes, 3);
-
-	      var maxY = _getExtremes2[0];
-	      var minY = _getExtremes2[2];
-
-	      var _getExtremes3 = this.getExtremes(this.getAllXs(this.points));
-
-	      var _getExtremes32 = _slicedToArray(_getExtremes3, 3);
-
-	      var maxX = _getExtremes32[0];
-	      var minX = _getExtremes32[2];
-
-	      return [{ x: minX, y: minY }, { x: maxX, y: maxY }];
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      return this.drawPath();
-	    }
-	  }]);
-
-	  return Path;
-	})(_Drawable3['default']);
-
-	exports['default'] = Path;
-	module.exports = exports['default'];
-
-/***/ },
-/* 4 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	var _utils = __webpack_require__(5);
-
-	var Drawable = (function () {
-	  function Drawable() {
-	    _classCallCheck(this, Drawable);
-	  }
-
-	  _createClass(Drawable, [{
-	    key: 'draw',
-	    value: function draw() {}
-	    // implement in children
-
-	  }, {
-	    key: 'animate',
-	    value: function animate() {
-	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? _utils.emptyFunc : arguments[0];
-	    }
-	    // implement in children
-
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {}
-	    // implement in children
-
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      this.canvas = canvas;
-	    }
-
-	    // ---- convenience methods for children ----
-
-	  }, {
-	    key: 'getExtremes',
-	    value: function getExtremes(numArray) {
-	      var max = Math.max.apply(null, numArray);
-	      var min = Math.min.apply(null, numArray);
-	      var mid = (max + min) / 2;
-	      return [max, mid, min];
-	    }
-	  }, {
-	    key: 'getAllXs',
-	    value: function getAllXs(points) {
-	      return points.map(function (point) {
-	        return point.x;
-	      });
-	    }
-	  }, {
-	    key: 'getAllYs',
-	    value: function getAllYs(points) {
-	      return points.map(function (point) {
-	        return point.y;
-	      });
-	    }
-	  }]);
-
-	  return Drawable;
-	})();
-
-	exports['default'] = Drawable;
-	module.exports = exports['default'];
-
-/***/ },
-/* 5 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-	exports.inArray = inArray;
-	exports.emptyFunc = emptyFunc;
-
-	function inArray(val, array) {
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
-
-	  try {
-	    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var arrayVal = _step.value;
-
-	      if (val === arrayVal) return true;
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator["return"]) {
-	        _iterator["return"]();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
-	  }
-
-	  return false;
-	}
-
-	function emptyFunc() {}
-
-/***/ },
-/* 6 */
+/* 10 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -1104,11 +1397,11 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _Drawable2 = __webpack_require__(4);
+	var _Drawable2 = __webpack_require__(2);
 
 	var _Drawable3 = _interopRequireDefault(_Drawable2);
 
-	var _utils = __webpack_require__(5);
+	var _utils = __webpack_require__(3);
 
 	// this is a stroke composed of several stroke parts
 
@@ -1415,255 +1708,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 7 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var _Path2 = __webpack_require__(3);
-
-	var _Path3 = _interopRequireDefault(_Path2);
-
-	var UserStroke = (function (_Path) {
-	  _inherits(UserStroke, _Path);
-
-	  function UserStroke(startingPoint) {
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-	    _classCallCheck(this, UserStroke);
-
-	    _get(Object.getPrototypeOf(UserStroke.prototype), 'constructor', this).call(this);
-	    this.options = options;
-	    this.points = [startingPoint];
-	  }
-
-	  _createClass(UserStroke, [{
-	    key: 'appendPoint',
-	    value: function appendPoint(point) {
-	      this.points.push(point);
-	      this.path.plot(this.getPathString());
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate() {
-	      var onComplete = arguments.length <= 0 || arguments[0] === undefined ? function () {} : arguments[0];
-
-	      onComplete();
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      return _get(Object.getPrototypeOf(UserStroke.prototype), 'draw', this).call(this).attr(this.options.userStrokeAttrs);
-	    }
-	  }, {
-	    key: 'fadeAndRemove',
-	    value: function fadeAndRemove() {
-	      var _this = this;
-
-	      this.path.animate(this.options.userStrokeFadeDuration).attr({ opacity: 0 }).after(function () {
-	        return _this.path.remove();
-	      });
-	    }
-	  }]);
-
-	  return UserStroke;
-	})(_Path3['default']);
-
-	exports['default'] = UserStroke;
-	module.exports = exports['default'];
-
-/***/ },
-/* 8 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(_x3, _x4, _x5) { var _again = true; _function: while (_again) { var object = _x3, property = _x4, receiver = _x5; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x3 = parent; _x4 = property; _x5 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
-	var _Drawable2 = __webpack_require__(4);
-
-	var _Drawable3 = _interopRequireDefault(_Drawable2);
-
-	var _utils = __webpack_require__(5);
-
-	var CharacterPositioner = (function (_Drawable) {
-	  _inherits(CharacterPositioner, _Drawable);
-
-	  function CharacterPositioner(character) {
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-	    _classCallCheck(this, CharacterPositioner);
-
-	    _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'constructor', this).call(this);
-	    this.character = character;
-	    this.options = options;
-	  }
-
-	  _createClass(CharacterPositioner, [{
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return this.character.getBounds();
-	    }
-	  }, {
-	    key: 'convertExternalPoints',
-	    value: function convertExternalPoints(points) {
-	      var _this = this;
-
-	      return points.map(function (point) {
-	        return _this.convertExternalPoint(point);
-	      });
-	    }
-	  }, {
-	    key: 'convertExternalPoint',
-	    value: function convertExternalPoint(point) {
-	      return {
-	        x: (point.x - this.xOffset) / this.scale,
-	        y: (point.y - this.yOffset) / this.scale
-	      };
-	    }
-	  }, {
-	    key: 'getNestedCanvas',
-	    value: function getNestedCanvas() {
-	      this.calculateScaleAndOffset();
-	      return this.canvas.group().move(this.xOffset, this.yOffset).transform({ scaleX: this.scale, scaleY: this.scale });
-	    }
-	  }, {
-	    key: 'calculateScaleAndOffset',
-	    value: function calculateScaleAndOffset() {
-	      var bounds = this.getBounds();
-	      var preScaledWidth = bounds[1].x - bounds[0].x;
-	      var preScaledHeight = bounds[1].y - bounds[0].y;
-	      var effectiveWidth = this.options.width - 2 * this.options.padding;
-	      var effectiveHeight = this.options.height - 2 * this.options.padding;
-	      var scaleX = effectiveWidth / preScaledWidth;
-	      var scaleY = effectiveHeight / preScaledHeight;
-
-	      this.scale = Math.min(scaleX, scaleY);
-
-	      var xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
-	      var yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
-	      this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
-	      this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      this.character.draw();
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(svg) {
-	      var onComplete = arguments.length <= 1 || arguments[1] === undefined ? _utils.emptyFunc : arguments[1];
-
-	      this.character.animate(onComplete);
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(CharacterPositioner.prototype), 'setCanvas', this).call(this, canvas);
-	      this.character.setCanvas(this.getNestedCanvas());
-	    }
-	  }]);
-
-	  return CharacterPositioner;
-	})(_Drawable3['default']);
-
-	exports['default'] = CharacterPositioner;
-	module.exports = exports['default'];
-
-/***/ },
-/* 9 */
-/***/ function(module, exports) {
-
-	"use strict";
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-	var StrokeMatcher = (function () {
-	  function StrokeMatcher(options) {
-	    _classCallCheck(this, StrokeMatcher);
-
-	    this.options = options;
-	  }
-
-	  _createClass(StrokeMatcher, [{
-	    key: "getMatchingStroke",
-	    value: function getMatchingStroke(points, strokes) {
-	      var closestStroke = null;
-	      var bestAvgDist = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var stroke = _step.value;
-
-	          var avgDist = stroke.getAverageDistance(points);
-	          if (avgDist < bestAvgDist || !closestStroke) {
-	            closestStroke = stroke;
-	            bestAvgDist = avgDist;
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator["return"]) {
-	            _iterator["return"]();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-
-	      if (bestAvgDist < this.options.matchDistanceThreshold) return closestStroke;
-	    }
-	  }]);
-
-	  return StrokeMatcher;
-	})();
-
-	exports["default"] = StrokeMatcher;
-	module.exports = exports["default"];
-
-/***/ },
-/* 10 */
+/* 11 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* svg.js 1.1.0 - svg selector inventor polyfill regex default color array pointarray patharray number viewbox bbox rbox element parent container fx relative event defs group arrange mask clip gradient pattern doc shape symbol use rect ellipse line poly path image text textpath nested hyperlink marker sugar set data memory helpers - svgjs.com/license */'use strict';;(function(root,factory){if(true){!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));}else if(typeof exports === 'object'){module.exports = factory();}else {root.SVG = factory();}})(undefined,function(){var SVG=this.SVG = function(element){if(SVG.supported){element = new SVG.Doc(element);if(!SVG.parser)SVG.prepare(element);return element;}}; // Default namespaces
@@ -2085,7 +2130,7 @@
 	function idFromReference(url){var m=url.toString().match(SVG.regex.reference);if(m)return m[1];}return SVG;});
 
 /***/ },
-/* 11 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	/* WEBPACK VAR INJECTION */(function(global, process) {// Copyright Joyent, Inc. and other Node contributors.
@@ -2580,7 +2625,7 @@
 	}
 	exports.isPrimitive = isPrimitive;
 
-	exports.isBuffer = __webpack_require__(13);
+	exports.isBuffer = __webpack_require__(14);
 
 	function objectToString(o) {
 	  return Object.prototype.toString.call(o);
@@ -2617,7 +2662,7 @@
 	 *     prototype.
 	 * @param {function} superCtor Constructor function to inherit prototype from.
 	 */
-	exports.inherits = __webpack_require__(14);
+	exports.inherits = __webpack_require__(15);
 
 	exports._extend = function (origin, add) {
 	  // Don't do anything if add isn't an object
@@ -2634,10 +2679,10 @@
 	function hasOwnProperty(obj, prop) {
 	  return Object.prototype.hasOwnProperty.call(obj, prop);
 	}
-	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(12)))
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }()), __webpack_require__(13)))
 
 /***/ },
-/* 12 */
+/* 13 */
 /***/ function(module, exports) {
 
 	// shim for using process in browser
@@ -2739,7 +2784,7 @@
 	};
 
 /***/ },
-/* 13 */
+/* 14 */
 /***/ function(module, exports) {
 
 	'use strict';
@@ -2749,7 +2794,7 @@
 	};
 
 /***/ },
-/* 14 */
+/* 15 */
 /***/ function(module, exports) {
 
 	'use strict';

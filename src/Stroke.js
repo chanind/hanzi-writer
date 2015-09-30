@@ -8,6 +8,7 @@ class Stroke extends Path {
     this.options = options;
     this.points = points;
     this.strokeType = strokeType;
+    this.animationSpeedupRatio = 1;
   }
 
   getPathString() {

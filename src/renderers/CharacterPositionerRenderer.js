@@ -1,4 +1,5 @@
 import Renderer from './Renderer';
+import Point from '../models/Point';
 import {emptyFunc} from '../utils';
 
 class CharacterPositionerRenderer extends Renderer {
@@ -9,19 +10,14 @@ class CharacterPositionerRenderer extends Renderer {
     this.options = options;
   }
 
-  getBounds() {
-    return this.characterRenderer.getBounds();
-  }
-
   convertExternalPoints(points) {
     return points.map((point) => this.convertExternalPoint(point));
   }
 
   convertExternalPoint(point) {
-    return {
-      x: (point.x - this.xOffset) / this.scale,
-      y: (point.y - this.yOffset) / this.scale,
-    };
+    const x = (point.getX() - this.xOffset) / this.scale;
+    const y = (point.getY() - this.yOffset) / this.scale;
+    return new Point(x, y);
   }
 
   getNestedCanvas() {
@@ -33,9 +29,9 @@ class CharacterPositionerRenderer extends Renderer {
   }
 
   calculateScaleAndOffset() {
-    const bounds = this.getBounds();
-    const preScaledWidth = bounds[1].x - bounds[0].x;
-    const preScaledHeight = bounds[1].y - bounds[0].y;
+    const bounds = this.characterRenderer.getBounds();
+    const preScaledWidth = bounds[1].getX() - bounds[0].getX();
+    const preScaledHeight = bounds[1].getY() - bounds[0].getY();
     const effectiveWidth = this.options.width - 2 * this.options.padding;
     const effectiveHeight = this.options.height - 2 * this.options.padding;
     const scaleX = effectiveWidth / preScaledWidth;
@@ -45,8 +41,8 @@ class CharacterPositionerRenderer extends Renderer {
 
     const xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
     const yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
-    this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
-    this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
+    this.xOffset = -1 * bounds[0].getX() * this.scale + xCenteringBuffer;
+    this.yOffset = -1 * bounds[0].getY() * this.scale + yCenteringBuffer;
   }
 
   draw() {

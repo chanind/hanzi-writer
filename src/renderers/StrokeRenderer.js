@@ -1,32 +1,36 @@
 import Renderer from './Renderer';
+import StrokePartRenderer from './StrokePartRenderer';
 import {emptyFunc} from '../utils';
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {
-  constructor(strokeParts, options = {}) {
+  constructor(stroke, options = {}) {
     super();
-    this.strokeParts = strokeParts;
+    this.stroke = stroke;
+    this.strokePartRenderers = this.stroke.getStrokeParts().map((strokePart) => {
+      return new StrokePartRenderer(strokePart, options);
+    });
     this.options = options;
-    for (const strokePart of this.strokeParts) {
-      strokePart.setAnimationSpeedupRatio(this.strokeParts.length);
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.setAnimationSpeedupRatio(this.strokePartRenderers.length);
     }
   }
 
   show(animationOptions = {}) {
-    for (const strokePart of this.strokeParts) {
-      strokePart.show(animationOptions);
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.show(animationOptions);
     }
   }
 
   hide(animationOptions = {}) {
-    for (const strokePart of this.strokeParts) {
-      strokePart.hide(animationOptions);
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.hide(animationOptions);
     }
   }
 
   draw() {
-    for (const strokePart of this.strokeParts) {
-      strokePart.draw(this.canvas);
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.draw(this.canvas);
     }
   }
 
@@ -34,55 +38,23 @@ class StrokeRenderer extends Renderer {
     this.animateStroke(onComplete, 0);
   }
 
-  getDistance(point) {
-    const distances = this.strokeParts.map((strokePart) => {
-      return strokePart.getDistance(point);
-    });
-    return Math.min.apply(Math, distances);
-  }
-
-  getAverageDistance(points) {
-    let totalDist = 0;
-    for (const point of points) {
-      totalDist += this.getDistance(point);
-    }
-    return totalDist / points.length;
-  }
-
-  getBounds() {
-    const strokePartBoundingPoints = this.getAllStrokeBounds();
-    const [maxY, , minY] = this.getExtremes(this.getAllYs(strokePartBoundingPoints));
-    const [maxX, , minX] = this.getExtremes(this.getAllXs(strokePartBoundingPoints));
-    return [{x: minX, y: minY}, {x: maxX, y: maxY}];
-  }
-
-  getAllStrokeBounds() {
-    const bounds = [];
-    for (const strokePart of this.strokeParts) {
-      const strokePartBounds = strokePart.getBounds();
-      bounds.push(strokePartBounds[0]);
-      bounds.push(strokePartBounds[1]);
-    }
-    return bounds;
-  }
-
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    for (const strokePart of this.strokeParts) {
-      strokePart.setCanvas(canvas);
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.setCanvas(canvas);
     }
   }
 
   highlight() {
-    for (const strokePart of this.strokeParts) {
-      strokePart.highlight();
+    for (const strokePartRenderer of this.strokePartRenderers) {
+      strokePartRenderer.highlight();
     }
   }
 
   animateStroke(onComplete, strokePartNum) {
-    const strokePart = this.strokeParts[strokePartNum];
-    strokePart.animate(() => {
-      if (strokePartNum < this.strokeParts.length - 1) {
+    const strokePartRenderer = this.strokePartRenderers[strokePartNum];
+    strokePartRenderer.animate(() => {
+      if (strokePartNum < this.strokePartRenderers.length - 1) {
         this.animateStroke(onComplete, strokePartNum + 1);
       } else {
         onComplete();

@@ -1,14 +1,17 @@
 import PathRenderer from './PathRenderer';
 
 class UserStrokeRenderer extends PathRenderer {
-  constructor(startingPoint, options = {}) {
+  constructor(userStroke, options = {}) {
     super();
     this.options = options;
-    this.points = [startingPoint];
+    this.userStroke = userStroke;
   }
 
-  appendPoint(point) {
-    this.points.push(point);
+  getPoints() {
+    return this.userStroke.getPoints();
+  }
+
+  updatePath() {
     this.path.plot(this.getPathString());
   }
 

@@ -1,8 +1,10 @@
 import CharacterRenderer from './renderers/CharacterRenderer';
 import UserStrokeRenderer from './renderers/UserStrokeRenderer';
 import CharacterPositionerRenderer from './renderers/CharacterPositionerRenderer';
+import Point from './models/Point';
+import UserStroke from './models/UserStroke';
 import StrokeMatcher from './StrokeMatcher';
-import ZdtPathParser from './ZdtPathParser';
+import ZdtStrokeParser from './ZdtStrokeParser';
 import {inArray} from './utils';
 import svg from 'svg.js';
 import {_extend as extend} from 'util';
@@ -45,26 +47,26 @@ class HanziWriter {
     this.options = extend(clone(defaultOptions), options);
     this.setCharacter(character);
     this.setupListeners();
-    this.hint.draw();
-    this.character.draw();
+    this.hintRenderer.draw();
+    this.characterRenderer.draw();
   }
 
   showCharacter(animationOptions = {}) {
-    this.character.show(animationOptions);
+    this.characterRenderer.show(animationOptions);
   }
   hideCharacter(animationOptions = {}) {
-    this.character.hide(animationOptions);
+    this.characterRenderer.hide(animationOptions);
   }
   // TODO: figure out this animationOption stuff
   animateCharacter(/* animationOptions = {} */) {
-    this.character.animate();
+    this.characterRenderer.animate();
   }
 
   showHint(animationOptions = {}) {
-    this.hint.show(animationOptions);
+    this.hintRenderer.show(animationOptions);
   }
   hideHint(animationOptions = {}) {
-    this.hint.hide(animationOptions);
+    this.hintRenderer.hide(animationOptions);
   }
 
   quiz(quizOptions = {}) {
@@ -83,11 +85,12 @@ class HanziWriter {
 
   setCharacter(char) {
     const pathStrings = this.options.charDataLoader(char);
-    const zdtPathParser = new ZdtPathParser();
-    this.character = new CharacterRenderer(zdtPathParser.generateStrokes(pathStrings, this.options), this.options);
-    this.hint = new CharacterRenderer(zdtPathParser.generateStrokes(pathStrings, this.getHintOptions()), this.getHintOptions());
-    this.positioner = new CharacterPositionerRenderer(this.character, this.options);
-    this.hintPositioner = new CharacterPositionerRenderer(this.hint, this.options);
+    const zdtStrokeParser = new ZdtStrokeParser();
+    this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
+    this.characterRenderer = new CharacterRenderer(this.character, this.options);
+    this.hintRenderer = new CharacterRenderer(this.character, this.getHintOptions());
+    this.positioner = new CharacterPositionerRenderer(this.characterRenderer, this.options);
+    this.hintPositioner = new CharacterPositionerRenderer(this.hintRenderer, this.options);
     this.hintPositioner.setCanvas(this.svg);
     this.positioner.setCanvas(this.svg);
   }
@@ -116,14 +119,17 @@ class HanziWriter {
   startUserStroke(point) {
     this.point = point;
     if (this.userStroke) return this.endUserStroke();
-    this.userStroke = new UserStrokeRenderer(point, this.options);
-    this.userStroke.setCanvas(this.svg);
-    window.lastUserStroke = this.userStroke;
-    this.userStroke.draw();
+    this.userStroke = new UserStroke(point);
+    this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.options);
+    this.userStrokeRenderer.setCanvas(this.svg);
+    this.userStrokeRenderer.draw();
   }
 
   continueUserStroke(point) {
-    if (this.userStroke) this.userStroke.appendPoint(point);
+    if (this.userStroke) {
+      this.userStroke.appendPoint(point);
+      this.userStrokeRenderer.updatePath();
+    }
   }
 
   endUserStroke() {
@@ -131,11 +137,12 @@ class HanziWriter {
     const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
     const strokeMatcher = new StrokeMatcher(this.options);
     const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-    this.userStroke.fadeAndRemove();
+    this.userStrokeRenderer.fadeAndRemove();
     this.userStroke = null;
+    this.userStrokeRenderer = null;
     if (!this.isQuizzing) return;
     const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
+    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.characterRenderer.getStroke(this.currentStrokeIndex))) {
       this.drawnStrokes.push(matchingStroke);
       this.currentStrokeIndex += 1;
       this.numRecentMistakes = 0;
@@ -143,22 +150,18 @@ class HanziWriter {
       if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
     } else {
       this.numRecentMistakes += 1;
-      if (this.numRecentMistakes > 3) this.character.getStroke(this.currentStrokeIndex).highlight();
+      if (this.numRecentMistakes > 3) this.characterRenderer.getStroke(this.currentStrokeIndex).highlight();
     }
   }
 
   getMousePoint(evt) {
-    return {
-      x: evt.offsetX,
-      y: evt.offsetY,
-    };
+    return new Point(evt.offsetX, evt.offsetY);
   }
 
   getTouchPoint(evt) {
-    return {
-      x: evt.touches[0].pageX - this.svg.node.offsetLeft,
-      y: evt.touches[0].pageY - this.svg.node.offsetTop,
-    };
+    const x = evt.touches[0].pageX - this.svg.node.offsetLeft;
+    const y = evt.touches[0].pageY - this.svg.node.offsetTop;
+    return new Point(x, y);
   }
 
   getHintOptions() {

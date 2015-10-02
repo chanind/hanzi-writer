@@ -1,40 +1,31 @@
 import Renderer from './Renderer';
+import StrokeRenderer from './StrokeRenderer';
 import {emptyFunc} from '../utils';
 
 class CharacterRenderer extends Renderer {
 
-  constructor(strokes, options = {}) {
+  constructor(character, options = {}) {
     super();
     this.options = options;
-    this.strokes = strokes;
+    this.character = character;
+    this.strokeRenderers = this.character.getStrokes().map((stroke) => {
+      return new StrokeRenderer(stroke, options);
+    });
   }
 
   getBounds() {
-    const strokeBoundingPoints = this.getAllStrokeBounds();
-    const [maxY, , minY] = this.getExtremes(this.getAllYs(strokeBoundingPoints));
-    const [maxX, , minX] = this.getExtremes(this.getAllXs(strokeBoundingPoints));
-    return [{x: minX, y: minY}, {x: maxX, y: maxY}];
-  }
-
-  getAllStrokeBounds() {
-    const bounds = [];
-    for (const stroke of this.strokes) {
-      const strokeBounds = stroke.getBounds();
-      bounds.push(strokeBounds[0]);
-      bounds.push(strokeBounds[1]);
-    }
-    return bounds;
+    return this.character.getBounds();
   }
 
   show(animationOptions = {}) {
-    for (const stroke of this.strokes) {
-      stroke.show(animationOptions);
+    for (const strokeRenderer of this.strokeRenderers) {
+      strokeRenderer.show(animationOptions);
     }
   }
 
   hide(animationOptions = {}) {
-    for (const stroke of this.strokes) {
-      stroke.hide(animationOptions);
+    for (const strokeRenderer of this.strokeRenderers) {
+      strokeRenderer.hide(animationOptions);
     }
   }
 
@@ -50,13 +41,9 @@ class CharacterRenderer extends Renderer {
     return this.strokes;
   }
 
-  getNumStrokes() {
-    return this.strokes.length;
-  }
-
   draw() {
-    for (const stroke of this.strokes) {
-      stroke.draw();
+    for (const strokeRenderer of this.strokeRenderers) {
+      strokeRenderer.draw();
     }
   }
 
@@ -66,15 +53,15 @@ class CharacterRenderer extends Renderer {
 
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    for (const stroke of this.strokes) {
-      stroke.setCanvas(canvas);
+    for (const strokeRenderer of this.strokeRenderers) {
+      strokeRenderer.setCanvas(canvas);
     }
   }
 
   animateStroke(onComplete, strokeNum) {
-    const stroke = this.strokes[strokeNum];
-    stroke.animate(() => {
-      if (strokeNum < this.strokes.length - 1) {
+    const strokeRenderer = this.strokeRenderers[strokeNum];
+    strokeRenderer.animate(() => {
+      if (strokeNum < this.strokeRenderers.length - 1) {
         const nextStroke = () => this.animateStroke(onComplete, strokeNum + 1);
         setTimeout(nextStroke, this.options.delayBetweenStrokes);
       } else {

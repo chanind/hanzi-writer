@@ -1,6 +1,6 @@
-import Drawable from './Drawable';
+import Renderer from './Renderer';
 
-class Path extends Drawable {
+class PathRenderer extends Renderer {
 
   getPathString() {
     const start = this.points[0];
@@ -32,4 +32,4 @@ class Path extends Drawable {
   }
 }
 
-export default Path;
+export default PathRenderer;

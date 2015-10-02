@@ -1,6 +1,6 @@
-import {emptyFunc} from './utils';
+import {emptyFunc} from '../utils';
 
-class Drawable {
+class Renderer {
 
   draw() {} // implement in children
 
@@ -29,4 +29,4 @@ class Drawable {
   }
 }
 
-export default Drawable;
+export default Renderer;

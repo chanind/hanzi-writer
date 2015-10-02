@@ -1,7 +1,7 @@
-import Drawable from './Drawable';
-import {emptyFunc} from './utils';
+import Renderer from './Renderer';
+import {emptyFunc} from '../utils';
 
-class Character extends Drawable {
+class CharacterRenderer extends Renderer {
 
   constructor(strokes, options = {}) {
     super();
@@ -84,4 +84,4 @@ class Character extends Drawable {
   }
 }
 
-export default Character;
+export default CharacterRenderer;

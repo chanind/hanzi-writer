@@ -1,7 +1,7 @@
-import Path from './Path';
-import {emptyFunc} from './utils';
+import PathRenderer from './PathRenderer';
+import {emptyFunc} from '../utils';
 
-class Stroke extends Path {
+class StrokePartRenderer extends PathRenderer {
 
   constructor(points, strokeType, options = {}) {
     super();
@@ -59,8 +59,8 @@ class Stroke extends Path {
     const extremeXs = this.getExtremes(this.getAllXs(this.points));
 
     // handle reversed strokes
-    if (strokeType > Stroke.FORWARD_SLASH_STROKE) {
-      adjStrokeType = strokeType - Stroke.FORWARD_SLASH_STROKE;
+    if (strokeType > StrokePartRenderer.FORWARD_SLASH_STROKE) {
+      adjStrokeType = strokeType - StrokePartRenderer.FORWARD_SLASH_STROKE;
       adjIsReverse = !isReverse;
     }
 
@@ -68,10 +68,10 @@ class Stroke extends Path {
     const maxIndex = adjIsReverse ? 2 : 0;
     const midIndex = 1;
 
-    if (adjStrokeType === Stroke.HORIZONTAL_STROKE) return {x: extremeXs[minIndex], y: extremeYs[midIndex]};
-    if (adjStrokeType === Stroke.BACK_SLASH_STROKE) return {x: extremeXs[minIndex], y: extremeYs[minIndex]};
-    if (adjStrokeType === Stroke.VERTICAL_STROKE) return {x: extremeXs[midIndex], y: extremeYs[minIndex]};
-    if (adjStrokeType === Stroke.FORWARD_SLASH_STROKE) return {x: extremeXs[maxIndex], y: extremeYs[minIndex]};
+    if (adjStrokeType === StrokePartRenderer.HORIZONTAL_STROKE) return {x: extremeXs[minIndex], y: extremeYs[midIndex]};
+    if (adjStrokeType === StrokePartRenderer.BACK_SLASH_STROKE) return {x: extremeXs[minIndex], y: extremeYs[minIndex]};
+    if (adjStrokeType === StrokePartRenderer.VERTICAL_STROKE) return {x: extremeXs[midIndex], y: extremeYs[minIndex]};
+    if (adjStrokeType === StrokePartRenderer.FORWARD_SLASH_STROKE) return {x: extremeXs[maxIndex], y: extremeYs[minIndex]};
   }
 
   getStrokeAnimationDistance() {
@@ -132,13 +132,13 @@ class Stroke extends Path {
   }
 }
 
-Stroke.HORIZONTAL_STROKE = 1;
-Stroke.BACK_SLASH_STROKE = 2;
-Stroke.VERTICAL_STROKE = 3;
-Stroke.FORWARD_SLASH_STROKE = 4;
-Stroke.REVERSE_HORIZONTAL_STROKE = 5;
-Stroke.REVERSE_BACK_SLASH_STROKE = 6;
-Stroke.REVERSE_VERTICAL_STROKE = 7;
-Stroke.REVERSE_FORWARD_SLASH_STROKE = 8;
+StrokePartRenderer.HORIZONTAL_STROKE = 1;
+StrokePartRenderer.BACK_SLASH_STROKE = 2;
+StrokePartRenderer.VERTICAL_STROKE = 3;
+StrokePartRenderer.FORWARD_SLASH_STROKE = 4;
+StrokePartRenderer.REVERSE_HORIZONTAL_STROKE = 5;
+StrokePartRenderer.REVERSE_BACK_SLASH_STROKE = 6;
+StrokePartRenderer.REVERSE_VERTICAL_STROKE = 7;
+StrokePartRenderer.REVERSE_FORWARD_SLASH_STROKE = 8;
 
-module.exports = Stroke;
+module.exports = StrokePartRenderer;

@@ -1,21 +1,17 @@
-import Stroke from './Stroke';
-import ComboStroke from './ComboStroke';
+import StrokeRenderer from './renderers/StrokeRenderer';
+import StrokePartRenderer from './renderers/StrokePartRenderer';
 
 class ZdtPathParser {
   generateStrokes(zdtPathStrings, options = {}) {
     const strokes = [];
-    let comboStrokeBuffer = [];
+    let strokeParts = [];
     for (const zdtPathString of zdtPathStrings) {
       const strokeData = this.extractStrokeData(zdtPathString);
-      const stroke = new Stroke(strokeData.points, strokeData.strokeType, options);
-      if (strokeData.isComplete && comboStrokeBuffer.length === 0) {
-        strokes.push(stroke);
-      } else if (strokeData.isComplete) {
-        comboStrokeBuffer.push(stroke);
-        strokes.push(new ComboStroke(comboStrokeBuffer, options));
-        comboStrokeBuffer = [];
-      } else {
-        comboStrokeBuffer.push(stroke);
+      const strokePart = new StrokePartRenderer(strokeData.points, strokeData.strokeType, options);
+      strokeParts.push(strokePart);
+      if (strokeData.isComplete) {
+        strokes.push(new StrokeRenderer(strokeParts, options));
+        strokeParts = [];
       }
     }
     return strokes;

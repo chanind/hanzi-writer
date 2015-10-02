@@ -1,6 +1,6 @@
-import Path from './Path';
+import PathRenderer from './PathRenderer';
 
-class UserStroke extends Path {
+class UserStrokeRenderer extends PathRenderer {
   constructor(startingPoint, options = {}) {
     super();
     this.options = options;
@@ -27,4 +27,4 @@ class UserStroke extends Path {
   }
 }
 
-export default UserStroke;
+export default UserStrokeRenderer;

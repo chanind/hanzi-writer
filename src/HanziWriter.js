@@ -1,6 +1,6 @@
-import Character from './Character';
-import UserStroke from './UserStroke';
-import CharacterPositioner from './CharacterPositioner';
+import CharacterRenderer from './renderers/CharacterRenderer';
+import UserStrokeRenderer from './renderers/UserStrokeRenderer';
+import CharacterPositionerRenderer from './renderers/CharacterPositionerRenderer';
 import StrokeMatcher from './StrokeMatcher';
 import ZdtPathParser from './ZdtPathParser';
 import {inArray} from './utils';
@@ -84,10 +84,10 @@ class HanziWriter {
   setCharacter(char) {
     const pathStrings = this.options.charDataLoader(char);
     const zdtPathParser = new ZdtPathParser();
-    this.character = new Character(zdtPathParser.generateStrokes(pathStrings, this.options), this.options);
-    this.hint = new Character(zdtPathParser.generateStrokes(pathStrings, this.getHintOptions()), this.getHintOptions());
-    this.positioner = new CharacterPositioner(this.character, this.options);
-    this.hintPositioner = new CharacterPositioner(this.hint, this.options);
+    this.character = new CharacterRenderer(zdtPathParser.generateStrokes(pathStrings, this.options), this.options);
+    this.hint = new CharacterRenderer(zdtPathParser.generateStrokes(pathStrings, this.getHintOptions()), this.getHintOptions());
+    this.positioner = new CharacterPositionerRenderer(this.character, this.options);
+    this.hintPositioner = new CharacterPositionerRenderer(this.hint, this.options);
     this.hintPositioner.setCanvas(this.svg);
     this.positioner.setCanvas(this.svg);
   }
@@ -116,7 +116,7 @@ class HanziWriter {
   startUserStroke(point) {
     this.point = point;
     if (this.userStroke) return this.endUserStroke();
-    this.userStroke = new UserStroke(point, this.options);
+    this.userStroke = new UserStrokeRenderer(point, this.options);
     this.userStroke.setCanvas(this.svg);
     window.lastUserStroke = this.userStroke;
     this.userStroke.draw();

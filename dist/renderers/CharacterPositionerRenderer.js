@@ -1,16 +1,16 @@
-import Drawable from './Drawable';
-import {emptyFunc} from './utils';
+import Renderer from './Renderer';
+import {emptyFunc} from '../utils';
 
-class CharacterPositioner extends Drawable {
+class CharacterPositionerRenderer extends Renderer {
 
-  constructor(character, options = {}) {
+  constructor(characterRenderer, options = {}) {
     super();
-    this.character = character;
+    this.characterRenderer = characterRenderer;
     this.options = options;
   }
 
   getBounds() {
-    return this.character.getBounds();
+    return this.characterRenderer.getBounds();
   }
 
   convertExternalPoints(points) {
@@ -50,17 +50,17 @@ class CharacterPositioner extends Drawable {
   }
 
   draw() {
-    this.character.draw();
+    this.characterRenderer.draw();
   }
 
   animate(svg, onComplete = emptyFunc) {
-    this.character.animate(onComplete);
+    this.characterRenderer.animate(onComplete);
   }
 
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    this.character.setCanvas(this.getNestedCanvas());
+    this.characterRenderer.setCanvas(this.getNestedCanvas());
   }
 }
 
-export default CharacterPositioner;
+export default CharacterPositionerRenderer;

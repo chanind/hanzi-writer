@@ -22,10 +22,6 @@ module.exports = function(grunt) {
         },
         eslint: {  
           configFile: '.eslintrc.js'
-        },
-        resolve: {
-          // you can now require('file') instead of require('file.coffee')
-          extensions: ['', '.js', '.json', '.coffee'] 
         }
       },
       dist: {
@@ -46,7 +42,7 @@ module.exports = function(grunt) {
 
     clean: {
       pre: ['dist'],
-      post: ['dist/__tests__', 'dist/**.js', '!dist/hanzi-writer.js', '!dist/hanzi-writer.min.js', '!dist/data.js']
+      post: ['dist/**/__tests__', 'dist/**.js', '!dist/hanzi-writer.js', '!dist/hanzi-writer.min.js', '!dist/data.js']
     }
 
   });

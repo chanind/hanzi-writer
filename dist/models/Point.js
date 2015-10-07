@@ -2,8 +2,8 @@ import { arrayMin, arrayMax } from '../utils';
 
 class Point {
   constructor(x, y) {
-    this._x = x;
-    this._y = y;
+    this._x = parseInt(x, 10);
+    this._y = parseInt(y, 10);
   }
 
   getX() {

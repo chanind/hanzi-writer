@@ -1296,8 +1296,8 @@
 	  function Point(x, y) {
 	    _classCallCheck(this, Point);
 
-	    this._x = x;
-	    this._y = y;
+	    this._x = parseInt(x, 10);
+	    this._y = parseInt(y, 10);
 	  }
 
 	  _createClass(Point, [{
@@ -1545,11 +1545,11 @@
 	        for (var _iterator = zdtPathStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	          var zdtPathString = _step.value;
 
-	          var _extractStrokeData = this.extractStrokeData(zdtPathString);
+	          var _extractStrokeData2 = this._extractStrokeData(zdtPathString);
 
-	          var points = _extractStrokeData.points;
-	          var isComplete = _extractStrokeData.isComplete;
-	          var strokeType = _extractStrokeData.strokeType;
+	          var points = _extractStrokeData2.points;
+	          var isComplete = _extractStrokeData2.isComplete;
+	          var strokeType = _extractStrokeData2.strokeType;
 
 	          var strokePart = new _modelsStrokePart2['default'](strokeType, points);
 	          strokeParts.push(strokePart);
@@ -1577,8 +1577,8 @@
 	      return strokes;
 	    }
 	  }, {
-	    key: 'extractStrokeData',
-	    value: function extractStrokeData(zdtPathString) {
+	    key: '_extractStrokeData',
+	    value: function _extractStrokeData(zdtPathString) {
 	      var _this = this;
 
 	      var _zdtPathString$split = zdtPathString.split(':');
@@ -1590,15 +1590,15 @@
 
 	      var pathString = rawPathString.replace(/;?\s*$/, '');
 	      var points = pathString.split(';').map(function (pointString) {
-	        return _this.parsePoint(pointString);
+	        return _this._parsePoint(pointString);
 	      });
 	      var isComplete = metadataString[2] === 'P';
 	      var strokeType = parseInt(metadataString[1], 10);
 	      return { points: points, isComplete: isComplete, strokeType: strokeType };
 	    }
 	  }, {
-	    key: 'parsePoint',
-	    value: function parsePoint(pointString) {
+	    key: '_parsePoint',
+	    value: function _parsePoint(pointString) {
 	      var _pointString$split = pointString.split(',');
 
 	      var _pointString$split2 = _slicedToArray(_pointString$split, 2);

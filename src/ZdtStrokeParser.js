@@ -14,7 +14,7 @@ class ZdtStrokeParser {
     let strokeParts = [];
     let strokeNum = 0;
     for (const zdtPathString of zdtPathStrings) {
-      const { points, isComplete, strokeType } = this.extractStrokeData(zdtPathString);
+      const { points, isComplete, strokeType } = this._extractStrokeData(zdtPathString);
       const strokePart = new StrokePart(strokeType, points);
       strokeParts.push(strokePart);
       if (isComplete) {
@@ -26,18 +26,18 @@ class ZdtStrokeParser {
     return strokes;
   }
 
-  extractStrokeData(zdtPathString) {
+  _extractStrokeData(zdtPathString) {
     const [metadataString, rawPathString] = zdtPathString.split(':');
     const pathString = rawPathString.replace(/;?\s*$/, '');
     const points = pathString.split(';').map((pointString) => {
-      return this.parsePoint(pointString);
+      return this._parsePoint(pointString);
     });
     const isComplete = metadataString[2] === 'P';
     const strokeType = parseInt(metadataString[1], 10);
     return { points, isComplete, strokeType };
   }
 
-  parsePoint(pointString) {
+  _parsePoint(pointString) {
     const [x, y] = pointString.split(',');
     return new Point(x, y);
   }

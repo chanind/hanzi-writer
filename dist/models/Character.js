@@ -14,6 +14,10 @@ class Character {
     return this._strokes;
   }
 
+  getStroke(strokeNum) {
+    return this._strokes[strokeNum];
+  }
+
   getNumStrokes() {
     return this._strokes.length;
   }

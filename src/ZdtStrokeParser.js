@@ -12,12 +12,14 @@ class ZdtStrokeParser {
   generateStrokes(zdtPathStrings) {
     const strokes = [];
     let strokeParts = [];
+    let strokeNum = 0;
     for (const zdtPathString of zdtPathStrings) {
       const { points, isComplete, strokeType } = this.extractStrokeData(zdtPathString);
       const strokePart = new StrokePart(strokeType, points);
       strokeParts.push(strokePart);
       if (isComplete) {
-        strokes.push(new Stroke(strokeParts));
+        strokes.push(new Stroke(strokeParts, strokeNum));
+        strokeNum += 1;
         strokeParts = [];
       }
     }

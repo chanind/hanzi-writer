@@ -1,12 +1,17 @@
 import Point from './Point';
 
 class Stroke {
-  constructor(strokeParts) {
+  constructor(strokeParts, strokeNum) {
     this._strokeParts = strokeParts;
+    this._strokeNum = strokeNum;
   }
 
   getStrokeParts() {
     return this._strokeParts;
+  }
+
+  getStrokeNum() {
+    return this._strokeNum;
   }
 
   getBounds() {
@@ -14,7 +19,7 @@ class Stroke {
   }
 
   getDistance(point) {
-    const distances = this.strokeParts.map((strokePart) => {
+    const distances = this._strokeParts.map((strokePart) => {
       return strokePart.getDistance(point);
     });
     return Math.min.apply(Math, distances);

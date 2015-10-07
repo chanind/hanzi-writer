@@ -266,15 +266,15 @@
 	      this.userStrokeRenderer = null;
 	      if (!this.isQuizzing) return;
 	      var isValidStroke = matchingStroke && !(0, _utils.inArray)(matchingStroke, this.drawnStrokes);
-	      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.characterRenderer.getStroke(this.currentStrokeIndex))) {
+	      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
 	        this.drawnStrokes.push(matchingStroke);
 	        this.currentStrokeIndex += 1;
 	        this.numRecentMistakes = 0;
-	        matchingStroke.show();
+	        this.characterRenderer.showStroke(matchingStroke.getStrokeNum());
 	        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
 	      } else {
 	        this.numRecentMistakes += 1;
-	        if (this.numRecentMistakes > 3) this.characterRenderer.getStroke(this.currentStrokeIndex).highlight();
+	        if (this.numRecentMistakes > 3) this.characterRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight();
 	      }
 	    }
 	  }, {
@@ -435,17 +435,7 @@
 	    value: function showStroke(strokeNum) {
 	      var animationOptions = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	      this.getStroke(strokeNum).show(animationOptions);
-	    }
-	  }, {
-	    key: 'getStroke',
-	    value: function getStroke(strokeNum) {
-	      return this.strokes[strokeNum];
-	    }
-	  }, {
-	    key: 'getStrokes',
-	    value: function getStrokes() {
-	      return this.strokes;
+	      this.getStrokeRenderer(strokeNum).show(animationOptions);
 	    }
 	  }, {
 	    key: 'draw',
@@ -474,6 +464,11 @@
 	          }
 	        }
 	      }
+	    }
+	  }, {
+	    key: 'getStrokeRenderer',
+	    value: function getStrokeRenderer(strokeNum) {
+	      return this.strokeRenderers[strokeNum];
 	    }
 	  }, {
 	    key: 'animate',
@@ -995,20 +990,6 @@
 	      this.path.attr({ opacity: 1 }).attr(this.options.strokeAttrs).clipWith(mask);
 
 	      mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio).radius(this.strokePart.getLength()).after(onComplete);
-	    }
-	  }, {
-	    key: 'getAllXs',
-	    value: function getAllXs(points) {
-	      return points.map(function (point) {
-	        return point.getX();
-	      });
-	    }
-	  }, {
-	    key: 'getAllYs',
-	    value: function getAllYs(points) {
-	      return points.map(function (point) {
-	        return point.getY();
-	      });
 	    }
 	  }]);
 
@@ -1555,6 +1536,7 @@
 	    value: function generateStrokes(zdtPathStrings) {
 	      var strokes = [];
 	      var strokeParts = [];
+	      var strokeNum = 0;
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
@@ -1572,7 +1554,8 @@
 	          var strokePart = new _modelsStrokePart2['default'](strokeType, points);
 	          strokeParts.push(strokePart);
 	          if (isComplete) {
-	            strokes.push(new _modelsStroke2['default'](strokeParts));
+	            strokes.push(new _modelsStroke2['default'](strokeParts, strokeNum));
+	            strokeNum += 1;
 	            strokeParts = [];
 	          }
 	        }
@@ -1654,16 +1637,22 @@
 	var _Point2 = _interopRequireDefault(_Point);
 
 	var Stroke = (function () {
-	  function Stroke(strokeParts) {
+	  function Stroke(strokeParts, strokeNum) {
 	    _classCallCheck(this, Stroke);
 
 	    this._strokeParts = strokeParts;
+	    this._strokeNum = strokeNum;
 	  }
 
 	  _createClass(Stroke, [{
 	    key: 'getStrokeParts',
 	    value: function getStrokeParts() {
 	      return this._strokeParts;
+	    }
+	  }, {
+	    key: 'getStrokeNum',
+	    value: function getStrokeNum() {
+	      return this._strokeNum;
 	    }
 	  }, {
 	    key: 'getBounds',
@@ -1673,7 +1662,7 @@
 	  }, {
 	    key: 'getDistance',
 	    value: function getDistance(point) {
-	      var distances = this.strokeParts.map(function (strokePart) {
+	      var distances = this._strokeParts.map(function (strokePart) {
 	        return strokePart.getDistance(point);
 	      });
 	      return Math.min.apply(Math, distances);
@@ -1909,6 +1898,11 @@
 	    key: 'getStrokes',
 	    value: function getStrokes() {
 	      return this._strokes;
+	    }
+	  }, {
+	    key: 'getStroke',
+	    value: function getStroke(strokeNum) {
+	      return this._strokes[strokeNum];
 	    }
 	  }, {
 	    key: 'getNumStrokes',

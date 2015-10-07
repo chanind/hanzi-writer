@@ -30,21 +30,17 @@ class CharacterRenderer extends Renderer {
   }
 
   showStroke(strokeNum, animationOptions = {}) {
-    this.getStroke(strokeNum).show(animationOptions);
-  }
-
-  getStroke(strokeNum) {
-    return this.strokes[strokeNum];
-  }
-
-  getStrokes() {
-    return this.strokes;
+    this.getStrokeRenderer(strokeNum).show(animationOptions);
   }
 
   draw() {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.draw();
     }
+  }
+
+  getStrokeRenderer(strokeNum) {
+    return this.strokeRenderers[strokeNum];
   }
 
   animate(onComplete = emptyFunc) {

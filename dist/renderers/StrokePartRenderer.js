@@ -72,13 +72,6 @@ class StrokePartRenderer extends PathRenderer {
       .radius(this.strokePart.getLength())
       .after(onComplete);
   }
-
-  getAllXs(points) {
-    return points.map((point) => point.getX());
-  }
-  getAllYs(points) {
-    return points.map((point) => point.getY());
-  }
 }
 
 module.exports = StrokePartRenderer;

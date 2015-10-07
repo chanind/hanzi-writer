@@ -142,15 +142,15 @@ class HanziWriter {
     this.userStrokeRenderer = null;
     if (!this.isQuizzing) return;
     const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.characterRenderer.getStroke(this.currentStrokeIndex))) {
+    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
       this.drawnStrokes.push(matchingStroke);
       this.currentStrokeIndex += 1;
       this.numRecentMistakes = 0;
-      matchingStroke.show();
+      this.characterRenderer.showStroke(matchingStroke.getStrokeNum());
       if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
     } else {
       this.numRecentMistakes += 1;
-      if (this.numRecentMistakes > 3) this.characterRenderer.getStroke(this.currentStrokeIndex).highlight();
+      if (this.numRecentMistakes > 3) this.characterRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight();
     }
   }
 

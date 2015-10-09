@@ -26,7 +26,7 @@ class UserStrokeRenderer extends PathRenderer {
   fadeAndRemove() {
     this.path.animate(this.options.userStrokeFadeDuration)
       .attr({opacity: 0})
-      .after(() => this.path.remove());
+      .after(() => this.destroy());
   }
 }
 

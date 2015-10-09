@@ -1,5 +1,4 @@
 import PathRenderer from './PathRenderer';
-import {emptyFunc} from '../utils';
 
 class StrokePartRenderer extends PathRenderer {
 
@@ -7,7 +6,6 @@ class StrokePartRenderer extends PathRenderer {
     super();
     this.options = options;
     this.strokePart = strokePart;
-    this.animationSpeedupRatio = 1;
   }
 
   getPathString() {
@@ -16,10 +14,6 @@ class StrokePartRenderer extends PathRenderer {
 
   getPoints() {
     return this.strokePart.getPoints();
-  }
-
-  setAnimationSpeedupRatio(animationSpeedupRatio) {
-    this.animationSpeedupRatio = animationSpeedupRatio;
   }
 
   markAnimationPoints() {
@@ -47,19 +41,19 @@ class StrokePartRenderer extends PathRenderer {
     return super.draw().attr(this.options.strokeAttrs).attr({opacity: 0});
   }
 
-  show(animationOptions = {}) {
-    this.path.animate(animationOptions.duration || 300)
+  show(animationOptions) {
+    this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(1)
-      .after(animationOptions.onComplete || emptyFunc);
+      .after(animationOptions.triggerOnComplete());
   }
 
-  hide(animationOptions = {}) {
-    this.path.animate(animationOptions.duration || 300)
+  hide(animationOptions) {
+    this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(0)
-      .after(animationOptions.onComplete || emptyFunc);
+      .after(animationOptions.triggerOnComplete());
   }
 
-  animate(onComplete = emptyFunc) {
+  animate(animationOptions) {
     const start = this.strokePart.getStartingPoint();
     const mask = this.canvas.circle(0).center(start.getX(), start.getY());
     if (!this.path) this.drawPath();
@@ -68,9 +62,9 @@ class StrokePartRenderer extends PathRenderer {
       .attr(this.options.strokeAttrs)
       .clipWith(mask);
 
-    mask.animate(this.options.strokeAnimationDuration / this.animationSpeedupRatio)
+    mask.animate(this.options.strokeAnimationDuration)
       .radius(this.strokePart.getLength())
-      .after(onComplete);
+      .after(animationOptions.onComplete);
   }
 }
 

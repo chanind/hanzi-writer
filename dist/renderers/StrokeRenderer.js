@@ -1,6 +1,6 @@
 import Renderer from './Renderer';
 import StrokePartRenderer from './StrokePartRenderer';
-import {emptyFunc} from '../utils';
+import {copyAndExtend, callIfExists} from '../utils';
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {
@@ -8,7 +8,7 @@ class StrokeRenderer extends Renderer {
     super();
     this.stroke = stroke;
     this.strokePartRenderers = this.stroke.getStrokeParts().map((strokePart) => {
-      return new StrokePartRenderer(strokePart, options);
+      return this.registerChild(new StrokePartRenderer(strokePart, options));
     });
     this.options = options;
     for (const strokePartRenderer of this.strokePartRenderers) {
@@ -34,8 +34,8 @@ class StrokeRenderer extends Renderer {
     }
   }
 
-  animate(onComplete = emptyFunc) {
-    this.animateStroke(onComplete, 0);
+  animate(animationOptions = {}) {
+    this.animateStrokePart(0, animationOptions);
   }
 
   setCanvas(canvas) {
@@ -51,13 +51,20 @@ class StrokeRenderer extends Renderer {
     }
   }
 
-  animateStroke(onComplete, strokePartNum) {
+  getSpedUpAnimationOptions(animationOptions) {
+    return copyAndExtend(animationOptions, {
+      strokeAnimationDuration: animationOptions.strokeAnimationDuration / this.stroke.getStrokeParts().length,
+    });
+  }
+
+  animateStrokePart(strokePartNum, animationOptions = {}) {
+    const spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
     const strokePartRenderer = this.strokePartRenderers[strokePartNum];
     strokePartRenderer.animate(() => {
       if (strokePartNum < this.strokePartRenderers.length - 1) {
-        this.animateStroke(onComplete, strokePartNum + 1);
+        this.animateStroke(strokePartNum + 1, spedUpAnimationOptions);
       } else {
-        onComplete();
+        callIfExists(spedUpAnimationOptions.onComplete);
       }
     });
   }

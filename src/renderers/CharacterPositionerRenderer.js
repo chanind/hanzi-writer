@@ -1,6 +1,5 @@
 import Renderer from './Renderer';
 import Point from '../models/Point';
-import {emptyFunc} from '../utils';
 
 class CharacterPositionerRenderer extends Renderer {
 
@@ -49,8 +48,8 @@ class CharacterPositionerRenderer extends Renderer {
     this.characterRenderer.draw();
   }
 
-  animate(svg, onComplete = emptyFunc) {
-    this.characterRenderer.animate(onComplete);
+  animate(svg, options) {
+    this.characterRenderer.animate(options);
   }
 
   setCanvas(canvas) {

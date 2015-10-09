@@ -1,6 +1,6 @@
 import Renderer from './Renderer';
 import StrokeRenderer from './StrokeRenderer';
-import {emptyFunc} from '../utils';
+import {copyAndExtend, callIfExists} from '../utils';
 
 class CharacterRenderer extends Renderer {
 
@@ -9,7 +9,7 @@ class CharacterRenderer extends Renderer {
     this.options = options;
     this.character = character;
     this.strokeRenderers = this.character.getStrokes().map((stroke) => {
-      return new StrokeRenderer(stroke, options);
+      return this.registerChild(new StrokeRenderer(stroke, options));
     });
   }
 
@@ -17,19 +17,19 @@ class CharacterRenderer extends Renderer {
     return this.character.getBounds();
   }
 
-  show(animationOptions = {}) {
+  show(animationOptions) {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.show(animationOptions);
     }
   }
 
-  hide(animationOptions = {}) {
+  hide(animationOptions) {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.hide(animationOptions);
     }
   }
 
-  showStroke(strokeNum, animationOptions = {}) {
+  showStroke(strokeNum, animationOptions) {
     this.getStrokeRenderer(strokeNum).show(animationOptions);
   }
 
@@ -43,8 +43,11 @@ class CharacterRenderer extends Renderer {
     return this.strokeRenderers[strokeNum];
   }
 
-  animate(onComplete = emptyFunc) {
-    this.hide({onComplete: () => this.animateStroke(onComplete, 0)});
+  animate(animationOptions) {
+    const proxiedOptions = copyAndExtend(animationOptions, {
+      onComplete: () => this.animateStroke(0, animationOptions),
+    });
+    this.hide(proxiedOptions);
   }
 
   setCanvas(canvas) {
@@ -54,14 +57,14 @@ class CharacterRenderer extends Renderer {
     }
   }
 
-  animateStroke(onComplete, strokeNum) {
+  animateStroke(strokeNum, animationOptions) {
     const strokeRenderer = this.strokeRenderers[strokeNum];
     strokeRenderer.animate(() => {
       if (strokeNum < this.strokeRenderers.length - 1) {
-        const nextStroke = () => this.animateStroke(onComplete, strokeNum + 1);
+        const nextStroke = () => this.animateStroke(strokeNum + 1, animationOptions);
         setTimeout(nextStroke, this.options.delayBetweenStrokes);
       } else {
-        onComplete();
+        callIfExists(animationOptions.onComplete);
       }
     });
   }

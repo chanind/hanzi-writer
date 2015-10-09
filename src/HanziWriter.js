@@ -5,9 +5,8 @@ import Point from './models/Point';
 import UserStroke from './models/UserStroke';
 import StrokeMatcher from './StrokeMatcher';
 import ZdtStrokeParser from './ZdtStrokeParser';
-import {inArray} from './utils';
+import {inArray, copyAndExtend} from './utils';
 import svg from 'svg.js';
-import {_extend as extend} from 'util';
 
 const defaultOptions = {
   charDataLoader: (char) => global.hanziData[char],
@@ -37,36 +36,40 @@ const defaultOptions = {
   },
 };
 
-// todo: better clone
-const clone = (obj) => extend({}, obj);
-
 class HanziWriter {
 
   constructor(element, character, options = {}) {
     this.svg = svg(element);
-    this.options = extend(clone(defaultOptions), options);
+    this.setOptions(options);
     this.setCharacter(character);
     this.setupListeners();
     this.hintRenderer.draw();
     this.characterRenderer.draw();
   }
 
-  showCharacter(animationOptions = {}) {
-    this.characterRenderer.show(animationOptions);
-  }
-  hideCharacter(animationOptions = {}) {
-    this.characterRenderer.hide(animationOptions);
-  }
-  // TODO: figure out this animationOption stuff
-  animateCharacter(/* animationOptions = {} */) {
-    this.characterRenderer.animate();
+  setOptions(options) {
+    this.options = copyAndExtend(defaultOptions, options);
+    this.baseStrokeAnimationOptions = {
+      strokeAnimationDuration: this.options.strokeAnimationDuration,
+      delayBetweenStrokes: this.options.delayBetweenStrokes,
+    };
   }
 
-  showHint(animationOptions = {}) {
-    this.hintRenderer.show(animationOptions);
+  showCharacter(options = {}) {
+    this.characterRenderer.show(copyAndExtend(this.baseStrokeAnimationOptions, options));
   }
-  hideHint(animationOptions = {}) {
-    this.hintRenderer.hide(animationOptions);
+  hideCharacter(options = {}) {
+    this.characterRenderer.hide(copyAndExtend(this.baseStrokeAnimationOptions, options));
+  }
+  animateCharacter(options = {}) {
+    this.characterRenderer.animate(copyAndExtend(this.baseStrokeAnimationOptions, options));
+  }
+
+  showHint(options = {}) {
+    this.hintRenderer.show(copyAndExtend(this.baseStrokeAnimationOptions, options));
+  }
+  hideHint(options = {}) {
+    this.hintRenderer.hide(copyAndExtend(this.baseStrokeAnimationOptions, options));
   }
 
   quiz(quizOptions = {}) {
@@ -165,7 +168,7 @@ class HanziWriter {
   }
 
   getHintOptions() {
-    const hintOptions = extend({}, this.options);
+    const hintOptions = copyAndExtend({}, this.options);
     hintOptions.strokeAttrs = this.options.hintAttrs;
     return hintOptions;
   }

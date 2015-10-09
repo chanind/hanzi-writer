@@ -23,6 +23,11 @@ class PathRenderer extends Renderer {
   draw() {
     return this.drawPath();
   }
+
+  destroy() {
+    super.destroy();
+    this.path.remove();
+  }
 }
 
 export default PathRenderer;

@@ -29,14 +29,6 @@ class StrokePart {
     return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
   }
 
-  getAverageDistance(points) {
-    let totalDist = 0;
-    for (const point of points) {
-      totalDist += this.getDistance(point);
-    }
-    return totalDist / points.length;
-  }
-
   getLength() {
     const start = this.getStartingPoint();
     const end = this.getEndingPoint();
@@ -44,15 +36,15 @@ class StrokePart {
   }
 
   getStartingPoint() {
-    return this.getExtremePoint(false);
+    return this._getExtremePoint(false);
   }
 
   getEndingPoint() {
-    return this.getExtremePoint(true);
+    return this._getExtremePoint(true);
   }
 
   // where to start or end drawing the stroke based on the stroke type
-  getExtremePoint(isReverse) {
+  _getExtremePoint(isReverse) {
     const strokeType = this.getStrokeType();
     const points = this.getPoints();
     let adjStrokeType = strokeType;

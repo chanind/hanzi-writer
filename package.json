@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
+    "clone": "*",
     "babel-jest": "*",
     "babel-loader": "*",
     "eslint-config-airbnb": "*",
@@ -22,6 +23,6 @@
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
-    "unmockedModulePathPatterns": ["models", "utils"]
+    "unmockedModulePathPatterns": ["models", "util", "clone"]
   }
 }

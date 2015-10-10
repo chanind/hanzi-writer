@@ -62,7 +62,7 @@ class StrokePartRenderer extends PathRenderer {
       .attr(this.options.strokeAttrs)
       .clipWith(mask);
 
-    mask.animate(this.options.strokeAnimationDuration)
+    mask.animate(animationOptions.strokeAnimationDuration)
       .radius(this.strokePart.getLength())
       .after(animationOptions.onComplete);
   }

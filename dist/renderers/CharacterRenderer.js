@@ -58,15 +58,19 @@ class CharacterRenderer extends Renderer {
   }
 
   animateStroke(strokeNum, animationOptions) {
-    const strokeRenderer = this.strokeRenderers[strokeNum];
-    strokeRenderer.animate(() => {
+    const renderNextStroke = () => {
       if (strokeNum < this.strokeRenderers.length - 1) {
         const nextStroke = () => this.animateStroke(strokeNum + 1, animationOptions);
         setTimeout(nextStroke, this.options.delayBetweenStrokes);
       } else {
         callIfExists(animationOptions.onComplete);
       }
+    };
+    const strokeRenderer = this.strokeRenderers[strokeNum];
+    const proxiedOptions = copyAndExtend(animationOptions, {
+      onComplete: renderNextStroke,
     });
+    strokeRenderer.animate(proxiedOptions);
   }
 }
 

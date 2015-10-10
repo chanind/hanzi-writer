@@ -1,5 +1,10 @@
-import clone from 'clone';
+// import clone from 'clone';
 import {_extend as extend} from 'util';
+
+const clone = (obj) => {
+  return extend({}, obj);
+  // return JSON.parse(JSON.stringify(obj));
+};
 
 export function copyAndExtend(original, changes = {}) {
   const copy = clone(original, false); // we can assume there's no cycles

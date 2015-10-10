@@ -44,13 +44,13 @@ class StrokePartRenderer extends PathRenderer {
   show(animationOptions) {
     this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(1)
-      .after(animationOptions.triggerOnComplete());
+      .after(animationOptions.onComplete);
   }
 
   hide(animationOptions) {
     this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(0)
-      .after(animationOptions.triggerOnComplete());
+      .after(animationOptions.onComplete);
   }
 
   animate(animationOptions) {

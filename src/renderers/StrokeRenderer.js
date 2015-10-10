@@ -11,9 +11,6 @@ class StrokeRenderer extends Renderer {
       return this.registerChild(new StrokePartRenderer(strokePart, options));
     });
     this.options = options;
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.setAnimationSpeedupRatio(this.strokePartRenderers.length);
-    }
   }
 
   show(animationOptions = {}) {
@@ -35,7 +32,8 @@ class StrokeRenderer extends Renderer {
   }
 
   animate(animationOptions = {}) {
-    this.animateStrokePart(0, animationOptions);
+    const spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
+    this.animateStrokePart(0, spedUpAnimationOptions);
   }
 
   setCanvas(canvas) {
@@ -53,20 +51,23 @@ class StrokeRenderer extends Renderer {
 
   getSpedUpAnimationOptions(animationOptions) {
     return copyAndExtend(animationOptions, {
-      strokeAnimationDuration: animationOptions.strokeAnimationDuration / this.stroke.getStrokeParts().length,
+      strokeAnimationDuration: animationOptions.strokeAnimationDuration / this.strokePartRenderers.length,
     });
   }
 
-  animateStrokePart(strokePartNum, animationOptions = {}) {
-    const spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
-    const strokePartRenderer = this.strokePartRenderers[strokePartNum];
-    strokePartRenderer.animate(() => {
+  animateStrokePart(strokePartNum, animationOptions) {
+    const renderNextStrokePart = () => {
       if (strokePartNum < this.strokePartRenderers.length - 1) {
-        this.animateStroke(strokePartNum + 1, spedUpAnimationOptions);
+        this.animateStrokePart(strokePartNum + 1, animationOptions);
       } else {
-        callIfExists(spedUpAnimationOptions.onComplete);
+        callIfExists(animationOptions.onComplete);
       }
+    };
+    const strokePartRenderer = this.strokePartRenderers[strokePartNum];
+    const proxiedOptions = copyAndExtend(animationOptions, {
+      onComplete: renderNextStrokePart,
     });
+    strokePartRenderer.animate(proxiedOptions);
   }
 }
 

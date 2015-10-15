@@ -13,15 +13,15 @@ class StrokeRenderer extends Renderer {
     this.options = options;
   }
 
-  show(animationOptions = {}) {
+  show(animationOptions, animation) {
     for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.show(animationOptions);
+      strokePartRenderer.show(animationOptions, animation);
     }
   }
 
-  hide(animationOptions = {}) {
+  hide(animationOptions, animation) {
     for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.hide(animationOptions);
+      strokePartRenderer.hide(animationOptions, animation);
     }
   }
 
@@ -31,9 +31,9 @@ class StrokeRenderer extends Renderer {
     }
   }
 
-  animate(animationOptions = {}) {
+  animate(animationOptions, animation) {
     const spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
-    this.animateStrokePart(0, spedUpAnimationOptions);
+    this.animateStrokePart(0, spedUpAnimationOptions, animation);
   }
 
   setCanvas(canvas) {
@@ -55,10 +55,12 @@ class StrokeRenderer extends Renderer {
     });
   }
 
-  animateStrokePart(strokePartNum, animationOptions) {
+  animateStrokePart(strokePartNum, animationOptions, animation) {
+    if (!animation.isActive()) return;
+
     const renderNextStrokePart = () => {
       if (strokePartNum < this.strokePartRenderers.length - 1) {
-        this.animateStrokePart(strokePartNum + 1, animationOptions);
+        this.animateStrokePart(strokePartNum + 1, animationOptions, animation);
       } else {
         callIfExists(animationOptions.onComplete);
       }
@@ -67,7 +69,7 @@ class StrokeRenderer extends Renderer {
     const proxiedOptions = copyAndExtend(animationOptions, {
       onComplete: renderNextStrokePart,
     });
-    strokePartRenderer.animate(proxiedOptions);
+    strokePartRenderer.animate(proxiedOptions, animation);
   }
 }
 

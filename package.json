@@ -3,9 +3,9 @@
   "version": "0.1.0",
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
-    "clone": "*",
     "babel-jest": "*",
     "babel-loader": "*",
+    "babel-eslint": "*",
     "eslint-config-airbnb": "*",
     "eslint-loader": "*",
     "eslint-plugin-react": "*",

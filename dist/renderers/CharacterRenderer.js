@@ -17,20 +17,21 @@ class CharacterRenderer extends Renderer {
     return this.character.getBounds();
   }
 
-  show(animationOptions) {
+  show(animationOptions, animation) {
     for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.show(animationOptions);
+      strokeRenderer.show(animationOptions, animation);
+    }
+    return animation;
+  }
+
+  hide(animationOptions, animation) {
+    for (const strokeRenderer of this.strokeRenderers) {
+      strokeRenderer.hide(animationOptions, animation);
     }
   }
 
-  hide(animationOptions) {
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.hide(animationOptions);
-    }
-  }
-
-  showStroke(strokeNum, animationOptions) {
-    this.getStrokeRenderer(strokeNum).show(animationOptions);
+  showStroke(strokeNum, animationOptions, animation) {
+    this.getStrokeRenderer(strokeNum).show(animationOptions, animation);
   }
 
   draw() {
@@ -43,11 +44,11 @@ class CharacterRenderer extends Renderer {
     return this.strokeRenderers[strokeNum];
   }
 
-  animate(animationOptions) {
+  animate(animationOptions, animation) {
     const proxiedOptions = copyAndExtend(animationOptions, {
-      onComplete: () => this.animateStroke(0, animationOptions),
+      onComplete: () => this.animateStroke(0, animationOptions, animation),
     });
-    this.hide(proxiedOptions);
+    this.hide(proxiedOptions, animation);
   }
 
   setCanvas(canvas) {
@@ -57,10 +58,12 @@ class CharacterRenderer extends Renderer {
     }
   }
 
-  animateStroke(strokeNum, animationOptions) {
+  animateStroke(strokeNum, animationOptions, animation) {
+    if (!animation.isActive()) return;
+
     const renderNextStroke = () => {
       if (strokeNum < this.strokeRenderers.length - 1) {
-        const nextStroke = () => this.animateStroke(strokeNum + 1, animationOptions);
+        const nextStroke = () => this.animateStroke(strokeNum + 1, animationOptions, animation);
         setTimeout(nextStroke, this.options.delayBetweenStrokes);
       } else {
         callIfExists(animationOptions.onComplete);
@@ -70,7 +73,7 @@ class CharacterRenderer extends Renderer {
     const proxiedOptions = copyAndExtend(animationOptions, {
       onComplete: renderNextStroke,
     });
-    strokeRenderer.animate(proxiedOptions);
+    strokeRenderer.animate(proxiedOptions, animation);
   }
 }
 

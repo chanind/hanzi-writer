@@ -26,7 +26,7 @@ class PathRenderer extends Renderer {
 
   destroy() {
     super.destroy();
-    this.path.remove();
+    if (this.path) this.path.remove();
   }
 }
 

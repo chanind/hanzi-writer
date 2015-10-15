@@ -6,34 +6,38 @@ import UserStroke from './models/UserStroke';
 import StrokeMatcher from './StrokeMatcher';
 import ZdtStrokeParser from './ZdtStrokeParser';
 import {inArray, copyAndExtend} from './utils';
+import Animation from './Animation';
 import svg from 'svg.js';
 
 const defaultOptions = {
   charDataLoader: (char) => global.hanziData[char],
+
+  // positioning options
+
   width: null,
   height: null,
   padding: 20,
+
+  // animation options
+
   strokeAnimationDuration: 300,
   strokeHighlightDuration: 500,
-  strokeHighlightColor: '#AAF',
-  userStrokeFadeDuration: 300,
   delayBetweenStrokes: 1000,
+
+  // colors
+
+  strokeColor: '#555',
+  highlightColor: '#AAF',
+  hintColor: '#DDD',
+  drawingColor: '#333',
+
+  // undocumented obscure options
+
+  drawingFadeDuration: 300,
   matchDistanceThreshold: 30,
-  userStrokeAttrs: {
-    fill: 'none',
-    stroke: '#333',
-    'stroke-width': 4,
-  },
-  strokeAttrs: {
-    fill: '#555',
-    stroke: '#555',
-    'stroke-width': 2,
-  },
-  hintAttrs: {
-    fill: '#DDD',
-    stroke: '#DDD',
-    'stroke-width': 2,
-  },
+  drawingWidth: 4,
+  strokeWidth: 2,
+  hintWidth: 2,
 };
 
 class HanziWriter {
@@ -45,31 +49,54 @@ class HanziWriter {
     this.setupListeners();
     this.hintRenderer.draw();
     this.characterRenderer.draw();
+    this.lastAnimation = null;
   }
 
   setOptions(options) {
     this.options = copyAndExtend(defaultOptions, options);
-    this.baseStrokeAnimationOptions = {
+    this.mainCharOptions = {
+      strokeColor: this.options.strokeColor,
+      strokeWidth: this.options.strokeWidth,
       strokeAnimationDuration: this.options.strokeAnimationDuration,
       delayBetweenStrokes: this.options.delayBetweenStrokes,
+
+      // TODO: move highlighting to its own character
+      highlightColor: this.options.highlightColor,
+      strokeHighlightDuration: this.options.strokeHighlightDuration,
+    };
+    this.hintCharOptions = copyAndExtend(this.mainCharOptions, {
+      strokeColor: this.options.hintColor,
+      strokeWidth: this.options.hintWidth,
+    });
+    this.userStrokeOptions = {
+      strokeColor: this.options.drawingColor,
+      strokeWidth: this.options.drawingWidth,
+      fadeDuration: this.options.drawingFadeDuration,
     };
   }
 
+  // ------ public API ------ //
+
   showCharacter(options = {}) {
-    this.characterRenderer.show(copyAndExtend(this.baseStrokeAnimationOptions, options));
+    const animation = this.setupAnimation();
+    this.characterRenderer.show(copyAndExtend(this.mainCharOptions, options), animation);
   }
   hideCharacter(options = {}) {
-    this.characterRenderer.hide(copyAndExtend(this.baseStrokeAnimationOptions, options));
+    const animation = this.setupAnimation();
+    this.characterRenderer.hide(copyAndExtend(this.mainCharOptions, options), animation);
   }
   animateCharacter(options = {}) {
-    this.characterRenderer.animate(copyAndExtend(this.baseStrokeAnimationOptions, options));
+    const animation = this.setupAnimation();
+    this.characterRenderer.animate(copyAndExtend(this.mainCharOptions, options), animation);
   }
 
   showHint(options = {}) {
-    this.hintRenderer.show(copyAndExtend(this.baseStrokeAnimationOptions, options));
+    const animation = this.setupAnimation();
+    this.hintRenderer.show(copyAndExtend(this.hintCharOptions, options), animation);
   }
   hideHint(options = {}) {
-    this.hintRenderer.hide(copyAndExtend(this.baseStrokeAnimationOptions, options));
+    const animation = this.setupAnimation();
+    this.hintRenderer.hide(copyAndExtend(this.hintCharOptions, options), animation);
   }
 
   quiz(quizOptions = {}) {
@@ -90,13 +117,15 @@ class HanziWriter {
     const pathStrings = this.options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
     this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this.characterRenderer = new CharacterRenderer(this.character, this.options);
-    this.hintRenderer = new CharacterRenderer(this.character, this.getHintOptions());
+    this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions);
+    this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions);
     this.positioner = new CharacterPositionerRenderer(this.characterRenderer, this.options);
     this.hintPositioner = new CharacterPositionerRenderer(this.hintRenderer, this.options);
     this.hintPositioner.setCanvas(this.svg);
     this.positioner.setCanvas(this.svg);
   }
+
+  // ------------- //
 
   setupListeners() {
     this.svg.node.addEventListener('mousedown', (evt) => {
@@ -123,7 +152,7 @@ class HanziWriter {
     this.point = point;
     if (this.userStroke) return this.endUserStroke();
     this.userStroke = new UserStroke(point);
-    this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.options);
+    this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.userStrokeOptions);
     this.userStrokeRenderer.setCanvas(this.svg);
     this.userStrokeRenderer.draw();
   }
@@ -137,10 +166,11 @@ class HanziWriter {
 
   endUserStroke() {
     if (!this.userStroke) return;
+    const animation = this.setupAnimation();
     const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
     const strokeMatcher = new StrokeMatcher(this.options);
     const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-    this.userStrokeRenderer.fadeAndRemove();
+    this.userStrokeRenderer.fadeAndRemove({}, animation);
     this.userStroke = null;
     this.userStrokeRenderer = null;
     if (!this.isQuizzing) return;
@@ -149,7 +179,7 @@ class HanziWriter {
       this.drawnStrokes.push(matchingStroke);
       this.currentStrokeIndex += 1;
       this.numRecentMistakes = 0;
-      this.characterRenderer.showStroke(matchingStroke.getStrokeNum());
+      this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), {}, animation);
       if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
     } else {
       this.numRecentMistakes += 1;
@@ -167,10 +197,10 @@ class HanziWriter {
     return new Point(x, y);
   }
 
-  getHintOptions() {
-    const hintOptions = copyAndExtend({}, this.options);
-    hintOptions.strokeAttrs = this.options.hintAttrs;
-    return hintOptions;
+  setupAnimation() {
+    if (this.lastAnimation) this.lastAnimation.cancel();
+    this.lastAnimation = new Animation();
+    return this.lastAnimation;
   }
 }
 

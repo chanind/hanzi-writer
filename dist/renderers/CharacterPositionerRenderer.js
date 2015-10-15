@@ -48,10 +48,6 @@ class CharacterPositionerRenderer extends Renderer {
     this.characterRenderer.draw();
   }
 
-  animate(svg, options) {
-    this.characterRenderer.animate(options);
-  }
-
   setCanvas(canvas) {
     super.setCanvas(canvas);
     this.characterRenderer.setCanvas(this.getNestedCanvas());

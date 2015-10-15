@@ -1,5 +1,9 @@
-import clone from 'clone';
 import {_extend as extend} from 'util';
+
+// TODO: recursive clone
+const clone = (obj) => {
+  return extend({}, obj);
+};
 
 export function copyAndExtend(original, changes = {}) {
   const copy = clone(original);

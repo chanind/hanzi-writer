@@ -26,45 +26,66 @@ class StrokePartRenderer extends PathRenderer {
   highlight() {
     this.path.animate(this.options.strokeHighlightDuration)
       .attr({
-        fill: this.options.strokeHighlightColor,
-        stroke: this.options.strokeHighlightColor,
+        fill: this.options.highlightColor,
+        stroke: this.options.highlightColor,
         opacity: 1,
       })
       .after(() => {
         this.path.animate(this.options.strokeHighlightDuration)
           .attr({opacity: 0})
-          .after(() => this.path.attr(this.options.strokeAttrs));
+          .after(() => this.path.attr(this.getStrokeAttrs(this.options)));
       });
   }
 
   draw() {
-    return super.draw().attr(this.options.strokeAttrs).attr({opacity: 0});
+    return super.draw().attr(this.getStrokeAttrs(this.options)).attr({opacity: 0});
   }
 
-  show(animationOptions) {
-    this.path.animate(animationOptions.strokeAnimationDuration)
+  show(animationOptions, animation) {
+    const svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(1)
       .after(animationOptions.onComplete);
+    animation.registerSvgAnimation(svgAnimation);
   }
 
-  hide(animationOptions) {
-    this.path.animate(animationOptions.strokeAnimationDuration)
+  hide(animationOptions, animation) {
+    const svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration)
       .opacity(0)
       .after(animationOptions.onComplete);
+    animation.registerSvgAnimation(svgAnimation);
   }
 
-  animate(animationOptions) {
+  animate(animationOptions, animation) {
     const start = this.strokePart.getStartingPoint();
-    const mask = this.canvas.circle(0).center(start.getX(), start.getY());
     if (!this.path) this.drawPath();
+    if (!this.mask) {
+      this.mask = this.canvas.circle(0).center(start.getX(), start.getY());
+      this.path.clipWith(this.mask);
+    }
+
+    this.mask.radius(0);
     this.path
       .attr({opacity: 1})
-      .attr(this.options.strokeAttrs)
-      .clipWith(mask);
+      .attr(this.getStrokeAttrs(animationOptions));
 
-    mask.animate(animationOptions.strokeAnimationDuration)
+    const svgAnimation = this.mask.animate(animationOptions.strokeAnimationDuration)
       .radius(this.strokePart.getLength())
       .after(animationOptions.onComplete);
+
+    animation.registerSvgAnimation(svgAnimation);
+  }
+
+  destroy() {
+    super.destroy();
+    if (this.mask) this.mask.remove();
+  }
+
+  getStrokeAttrs(options) {
+    return {
+      fill: options.strokeColor,
+      stroke: options.strokeColor,
+      'stroke-width': options.strokeWidth,
+    };
   }
 }
 

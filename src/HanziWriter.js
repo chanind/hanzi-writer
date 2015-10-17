@@ -21,7 +21,7 @@ const defaultOptions = {
   // animation options
 
   strokeAnimationDuration: 300,
-  strokeHighlightDuration: 500,
+  strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
 
   // colors
@@ -166,30 +166,33 @@ class HanziWriter {
   }
 
   endUserStroke() {
-    if (!this.userStroke) return;
-    const animation = this.setupAnimation();
-    const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-    const strokeMatcher = new StrokeMatcher(this.options);
-    const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-    this.userStrokeRenderer.fadeAndRemove(animation);
-    this.userStroke = null;
-    this.userStrokeRenderer = null;
-    if (!this.isQuizzing) return;
-    const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-      this.drawnStrokes.push(matchingStroke);
-      this.currentStrokeIndex += 1;
-      this.numRecentMistakes = 0;
-      this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
-      if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
-    } else {
-      this.numRecentMistakes += 1;
-      if (this.numRecentMistakes > 3) {
-        this.highlightRenderer
-          .getStrokeRenderer(this.currentStrokeIndex)
-          .highlight(animation);
+    this.animate((animation) => {
+      if (!this.userStroke) return Promise.resolve();
+
+      const promises = [];
+      const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
+      const strokeMatcher = new StrokeMatcher(this.options);
+      const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
+      promises.push(this.userStrokeRenderer.fadeAndRemove(animation));
+      this.userStroke = null;
+      this.userStrokeRenderer = null;
+      if (!this.isQuizzing) return Promise.resolve();
+      const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
+      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
+        this.drawnStrokes.push(matchingStroke);
+        this.currentStrokeIndex += 1;
+        this.numRecentMistakes = 0;
+        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
+        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
+      } else {
+        this.numRecentMistakes += 1;
+        if (this.numRecentMistakes > 3) {
+          const strokeHintRenderer = this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex);
+          promises.push(strokeHintRenderer.highlight(animation));
+        }
       }
-    }
+      return Promise.all(promises);
+    });
   }
 
   getMousePoint(evt) {

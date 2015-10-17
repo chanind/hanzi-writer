@@ -37,15 +37,15 @@ class StrokeRenderer extends Renderer {
     return renderChain;
   }
 
+  highlight(animation) {
+    return this.animate(animation).then(() => this.hide(animation));
+  }
+
   setCanvas(canvas) {
     super.setCanvas(canvas);
     for (const strokePartRenderer of this.strokePartRenderers) {
       strokePartRenderer.setCanvas(canvas);
     }
-  }
-
-  highlight(animation) {
-    return this.animate(animation).then(() => this.hide(animation));
   }
 }
 

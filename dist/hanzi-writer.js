@@ -108,7 +108,7 @@
 	  // animation options
 
 	  strokeAnimationDuration: 300,
-	  strokeHighlightDuration: 500,
+	  strokeHighlightDuration: 200,
 	  delayBetweenStrokes: 1000,
 
 	  // colors
@@ -314,28 +314,35 @@
 	  }, {
 	    key: 'endUserStroke',
 	    value: function endUserStroke() {
-	      if (!this.userStroke) return;
-	      var animation = this.setupAnimation();
-	      var translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-	      var strokeMatcher = new _StrokeMatcher2['default'](this.options);
-	      var matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-	      this.userStrokeRenderer.fadeAndRemove(animation);
-	      this.userStroke = null;
-	      this.userStrokeRenderer = null;
-	      if (!this.isQuizzing) return;
-	      var isValidStroke = matchingStroke && !(0, _utils.inArray)(matchingStroke, this.drawnStrokes);
-	      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-	        this.drawnStrokes.push(matchingStroke);
-	        this.currentStrokeIndex += 1;
-	        this.numRecentMistakes = 0;
-	        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
-	        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
-	      } else {
-	        this.numRecentMistakes += 1;
-	        if (this.numRecentMistakes > 3) {
-	          this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight(animation);
+	      var _this7 = this;
+
+	      this.animate(function (animation) {
+	        if (!_this7.userStroke) return Promise.resolve();
+
+	        var promises = [];
+	        var translatedPoints = _this7.positioner.convertExternalPoints(_this7.userStroke.getPoints());
+	        var strokeMatcher = new _StrokeMatcher2['default'](_this7.options);
+	        var matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, _this7.character.getStrokes());
+	        promises.push(_this7.userStrokeRenderer.fadeAndRemove(animation));
+	        _this7.userStroke = null;
+	        _this7.userStrokeRenderer = null;
+	        if (!_this7.isQuizzing) return Promise.resolve();
+	        var isValidStroke = matchingStroke && !(0, _utils.inArray)(matchingStroke, _this7.drawnStrokes);
+	        if (isValidStroke && (!_this7.enforceStrokeOrder || matchingStroke === _this7.character.getStroke(_this7.currentStrokeIndex))) {
+	          _this7.drawnStrokes.push(matchingStroke);
+	          _this7.currentStrokeIndex += 1;
+	          _this7.numRecentMistakes = 0;
+	          _this7.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
+	          if (_this7.drawnStrokes.length === _this7.character.getNumStrokes()) _this7.isQuizzing = false;
+	        } else {
+	          _this7.numRecentMistakes += 1;
+	          if (_this7.numRecentMistakes > 3) {
+	            var strokeHintRenderer = _this7.highlightRenderer.getStrokeRenderer(_this7.currentStrokeIndex);
+	            promises.push(strokeHintRenderer.highlight(animation));
+	          }
 	        }
-	      }
+	        return Promise.all(promises);
+	      });
 	    }
 	  }, {
 	    key: 'getMousePoint',
@@ -739,6 +746,15 @@
 	      return renderChain;
 	    }
 	  }, {
+	    key: 'highlight',
+	    value: function highlight(animation) {
+	      var _this2 = this;
+
+	      return this.animate(animation).then(function () {
+	        return _this2.hide(animation);
+	      });
+	    }
+	  }, {
 	    key: 'setCanvas',
 	    value: function setCanvas(canvas) {
 	      _get(Object.getPrototypeOf(StrokeRenderer.prototype), 'setCanvas', this).call(this, canvas);
@@ -766,15 +782,6 @@
 	          }
 	        }
 	      }
-	    }
-	  }, {
-	    key: 'highlight',
-	    value: function highlight(animation) {
-	      var _this2 = this;
-
-	      return this.animate(animation).then(function () {
-	        return _this2.hide(animation);
-	      });
 	    }
 	  }]);
 
@@ -2671,6 +2678,8 @@
 	  _createClass(Animation, [{
 	    key: 'cancel',
 	    value: function cancel() {
+	      if (!this.isActive()) return;
+
 	      this._isActive = false;
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;

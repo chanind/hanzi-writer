@@ -1,6 +1,5 @@
 import Renderer from './Renderer';
 import StrokePartRenderer from './StrokePartRenderer';
-import {copyAndExtend, callIfExists} from '../utils';
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {
@@ -8,21 +7,19 @@ class StrokeRenderer extends Renderer {
     super();
     this.stroke = stroke;
     this.strokePartRenderers = this.stroke.getStrokeParts().map((strokePart) => {
-      return this.registerChild(new StrokePartRenderer(strokePart, options));
+      return this.registerChild(new StrokePartRenderer(strokePart, stroke, options));
     });
     this.options = options;
   }
 
-  show(animationOptions, animation) {
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.show(animationOptions, animation);
-    }
+  show(animation) {
+    const promises = this.strokePartRenderers.map(strokePartRenderer => strokePartRenderer.show(animation));
+    return Promise.all(promises);
   }
 
-  hide(animationOptions, animation) {
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.hide(animationOptions, animation);
-    }
+  hide(animation) {
+    const promises = this.strokePartRenderers.map(strokePartRenderer => strokePartRenderer.hide(animation));
+    return Promise.all(promises);
   }
 
   draw() {
@@ -31,9 +28,13 @@ class StrokeRenderer extends Renderer {
     }
   }
 
-  animate(animationOptions, animation) {
-    const spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
-    this.animateStrokePart(0, spedUpAnimationOptions, animation);
+  animate(animation) {
+    if (!animation.isActive()) return null;
+    let renderChain = Promise.resolve();
+    this.strokePartRenderers.forEach((strokePartRenderer) => {
+      renderChain = renderChain.then(() => strokePartRenderer.animate(animation));
+    });
+    return renderChain;
   }
 
   setCanvas(canvas) {
@@ -43,33 +44,8 @@ class StrokeRenderer extends Renderer {
     }
   }
 
-  highlight() {
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.highlight();
-    }
-  }
-
-  getSpedUpAnimationOptions(animationOptions) {
-    return copyAndExtend(animationOptions, {
-      strokeAnimationDuration: animationOptions.strokeAnimationDuration / this.strokePartRenderers.length,
-    });
-  }
-
-  animateStrokePart(strokePartNum, animationOptions, animation) {
-    if (!animation.isActive()) return;
-
-    const renderNextStrokePart = () => {
-      if (strokePartNum < this.strokePartRenderers.length - 1) {
-        this.animateStrokePart(strokePartNum + 1, animationOptions, animation);
-      } else {
-        callIfExists(animationOptions.onComplete);
-      }
-    };
-    const strokePartRenderer = this.strokePartRenderers[strokePartNum];
-    const proxiedOptions = copyAndExtend(animationOptions, {
-      onComplete: renderNextStrokePart,
-    });
-    strokePartRenderer.animate(proxiedOptions, animation);
+  highlight(animation) {
+    return this.animate(animation).then(() => this.hide(animation));
   }
 }
 

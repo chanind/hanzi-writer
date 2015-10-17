@@ -1,9 +1,11 @@
+import {callIfExists} from './utils';
+
 class Animation {
 
-  constructor(parent = null) {
+  constructor(options = {}) {
     this._svgAnimations = [];
     this._isActive = true;
-    if (parent) parent.registerChild(this);
+    this._callback = options.onComplete;
   }
 
   cancel() {
@@ -19,6 +21,13 @@ class Animation {
 
   isActive() {
     return this._isActive;
+  }
+
+  finish() {
+    if (this.isActive()) {
+      this._isActive = false;
+      callIfExists(this._callback);
+    }
   }
 
 }

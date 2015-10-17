@@ -16,21 +16,23 @@ class UserStrokeRenderer extends PathRenderer {
   }
 
   draw() {
-    return super.draw().attr(this.getStrokeAttrs(this.options));
+    return super.draw().attr(this.getStrokeAttrs());
   }
 
-  fadeAndRemove(animationOptions, animation) {
-    const svgAnimation = this.path.animate(this.options.fadeDuration)
-      .attr({opacity: 0})
-      .after(() => this.destroy());
-    animation.registerSvgAnimation(svgAnimation);
+  fadeAndRemove(animation) {
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.path.animate(this.options.fadeDuration)
+        .attr({opacity: 0})
+        .after(resolve);
+      animation.registerSvgAnimation(svgAnimation);
+    }).then(() => this.destroy());
   }
 
-  getStrokeAttrs(options) {
+  getStrokeAttrs() {
     return {
       fill: 'none',
-      stroke: options.strokeColor,
-      'stroke-width': options.strokeWidth,
+      stroke: this.options.strokeColor,
+      'stroke-width': this.options.strokeWidth,
     };
   }
 }

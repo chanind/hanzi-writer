@@ -1,6 +1,6 @@
 import Renderer from './Renderer';
 import StrokeRenderer from './StrokeRenderer';
-import {copyAndExtend, callIfExists} from '../utils';
+import {timeout} from '../utils';
 
 class CharacterRenderer extends Renderer {
 
@@ -17,21 +17,18 @@ class CharacterRenderer extends Renderer {
     return this.character.getBounds();
   }
 
-  show(animationOptions, animation) {
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.show(animationOptions, animation);
-    }
-    return animation;
+  show(animation) {
+    const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.show(animation));
+    return Promise.all(promises);
   }
 
-  hide(animationOptions, animation) {
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.hide(animationOptions, animation);
-    }
+  hide(animation) {
+    const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.hide(animation));
+    return Promise.all(promises);
   }
 
-  showStroke(strokeNum, animationOptions, animation) {
-    this.getStrokeRenderer(strokeNum).show(animationOptions, animation);
+  showStroke(strokeNum, animation) {
+    return this.getStrokeRenderer(strokeNum).show(animation);
   }
 
   draw() {
@@ -44,11 +41,14 @@ class CharacterRenderer extends Renderer {
     return this.strokeRenderers[strokeNum];
   }
 
-  animate(animationOptions, animation) {
-    const proxiedOptions = copyAndExtend(animationOptions, {
-      onComplete: () => this.animateStroke(0, animationOptions, animation),
+  animate(animation) {
+    if (!animation.isActive()) return null;
+    let renderChain = this.hide(animation);
+    this.strokeRenderers.forEach((strokeRenderer, index) => {
+      if (index > 0) renderChain = renderChain.then(() => timeout(this.options.delayBetweenStrokes));
+      renderChain = renderChain.then(() => strokeRenderer.animate(animation));
     });
-    this.hide(proxiedOptions, animation);
+    return renderChain;
   }
 
   setCanvas(canvas) {
@@ -56,24 +56,6 @@ class CharacterRenderer extends Renderer {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.setCanvas(canvas);
     }
-  }
-
-  animateStroke(strokeNum, animationOptions, animation) {
-    if (!animation.isActive()) return;
-
-    const renderNextStroke = () => {
-      if (strokeNum < this.strokeRenderers.length - 1) {
-        const nextStroke = () => this.animateStroke(strokeNum + 1, animationOptions, animation);
-        setTimeout(nextStroke, this.options.delayBetweenStrokes);
-      } else {
-        callIfExists(animationOptions.onComplete);
-      }
-    };
-    const strokeRenderer = this.strokeRenderers[strokeNum];
-    const proxiedOptions = copyAndExtend(animationOptions, {
-      onComplete: renderNextStroke,
-    });
-    strokeRenderer.animate(proxiedOptions, animation);
   }
 }
 

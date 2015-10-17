@@ -1,12 +1,17 @@
 import Renderer from './Renderer';
 import Point from '../models/Point';
 
-class CharacterPositionerRenderer extends Renderer {
+class PositionerRenderer extends Renderer {
 
-  constructor(characterRenderer, options = {}) {
+  constructor(options = {}) {
     super();
-    this.characterRenderer = characterRenderer;
     this.options = options;
+    this.positionedRenderers = [];
+  }
+
+  positionRenderer(boundableRenderer) {
+    this.registerChild(boundableRenderer);
+    this.positionedRenderers.push(boundableRenderer);
   }
 
   convertExternalPoints(points) {
@@ -28,7 +33,7 @@ class CharacterPositionerRenderer extends Renderer {
   }
 
   calculateScaleAndOffset() {
-    const bounds = this.characterRenderer.getBounds();
+    const bounds = Point.getOverallBounds(this.positionedRenderers);
     const preScaledWidth = bounds[1].getX() - bounds[0].getX();
     const preScaledHeight = bounds[1].getY() - bounds[0].getY();
     const effectiveWidth = this.options.width - 2 * this.options.padding;
@@ -45,13 +50,17 @@ class CharacterPositionerRenderer extends Renderer {
   }
 
   draw() {
-    this.characterRenderer.draw();
+    for (const renderer of this.positionedRenderers) {
+      renderer.draw();
+    }
   }
 
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    this.characterRenderer.setCanvas(this.getNestedCanvas());
+    for (const renderer of this.positionedRenderers) {
+      renderer.setCanvas(this.getNestedCanvas());
+    }
   }
 }
 
-export default CharacterPositionerRenderer;
+export default PositionerRenderer;

@@ -64,9 +64,9 @@
 
 	var _renderersUserStrokeRenderer2 = _interopRequireDefault(_renderersUserStrokeRenderer);
 
-	var _renderersCharacterPositionerRenderer = __webpack_require__(12);
+	var _renderersPositionerRenderer = __webpack_require__(12);
 
-	var _renderersCharacterPositionerRenderer2 = _interopRequireDefault(_renderersCharacterPositionerRenderer);
+	var _renderersPositionerRenderer2 = _interopRequireDefault(_renderersPositionerRenderer);
 
 	var _modelsPoint = __webpack_require__(13);
 
@@ -137,8 +137,6 @@
 	    this.setOptions(options);
 	    this.setCharacter(character);
 	    this.setupListeners();
-	    this.hintRenderer.draw();
-	    this.characterRenderer.draw();
 	    this.lastAnimation = null;
 	  }
 
@@ -152,15 +150,15 @@
 	        strokeColor: this.options.strokeColor,
 	        strokeWidth: this.options.strokeWidth,
 	        strokeAnimationDuration: this.options.strokeAnimationDuration,
-	        delayBetweenStrokes: this.options.delayBetweenStrokes,
-
-	        // TODO: move highlighting to its own character
-	        highlightColor: this.options.highlightColor,
-	        strokeHighlightDuration: this.options.strokeHighlightDuration
+	        delayBetweenStrokes: this.options.delayBetweenStrokes
 	      };
 	      this.hintCharOptions = (0, _utils.copyAndExtend)(this.mainCharOptions, {
 	        strokeColor: this.options.hintColor,
 	        strokeWidth: this.options.hintWidth
+	      });
+	      this.highlightCharOptions = (0, _utils.copyAndExtend)(this.mainCharOptions, {
+	        strokeColor: this.options.highlightColor,
+	        strokeAnimationDuration: this.options.strokeHighlightDuration
 	      });
 	      this.userStrokeOptions = {
 	        strokeColor: this.options.drawingColor,
@@ -174,42 +172,57 @@
 	  }, {
 	    key: 'showCharacter',
 	    value: function showCharacter() {
+	      var _this = this;
+
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      var animation = this.setupAnimation();
-	      this.characterRenderer.show((0, _utils.copyAndExtend)(this.mainCharOptions, options), animation);
+	      this.animate(function (animation) {
+	        return _this.characterRenderer.show(animation);
+	      });
 	    }
 	  }, {
 	    key: 'hideCharacter',
 	    value: function hideCharacter() {
+	      var _this2 = this;
+
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      var animation = this.setupAnimation();
-	      this.characterRenderer.hide((0, _utils.copyAndExtend)(this.mainCharOptions, options), animation);
+	      this.animate(function (animation) {
+	        return _this2.characterRenderer.hide(animation);
+	      });
 	    }
 	  }, {
 	    key: 'animateCharacter',
 	    value: function animateCharacter() {
+	      var _this3 = this;
+
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      var animation = this.setupAnimation();
-	      this.characterRenderer.animate((0, _utils.copyAndExtend)(this.mainCharOptions, options), animation);
+	      this.animate(function (animation) {
+	        return _this3.characterRenderer.animate(animation);
+	      });
 	    }
 	  }, {
 	    key: 'showHint',
 	    value: function showHint() {
+	      var _this4 = this;
+
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      var animation = this.setupAnimation();
-	      this.hintRenderer.show((0, _utils.copyAndExtend)(this.hintCharOptions, options), animation);
+	      this.animate(function (animation) {
+	        return _this4.hintRenderer.show(animation);
+	      });
 	    }
 	  }, {
 	    key: 'hideHint',
 	    value: function hideHint() {
+	      var _this5 = this;
+
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      var animation = this.setupAnimation();
-	      this.hintRenderer.hide((0, _utils.copyAndExtend)(this.hintCharOptions, options), animation);
+	      this.animate(function (animation) {
+	        return _this5.hintRenderer.hide(animation);
+	      });
 	    }
 	  }, {
 	    key: 'quiz',
@@ -231,15 +244,23 @@
 	  }, {
 	    key: 'setCharacter',
 	    value: function setCharacter(char) {
+	      if (this.positioner) this.positioner.destroy();
+
 	      var pathStrings = this.options.charDataLoader(char);
 	      var zdtStrokeParser = new _ZdtStrokeParser2['default']();
 	      this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
+	      this.positioner = new _renderersPositionerRenderer2['default'](this.options);
+
 	      this.characterRenderer = new _renderersCharacterRenderer2['default'](this.character, this.mainCharOptions);
 	      this.hintRenderer = new _renderersCharacterRenderer2['default'](this.character, this.hintCharOptions);
-	      this.positioner = new _renderersCharacterPositionerRenderer2['default'](this.characterRenderer, this.options);
-	      this.hintPositioner = new _renderersCharacterPositionerRenderer2['default'](this.hintRenderer, this.options);
-	      this.hintPositioner.setCanvas(this.svg);
+	      this.highlightRenderer = new _renderersCharacterRenderer2['default'](this.character, this.highlightCharOptions);
+
+	      this.positioner.positionRenderer(this.hintRenderer);
+	      this.positioner.positionRenderer(this.characterRenderer);
+	      this.positioner.positionRenderer(this.highlightRenderer); // need this to be on top
+
 	      this.positioner.setCanvas(this.svg);
+	      this.positioner.draw();
 	    }
 
 	    // ------------- //
@@ -247,29 +268,29 @@
 	  }, {
 	    key: 'setupListeners',
 	    value: function setupListeners() {
-	      var _this = this;
+	      var _this6 = this;
 
 	      this.svg.node.addEventListener('mousedown', function (evt) {
 	        evt.preventDefault();
-	        _this.startUserStroke(_this.getMousePoint(evt));
+	        _this6.startUserStroke(_this6.getMousePoint(evt));
 	      });
 	      this.svg.node.addEventListener('touchstart', function (evt) {
 	        evt.preventDefault();
-	        _this.startUserStroke(_this.getTouchPoint(evt));
+	        _this6.startUserStroke(_this6.getTouchPoint(evt));
 	      });
 	      this.svg.node.addEventListener('mousemove', function (evt) {
 	        evt.preventDefault();
-	        _this.continueUserStroke(_this.getMousePoint(evt));
+	        _this6.continueUserStroke(_this6.getMousePoint(evt));
 	      });
 	      this.svg.node.addEventListener('touchmove', function (evt) {
 	        evt.preventDefault();
-	        _this.continueUserStroke(_this.getTouchPoint(evt));
+	        _this6.continueUserStroke(_this6.getTouchPoint(evt));
 	      });
 	      document.addEventListener('mouseup', function () {
-	        return _this.endUserStroke();
+	        return _this6.endUserStroke();
 	      });
 	      document.addEventListener('touchend', function () {
-	        return _this.endUserStroke();
+	        return _this6.endUserStroke();
 	      });
 	    }
 	  }, {
@@ -298,7 +319,7 @@
 	      var translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
 	      var strokeMatcher = new _StrokeMatcher2['default'](this.options);
 	      var matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-	      this.userStrokeRenderer.fadeAndRemove({}, animation);
+	      this.userStrokeRenderer.fadeAndRemove(animation);
 	      this.userStroke = null;
 	      this.userStrokeRenderer = null;
 	      if (!this.isQuizzing) return;
@@ -307,11 +328,13 @@
 	        this.drawnStrokes.push(matchingStroke);
 	        this.currentStrokeIndex += 1;
 	        this.numRecentMistakes = 0;
-	        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), {}, animation);
+	        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
 	        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
 	      } else {
 	        this.numRecentMistakes += 1;
-	        if (this.numRecentMistakes > 3) this.characterRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight();
+	        if (this.numRecentMistakes > 3) {
+	          this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight(animation);
+	        }
 	      }
 	    }
 	  }, {
@@ -332,6 +355,14 @@
 	      if (this.lastAnimation) this.lastAnimation.cancel();
 	      this.lastAnimation = new _Animation2['default']();
 	      return this.lastAnimation;
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(func) {
+	      var animation = this.setupAnimation();
+	      func(animation).then(function () {
+	        return animation.finish();
+	      });
 	    }
 	  }]);
 
@@ -413,7 +444,28 @@
 	    }
 	  }, {
 	    key: 'show',
-	    value: function show(animationOptions, animation) {
+	    value: function show(animation) {
+	      var promises = this.strokeRenderers.map(function (strokeRenderer) {
+	        return strokeRenderer.show(animation);
+	      });
+	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'hide',
+	    value: function hide(animation) {
+	      var promises = this.strokeRenderers.map(function (strokeRenderer) {
+	        return strokeRenderer.hide(animation);
+	      });
+	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'showStroke',
+	    value: function showStroke(strokeNum, animation) {
+	      return this.getStrokeRenderer(strokeNum).show(animation);
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
@@ -422,7 +474,7 @@
 	        for (var _iterator = this.strokeRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	          var strokeRenderer = _step.value;
 
-	          strokeRenderer.show(animationOptions, animation);
+	          strokeRenderer.draw();
 	        }
 	      } catch (err) {
 	        _didIteratorError = true;
@@ -438,12 +490,33 @@
 	          }
 	        }
 	      }
-
-	      return animation;
 	    }
 	  }, {
-	    key: 'hide',
-	    value: function hide(animationOptions, animation) {
+	    key: 'getStrokeRenderer',
+	    value: function getStrokeRenderer(strokeNum) {
+	      return this.strokeRenderers[strokeNum];
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(animation) {
+	      var _this2 = this;
+
+	      if (!animation.isActive()) return null;
+	      var renderChain = this.hide(animation);
+	      this.strokeRenderers.forEach(function (strokeRenderer, index) {
+	        if (index > 0) renderChain = renderChain.then(function () {
+	          return (0, _utils.timeout)(_this2.options.delayBetweenStrokes);
+	        });
+	        renderChain = renderChain.then(function () {
+	          return strokeRenderer.animate(animation);
+	        });
+	      });
+	      return renderChain;
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(CharacterRenderer.prototype), 'setCanvas', this).call(this, canvas);
 	      var _iteratorNormalCompletion2 = true;
 	      var _didIteratorError2 = false;
 	      var _iteratorError2 = undefined;
@@ -452,7 +525,7 @@
 	        for (var _iterator2 = this.strokeRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 	          var strokeRenderer = _step2.value;
 
-	          strokeRenderer.hide(animationOptions, animation);
+	          strokeRenderer.setCanvas(canvas);
 	        }
 	      } catch (err) {
 	        _didIteratorError2 = true;
@@ -468,108 +541,6 @@
 	          }
 	        }
 	      }
-	    }
-	  }, {
-	    key: 'showStroke',
-	    value: function showStroke(strokeNum, animationOptions, animation) {
-	      this.getStrokeRenderer(strokeNum).show(animationOptions, animation);
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var _iteratorNormalCompletion3 = true;
-	      var _didIteratorError3 = false;
-	      var _iteratorError3 = undefined;
-
-	      try {
-	        for (var _iterator3 = this.strokeRenderers[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var strokeRenderer = _step3.value;
-
-	          strokeRenderer.draw();
-	        }
-	      } catch (err) {
-	        _didIteratorError3 = true;
-	        _iteratorError3 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-	            _iterator3['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError3) {
-	            throw _iteratorError3;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'getStrokeRenderer',
-	    value: function getStrokeRenderer(strokeNum) {
-	      return this.strokeRenderers[strokeNum];
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(animationOptions, animation) {
-	      var _this2 = this;
-
-	      var proxiedOptions = (0, _utils.copyAndExtend)(animationOptions, {
-	        onComplete: function onComplete() {
-	          return _this2.animateStroke(0, animationOptions, animation);
-	        }
-	      });
-	      this.hide(proxiedOptions, animation);
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(CharacterRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
-
-	      try {
-	        for (var _iterator4 = this.strokeRenderers[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var strokeRenderer = _step4.value;
-
-	          strokeRenderer.setCanvas(canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-	            _iterator4['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'animateStroke',
-	    value: function animateStroke(strokeNum, animationOptions, animation) {
-	      var _this3 = this;
-
-	      if (!animation.isActive()) return;
-
-	      var renderNextStroke = function renderNextStroke() {
-	        if (strokeNum < _this3.strokeRenderers.length - 1) {
-	          var nextStroke = function nextStroke() {
-	            return _this3.animateStroke(strokeNum + 1, animationOptions, animation);
-	          };
-	          setTimeout(nextStroke, _this3.options.delayBetweenStrokes);
-	        } else {
-	          (0, _utils.callIfExists)(animationOptions.onComplete);
-	        }
-	      };
-	      var strokeRenderer = this.strokeRenderers[strokeNum];
-	      var proxiedOptions = (0, _utils.copyAndExtend)(animationOptions, {
-	        onComplete: renderNextStroke
-	      });
-	      strokeRenderer.animate(proxiedOptions, animation);
 	    }
 	  }]);
 
@@ -691,8 +662,6 @@
 
 	var _StrokePartRenderer2 = _interopRequireDefault(_StrokePartRenderer);
 
-	var _utils = __webpack_require__(6);
-
 	// this is a stroke composed of several stroke parts
 
 	var StrokeRenderer = (function (_Renderer) {
@@ -708,14 +677,30 @@
 	    _get(Object.getPrototypeOf(StrokeRenderer.prototype), 'constructor', this).call(this);
 	    this.stroke = stroke;
 	    this.strokePartRenderers = this.stroke.getStrokeParts().map(function (strokePart) {
-	      return _this.registerChild(new _StrokePartRenderer2['default'](strokePart, options));
+	      return _this.registerChild(new _StrokePartRenderer2['default'](strokePart, stroke, options));
 	    });
 	    this.options = options;
 	  }
 
 	  _createClass(StrokeRenderer, [{
 	    key: 'show',
-	    value: function show(animationOptions, animation) {
+	    value: function show(animation) {
+	      var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
+	        return strokePartRenderer.show(animation);
+	      });
+	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'hide',
+	    value: function hide(animation) {
+	      var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
+	        return strokePartRenderer.hide(animation);
+	      });
+	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
 	      var _iteratorNormalCompletion = true;
 	      var _didIteratorError = false;
 	      var _iteratorError = undefined;
@@ -724,7 +709,7 @@
 	        for (var _iterator = this.strokePartRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
 	          var strokePartRenderer = _step.value;
 
-	          strokePartRenderer.show(animationOptions, animation);
+	          strokePartRenderer.draw(this.canvas);
 	        }
 	      } catch (err) {
 	        _didIteratorError = true;
@@ -742,8 +727,21 @@
 	      }
 	    }
 	  }, {
-	    key: 'hide',
-	    value: function hide(animationOptions, animation) {
+	    key: 'animate',
+	    value: function animate(animation) {
+	      if (!animation.isActive()) return null;
+	      var renderChain = Promise.resolve();
+	      this.strokePartRenderers.forEach(function (strokePartRenderer) {
+	        renderChain = renderChain.then(function () {
+	          return strokePartRenderer.animate(animation);
+	        });
+	      });
+	      return renderChain;
+	    }
+	  }, {
+	    key: 'setCanvas',
+	    value: function setCanvas(canvas) {
+	      _get(Object.getPrototypeOf(StrokeRenderer.prototype), 'setCanvas', this).call(this, canvas);
 	      var _iteratorNormalCompletion2 = true;
 	      var _didIteratorError2 = false;
 	      var _iteratorError2 = undefined;
@@ -752,7 +750,7 @@
 	        for (var _iterator2 = this.strokePartRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
 	          var strokePartRenderer = _step2.value;
 
-	          strokePartRenderer.hide(animationOptions, animation);
+	          strokePartRenderer.setCanvas(canvas);
 	        }
 	      } catch (err) {
 	        _didIteratorError2 = true;
@@ -770,122 +768,13 @@
 	      }
 	    }
 	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var _iteratorNormalCompletion3 = true;
-	      var _didIteratorError3 = false;
-	      var _iteratorError3 = undefined;
-
-	      try {
-	        for (var _iterator3 = this.strokePartRenderers[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var strokePartRenderer = _step3.value;
-
-	          strokePartRenderer.draw(this.canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError3 = true;
-	        _iteratorError3 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion3 && _iterator3['return']) {
-	            _iterator3['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError3) {
-	            throw _iteratorError3;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(animationOptions, animation) {
-	      var spedUpAnimationOptions = this.getSpedUpAnimationOptions(animationOptions);
-	      this.animateStrokePart(0, spedUpAnimationOptions, animation);
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(StrokeRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
-
-	      try {
-	        for (var _iterator4 = this.strokePartRenderers[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var strokePartRenderer = _step4.value;
-
-	          strokePartRenderer.setCanvas(canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
-	            _iterator4['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
-	          }
-	        }
-	      }
-	    }
-	  }, {
 	    key: 'highlight',
-	    value: function highlight() {
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
-
-	      try {
-	        for (var _iterator5 = this.strokePartRenderers[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var strokePartRenderer = _step5.value;
-
-	          strokePartRenderer.highlight();
-	        }
-	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5['return']) {
-	            _iterator5['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
-	          }
-	        }
-	      }
-	    }
-	  }, {
-	    key: 'getSpedUpAnimationOptions',
-	    value: function getSpedUpAnimationOptions(animationOptions) {
-	      return (0, _utils.copyAndExtend)(animationOptions, {
-	        strokeAnimationDuration: animationOptions.strokeAnimationDuration / this.strokePartRenderers.length
-	      });
-	    }
-	  }, {
-	    key: 'animateStrokePart',
-	    value: function animateStrokePart(strokePartNum, animationOptions, animation) {
+	    value: function highlight(animation) {
 	      var _this2 = this;
 
-	      if (!animation.isActive()) return;
-
-	      var renderNextStrokePart = function renderNextStrokePart() {
-	        if (strokePartNum < _this2.strokePartRenderers.length - 1) {
-	          _this2.animateStrokePart(strokePartNum + 1, animationOptions, animation);
-	        } else {
-	          (0, _utils.callIfExists)(animationOptions.onComplete);
-	        }
-	      };
-	      var strokePartRenderer = this.strokePartRenderers[strokePartNum];
-	      var proxiedOptions = (0, _utils.copyAndExtend)(animationOptions, {
-	        onComplete: renderNextStrokePart
+	      return this.animate(animation).then(function () {
+	        return _this2.hide(animation);
 	      });
-	      strokePartRenderer.animate(proxiedOptions, animation);
 	    }
 	  }]);
 
@@ -918,14 +807,15 @@
 	var StrokePartRenderer = (function (_PathRenderer) {
 	  _inherits(StrokePartRenderer, _PathRenderer);
 
-	  function StrokePartRenderer(strokePart) {
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  function StrokePartRenderer(strokePart, stroke) {
+	    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	    _classCallCheck(this, StrokePartRenderer);
 
 	    _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'constructor', this).call(this);
 	    this.options = options;
 	    this.strokePart = strokePart;
+	    this.stroke = stroke;
 	  }
 
 	  _createClass(StrokePartRenderer, [{
@@ -947,40 +837,35 @@
 	      this.canvas.circle(10).attr({ fill: '#9F9' }).move(end.getX(), end.getY());
 	    }
 	  }, {
-	    key: 'highlight',
-	    value: function highlight() {
-	      var _this = this;
-
-	      this.path.animate(this.options.strokeHighlightDuration).attr({
-	        fill: this.options.highlightColor,
-	        stroke: this.options.highlightColor,
-	        opacity: 1
-	      }).after(function () {
-	        _this.path.animate(_this.options.strokeHighlightDuration).attr({ opacity: 0 }).after(function () {
-	          return _this.path.attr(_this.getStrokeAttrs(_this.options));
-	        });
-	      });
-	    }
-	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      return _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs(this.options)).attr({ opacity: 0 });
+	      return _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs()).attr({ opacity: 0 });
 	    }
 	  }, {
 	    key: 'show',
-	    value: function show(animationOptions, animation) {
-	      var svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration).opacity(1).after(animationOptions.onComplete);
-	      animation.registerSvgAnimation(svgAnimation);
+	    value: function show(animation) {
+	      var _this = this;
+
+	      return new Promise(function (resolve, reject) {
+	        var svgAnimation = _this.path.animate(_this.options.strokeAnimationDuration).opacity(1).after(resolve);
+	        animation.registerSvgAnimation(svgAnimation);
+	      });
 	    }
 	  }, {
 	    key: 'hide',
-	    value: function hide(animationOptions, animation) {
-	      var svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration).opacity(0).after(animationOptions.onComplete);
-	      animation.registerSvgAnimation(svgAnimation);
+	    value: function hide(animation) {
+	      var _this2 = this;
+
+	      return new Promise(function (resolve, reject) {
+	        var svgAnimation = _this2.path.animate(_this2.options.strokeAnimationDuration).opacity(0).after(resolve);
+	        animation.registerSvgAnimation(svgAnimation);
+	      });
 	    }
 	  }, {
 	    key: 'animate',
-	    value: function animate(animationOptions, animation) {
+	    value: function animate(animation) {
+	      var _this3 = this;
+
 	      var start = this.strokePart.getStartingPoint();
 	      if (!this.path) this.drawPath();
 	      if (!this.mask) {
@@ -989,11 +874,13 @@
 	      }
 
 	      this.mask.radius(0);
-	      this.path.attr({ opacity: 1 }).attr(this.getStrokeAttrs(animationOptions));
+	      this.path.attr({ opacity: 1 }).attr(this.getStrokeAttrs());
 
-	      var svgAnimation = this.mask.animate(animationOptions.strokeAnimationDuration).radius(this.strokePart.getLength()).after(animationOptions.onComplete);
+	      return new Promise(function (resolve, reject) {
+	        var svgAnimation = _this3.mask.animate(_this3.options.strokeAnimationDuration / _this3.stroke.getNumStrokeParts()).radius(_this3.strokePart.getLength()).after(resolve);
 
-	      animation.registerSvgAnimation(svgAnimation);
+	        animation.registerSvgAnimation(svgAnimation);
+	      });
 	    }
 	  }, {
 	    key: 'destroy',
@@ -1003,11 +890,11 @@
 	    }
 	  }, {
 	    key: 'getStrokeAttrs',
-	    value: function getStrokeAttrs(options) {
+	    value: function getStrokeAttrs() {
 	      return {
-	        fill: options.strokeColor,
-	        stroke: options.strokeColor,
-	        'stroke-width': options.strokeWidth
+	        fill: this.options.strokeColor,
+	        stroke: this.options.strokeColor,
+	        'stroke-width': this.options.strokeWidth
 	      };
 	    }
 	  }]);
@@ -1130,6 +1017,7 @@
 	exports.arrayMin = arrayMin;
 	exports.getExtremes = getExtremes;
 	exports.callIfExists = callIfExists;
+	exports.timeout = timeout;
 
 	var _util = __webpack_require__(7);
 
@@ -1194,6 +1082,14 @@
 
 	function callIfExists(callback) {
 	  if (callback) callback();
+	}
+
+	function timeout() {
+	  var duration = arguments.length <= 0 || arguments[0] === undefined ? 0 : arguments[0];
+
+	  return new Promise(function (resolve, reject) {
+	    setTimeout(resolve, duration);
+	  });
 	}
 
 /***/ },
@@ -1940,25 +1836,27 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      return _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs(this.options));
+	      return _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs());
 	    }
 	  }, {
 	    key: 'fadeAndRemove',
-	    value: function fadeAndRemove(animationOptions, animation) {
+	    value: function fadeAndRemove(animation) {
 	      var _this = this;
 
-	      var svgAnimation = this.path.animate(this.options.fadeDuration).attr({ opacity: 0 }).after(function () {
+	      return new Promise(function (resolve, reject) {
+	        var svgAnimation = _this.path.animate(_this.options.fadeDuration).attr({ opacity: 0 }).after(resolve);
+	        animation.registerSvgAnimation(svgAnimation);
+	      }).then(function () {
 	        return _this.destroy();
 	      });
-	      animation.registerSvgAnimation(svgAnimation);
 	    }
 	  }, {
 	    key: 'getStrokeAttrs',
-	    value: function getStrokeAttrs(options) {
+	    value: function getStrokeAttrs() {
 	      return {
 	        fill: 'none',
-	        stroke: options.strokeColor,
-	        'stroke-width': options.strokeWidth
+	        stroke: this.options.strokeColor,
+	        'stroke-width': this.options.strokeWidth
 	      };
 	    }
 	  }]);
@@ -1997,20 +1895,26 @@
 
 	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
 
-	var CharacterPositionerRenderer = (function (_Renderer) {
-	  _inherits(CharacterPositionerRenderer, _Renderer);
+	var PositionerRenderer = (function (_Renderer) {
+	  _inherits(PositionerRenderer, _Renderer);
 
-	  function CharacterPositionerRenderer(characterRenderer) {
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  function PositionerRenderer() {
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	    _classCallCheck(this, CharacterPositionerRenderer);
+	    _classCallCheck(this, PositionerRenderer);
 
-	    _get(Object.getPrototypeOf(CharacterPositionerRenderer.prototype), 'constructor', this).call(this);
-	    this.characterRenderer = characterRenderer;
+	    _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'constructor', this).call(this);
 	    this.options = options;
+	    this.positionedRenderers = [];
 	  }
 
-	  _createClass(CharacterPositionerRenderer, [{
+	  _createClass(PositionerRenderer, [{
+	    key: 'positionRenderer',
+	    value: function positionRenderer(boundableRenderer) {
+	      this.registerChild(boundableRenderer);
+	      this.positionedRenderers.push(boundableRenderer);
+	    }
+	  }, {
 	    key: 'convertExternalPoints',
 	    value: function convertExternalPoints(points) {
 	      var _this = this;
@@ -2035,7 +1939,7 @@
 	  }, {
 	    key: 'calculateScaleAndOffset',
 	    value: function calculateScaleAndOffset() {
-	      var bounds = this.characterRenderer.getBounds();
+	      var bounds = _modelsPoint2['default'].getOverallBounds(this.positionedRenderers);
 	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
 	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
 	      var effectiveWidth = this.options.width - 2 * this.options.padding;
@@ -2053,20 +1957,66 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      this.characterRenderer.draw();
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = this.positionedRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var renderer = _step.value;
+
+	          renderer.draw();
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
 	    }
 	  }, {
 	    key: 'setCanvas',
 	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(CharacterPositionerRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      this.characterRenderer.setCanvas(this.getNestedCanvas());
+	      _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'setCanvas', this).call(this, canvas);
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+
+	      try {
+	        for (var _iterator2 = this.positionedRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var renderer = _step2.value;
+
+	          renderer.setCanvas(this.getNestedCanvas());
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+	            _iterator2['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
 	    }
 	  }]);
 
-	  return CharacterPositionerRenderer;
+	  return PositionerRenderer;
 	})(_Renderer3['default']);
 
-	exports['default'] = CharacterPositionerRenderer;
+	exports['default'] = PositionerRenderer;
 	module.exports = exports['default'];
 
 /***/ },
@@ -2445,6 +2395,11 @@
 	      return this._strokeParts;
 	    }
 	  }, {
+	    key: 'getNumStrokeParts',
+	    value: function getNumStrokeParts() {
+	      return this._strokeParts.length;
+	    }
+	  }, {
 	    key: 'getStrokeNum',
 	    value: function getStrokeNum() {
 	      return this._strokeNum;
@@ -2688,31 +2643,33 @@
 
 /***/ },
 /* 20 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
+	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _utils = __webpack_require__(6);
 
 	var Animation = (function () {
 	  function Animation() {
-	    var parent = arguments.length <= 0 || arguments[0] === undefined ? null : arguments[0];
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	    _classCallCheck(this, Animation);
 
 	    this._svgAnimations = [];
 	    this._isActive = true;
-	    if (parent) parent.registerChild(this);
+	    this._callback = options.onComplete;
 	  }
 
 	  _createClass(Animation, [{
-	    key: "cancel",
+	    key: 'cancel',
 	    value: function cancel() {
 	      this._isActive = false;
 	      var _iteratorNormalCompletion = true;
@@ -2730,8 +2687,8 @@
 	        _iteratorError = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion && _iterator["return"]) {
-	            _iterator["return"]();
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
 	          }
 	        } finally {
 	          if (_didIteratorError) {
@@ -2741,40 +2698,93 @@
 	      }
 	    }
 	  }, {
-	    key: "registerSvgAnimation",
+	    key: 'registerSvgAnimation',
 	    value: function registerSvgAnimation(svgAnimation) {
 	      this._svgAnimations.push(svgAnimation);
 	    }
 	  }, {
-	    key: "isActive",
+	    key: 'isActive',
 	    value: function isActive() {
 	      return this._isActive;
+	    }
+	  }, {
+	    key: 'finish',
+	    value: function finish() {
+	      if (this.isActive()) {
+	        this._isActive = false;
+	        (0, _utils.callIfExists)(this._callback);
+	      }
 	    }
 	  }]);
 
 	  return Animation;
 	})();
 
-	exports["default"] = Animation;
-	module.exports = exports["default"];
+	exports['default'] = Animation;
+	module.exports = exports['default'];
 
 /***/ },
 /* 21 */
 /***/ function(module, exports, __webpack_require__) {
 
-	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/* svg.js 1.1.0 - svg selector inventor polyfill regex default color array pointarray patharray number viewbox bbox rbox element parent container fx relative event defs group arrange mask clip gradient pattern doc shape symbol use rect ellipse line poly path image text textpath nested hyperlink marker sugar set data memory helpers - svgjs.com/license */'use strict';;(function(root,factory){if(true){!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));}else if(typeof exports === 'object'){module.exports = factory();}else {root.SVG = factory();}})(undefined,function(){var SVG=this.SVG = function(element){if(SVG.supported){element = new SVG.Doc(element);if(!SVG.parser)SVG.prepare(element);return element;}}; // Default namespaces
-	SVG.ns = 'http://www.w3.org/2000/svg';SVG.xmlns = 'http://www.w3.org/2000/xmlns/';SVG.xlink = 'http://www.w3.org/1999/xlink'; // Element id sequence
+	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!
+	* svg.js - A lightweight library for manipulating and animating SVG.
+	* @version 2.1.1
+	* http://www.svgjs.com
+	*
+	* @copyright Wout Fierens <wout@impinc.co.uk>
+	* @license MIT
+	*
+	* BUILT: Mon Oct 05 2015 20:47:18 GMT+0200 (Mitteleuropäische Sommerzeit)
+	*/'use strict';;(function(root,factory){if(true){!(__WEBPACK_AMD_DEFINE_FACTORY__ = (factory), __WEBPACK_AMD_DEFINE_RESULT__ = (typeof __WEBPACK_AMD_DEFINE_FACTORY__ === 'function' ? (__WEBPACK_AMD_DEFINE_FACTORY__.call(exports, __webpack_require__, exports, module)) : __WEBPACK_AMD_DEFINE_FACTORY__), __WEBPACK_AMD_DEFINE_RESULT__ !== undefined && (module.exports = __WEBPACK_AMD_DEFINE_RESULT__));}else if(typeof exports === 'object'){module.exports = factory(require,exports,module);}else {root.SVG = factory();}})(undefined,function(require,exports,module){ // The main wrapping element
+	var SVG=this.SVG = function(element){if(SVG.supported){element = new SVG.Doc(element);if(!SVG.parser)SVG.prepare(element);return element;}}; // Default namespaces
+	SVG.ns = 'http://www.w3.org/2000/svg';SVG.xmlns = 'http://www.w3.org/2000/xmlns/';SVG.xlink = 'http://www.w3.org/1999/xlink'; // Svg support test
+	SVG.supported = (function(){return !!document.createElementNS && !!document.createElementNS(SVG.ns,'svg').createSVGRect;})(); // Don't bother to continue if SVG is not supported 
+	if(!SVG.supported)return false; // Element id sequence
 	SVG.did = 1000; // Get next named element id
-	SVG.eid = function(name){return 'Svgjs' + name.charAt(0).toUpperCase() + name.slice(1) + SVG.did++;}; // Method for element creation
-	SVG.create = function(name){ /* create element */var element=document.createElementNS(this.ns,name); /* apply unique id */element.setAttribute('id',this.eid(name));return element;}; // Method for extending objects
-	SVG.extend = function(){var modules,methods,key,i; /* get list of modules */modules = [].slice.call(arguments); /* get object with extensions */methods = modules.pop();for(i = modules.length - 1;i >= 0;i--) if(modules[i])for(key in methods) modules[i].prototype[key] = methods[key]; /* make sure SVG.Set inherits any newly added methods */if(SVG.Set && SVG.Set.inherit)SVG.Set.inherit();}; // Initialize parsing element
-	SVG.prepare = function(element){ /* select document body and create invisible svg element */var body=document.getElementsByTagName('body')[0],draw=(body?new SVG.Doc(body):element.nested()).size(2,0),path=SVG.create('path'); /* insert parsers */draw.node.appendChild(path); /* create parser object */SVG.parser = {body:body || element.parent,draw:draw.style('opacity:0;position:fixed;left:100%;top:100%;overflow:hidden'),poly:draw.polyline().node,path:path};}; // svg support test
-	SVG.supported = (function(){return !!document.createElementNS && !!document.createElementNS(SVG.ns,'svg').createSVGRect;})();if(!SVG.supported)return false;SVG.get = function(id){var node=document.getElementById(idFromReference(id) || id);if(node)return node.instance;};SVG.invent = function(config){ /* create element initializer */var initializer=typeof config.create == 'function'?config.create:function(){this.constructor.call(this,SVG.create(config.create));}; /* inherit prototype */if(config.inherit)initializer.prototype = new config.inherit(); /* extend with methods */if(config.extend)SVG.extend(initializer,config.extend); /* attach construct method to parent */if(config.construct)SVG.extend(config.parent || SVG.Container,config.construct);return initializer;};if(typeof CustomEvent !== 'function'){ // Code from: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
-	var CustomEvent=function CustomEvent(event,options){options = options || {bubbles:false,cancelable:false,detail:undefined};var e=document.createEvent('CustomEvent');e.initCustomEvent(event,options.bubbles,options.cancelable,options.detail);return e;};CustomEvent.prototype = window.Event.prototype;window.CustomEvent = CustomEvent;} // requestAnimationFrame / cancelAnimationFrame Polyfill with fallback based on Paul Irish
-	(function(w){var lastTime=0;var vendors=['moz','webkit'];for(var x=0;x < vendors.length && !window.requestAnimationFrame;++x) {w.requestAnimationFrame = w[vendors[x] + 'RequestAnimationFrame'];w.cancelAnimationFrame = w[vendors[x] + 'CancelAnimationFrame'] || w[vendors[x] + 'CancelRequestAnimationFrame'];}w.requestAnimationFrame = w.requestAnimationFrame || function(callback){var currTime=new Date().getTime();var timeToCall=Math.max(0,16 - (currTime - lastTime));var id=w.setTimeout(function(){callback(currTime + timeToCall);},timeToCall);lastTime = currTime + timeToCall;return id;};w.cancelAnimationFrame = w.cancelAnimationFrame || w.clearTimeout;})(window);SVG.regex = { /* parse unit value */unit:/^(-?[\d\.]+)([a-z%]{0,2})$/, /* parse hex value */hex:/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i, /* parse rgb value */rgb:/rgb\((\d+),(\d+),(\d+)\)/, /* parse reference id */reference:/#([a-z0-9\-_]+)/i, /* test hex value */isHex:/^#[a-f0-9]{3,6}$/i, /* test rgb value */isRgb:/^rgb\(/, /* test css declaration */isCss:/[^:]+:[^;]+;?/, /* test for blank string */isBlank:/^(\s+)?$/, /* test for numeric string */isNumber:/^-?[\d\.]+$/, /* test for percent value */isPercent:/^-?[\d\.]+%$/, /* test for image url */isImage:/\.(jpg|jpeg|png|gif)(\?[^=]+.*)?/i, /* test for namespaced event */isEvent:/^[\w]+:[\w]+$/};SVG.defaults = { // Default matrix
-	matrix:'1 0 0 1 0 0', // Default attribute values
-	attrs:{ /* fill and stroke */'fill-opacity':1,'stroke-opacity':1,'stroke-width':0,'stroke-linejoin':'miter','stroke-linecap':'butt',fill:'#000000',stroke:'#000000',opacity:1, /* position */x:0,y:0,cx:0,cy:0, /* size */width:0,height:0, /* radius */r:0,rx:0,ry:0, /* gradient */offset:0,'stop-opacity':1,'stop-color':'#000000', /* text */'font-size':16,'font-family':'Helvetica, Arial, sans-serif','text-anchor':'start'}, // Default transformation values
-	trans:function trans(){return { /* translate */x:0,y:0, /* scale */scaleX:1,scaleY:1, /* rotate */rotation:0, /* skew */skewX:0,skewY:0, /* matrix */matrix:this.matrix,a:1,b:0,c:0,d:1,e:0,f:0};}};SVG.Color = function(color){var match; /* initialize defaults */this.r = 0;this.g = 0;this.b = 0; /* parse color */if(typeof color === 'string'){if(SVG.regex.isRgb.test(color)){ /* get rgb values */match = SVG.regex.rgb.exec(color.replace(/\s/g,'')); /* parse numeric values */this.r = parseInt(match[1]);this.g = parseInt(match[2]);this.b = parseInt(match[3]);}else if(SVG.regex.isHex.test(color)){ /* get hex values */match = SVG.regex.hex.exec(fullHex(color)); /* parse numeric values */this.r = parseInt(match[1],16);this.g = parseInt(match[2],16);this.b = parseInt(match[3],16);}}else if(typeof color === 'object'){this.r = color.r;this.g = color.g;this.b = color.b;}};SVG.extend(SVG.Color,{ // Default to hex conversion
+	SVG.eid = function(name){return 'Svgjs' + capitalize(name) + SVG.did++;}; // Method for element creation
+	SVG.create = function(name){ // create element
+	var element=document.createElementNS(this.ns,name); // apply unique id
+	element.setAttribute('id',this.eid(name));return element;}; // Method for extending objects
+	SVG.extend = function(){var modules,methods,key,i; // Get list of modules
+	modules = [].slice.call(arguments); // Get object with extensions
+	methods = modules.pop();for(i = modules.length - 1;i >= 0;i--) if(modules[i])for(key in methods) modules[i].prototype[key] = methods[key]; // Make sure SVG.Set inherits any newly added methods
+	if(SVG.Set && SVG.Set.inherit)SVG.Set.inherit();}; // Invent new element
+	SVG.invent = function(config){ // Create element initializer
+	var initializer=typeof config.create == 'function'?config.create:function(){this.constructor.call(this,SVG.create(config.create));}; // Inherit prototype
+	if(config.inherit)initializer.prototype = new config.inherit(); // Extend with methods
+	if(config.extend)SVG.extend(initializer,config.extend); // Attach construct method to parent
+	if(config.construct)SVG.extend(config.parent || SVG.Container,config.construct);return initializer;}; // Adopt existing svg elements
+	SVG.adopt = function(node){ // make sure a node isn't already adopted
+	if(node.instance)return node.instance; // initialize variables
+	var element; // adopt with element-specific settings
+	if(node.nodeName == 'svg')element = node.parentNode instanceof SVGElement?new SVG.Nested():new SVG.Doc();else if(node.nodeName == 'linearGradient')element = new SVG.Gradient('linear');else if(node.nodeName == 'radialGradient')element = new SVG.Gradient('radial');else if(SVG[capitalize(node.nodeName)])element = new (SVG[capitalize(node.nodeName)])();else element = new SVG.Element(node); // ensure references
+	element.type = node.nodeName;element.node = node;node.instance = element; // SVG.Class specific preparations
+	if(element instanceof SVG.Doc)element.namespace().defs();return element;}; // Initialize parsing element
+	SVG.prepare = function(element){ // Select document body and create invisible svg element
+	var body=document.getElementsByTagName('body')[0],draw=(body?new SVG.Doc(body):element.nested()).size(2,0),path=SVG.create('path'); // Insert parsers
+	draw.node.appendChild(path); // Create parser object
+	SVG.parser = {body:body || element.parent(),draw:draw.style('opacity:0;position:fixed;left:100%;top:100%;overflow:hidden'),poly:draw.polyline().node,path:path};}; // Storage for regular expressions
+	SVG.regex = { // Parse unit value
+	unit:/^(-?[\d\.]+)([a-z%]{0,2})$/, // Parse hex value
+	hex:/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i, // Parse rgb value
+	rgb:/rgb\((\d+),(\d+),(\d+)\)/, // Parse reference id
+	reference:/#([a-z0-9\-_]+)/i, // Parse matrix wrapper
+	matrix:/matrix\(|\)/g, // Elements of a matrix
+	matrixElements:/,*\s+|,/, // Whitespace
+	whitespace:/\s/g, // Test hex value
+	isHex:/^#[a-f0-9]{3,6}$/i, // Test rgb value
+	isRgb:/^rgb\(/, // Test css declaration
+	isCss:/[^:]+:[^;]+;?/, // Test for blank string
+	isBlank:/^(\s+)?$/, // Test for numeric string
+	isNumber:/^-?[\d\.]+$/, // Test for percent value
+	isPercent:/^-?[\d\.]+%$/, // Test for image url
+	isImage:/\.(jpg|jpeg|png|gif|svg)(\?[^=]+.*)?/i};SVG.utils = { // Map function
+	map:function map(array,block){var i,il=array.length,result=[];for(i = 0;i < il;i++) result.push(block(array[i]));return result;}, // Degrees to radians
+	radians:function radians(d){return d % 360 * Math.PI / 180;}, // Radians to degrees
+	degrees:function degrees(r){return r * 180 / Math.PI % 360;},filterSVGElements:function filterSVGElements(p){return [].filter.call(p,function(el){return el instanceof SVGElement;});}};SVG.defaults = { // Default attribute values
+	attrs:{ /* fill and stroke */'fill-opacity':1,'stroke-opacity':1,'stroke-width':0,'stroke-linejoin':'miter','stroke-linecap':'butt',fill:'#000000',stroke:'#000000',opacity:1, /* position */x:0,y:0,cx:0,cy:0, /* size */width:0,height:0, /* radius */r:0,rx:0,ry:0, /* gradient */offset:0,'stop-opacity':1,'stop-color':'#000000', /* text */'font-size':16,'font-family':'Helvetica, Arial, sans-serif','text-anchor':'start'}}; // Module for color convertions
+	SVG.Color = function(color){var match; /* initialize defaults */this.r = 0;this.g = 0;this.b = 0; /* parse color */if(typeof color === 'string'){if(SVG.regex.isRgb.test(color)){ /* get rgb values */match = SVG.regex.rgb.exec(color.replace(/\s/g,'')); /* parse numeric values */this.r = parseInt(match[1]);this.g = parseInt(match[2]);this.b = parseInt(match[3]);}else if(SVG.regex.isHex.test(color)){ /* get hex values */match = SVG.regex.hex.exec(fullHex(color)); /* parse numeric values */this.r = parseInt(match[1],16);this.g = parseInt(match[2],16);this.b = parseInt(match[3],16);}}else if(typeof color === 'object'){this.r = color.r;this.g = color.g;this.b = color.b;}};SVG.extend(SVG.Color,{ // Default to hex conversion
 	toString:function toString(){return this.toHex();}, // Build hex value
 	toHex:function toHex(){return '#' + compToHex(this.r) + compToHex(this.g) + compToHex(this.b);}, // Build rgb value
 	toRgb:function toRgb(){return 'rgb(' + [this.r,this.g,this.b].join() + ')';}, // Calculate true brightness
@@ -2784,47 +2794,61 @@
 	// Test if given value is a color string
 	SVG.Color.test = function(color){color += '';return SVG.regex.isHex.test(color) || SVG.regex.isRgb.test(color);}; // Test if given value is a rgb object
 	SVG.Color.isRgb = function(color){return color && typeof color.r == 'number' && typeof color.g == 'number' && typeof color.b == 'number';}; // Test if given value is a color
-	SVG.Color.isColor = function(color){return SVG.Color.isRgb(color) || SVG.Color.test(color);};SVG.Array = function(array,fallback){array = (array || []).valueOf(); /* if array is empty and fallback is provided, use fallback */if(array.length == 0 && fallback)array = fallback.valueOf(); /* parse array */this.value = this.parse(array);};SVG.extend(SVG.Array,{ // Make array morphable
+	SVG.Color.isColor = function(color){return SVG.Color.isRgb(color) || SVG.Color.test(color);}; // Module for array conversion
+	SVG.Array = function(array,fallback){array = (array || []).valueOf(); /* if array is empty and fallback is provided, use fallback */if(array.length == 0 && fallback)array = fallback.valueOf(); /* parse array */this.value = this.parse(array);};SVG.extend(SVG.Array,{ // Make array morphable
 	morph:function morph(array){this.destination = this.parse(array); /* normalize length of arrays */if(this.value.length != this.destination.length){var lastValue=this.value[this.value.length - 1],lastDestination=this.destination[this.destination.length - 1];while(this.value.length > this.destination.length) this.destination.push(lastDestination);while(this.value.length < this.destination.length) this.value.push(lastValue);}return this;}, // Clean up any duplicate points
 	settle:function settle(){ /* find all unique values */for(var i=0,il=this.value.length,seen=[];i < il;i++) if(seen.indexOf(this.value[i]) == -1)seen.push(this.value[i]); /* set new value */return this.value = seen;}, // Get morphed array at given position
 	at:function at(pos){ /* make sure a destination is defined */if(!this.destination)return this; /* generate morphed array */for(var i=0,il=this.value.length,array=[];i < il;i++) array.push(this.value[i] + (this.destination[i] - this.value[i]) * pos);return new SVG.Array(array);}, // Convert array to string
 	toString:function toString(){return this.value.join(' ');}, // Real value
 	valueOf:function valueOf(){return this.value;}, // Parse whitespace separated string
 	parse:function parse(array){array = array.valueOf(); /* if already is an array, no need to parse it */if(Array.isArray(array))return array;return this.split(array);}, // Strip unnecessary whitespace
-	split:function split(string){return string.replace(/\s+/g,' ').replace(/^\s+|\s+$/g,'').split(' ');}, // Reverse array
-	reverse:function reverse(){this.value.reverse();return this;}});SVG.PointArray = function(){this.constructor.apply(this,arguments);}; // Inherit from SVG.Array
+	split:function split(string){return string.trim().split(/\s+/);}, // Reverse array
+	reverse:function reverse(){this.value.reverse();return this;}}); // Poly points array
+	SVG.PointArray = function(array,fallback){this.constructor.call(this,array,fallback || [[0,0]]);}; // Inherit from SVG.Array
 	SVG.PointArray.prototype = new SVG.Array();SVG.extend(SVG.PointArray,{ // Convert array to string
-	toString:function toString(){ /* convert to a poly point string */for(var i=0,il=this.value.length,array=[];i < il;i++) array.push(this.value[i].join(','));return array.join(' ');}, // Get morphed array at given position
+	toString:function toString(){ /* convert to a poly point string */for(var i=0,il=this.value.length,array=[];i < il;i++) array.push(this.value[i].join(','));return array.join(' ');}, // Convert array to line object
+	toLine:function toLine(){return {x1:this.value[0][0],y1:this.value[0][1],x2:this.value[1][0],y2:this.value[1][1]};}, // Get morphed array at given position
 	at:function at(pos){ /* make sure a destination is defined */if(!this.destination)return this; /* generate morphed point string */for(var i=0,il=this.value.length,array=[];i < il;i++) array.push([this.value[i][0] + (this.destination[i][0] - this.value[i][0]) * pos,this.value[i][1] + (this.destination[i][1] - this.value[i][1]) * pos]);return new SVG.PointArray(array);}, // Parse point string
 	parse:function parse(array){array = array.valueOf(); /* if already is an array, no need to parse it */if(Array.isArray(array))return array; /* split points */array = this.split(array); /* parse points */for(var i=0,il=array.length,p,points=[];i < il;i++) {p = array[i].split(',');points.push([parseFloat(p[0]),parseFloat(p[1])]);}return points;}, // Move point string
 	move:function move(x,y){var box=this.bbox(); /* get relative offset */x -= box.x;y -= box.y; /* move every point */if(!isNaN(x) && !isNaN(y))for(var i=this.value.length - 1;i >= 0;i--) this.value[i] = [this.value[i][0] + x,this.value[i][1] + y];return this;}, // Resize poly string
 	size:function size(width,height){var i,box=this.bbox(); /* recalculate position of all points according to new size */for(i = this.value.length - 1;i >= 0;i--) {this.value[i][0] = (this.value[i][0] - box.x) * width / box.width + box.x;this.value[i][1] = (this.value[i][1] - box.y) * height / box.height + box.y;}return this;}, // Get bounding box of points
-	bbox:function bbox(){SVG.parser.poly.setAttribute('points',this.toString());return SVG.parser.poly.getBBox();}});SVG.PathArray = function(array,fallback){this.constructor.call(this,array,fallback);}; // Inherit from SVG.Array
+	bbox:function bbox(){SVG.parser.poly.setAttribute('points',this.toString());return SVG.parser.poly.getBBox();}}); // Path points array
+	SVG.PathArray = function(array,fallback){this.constructor.call(this,array,fallback || [['M',0,0]]);}; // Inherit from SVG.Array
 	SVG.PathArray.prototype = new SVG.Array();SVG.extend(SVG.PathArray,{ // Convert array to string
 	toString:function toString(){return arrayToString(this.value);}, // Move path string
 	move:function move(x,y){ /* get bounding box of current situation */var box=this.bbox(); /* get relative offset */x -= box.x;y -= box.y;if(!isNaN(x) && !isNaN(y)){ /* move every point */for(var l,i=this.value.length - 1;i >= 0;i--) {l = this.value[i][0];if(l == 'M' || l == 'L' || l == 'T'){this.value[i][1] += x;this.value[i][2] += y;}else if(l == 'H'){this.value[i][1] += x;}else if(l == 'V'){this.value[i][1] += y;}else if(l == 'C' || l == 'S' || l == 'Q'){this.value[i][1] += x;this.value[i][2] += y;this.value[i][3] += x;this.value[i][4] += y;if(l == 'C'){this.value[i][5] += x;this.value[i][6] += y;}}else if(l == 'A'){this.value[i][6] += x;this.value[i][7] += y;}}}return this;}, // Resize path string
 	size:function size(width,height){ /* get bounding box of current situation */var i,l,box=this.bbox(); /* recalculate position of all points according to new size */for(i = this.value.length - 1;i >= 0;i--) {l = this.value[i][0];if(l == 'M' || l == 'L' || l == 'T'){this.value[i][1] = (this.value[i][1] - box.x) * width / box.width + box.x;this.value[i][2] = (this.value[i][2] - box.y) * height / box.height + box.y;}else if(l == 'H'){this.value[i][1] = (this.value[i][1] - box.x) * width / box.width + box.x;}else if(l == 'V'){this.value[i][1] = (this.value[i][1] - box.y) * height / box.height + box.y;}else if(l == 'C' || l == 'S' || l == 'Q'){this.value[i][1] = (this.value[i][1] - box.x) * width / box.width + box.x;this.value[i][2] = (this.value[i][2] - box.y) * height / box.height + box.y;this.value[i][3] = (this.value[i][3] - box.x) * width / box.width + box.x;this.value[i][4] = (this.value[i][4] - box.y) * height / box.height + box.y;if(l == 'C'){this.value[i][5] = (this.value[i][5] - box.x) * width / box.width + box.x;this.value[i][6] = (this.value[i][6] - box.y) * height / box.height + box.y;}}else if(l == 'A'){ /* resize radii */this.value[i][1] = this.value[i][1] * width / box.width;this.value[i][2] = this.value[i][2] * height / box.height; /* move position values */this.value[i][6] = (this.value[i][6] - box.x) * width / box.width + box.x;this.value[i][7] = (this.value[i][7] - box.y) * height / box.height + box.y;}}return this;}, // Absolutize and parse path to array
 	parse:function parse(array){ /* if it's already is a patharray, no need to parse it */if(array instanceof SVG.PathArray)return array.valueOf(); /* prepare for parsing */var i,il,x0,y0,x1,y1,x2,y2,s,seg,segs,x=0,y=0; /* populate working path */SVG.parser.path.setAttribute('d',typeof array === 'string'?array:arrayToString(array)); /* get segments */segs = SVG.parser.path.pathSegList;for(i = 0,il = segs.numberOfItems;i < il;++i) {seg = segs.getItem(i);s = seg.pathSegTypeAsLetter; /* yes, this IS quite verbose but also about 30 times faster than .test() with a precompiled regex */if(s == 'M' || s == 'L' || s == 'H' || s == 'V' || s == 'C' || s == 'S' || s == 'Q' || s == 'T' || s == 'A'){if('x' in seg)x = seg.x;if('y' in seg)y = seg.y;}else {if('x1' in seg)x1 = x + seg.x1;if('x2' in seg)x2 = x + seg.x2;if('y1' in seg)y1 = y + seg.y1;if('y2' in seg)y2 = y + seg.y2;if('x' in seg)x += seg.x;if('y' in seg)y += seg.y;if(s == 'm')segs.replaceItem(SVG.parser.path.createSVGPathSegMovetoAbs(x,y),i);else if(s == 'l')segs.replaceItem(SVG.parser.path.createSVGPathSegLinetoAbs(x,y),i);else if(s == 'h')segs.replaceItem(SVG.parser.path.createSVGPathSegLinetoHorizontalAbs(x),i);else if(s == 'v')segs.replaceItem(SVG.parser.path.createSVGPathSegLinetoVerticalAbs(y),i);else if(s == 'c')segs.replaceItem(SVG.parser.path.createSVGPathSegCurvetoCubicAbs(x,y,x1,y1,x2,y2),i);else if(s == 's')segs.replaceItem(SVG.parser.path.createSVGPathSegCurvetoCubicSmoothAbs(x,y,x2,y2),i);else if(s == 'q')segs.replaceItem(SVG.parser.path.createSVGPathSegCurvetoQuadraticAbs(x,y,x1,y1),i);else if(s == 't')segs.replaceItem(SVG.parser.path.createSVGPathSegCurvetoQuadraticSmoothAbs(x,y),i);else if(s == 'a')segs.replaceItem(SVG.parser.path.createSVGPathSegArcAbs(x,y,seg.r1,seg.r2,seg.angle,seg.largeArcFlag,seg.sweepFlag),i);else if(s == 'z' || s == 'Z'){x = x0;y = y0;}} /* record the start of a subpath */if(s == 'M' || s == 'm'){x0 = x;y0 = y;}} /* build internal representation */array = [];segs = SVG.parser.path.pathSegList;for(i = 0,il = segs.numberOfItems;i < il;++i) {seg = segs.getItem(i);s = seg.pathSegTypeAsLetter;x = [s];if(s == 'M' || s == 'L' || s == 'T')x.push(seg.x,seg.y);else if(s == 'H')x.push(seg.x);else if(s == 'V')x.push(seg.y);else if(s == 'C')x.push(seg.x1,seg.y1,seg.x2,seg.y2,seg.x,seg.y);else if(s == 'S')x.push(seg.x2,seg.y2,seg.x,seg.y);else if(s == 'Q')x.push(seg.x1,seg.y1,seg.x,seg.y);else if(s == 'A')x.push(seg.r1,seg.r2,seg.angle,seg.largeArcFlag | 0,seg.sweepFlag | 0,seg.x,seg.y); /* store segment */array.push(x);}return array;}, // Get bounding box of path
-	bbox:function bbox(){SVG.parser.path.setAttribute('d',this.toString());return SVG.parser.path.getBBox();}});SVG.Number = function(value){ /* initialize defaults */this.value = 0;this.unit = ''; /* parse value */if(typeof value === 'number'){ /* ensure a valid numeric value */this.value = isNaN(value)?0:!isFinite(value)?value < 0?-3.4e+38:+3.4e+38:value;}else if(typeof value === 'string'){var match=value.match(SVG.regex.unit);if(match){ /* make value numeric */this.value = parseFloat(match[1]); /* normalize percent value */if(match[2] == '%')this.value /= 100;else if(match[2] == 's')this.value *= 1000; /* store unit */this.unit = match[2];}}else {if(value instanceof SVG.Number){this.value = value.value;this.unit = value.unit;}}};SVG.extend(SVG.Number,{ // Stringalize
+	bbox:function bbox(){SVG.parser.path.setAttribute('d',this.toString());return SVG.parser.path.getBBox();}}); // Module for unit convertions
+	SVG.Number = SVG.invent({ // Initialize
+	create:function create(value,unit){ // initialize defaults
+	this.value = 0;this.unit = unit || ''; // parse value
+	if(typeof value === 'number'){ // ensure a valid numeric value
+	this.value = isNaN(value)?0:!isFinite(value)?value < 0?-3.4e+38:+3.4e+38:value;}else if(typeof value === 'string'){unit = value.match(SVG.regex.unit);if(unit){ // make value numeric
+	this.value = parseFloat(unit[1]); // normalize
+	if(unit[2] == '%')this.value /= 100;else if(unit[2] == 's')this.value *= 1000; // store unit
+	this.unit = unit[2];}}else {if(value instanceof SVG.Number){this.value = value.valueOf();this.unit = value.unit;}}}, // Add methods
+	extend:{ // Stringalize
 	toString:function toString(){return (this.unit == '%'?~ ~(this.value * 1e8) / 1e6:this.unit == 's'?this.value / 1e3:this.value) + this.unit;}, // Convert to primitive
 	valueOf:function valueOf(){return this.value;}, // Add number
-	plus:function plus(number){this.value = this + new SVG.Number(number);return this;}, // Subtract number
+	plus:function plus(number){return new SVG.Number(this + new SVG.Number(number),this.unit);}, // Subtract number
 	minus:function minus(number){return this.plus(-new SVG.Number(number));}, // Multiply number
-	times:function times(number){this.value = this * new SVG.Number(number);return this;}, // Divide number
-	divide:function divide(number){this.value = this / new SVG.Number(number);return this;}, // Convert to different unit
-	to:function to(unit){if(typeof unit === 'string')this.unit = unit;return this;}, // Make number morphable
+	times:function times(number){return new SVG.Number(this * new SVG.Number(number),this.unit);}, // Divide number
+	divide:function divide(number){return new SVG.Number(this / new SVG.Number(number),this.unit);}, // Convert to different unit
+	to:function to(unit){var number=new SVG.Number(this);if(typeof unit === 'string')number.unit = unit;return number;}, // Make number morphable
 	morph:function morph(number){this.destination = new SVG.Number(number);return this;}, // Get morphed number at given position
-	at:function at(pos){ /* make sure a destination is defined */if(!this.destination)return this; /* generate new morphed number */return new SVG.Number(this.destination).minus(this).times(pos).plus(this);}});SVG.ViewBox = function(element){var x,y,width,height,wm=1, /* width multiplier */hm=1, /* height multiplier */box=element.bbox(),view=(element.attr('viewBox') || '').match(/-?[\d\.]+/g),we=element,he=element; /* get dimensions of current node */width = new SVG.Number(element.width());height = new SVG.Number(element.height()); /* find nearest non-percentual dimensions */while(width.unit == '%') {wm *= width.value;width = new SVG.Number(we instanceof SVG.Doc?we.parent.offsetWidth:we.parent.width());we = we.parent;}while(height.unit == '%') {hm *= height.value;height = new SVG.Number(he instanceof SVG.Doc?he.parent.offsetHeight:he.parent.height());he = he.parent;} /* ensure defaults */this.x = box.x;this.y = box.y;this.width = width * wm;this.height = height * hm;this.zoom = 1;if(view){ /* get width and height from viewbox */x = parseFloat(view[0]);y = parseFloat(view[1]);width = parseFloat(view[2]);height = parseFloat(view[3]); /* calculate zoom accoring to viewbox */this.zoom = this.width / this.height > width / height?this.height / height:this.width / width; /* calculate real pixel dimensions on parent SVG.Doc element */this.x = x;this.y = y;this.width = width;this.height = height;}}; //
+	at:function at(pos){ // Make sure a destination is defined
+	if(!this.destination)return this; // Generate new morphed number
+	return new SVG.Number(this.destination).minus(this).times(pos).plus(this);}}});SVG.ViewBox = function(element){var x,y,width,height,wm=1, /* width multiplier */hm=1, /* height multiplier */box=element.bbox(),view=(element.attr('viewBox') || '').match(/-?[\d\.]+/g),we=element,he=element; /* get dimensions of current node */width = new SVG.Number(element.width());height = new SVG.Number(element.height()); /* find nearest non-percentual dimensions */while(width.unit == '%') {wm *= width.value;width = new SVG.Number(we instanceof SVG.Doc?we.parent().offsetWidth:we.parent().width());we = we.parent();}while(height.unit == '%') {hm *= height.value;height = new SVG.Number(he instanceof SVG.Doc?he.parent().offsetHeight:he.parent().height());he = he.parent();} /* ensure defaults */this.x = box.x;this.y = box.y;this.width = width * wm;this.height = height * hm;this.zoom = 1;if(view){ /* get width and height from viewbox */x = parseFloat(view[0]);y = parseFloat(view[1]);width = parseFloat(view[2]);height = parseFloat(view[3]); /* calculate zoom accoring to viewbox */this.zoom = this.width / this.height > width / height?this.height / height:this.width / width; /* calculate real pixel dimensions on parent SVG.Doc element */this.x = x;this.y = y;this.width = width;this.height = height;}}; //
 	SVG.extend(SVG.ViewBox,{ // Parse viewbox to string
-	toString:function toString(){return this.x + ' ' + this.y + ' ' + this.width + ' ' + this.height;}});SVG.BBox = function(element){var box; /* initialize zero box */this.x = 0;this.y = 0;this.width = 0;this.height = 0; /* get values if element is given */if(element){try{ /* actual, native bounding box */box = element.node.getBBox();}catch(e) { /* fallback for some browsers */box = {x:element.node.clientLeft,y:element.node.clientTop,width:element.node.clientWidth,height:element.node.clientHeight};} /* include translations on x an y */this.x = box.x + element.trans.x;this.y = box.y + element.trans.y; /* plain width and height */this.width = box.width * element.trans.scaleX;this.height = box.height * element.trans.scaleY;} /* add center, right and bottom */boxProperties(this);}; //
-	SVG.extend(SVG.BBox,{ // merge bounding box with another, return a new instance
-	merge:function merge(box){var b=new SVG.BBox(); /* merge box */b.x = Math.min(this.x,box.x);b.y = Math.min(this.y,box.y);b.width = Math.max(this.x + this.width,box.x + box.width) - b.x;b.height = Math.max(this.y + this.height,box.y + box.height) - b.y; /* add center, right and bottom */boxProperties(b);return b;}});SVG.RBox = function(element){var e,zoom,box={}; /* initialize zero box */this.x = 0;this.y = 0;this.width = 0;this.height = 0;if(element){e = element.doc().parent;zoom = element.doc().viewbox().zoom; /* actual, native bounding box */box = element.node.getBoundingClientRect(); /* get screen offset */this.x = box.left;this.y = box.top; /* subtract parent offset */this.x -= e.offsetLeft;this.y -= e.offsetTop;while(e = e.offsetParent) {this.x -= e.offsetLeft;this.y -= e.offsetTop;} /* calculate cumulative zoom from svg documents */e = element;while(e = e.parent) {if(e.type == 'svg' && e.viewbox){zoom *= e.viewbox().zoom;this.x -= e.x() || 0;this.y -= e.y() || 0;}}} /* recalculate viewbox distortion */this.x /= zoom;this.y /= zoom;this.width = box.width /= zoom;this.height = box.height /= zoom; /* offset by window scroll position, because getBoundingClientRect changes when window is scrolled */this.x += typeof window.scrollX === 'number'?window.scrollX:window.pageXOffset;this.y += typeof window.scrollY === 'number'?window.scrollY:window.pageYOffset; /* add center, right and bottom */boxProperties(this);}; //
-	SVG.extend(SVG.RBox,{ // merge rect box with another, return a new instance
-	merge:function merge(box){var b=new SVG.RBox(); /* merge box */b.x = Math.min(this.x,box.x);b.y = Math.min(this.y,box.y);b.width = Math.max(this.x + this.width,box.x + box.width) - b.x;b.height = Math.max(this.y + this.height,box.y + box.height) - b.y; /* add center, right and bottom */boxProperties(b);return b;}});SVG.Element = SVG.invent({ // Initialize node
-	create:function create(node){ /* make stroke value accessible dynamically */this._stroke = SVG.defaults.attrs.stroke; /* initialize transformation store with defaults */this.trans = SVG.defaults.trans(); /* create circular reference */if(this.node = node){this.type = node.nodeName;this.node.instance = this;}}, // Add class methods
+	toString:function toString(){return this.x + ' ' + this.y + ' ' + this.width + ' ' + this.height;}});SVG.Element = SVG.invent({ // Initialize node
+	create:function create(node){ // make stroke value accessible dynamically
+	this._stroke = SVG.defaults.attrs.stroke; // create circular reference
+	if(this.node = node){this.type = node.nodeName;this.node.instance = this; // store current attribute value
+	this._stroke = node.getAttribute('stroke') || this._stroke;}}, // Add class methods
 	extend:{ // Move over x-axis
-	x:function x(_x){if(_x != null){_x = new SVG.Number(_x);_x.value /= this.trans.scaleX;}return this.attr('x',_x);}, // Move over y-axis
-	y:function y(_y){if(_y != null){_y = new SVG.Number(_y);_y.value /= this.trans.scaleY;}return this.attr('y',_y);}, // Move by center over x-axis
+	x:function x(_x){return this.attr('x',_x);}, // Move over y-axis
+	y:function y(_y){return this.attr('y',_y);}, // Move by center over x-axis
 	cx:function cx(x){return x == null?this.x() + this.width() / 2:this.x(x - this.width() / 2);}, // Move by center over y-axis
 	cy:function cy(y){return y == null?this.y() + this.height() / 2:this.y(y - this.height() / 2);}, // Move element to given x and y values
 	move:function move(x,y){return this.x(x).y(y);}, // Move element by its center
@@ -2832,72 +2856,111 @@
 	width:function width(_width){return this.attr('width',_width);}, // Set height of element
 	height:function height(_height){return this.attr('height',_height);}, // Set element size to given width and height
 	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.width(new SVG.Number(p.width)).height(new SVG.Number(p.height));}, // Clone element
-	clone:function clone(){var clone,attr,type=this.type; /* invoke shape method with shape-specific arguments */clone = type == 'rect' || type == 'ellipse'?this.parent[type](0,0):type == 'line'?this.parent[type](0,0,0,0):type == 'image'?this.parent[type](this.src):type == 'text'?this.parent[type](this.content):type == 'path'?this.parent[type](this.attr('d')):type == 'polyline' || type == 'polygon'?this.parent[type](this.attr('points')):type == 'g'?this.parent.group():this.parent[type](); /* apply attributes attributes */attr = this.attr();delete attr.id;clone.attr(attr); /* copy transformations */clone.trans = this.trans; /* apply attributes and translations */return clone.transform({});}, // Remove element
-	remove:function remove(){if(this.parent)this.parent.removeElement(this);return this;}, // Replace element
+	clone:function clone(){ // clone element and assign new id
+	var clone=assignNewId(this.node.cloneNode(true)); // insert the clone after myself
+	this.after(clone);return clone;}, // Remove element
+	remove:function remove(){if(this.parent())this.parent().removeElement(this);return this;}, // Replace element
 	replace:function replace(element){this.after(element).remove();return element;}, // Add element to given container and return self
 	addTo:function addTo(parent){return parent.put(this);}, // Add element to given container and return container
-	putIn:function putIn(parent){return parent.add(this);}, // Get parent document
-	doc:function doc(type){return this._parent(type || SVG.Doc);}, // Set svg element attribute
-	attr:function attr(a,v,n){if(a == null){ /* get an object of attributes */a = {};v = this.node.attributes;for(n = v.length - 1;n >= 0;n--) a[v[n].nodeName] = SVG.regex.isNumber.test(v[n].nodeValue)?parseFloat(v[n].nodeValue):v[n].nodeValue;return a;}else if(typeof a == 'object'){ /* apply every attribute individually if an object is passed */for(v in a) this.attr(v,a[v]);}else if(v === null){ /* remove value */this.node.removeAttribute(a);}else if(v == null){ /* act as a getter if the first and only argument is not an object */v = this.node.attributes[a];return v == null?SVG.defaults.attrs[a]:SVG.regex.isNumber.test(v.nodeValue)?parseFloat(v.nodeValue):v.nodeValue;}else if(a == 'style'){ /* redirect to the style method */return this.style(v);}else { /* BUG FIX: some browsers will render a stroke if a color is given even though stroke width is 0 */if(a == 'stroke-width')this.attr('stroke',parseFloat(v) > 0?this._stroke:null);else if(a == 'stroke')this._stroke = v; /* convert image fill and stroke to patterns */if(a == 'fill' || a == 'stroke'){if(SVG.regex.isImage.test(v))v = this.doc().defs().image(v,0,0);if(v instanceof SVG.Image)v = this.doc().defs().pattern(0,0,function(){this.add(v);});} /* ensure correct numeric values (also accepts NaN and Infinity) */if(typeof v === 'number')v = new SVG.Number(v); /* ensure full hex color */else if(SVG.Color.isColor(v))v = new SVG.Color(v); /* parse array values */else if(Array.isArray(v))v = new SVG.Array(v); /* if the passed attribute is leading... */if(a == 'leading'){ /* ... call the leading method instead */if(this.leading)this.leading(v);}else { /* set given attribute on node */typeof n === 'string'?this.node.setAttributeNS(n,a,v.toString()):this.node.setAttribute(a,v.toString());} /* rebuild if required */if(this.rebuild && (a == 'font-size' || a == 'x'))this.rebuild(a,v);}return this;}, // Manage transformations
-	transform:function transform(o,v){if(arguments.length == 0){ /* act as a getter if no argument is given */return this.trans;}else if(typeof o === 'string'){ /* act as a getter if only one string argument is given */if(arguments.length < 2)return this.trans[o]; /* apply transformations as object if key value arguments are given*/var transform={};transform[o] = v;return this.transform(transform);} /* ... otherwise continue as a setter */var transform=[]; /* parse matrix */o = parseMatrix(o); /* merge values */for(v in o) if(o[v] != null)this.trans[v] = o[v]; /* compile matrix */this.trans.matrix = this.trans.a + ' ' + this.trans.b + ' ' + this.trans.c + ' ' + this.trans.d + ' ' + this.trans.e + ' ' + this.trans.f; /* alias current transformations */o = this.trans; /* add matrix */if(o.matrix != SVG.defaults.matrix)transform.push('matrix(' + o.matrix + ')'); /* add rotation */if(o.rotation != 0)transform.push('rotate(' + o.rotation + ' ' + (o.cx == null?this.bbox().cx:o.cx) + ' ' + (o.cy == null?this.bbox().cy:o.cy) + ')'); /* add scale */if(o.scaleX != 1 || o.scaleY != 1)transform.push('scale(' + o.scaleX + ' ' + o.scaleY + ')'); /* add skew on x axis */if(o.skewX != 0)transform.push('skewX(' + o.skewX + ')'); /* add skew on y axis */if(o.skewY != 0)transform.push('skewY(' + o.skewY + ')'); /* add translation */if(o.x != 0 || o.y != 0)transform.push('translate(' + new SVG.Number(o.x / o.scaleX) + ' ' + new SVG.Number(o.y / o.scaleY) + ')'); /* update transformations, even if there are none */if(transform.length == 0)this.node.removeAttribute('transform');else this.node.setAttribute('transform',transform.join(' '));return this;}, // Dynamic style generator
-	style:function style(s,v){if(arguments.length == 0){ /* get full style */return this.node.style.cssText || '';}else if(arguments.length < 2){ /* apply every style individually if an object is passed */if(typeof s == 'object'){for(v in s) this.style(v,s[v]);}else if(SVG.regex.isCss.test(s)){ /* parse css string */s = s.split(';'); /* apply every definition individually */for(var i=0;i < s.length;i++) {v = s[i].split(':');this.style(v[0].replace(/\s+/g,''),v[1]);}}else { /* act as a getter if the first and only argument is not an object */return this.node.style[camelCase(s)];}}else {this.node.style[camelCase(s)] = v === null || SVG.regex.isBlank.test(v)?'':v;}return this;}, // Get / set id
-	id:function id(_id){return this.attr('id',_id);}, // Get bounding box
-	bbox:function bbox(){return new SVG.BBox(this);}, // Get rect box
-	rbox:function rbox(){return new SVG.RBox(this);}, // Checks whether the given point inside the bounding box of the element
+	putIn:function putIn(parent){return parent.add(this);}, // Get / set id
+	id:function id(_id){return this.attr('id',_id);}, // Checks whether the given point inside the bounding box of the element
 	inside:function inside(x,y){var box=this.bbox();return x > box.x && y > box.y && x < box.x + box.width && y < box.y + box.height;}, // Show element
 	show:function show(){return this.style('display','');}, // Hide element
 	hide:function hide(){return this.style('display','none');}, // Is element visible?
 	visible:function visible(){return this.style('display') != 'none';}, // Return id on string conversion
 	toString:function toString(){return this.attr('id');}, // Return array of classes on the node
-	classes:function classes(){var classAttr=this.node.getAttribute('class');if(classAttr === null){return [];}else {return classAttr.trim().split(/\s+/);}}, // Return true if class exists on the node, false otherwise
-	hasClass:function hasClass(className){return this.classes().indexOf(className) != -1;}, // Add class to the node
-	addClass:function addClass(className){var classArray;if(!this.hasClass(className)){classArray = this.classes();classArray.push(className);this.node.setAttribute('class',classArray.join(' '));}return this;}, // Remove class from the node
-	removeClass:function removeClass(className){var classArray;if(this.hasClass(className)){classArray = this.classes().filter(function(c){return c != className;});this.node.setAttribute('class',classArray.join(' '));}return this;}, // Toggle the presence of a class on the node
-	toggleClass:function toggleClass(className){if(this.hasClass(className)){this.removeClass(className);}else {this.addClass(className);}return this;}, // Get referenced element form attribute value
-	reference:function reference(attr){return SVG.get(this.attr()[attr]);}, // Private: find svg parent by instance
-	_parent:function _parent(parent){var element=this;while(element != null && !(element instanceof parent)) element = element.parent;return element;}}});SVG.Parent = SVG.invent({ // Initialize node
-	create:function create(element){this.constructor.call(this,element);}, // Inherit from
-	inherit:SVG.Element, // Add class methods
-	extend:{ // Returns all child elements
-	children:function children(){return this._children || (this._children = []);}, // Add given element at a position
-	add:function add(element,i){if(!this.has(element)){ /* define insertion index if none given */i = i == null?this.children().length:i; /* remove references from previous parent */if(element.parent)element.parent.children().splice(element.parent.index(element),1); /* add element references */this.children().splice(i,0,element);this.node.insertBefore(element.node,this.node.childNodes[i] || null);element.parent = this;} /* reposition defs */if(this._defs){this.node.removeChild(this._defs.node);this.node.appendChild(this._defs.node);}return this;}, // Basically does the same as `add()` but returns the added element instead
-	put:function put(element,i){this.add(element,i);return element;}, // Checks if the given element is a child
-	has:function has(element){return this.index(element) >= 0;}, // Gets index of given element
-	index:function index(element){return this.children().indexOf(element);}, // Get a element at the given index
-	get:function get(i){return this.children()[i];}, // Get first child, skipping the defs node
-	first:function first(){return this.children()[0];}, // Get the last child
-	last:function last(){return this.children()[this.children().length - 1];}, // Iterates over all children and invokes a given block
-	each:function each(block,deep){var i,il,children=this.children();for(i = 0,il = children.length;i < il;i++) {if(children[i] instanceof SVG.Element)block.apply(children[i],[i,children]);if(deep && children[i] instanceof SVG.Container)children[i].each(block,deep);}return this;}, // Remove a child element at a position
-	removeElement:function removeElement(element){this.children().splice(this.index(element),1);this.node.removeChild(element.node);element.parent = null;return this;}, // Remove all elements in this container
-	clear:function clear(){ /* remove children */for(var i=this.children().length - 1;i >= 0;i--) this.removeElement(this.children()[i]); /* remove defs node */if(this._defs)this._defs.clear();return this;}, // Get defs
-	defs:function defs(){return this.doc().defs();}}});SVG.Container = SVG.invent({ // Initialize node
-	create:function create(element){this.constructor.call(this,element);}, // Inherit from
-	inherit:SVG.Parent, // Add class methods
-	extend:{ // Get the viewBox and calculate the zoom value
-	viewbox:function viewbox(v){if(arguments.length == 0) /* act as a getter if there are no arguments */return new SVG.ViewBox(this); /* otherwise act as a setter */v = arguments.length == 1?[v.x,v.y,v.width,v.height]:[].slice.call(arguments);return this.attr('viewBox',v);}}});SVG.FX = SVG.invent({ // Initialize FX object
-	create:function create(element){ /* store target element */this.target = element;}, // Add class methods
+	classes:function classes(){var attr=this.attr('class');return attr == null?[]:attr.trim().split(/\s+/);}, // Return true if class exists on the node, false otherwise
+	hasClass:function hasClass(name){return this.classes().indexOf(name) != -1;}, // Add class to the node
+	addClass:function addClass(name){if(!this.hasClass(name)){var array=this.classes();array.push(name);this.attr('class',array.join(' '));}return this;}, // Remove class from the node
+	removeClass:function removeClass(name){if(this.hasClass(name)){this.attr('class',this.classes().filter(function(c){return c != name;}).join(' '));}return this;}, // Toggle the presence of a class on the node
+	toggleClass:function toggleClass(name){return this.hasClass(name)?this.removeClass(name):this.addClass(name);}, // Get referenced element form attribute value
+	reference:function reference(attr){return SVG.get(this.attr(attr));}, // Returns the parent element instance
+	parent:function parent(type){if(this.node.parentNode){ // get parent element
+	var parent=SVG.adopt(this.node.parentNode); // if a specific type is given, find a parent with that class
+	if(type)while(!(parent instanceof type) && parent.node.parentNode instanceof SVGElement) parent = SVG.adopt(parent.node.parentNode);return parent;}}, // Get parent document
+	doc:function doc(type){return this instanceof SVG.Doc?this:this.parent(SVG.Doc);}, // Returns the svg node to call native svg methods on it
+	native:function native(){return this.node;}, // Import raw svg
+	svg:function svg(_svg){ // create temporary holder
+	var well=document.createElement('svg'); // act as a setter if svg is given
+	if(_svg && this instanceof SVG.Parent){ // dump raw svg
+	well.innerHTML = '<svg>' + _svg.replace(/\n/,'').replace(/<(\w+)([^<]+?)\/>/g,'<$1$2></$1>') + '</svg>'; // transplant nodes
+	for(var i=0,il=well.firstChild.childNodes.length;i < il;i++) this.node.appendChild(well.firstChild.firstChild); // otherwise act as a getter
+	}else { // create a wrapping svg element in case of partial content
+	well.appendChild(_svg = document.createElement('svg')); // insert a copy of this node
+	_svg.appendChild(this.node.cloneNode(true)); // return target element
+	return well.innerHTML.replace(/^<svg>/,'').replace(/<\/svg>$/,'');}return this;}}});SVG.FX = SVG.invent({ // Initialize FX object
+	create:function create(element){ // store target element
+	this.target = element;}, // Add class methods
 	extend:{ // Add animation parameters and start animation
-	animate:function animate(d,ease,delay){var akeys,tkeys,skeys,key,element=this.target,fx=this; /* dissect object if one is passed */if(typeof d == 'object'){delay = d.delay;ease = d.ease;d = d.duration;} /* ensure default duration and easing */d = d == '='?d:d == null?1000:new SVG.Number(d).valueOf();ease = ease || '<>'; /* process values */fx.to = function(pos){var i; /* normalise pos */pos = pos < 0?0:pos > 1?1:pos; /* collect attribute keys */if(akeys == null){akeys = [];for(key in fx.attrs) akeys.push(key); /* make sure morphable elements are scaled, translated and morphed all together */if(element.morphArray && (fx._plot || akeys.indexOf('points') > -1)){ /* get destination */var box,p=new element.morphArray(fx._plot || fx.attrs.points || element.array); /* add size */if(fx._size)p.size(fx._size.width.to,fx._size.height.to); /* add movement */box = p.bbox();if(fx._x)p.move(fx._x.to,box.y);else if(fx._cx)p.move(fx._cx.to - box.width / 2,box.y);box = p.bbox();if(fx._y)p.move(box.x,fx._y.to);else if(fx._cy)p.move(box.x,fx._cy.to - box.height / 2); /* delete element oriented changes */delete fx._x;delete fx._y;delete fx._cx;delete fx._cy;delete fx._size;fx._plot = element.array.morph(p);}} /* collect transformation keys */if(tkeys == null){tkeys = [];for(key in fx.trans) tkeys.push(key);} /* collect style keys */if(skeys == null){skeys = [];for(key in fx.styles) skeys.push(key);} /* apply easing */pos = ease == '<>'?-Math.cos(pos * Math.PI) / 2 + 0.5:ease == '>'?Math.sin(pos * Math.PI / 2):ease == '<'?-Math.cos(pos * Math.PI / 2) + 1:ease == '-'?pos:typeof ease == 'function'?ease(pos):pos; /* run plot function */if(fx._plot){element.plot(fx._plot.at(pos));}else { /* run all x-position properties */if(fx._x)element.x(fx._x.at(pos));else if(fx._cx)element.cx(fx._cx.at(pos)); /* run all y-position properties */if(fx._y)element.y(fx._y.at(pos));else if(fx._cy)element.cy(fx._cy.at(pos)); /* run all size properties */if(fx._size)element.size(fx._size.width.at(pos),fx._size.height.at(pos));} /* run all viewbox properties */if(fx._viewbox)element.viewbox(fx._viewbox.x.at(pos),fx._viewbox.y.at(pos),fx._viewbox.width.at(pos),fx._viewbox.height.at(pos)); /* run leading property */if(fx._leading)element.leading(fx._leading.at(pos)); /* animate attributes */for(i = akeys.length - 1;i >= 0;i--) element.attr(akeys[i],at(fx.attrs[akeys[i]],pos)); /* animate transformations */for(i = tkeys.length - 1;i >= 0;i--) element.transform(tkeys[i],at(fx.trans[tkeys[i]],pos)); /* animate styles */for(i = skeys.length - 1;i >= 0;i--) element.style(skeys[i],at(fx.styles[skeys[i]],pos)); /* callback for each keyframe */if(fx._during)fx._during.call(element,pos,function(from,to){return at({from:from,to:to},pos);});};if(typeof d === 'number'){ /* delay animation */this.timeout = setTimeout(function(){var start=new Date().getTime(); /* initialize situation object */fx.situation = {interval:1000 / 60,start:start,play:true,finish:start + d,duration:d}; /* render function */fx.render = function(){if(fx.situation.play === true){ // This code was borrowed from the emile.js micro framework by Thomas Fuchs, aka MadRobby.
-	var time=new Date().getTime(),pos=time > fx.situation.finish?1:(time - fx.situation.start) / d; /* process values */fx.to(pos); /* finish off animation */if(time > fx.situation.finish){if(fx._plot)element.plot(new SVG.PointArray(fx._plot.destination).settle());if(fx._loop === true || typeof fx._loop == 'number' && fx._loop > 1){if(typeof fx._loop == 'number')--fx._loop;fx.animate(d,ease,delay);}else {fx._after?fx._after.apply(element,[fx]):fx.stop();}}else {fx.animationFrame = requestAnimationFrame(fx.render);}}else {fx.animationFrame = requestAnimationFrame(fx.render);}}; /* start animation */fx.render();},new SVG.Number(delay).valueOf());}return this;}, // Get bounding box of target element
+	animate:function animate(d,ease,delay){var akeys,skeys,key,element=this.target,fx=this; // dissect object if one is passed
+	if(typeof d == 'object'){delay = d.delay;ease = d.ease;d = d.duration;} // ensure default duration and easing
+	d = d == '='?d:d == null?1000:new SVG.Number(d).valueOf();ease = ease || '<>'; // process values
+	fx.at = function(pos){var i; // normalise pos
+	pos = pos < 0?0:pos > 1?1:pos; // collect attribute keys
+	if(akeys == null){akeys = [];for(key in fx.attrs) akeys.push(key); // make sure morphable elements are scaled, translated and morphed all together
+	if(element.morphArray && (fx.destination.plot || akeys.indexOf('points') > -1)){ // get destination
+	var box,p=new element.morphArray(fx.destination.plot || fx.attrs.points || element.array()); // add size
+	if(fx.destination.size)p.size(fx.destination.size.width.to,fx.destination.size.height.to); // add movement
+	box = p.bbox();if(fx.destination.x)p.move(fx.destination.x.to,box.y);else if(fx.destination.cx)p.move(fx.destination.cx.to - box.width / 2,box.y);box = p.bbox();if(fx.destination.y)p.move(box.x,fx.destination.y.to);else if(fx.destination.cy)p.move(box.x,fx.destination.cy.to - box.height / 2); // reset destination values
+	fx.destination = {plot:element.array().morph(p)};}} // collect style keys
+	if(skeys == null){skeys = [];for(key in fx.styles) skeys.push(key);} // apply easing
+	pos = ease == '<>'?-Math.cos(pos * Math.PI) / 2 + 0.5:ease == '>'?Math.sin(pos * Math.PI / 2):ease == '<'?-Math.cos(pos * Math.PI / 2) + 1:ease == '-'?pos:typeof ease == 'function'?ease(pos):pos; // run plot function
+	if(fx.destination.plot){element.plot(fx.destination.plot.at(pos));}else { // run all x-position properties
+	if(fx.destination.x)element.x(fx.destination.x.at(pos));else if(fx.destination.cx)element.cx(fx.destination.cx.at(pos)); // run all y-position properties
+	if(fx.destination.y)element.y(fx.destination.y.at(pos));else if(fx.destination.cy)element.cy(fx.destination.cy.at(pos)); // run all size properties
+	if(fx.destination.size)element.size(fx.destination.size.width.at(pos),fx.destination.size.height.at(pos));} // run all viewbox properties
+	if(fx.destination.viewbox)element.viewbox(fx.destination.viewbox.x.at(pos),fx.destination.viewbox.y.at(pos),fx.destination.viewbox.width.at(pos),fx.destination.viewbox.height.at(pos)); // run leading property
+	if(fx.destination.leading)element.leading(fx.destination.leading.at(pos)); // animate attributes
+	for(i = akeys.length - 1;i >= 0;i--) element.attr(akeys[i],at(fx.attrs[akeys[i]],pos)); // animate styles
+	for(i = skeys.length - 1;i >= 0;i--) element.style(skeys[i],at(fx.styles[skeys[i]],pos)); // callback for each keyframe
+	if(fx.situation.during)fx.situation.during.call(element,pos,function(from,to){return at({from:from,to:to},pos);});};if(typeof d === 'number'){ // delay animation
+	this.timeout = setTimeout(function(){var start=new Date().getTime(); // initialize situation object
+	fx.situation.start = start;fx.situation.play = true;fx.situation.finish = start + d;fx.situation.duration = d;fx.situation.ease = ease; // render function
+	fx.render = function(){if(fx.situation.play === true){ // calculate pos
+	var time=new Date().getTime(),pos=time > fx.situation.finish?1:(time - fx.situation.start) / d; // reverse pos if animation is reversed
+	if(fx.situation.reversing)pos = -pos + 1; // process values
+	fx.at(pos); // finish off animation
+	if(time > fx.situation.finish){if(fx.destination.plot)element.plot(new SVG.PointArray(fx.destination.plot.destination).settle());if(fx.situation.loop === true || typeof fx.situation.loop == 'number' && fx.situation.loop > 0){ // register reverse
+	if(fx.situation.reverse)fx.situation.reversing = !fx.situation.reversing;if(typeof fx.situation.loop == 'number'){ // reduce loop count
+	if(!fx.situation.reverse || fx.situation.reversing)--fx.situation.loop; // remove last loop if reverse is disabled
+	if(!fx.situation.reverse && fx.situation.loop == 1)--fx.situation.loop;}fx.animate(d,ease,delay);}else {fx.situation.after?fx.situation.after.apply(element,[fx]):fx.stop();}}else {fx.animationFrame = requestAnimationFrame(fx.render);}}else {fx.animationFrame = requestAnimationFrame(fx.render);}}; // start animation
+	fx.render();},new SVG.Number(delay).valueOf());}return this;}, // Get bounding box of target element
 	bbox:function bbox(){return this.target.bbox();}, // Add animatable attributes
-	attr:function attr(a,v){if(typeof a == 'object'){for(var key in a) this.attr(key,a[key]);}else {var from=this.target.attr(a);this.attrs[a] = SVG.Color.isColor(from)?new SVG.Color(from).morph(v):SVG.regex.unit.test(from)?new SVG.Number(from).morph(v):{from:from,to:v};}return this;}, // Add animatable transformations
-	transform:function transform(o,v){if(arguments.length == 1){ /* parse matrix string */o = parseMatrix(o); /* dlete matrixstring from object */delete o.matrix; /* add rotation-center to transformations */this.target.trans.cx = o.cx || null;this.target.trans.cy = o.cy || null;delete o.cx;delete o.cy; /* store matrix values */for(v in o) this.trans[v] = {from:this.target.trans[v],to:o[v]};}else { /* apply transformations as object if key value arguments are given*/var transform={};transform[o] = v;this.transform(transform);}return this;}, // Add animatable styles
+	attr:function attr(a,v){ // apply attributes individually
+	if(typeof a == 'object'){for(var key in a) this.attr(key,a[key]);}else { // get the current state
+	var from=this.target.attr(a); // detect format
+	if(a == 'transform'){ // merge given transformation with an existing one
+	if(this.attrs[a])v = this.attrs[a].destination.multiply(v); // prepare matrix for morphing
+	this.attrs[a] = this.target.ctm().morph(v); // add parametric rotation values
+	if(this.param){ // get initial rotation
+	v = this.target.transform('rotation'); // add param
+	this.attrs[a].param = {from:this.target.param || {rotation:v,cx:this.param.cx,cy:this.param.cy},to:this.param};}}else {this.attrs[a] = SVG.Color.isColor(v)? // prepare color for morphing
+	new SVG.Color(from).morph(v):SVG.regex.unit.test(v)? // prepare number for morphing
+	new SVG.Number(from).morph(v): // prepare for plain morphing
+	{from:from,to:v};}}return this;}, // Add animatable styles
 	style:function style(s,v){if(typeof s == 'object')for(var key in s) this.style(key,s[key]);else this.styles[s] = {from:this.target.style(s),to:v};return this;}, // Animatable x-axis
-	x:function x(_x2){this._x = new SVG.Number(this.target.x()).morph(_x2);return this;}, // Animatable y-axis
-	y:function y(_y2){this._y = new SVG.Number(this.target.y()).morph(_y2);return this;}, // Animatable center x-axis
-	cx:function cx(x){this._cx = new SVG.Number(this.target.cx()).morph(x);return this;}, // Animatable center y-axis
-	cy:function cy(y){this._cy = new SVG.Number(this.target.cy()).morph(y);return this;}, // Add animatable move
+	x:function x(_x2){this.destination.x = new SVG.Number(this.target.x()).morph(_x2);return this;}, // Animatable y-axis
+	y:function y(_y2){this.destination.y = new SVG.Number(this.target.y()).morph(_y2);return this;}, // Animatable center x-axis
+	cx:function cx(x){this.destination.cx = new SVG.Number(this.target.cx()).morph(x);return this;}, // Animatable center y-axis
+	cy:function cy(y){this.destination.cy = new SVG.Number(this.target.cy()).morph(y);return this;}, // Add animatable move
 	move:function move(x,y){return this.x(x).y(y);}, // Add animatable center
 	center:function center(x,y){return this.cx(x).cy(y);}, // Add animatable size
-	size:function size(width,height){if(this.target instanceof SVG.Text){ /* animate font size for Text elements */this.attr('font-size',width);}else { /* animate bbox based size for all other elements */var box=this.target.bbox();this._size = {width:new SVG.Number(box.width).morph(width),height:new SVG.Number(box.height).morph(height)};}return this;}, // Add animatable plot
-	plot:function plot(p){this._plot = p;return this;}, // Add leading method
-	leading:function leading(value){if(this.target._leading)this._leading = new SVG.Number(this.target._leading).morph(value);return this;}, // Add animatable viewbox
-	viewbox:function viewbox(x,y,width,height){if(this.target instanceof SVG.Container){var box=this.target.viewbox();this._viewbox = {x:new SVG.Number(box.x).morph(x),y:new SVG.Number(box.y).morph(y),width:new SVG.Number(box.width).morph(width),height:new SVG.Number(box.height).morph(height)};}return this;}, // Add animateable gradient update
+	size:function size(width,height){if(this.target instanceof SVG.Text){ // animate font size for Text elements
+	this.attr('font-size',width);}else { // animate bbox based size for all other elements
+	var box=this.target.bbox();this.destination.size = {width:new SVG.Number(box.width).morph(width),height:new SVG.Number(box.height).morph(height)};}return this;}, // Add animatable plot
+	plot:function plot(p){this.destination.plot = p;return this;}, // Add leading method
+	leading:function leading(value){if(this.target.destination.leading)this.destination.leading = new SVG.Number(this.target.destination.leading).morph(value);return this;}, // Add animatable viewbox
+	viewbox:function viewbox(x,y,width,height){if(this.target instanceof SVG.Container){var box=this.target.viewbox();this.destination.viewbox = {x:new SVG.Number(box.x).morph(x),y:new SVG.Number(box.y).morph(y),width:new SVG.Number(box.width).morph(width),height:new SVG.Number(box.height).morph(height)};}return this;}, // Add animateable gradient update
 	update:function update(o){if(this.target instanceof SVG.Stop){if(o.opacity != null)this.attr('stop-opacity',o.opacity);if(o.color != null)this.attr('stop-color',o.color);if(o.offset != null)this.attr('offset',new SVG.Number(o.offset));}return this;}, // Add callback for each keyframe
-	during:function during(_during){this._during = _during;return this;}, // Callback after animation
-	after:function after(_after){this._after = _after;return this;}, // Make loopable
-	loop:function loop(times){this._loop = times || true;return this;}, // Stop running animation
-	stop:function stop(fulfill){ /* fulfill animation */if(fulfill === true){this.animate(0);if(this._after)this._after.apply(this.target,[this]);}else { /* stop current animation */clearTimeout(this.timeout);cancelAnimationFrame(this.animationFrame); /* reset storage for properties that need animation */this.attrs = {};this.trans = {};this.styles = {};this.situation = {}; /* delete destinations */delete this._x;delete this._y;delete this._cx;delete this._cy;delete this._size;delete this._plot;delete this._loop;delete this._after;delete this._during;delete this._leading;delete this._viewbox;}return this;}, // Pause running animation
+	during:function during(_during){this.situation.during = _during;return this;}, // Callback after animation
+	after:function after(_after){this.situation.after = _after;return this;}, // Make loopable
+	loop:function loop(times,reverse){ // store current loop and total loops
+	this.situation.loop = this.situation.loops = times || true; // make reversable
+	this.situation.reverse = !!reverse;return this;}, // Stop running animation
+	stop:function stop(fulfill){ // fulfill animation
+	if(fulfill === true){this.animate(0);if(this.situation.after)this.situation.after.apply(this.target,[this]);}else { // stop current animation
+	clearTimeout(this.timeout);cancelAnimationFrame(this.animationFrame); // reset storage for properties
+	this.attrs = {};this.styles = {};this.situation = {};this.destination = {};}return this;}, // Pause running animation
 	pause:function pause(){if(this.situation.play === true){this.situation.play = false;this.situation.pause = new Date().getTime();}return this;}, // Play running animation
 	play:function play(){if(this.situation.play === false){var pause=new Date().getTime() - this.situation.pause;this.situation.finish += pause;this.situation.start += pause;this.situation.play = true;}return this;}}, // Define parent class
 	parent:SVG.Element, // Add method to parent elements
@@ -2905,80 +2968,230 @@
 	animate:function animate(d,ease,delay){return (this.fx || (this.fx = new SVG.FX(this))).stop().animate(d,ease,delay);}, // Stop current animation; this is an alias to the fx instance
 	stop:function stop(fulfill){if(this.fx)this.fx.stop(fulfill);return this;}, // Pause current animation
 	pause:function pause(){if(this.fx)this.fx.pause();return this;}, // Play paused current animation
-	play:function play(){if(this.fx)this.fx.play();return this;}}});SVG.extend(SVG.Element,SVG.FX,{ // Relative move over x axis
-	dx:function dx(x){return this.x((this.target || this).x() + x);}, // Relative move over y axis
-	dy:function dy(y){return this.y((this.target || this).y() + y);}, // Relative move over x and y axes
-	dmove:function dmove(x,y){return this.dx(x).dy(y);}});['click','dblclick','mousedown','mouseup','mouseover','mouseout','mousemove' // , 'mouseenter' -> not supported by IE
+	play:function play(){if(this.fx)this.fx.play();return this;}}});SVG.BBox = SVG.invent({ // Initialize
+	create:function create(element){ // get values if element is given
+	if(element){var box; // yes this is ugly, but Firefox can be a bitch when it comes to elements that are not yet rendered
+	try{ // find native bbox
+	box = element.node.getBBox();}catch(e) { // mimic bbox
+	box = {x:element.node.clientLeft,y:element.node.clientTop,width:element.node.clientWidth,height:element.node.clientHeight};} // plain x and y
+	this.x = box.x;this.y = box.y; // plain width and height
+	this.width = box.width;this.height = box.height;} // add center, right and bottom
+	fullBox(this);}, // Define Parent
+	parent:SVG.Element, // Constructor
+	construct:{ // Get bounding box
+	bbox:function bbox(){return new SVG.BBox(this);}}});SVG.TBox = SVG.invent({ // Initialize
+	create:function create(element){ // get values if element is given
+	if(element){var t=element.ctm().extract(),box=element.bbox(); // width and height including transformations
+	this.width = box.width * t.scaleX;this.height = box.height * t.scaleY; // x and y including transformations
+	this.x = box.x + t.x;this.y = box.y + t.y;} // add center, right and bottom
+	fullBox(this);}, // Define Parent
+	parent:SVG.Element, // Constructor
+	construct:{ // Get transformed bounding box
+	tbox:function tbox(){return new SVG.TBox(this);}}});SVG.RBox = SVG.invent({ // Initialize
+	create:function create(element){if(element){var e=element.doc().parent(),box=element.node.getBoundingClientRect(),zoom=1; // get screen offset
+	this.x = box.left;this.y = box.top; // subtract parent offset
+	this.x -= e.offsetLeft;this.y -= e.offsetTop;while(e = e.offsetParent) {this.x -= e.offsetLeft;this.y -= e.offsetTop;} // calculate cumulative zoom from svg documents
+	e = element;while(e.parent && (e = e.parent())) {if(e.viewbox){zoom *= e.viewbox().zoom;this.x -= e.x() || 0;this.y -= e.y() || 0;}} // recalculate viewbox distortion
+	this.width = box.width /= zoom;this.height = box.height /= zoom;} // add center, right and bottom
+	fullBox(this); // offset by window scroll position, because getBoundingClientRect changes when window is scrolled
+	this.x += window.scrollX;this.y += window.scrollY;}, // define Parent
+	parent:SVG.Element, // Constructor
+	construct:{ // Get rect box
+	rbox:function rbox(){return new SVG.RBox(this);}}}); // Add universal merge method
+	[SVG.BBox,SVG.TBox,SVG.RBox].forEach(function(c){SVG.extend(c,{ // Merge rect box with another, return a new instance
+	merge:function merge(box){var b=new c(); // merge boxes
+	b.x = Math.min(this.x,box.x);b.y = Math.min(this.y,box.y);b.width = Math.max(this.x + this.width,box.x + box.width) - b.x;b.height = Math.max(this.y + this.height,box.y + box.height) - b.y;return fullBox(b);}});});SVG.Matrix = SVG.invent({ // Initialize
+	create:function create(source){var i,base=arrayToMatrix([1,0,0,1,0,0]); // ensure source as object
+	source = source instanceof SVG.Element?source.matrixify():typeof source === 'string'?stringToMatrix(source):arguments.length == 6?arrayToMatrix([].slice.call(arguments)):typeof source === 'object'?source:base; // merge source
+	for(i = abcdef.length - 1;i >= 0;i--) this[abcdef[i]] = source && typeof source[abcdef[i]] === 'number'?source[abcdef[i]]:base[abcdef[i]];}, // Add methods
+	extend:{ // Extract individual transformations
+	extract:function extract(){ // find delta transform points
+	var px=deltaTransformPoint(this,0,1),py=deltaTransformPoint(this,1,0),skewX=180 / Math.PI * Math.atan2(px.y,px.x) - 90;return { // translation
+	x:this.e,y:this.f, // skew
+	skewX:-skewX,skewY:180 / Math.PI * Math.atan2(py.y,py.x), // scale
+	scaleX:Math.sqrt(this.a * this.a + this.b * this.b),scaleY:Math.sqrt(this.c * this.c + this.d * this.d), // rotation
+	rotation:skewX};}, // Clone matrix
+	clone:function clone(){return new SVG.Matrix(this);}, // Morph one matrix into another
+	morph:function morph(matrix){ // store new destination
+	this.destination = new SVG.Matrix(matrix);return this;}, // Get morphed matrix at a given position
+	at:function at(pos){ // make sure a destination is defined
+	if(!this.destination)return this; // calculate morphed matrix at a given position
+	var matrix=new SVG.Matrix({a:this.a + (this.destination.a - this.a) * pos,b:this.b + (this.destination.b - this.b) * pos,c:this.c + (this.destination.c - this.c) * pos,d:this.d + (this.destination.d - this.d) * pos,e:this.e + (this.destination.e - this.e) * pos,f:this.f + (this.destination.f - this.f) * pos}); // process parametric rotation if present
+	if(this.param && this.param.to){ // calculate current parametric position
+	var param={rotation:this.param.from.rotation + (this.param.to.rotation - this.param.from.rotation) * pos,cx:this.param.from.cx,cy:this.param.from.cy}; // rotate matrix
+	matrix = matrix.rotate((this.param.to.rotation - this.param.from.rotation * 2) * pos,param.cx,param.cy); // store current parametric values
+	matrix.param = param;}return matrix;}, // Multiplies by given matrix
+	multiply:function multiply(matrix){return new SVG.Matrix(this.native().multiply(parseMatrix(matrix).native()));}, // Inverses matrix
+	inverse:function inverse(){return new SVG.Matrix(this.native().inverse());}, // Translate matrix
+	translate:function translate(x,y){return new SVG.Matrix(this.native().translate(x || 0,y || 0));}, // Scale matrix
+	scale:function scale(x,y,cx,cy){ // support universal scale
+	if(arguments.length == 1 || arguments.length == 3)y = x;if(arguments.length == 3){cy = cx;cx = y;}return this.around(cx,cy,new SVG.Matrix(x,0,0,y,0,0));}, // Rotate matrix
+	rotate:function rotate(r,cx,cy){ // convert degrees to radians
+	r = SVG.utils.radians(r);return this.around(cx,cy,new SVG.Matrix(Math.cos(r),Math.sin(r),-Math.sin(r),Math.cos(r),0,0));}, // Flip matrix on x or y, at a given offset
+	flip:function flip(a,o){return a == 'x'?this.scale(-1,1,o,0):this.scale(1,-1,0,o);}, // Skew
+	skew:function skew(x,y,cx,cy){return this.around(cx,cy,this.native().skewX(x || 0).skewY(y || 0));}, // SkewX
+	skewX:function skewX(x,cx,cy){return this.around(cx,cy,this.native().skewX(x || 0));}, // SkewY
+	skewY:function skewY(y,cx,cy){return this.around(cx,cy,this.native().skewY(y || 0));}, // Transform around a center point
+	around:function around(cx,cy,matrix){return this.multiply(new SVG.Matrix(1,0,0,1,cx || 0,cy || 0)).multiply(matrix).multiply(new SVG.Matrix(1,0,0,1,-cx || 0,-cy || 0));}, // Convert to native SVGMatrix
+	native:function native(){ // create new matrix
+	var matrix=SVG.parser.draw.node.createSVGMatrix(); // update with current values
+	for(var i=abcdef.length - 1;i >= 0;i--) matrix[abcdef[i]] = this[abcdef[i]];return matrix;}, // Convert matrix to string
+	toString:function toString(){return 'matrix(' + this.a + ',' + this.b + ',' + this.c + ',' + this.d + ',' + this.e + ',' + this.f + ')';}}, // Define parent
+	parent:SVG.Element, // Add parent method
+	construct:{ // Get current matrix
+	ctm:function ctm(){return new SVG.Matrix(this.node.getCTM());}}});SVG.extend(SVG.Element,{ // Set svg element attribute
+	attr:function attr(a,v,n){ // act as full getter
+	if(a == null){ // get an object of attributes
+	a = {};v = this.node.attributes;for(n = v.length - 1;n >= 0;n--) a[v[n].nodeName] = SVG.regex.isNumber.test(v[n].nodeValue)?parseFloat(v[n].nodeValue):v[n].nodeValue;return a;}else if(typeof a == 'object'){ // apply every attribute individually if an object is passed
+	for(v in a) this.attr(v,a[v]);}else if(v === null){ // remove value
+	this.node.removeAttribute(a);}else if(v == null){ // act as a getter if the first and only argument is not an object
+	v = this.node.getAttribute(a);return v == null?SVG.defaults.attrs[a]:SVG.regex.isNumber.test(v)?parseFloat(v):v;}else { // BUG FIX: some browsers will render a stroke if a color is given even though stroke width is 0
+	if(a == 'stroke-width')this.attr('stroke',parseFloat(v) > 0?this._stroke:null);else if(a == 'stroke')this._stroke = v; // convert image fill and stroke to patterns
+	if(a == 'fill' || a == 'stroke'){if(SVG.regex.isImage.test(v))v = this.doc().defs().image(v,0,0);if(v instanceof SVG.Image)v = this.doc().defs().pattern(0,0,function(){this.add(v);});} // ensure correct numeric values (also accepts NaN and Infinity)
+	if(typeof v === 'number')v = new SVG.Number(v); // ensure full hex color
+	else if(SVG.Color.isColor(v))v = new SVG.Color(v); // parse array values
+	else if(Array.isArray(v))v = new SVG.Array(v); // store parametric transformation values locally
+	else if(v instanceof SVG.Matrix && v.param)this.param = v.param; // if the passed attribute is leading...
+	if(a == 'leading'){ // ... call the leading method instead
+	if(this.leading)this.leading(v);}else { // set given attribute on node
+	typeof n === 'string'?this.node.setAttributeNS(n,a,v.toString()):this.node.setAttribute(a,v.toString());} // rebuild if required
+	if(this.rebuild && (a == 'font-size' || a == 'x'))this.rebuild(a,v);}return this;}});SVG.extend(SVG.Element,SVG.FX,{ // Add transformations
+	transform:function transform(o,relative){ // get target in case of the fx module, otherwise reference this
+	var target=this.target || this,matrix; // act as a getter
+	if(typeof o !== 'object'){ // get current matrix
+	matrix = new SVG.Matrix(target).extract(); // add parametric rotation
+	if(typeof this.param === 'object'){matrix.rotation = this.param.rotation;matrix.cx = this.param.cx;matrix.cy = this.param.cy;}return typeof o === 'string'?matrix[o]:matrix;} // get current matrix
+	matrix = this instanceof SVG.FX && this.attrs.transform?this.attrs.transform:new SVG.Matrix(target); // ensure relative flag
+	relative = !!relative || !!o.relative; // act on matrix
+	if(o.a != null){matrix = relative? // relative
+	matrix.multiply(new SVG.Matrix(o)): // absolute
+	new SVG.Matrix(o); // act on rotation
+	}else if(o.rotation != null){ // ensure centre point
+	ensureCentre(o,target); // relativize rotation value
+	if(relative){o.rotation += this.param && this.param.rotation != null?this.param.rotation:matrix.extract().rotation;} // store parametric values
+	this.param = o; // apply transformation
+	if(this instanceof SVG.Element){matrix = relative? // relative
+	matrix.rotate(o.rotation,o.cx,o.cy): // absolute
+	matrix.rotate(o.rotation - matrix.extract().rotation,o.cx,o.cy);} // act on scale
+	}else if(o.scale != null || o.scaleX != null || o.scaleY != null){ // ensure centre point
+	ensureCentre(o,target); // ensure scale values on both axes
+	o.scaleX = o.scale != null?o.scale:o.scaleX != null?o.scaleX:1;o.scaleY = o.scale != null?o.scale:o.scaleY != null?o.scaleY:1;if(!relative){ // absolute; multiply inversed values
+	var e=matrix.extract();o.scaleX = o.scaleX * 1 / e.scaleX;o.scaleY = o.scaleY * 1 / e.scaleY;}matrix = matrix.scale(o.scaleX,o.scaleY,o.cx,o.cy); // act on skew
+	}else if(o.skewX != null || o.skewY != null){ // ensure centre point
+	ensureCentre(o,target); // ensure skew values on both axes
+	o.skewX = o.skewX != null?o.skewX:0;o.skewY = o.skewY != null?o.skewY:0;if(!relative){ // absolute; reset skew values
+	var e=matrix.extract();matrix = matrix.multiply(new SVG.Matrix().skew(e.skewX,e.skewY,o.cx,o.cy).inverse());}matrix = matrix.skew(o.skewX,o.skewY,o.cx,o.cy); // act on flip
+	}else if(o.flip){matrix = matrix.flip(o.flip,o.offset == null?target.bbox()['c' + o.flip]:o.offset); // act on translate
+	}else if(o.x != null || o.y != null){if(relative){ // relative
+	matrix = matrix.translate(o.x,o.y);}else { // absolute
+	if(o.x != null)matrix.e = o.x;if(o.y != null)matrix.f = o.y;}}return this.attr(this instanceof SVG.Pattern?'patternTransform':this instanceof SVG.Gradient?'gradientTransform':'transform',matrix);}});SVG.extend(SVG.Element,{ // Reset all transformations
+	untransform:function untransform(){return this.attr('transform',null);},matrixify:function matrixify(){var matrix=(this.attr('transform') || ''). // split transformations
+	split(/\)\s*/).slice(0,-1).map(function(str){ // generate key => value pairs
+	var kv=str.trim().split('(');return [kv[0],kv[1].split(SVG.regex.matrixElements).map(function(str){return parseFloat(str);})];}) // calculate every transformation into one matrix
+	.reduce(function(matrix,transform){if(transform[0] == 'matrix')return matrix.multiply(arrayToMatrix(transform[1]));return matrix[transform[0]].apply(matrix,transform[1]);},new SVG.Matrix()); // apply calculated matrix to element
+	this.attr('transform',matrix);return matrix;}});SVG.extend(SVG.Element,{ // Dynamic style generator
+	style:function style(s,v){if(arguments.length == 0){ /* get full style */return this.node.style.cssText || '';}else if(arguments.length < 2){ /* apply every style individually if an object is passed */if(typeof s == 'object'){for(v in s) this.style(v,s[v]);}else if(SVG.regex.isCss.test(s)){ /* parse css string */s = s.split(';'); /* apply every definition individually */for(var i=0;i < s.length;i++) {v = s[i].split(':');this.style(v[0].replace(/\s+/g,''),v[1]);}}else { /* act as a getter if the first and only argument is not an object */return this.node.style[camelCase(s)];}}else {this.node.style[camelCase(s)] = v === null || SVG.regex.isBlank.test(v)?'':v;}return this;}});SVG.Parent = SVG.invent({ // Initialize node
+	create:function create(element){this.constructor.call(this,element);}, // Inherit from
+	inherit:SVG.Element, // Add class methods
+	extend:{ // Returns all child elements
+	children:function children(){return SVG.utils.map(SVG.utils.filterSVGElements(this.node.childNodes),function(node){return SVG.adopt(node);});}, // Add given element at a position
+	add:function add(element,i){if(!this.has(element)){ // define insertion index if none given
+	i = i == null?this.children().length:i; // add element references
+	this.node.insertBefore(element.node,this.node.childNodes[i] || null);}return this;}, // Basically does the same as `add()` but returns the added element instead
+	put:function put(element,i){this.add(element,i);return element;}, // Checks if the given element is a child
+	has:function has(element){return this.index(element) >= 0;}, // Gets index of given element
+	index:function index(element){return this.children().indexOf(element);}, // Get a element at the given index
+	get:function get(i){return this.children()[i];}, // Get first child, skipping the defs node
+	first:function first(){return this.children()[0];}, // Get the last child
+	last:function last(){return this.children()[this.children().length - 1];}, // Iterates over all children and invokes a given block
+	each:function each(block,deep){var i,il,children=this.children();for(i = 0,il = children.length;i < il;i++) {if(children[i] instanceof SVG.Element)block.apply(children[i],[i,children]);if(deep && children[i] instanceof SVG.Container)children[i].each(block,deep);}return this;}, // Remove a given child
+	removeElement:function removeElement(element){this.node.removeChild(element.node);return this;}, // Remove all elements in this container
+	clear:function clear(){ // remove children
+	while(this.node.hasChildNodes()) this.node.removeChild(this.node.lastChild); // remove defs reference
+	delete this._defs;return this;}, // Get defs
+	defs:function defs(){return this.doc().defs();}}});SVG.Container = SVG.invent({ // Initialize node
+	create:function create(element){this.constructor.call(this,element);}, // Inherit from
+	inherit:SVG.Parent, // Add class methods
+	extend:{ // Get the viewBox and calculate the zoom value
+	viewbox:function viewbox(v){if(arguments.length == 0) /* act as a getter if there are no arguments */return new SVG.ViewBox(this); /* otherwise act as a setter */v = arguments.length == 1?[v.x,v.y,v.width,v.height]:[].slice.call(arguments);return this.attr('viewBox',v);}}}); // Add events to elements
+	['click','dblclick','mousedown','mouseup','mouseover','mouseout','mousemove' // , 'mouseenter' -> not supported by IE
 	// , 'mouseleave' -> not supported by IE
 	,'touchstart','touchmove','touchleave','touchend','touchcancel'].forEach(function(event){ /* add event to SVG.Element */SVG.Element.prototype[event] = function(f){var self=this; /* bind event to element rather than element node */this.node['on' + event] = typeof f == 'function'?function(){return f.apply(self,arguments);}:null;return this;};}); // Initialize listeners stack
-	SVG.listeners = [];SVG.handlerMap = []; // Only kept for consistency of API
-	SVG.registerEvent = function(){}; // Add event binder in the SVG namespace
-	SVG.on = function(node,event,listener){ // create listener, get object-index
-	var l=listener.bind(node.instance || node),index=(SVG.handlerMap.indexOf(node) + 1 || SVG.handlerMap.push(node)) - 1,ev=event.split('.')[0],ns=event.split('.')[1] || '*'; // ensure valid object
+	SVG.listeners = [];SVG.handlerMap = []; // Add event binder in the SVG namespace
+	SVG.on = function(node,event,listener,binding){ // create listener, get object-index
+	var l=listener.bind(binding || node.instance || node),index=(SVG.handlerMap.indexOf(node) + 1 || SVG.handlerMap.push(node)) - 1,ev=event.split('.')[0],ns=event.split('.')[1] || '*'; // ensure valid object
 	SVG.listeners[index] = SVG.listeners[index] || {};SVG.listeners[index][ev] = SVG.listeners[index][ev] || {};SVG.listeners[index][ev][ns] = SVG.listeners[index][ev][ns] || {}; // reference listener
 	SVG.listeners[index][ev][ns][listener] = l; // add listener
 	node.addEventListener(ev,l,false);}; // Add event unbinder in the SVG namespace
 	SVG.off = function(node,event,listener){var index=SVG.handlerMap.indexOf(node),ev=event && event.split('.')[0],ns=event && event.split('.')[1];if(index == -1)return;if(listener){ // remove listener reference
 	if(SVG.listeners[index][ev] && SVG.listeners[index][ev][ns || '*']){ // remove listener
-	node.removeEventListener(ev,SVG.listeners[index][ev][ns || '*'][listener],false);delete SVG.listeners[index][ev][ns || '*'][listener];}}else if(ns){ // remove all listeners for the namespaced event
-	if(SVG.listeners[index][ev] && SVG.listeners[index][ev][ns]){for(listener in SVG.listeners[index][ev][ns]) SVG.off(node,[ev,ns].join('.'),listener);delete SVG.listeners[index][ev][ns];}}else if(ev){ // remove all listeners for the event
+	node.removeEventListener(ev,SVG.listeners[index][ev][ns || '*'][listener],false);delete SVG.listeners[index][ev][ns || '*'][listener];}}else if(ns && ev){ // remove all listeners for a namespaced event
+	if(SVG.listeners[index][ev] && SVG.listeners[index][ev][ns]){for(listener in SVG.listeners[index][ev][ns]) SVG.off(node,[ev,ns].join('.'),listener);delete SVG.listeners[index][ev][ns];}}else if(ns){ // remove all listeners for a specific namespace
+	for(event in SVG.listeners[index]) {for(namespace in SVG.listeners[index][event]) {if(ns === namespace){SVG.off(node,[event,ns].join('.'));}}}}else if(ev){ // remove all listeners for the event
 	if(SVG.listeners[index][ev]){for(namespace in SVG.listeners[index][ev]) SVG.off(node,[ev,namespace].join('.'));delete SVG.listeners[index][ev];}}else { // remove all listeners on a given node
 	for(event in SVG.listeners[index]) SVG.off(node,event);delete SVG.listeners[index];}}; //
 	SVG.extend(SVG.Element,{ // Bind given event to listener
-	on:function on(event,listener){SVG.on(this.node,event,listener);return this;}, // Unbind event from listener
+	on:function on(event,listener,binding){SVG.on(this.node,event,listener,binding);return this;}, // Unbind event from listener
 	off:function off(event,listener){SVG.off(this.node,event,listener);return this;}, // Fire given event
 	fire:function fire(event,data){ // Dispatch event
-	this.node.dispatchEvent(new CustomEvent(event,{detail:data}));return this;}});SVG.Defs = SVG.invent({ // Initialize node
+	if(event instanceof Event){this.node.dispatchEvent(event);}else {this.node.dispatchEvent(new CustomEvent(event,{detail:data}));}return this;}});SVG.Defs = SVG.invent({ // Initialize node
 	create:'defs', // Inherit from
 	inherit:SVG.Container});SVG.G = SVG.invent({ // Initialize node
 	create:'g', // Inherit from
 	inherit:SVG.Container, // Add class methods
 	extend:{ // Move over x-axis
-	x:function x(_x3){return _x3 == null?this.trans.x:this.transform('x',_x3);}, // Move over y-axis
-	y:function y(_y3){return _y3 == null?this.trans.y:this.transform('y',_y3);}, // Move by center over x-axis
-	cx:function cx(x){return x == null?this.bbox().cx:this.x(x - this.bbox().width / 2);}, // Move by center over y-axis
-	cy:function cy(y){return y == null?this.bbox().cy:this.y(y - this.bbox().height / 2);}}, // Add parent method
+	x:function x(_x3){return _x3 == null?this.transform('x'):this.transform({x:-this.x() + _x3},true);}, // Move over y-axis
+	y:function y(_y3){return _y3 == null?this.transform('y'):this.transform({y:-this.y() + _y3},true);}, // Move by center over x-axis
+	cx:function cx(x){return x == null?this.tbox().cx:this.x(x - this.tbox().width / 2);}, // Move by center over y-axis
+	cy:function cy(y){return y == null?this.tbox().cy:this.y(y - this.tbox().height / 2);}}, // Add parent method
 	construct:{ // Create a group element
-	group:function group(){return this.put(new SVG.G());}}});SVG.extend(SVG.Element,{ // Get all siblings, including myself
-	siblings:function siblings(){return this.parent.children();}, // Get the curent position siblings
-	position:function position(){return this.parent.index(this);}, // Get the next element (will return null if there is none)
+	group:function group(){return this.put(new SVG.G());}}}); // ### This module adds backward / forward functionality to elements.
+	//
+	SVG.extend(SVG.Element,{ // Get all siblings, including myself
+	siblings:function siblings(){return this.parent().children();}, // Get the curent position siblings
+	position:function position(){return this.parent().index(this);}, // Get the next element (will return null if there is none)
 	next:function next(){return this.siblings()[this.position() + 1];}, // Get the next element (will return null if there is none)
 	previous:function previous(){return this.siblings()[this.position() - 1];}, // Send given element one step forward
-	forward:function forward(){var i=this.position();return this.parent.removeElement(this).put(this,i + 1);}, // Send given element one step backward
-	backward:function backward(){var i=this.position();if(i > 0)this.parent.removeElement(this).add(this,i - 1);return this;}, // Send given element all the way to the front
-	front:function front(){return this.parent.removeElement(this).put(this);}, // Send given element all the way to the back
-	back:function back(){if(this.position() > 0)this.parent.removeElement(this).add(this,0);return this;}, // Inserts a given element before the targeted element
-	before:function before(element){element.remove();var i=this.position();this.parent.add(element,i);return this;}, // Insters a given element after the targeted element
-	after:function after(element){element.remove();var i=this.position();this.parent.add(element,i + 1);return this;}});SVG.Mask = SVG.invent({ // Initialize node
+	forward:function forward(){var i=this.position() + 1,p=this.parent(); // move node one step forward
+	p.removeElement(this).add(this,i); // make sure defs node is always at the top
+	if(p instanceof SVG.Doc)p.node.appendChild(p.defs().node);return this;}, // Send given element one step backward
+	backward:function backward(){var i=this.position();if(i > 0)this.parent().removeElement(this).add(this,i - 1);return this;}, // Send given element all the way to the front
+	front:function front(){var p=this.parent(); // Move node forward
+	p.node.appendChild(this.node); // Make sure defs node is always at the top
+	if(p instanceof SVG.Doc)p.node.appendChild(p.defs().node);return this;}, // Send given element all the way to the back
+	back:function back(){if(this.position() > 0)this.parent().removeElement(this).add(this,0);return this;}, // Inserts a given element before the targeted element
+	before:function before(element){element.remove();var i=this.position();this.parent().add(element,i);return this;}, // Insters a given element after the targeted element
+	after:function after(element){element.remove();var i=this.position();this.parent().add(element,i + 1);return this;}});SVG.Mask = SVG.invent({ // Initialize node
 	create:function create(){this.constructor.call(this,SVG.create('mask')); /* keep references to masked elements */this.targets = [];}, // Inherit from
 	inherit:SVG.Container, // Add class methods
 	extend:{ // Unmask all masked elements and remove itself
-	remove:function remove(){ /* unmask all targets */for(var i=this.targets.length - 1;i >= 0;i--) if(this.targets[i])this.targets[i].unmask();delete this.targets; /* remove mask from parent */this.parent.removeElement(this);return this;}}, // Add parent method
+	remove:function remove(){ /* unmask all targets */for(var i=this.targets.length - 1;i >= 0;i--) if(this.targets[i])this.targets[i].unmask();delete this.targets; /* remove mask from parent */this.parent().removeElement(this);return this;}}, // Add parent method
 	construct:{ // Create masking element
 	mask:function mask(){return this.defs().put(new SVG.Mask());}}});SVG.extend(SVG.Element,{ // Distribute mask to svg element
-	maskWith:function maskWith(element){ /* use given mask or create a new one */this.masker = element instanceof SVG.Mask?element:this.parent.mask().add(element); /* store reverence on self in mask */this.masker.targets.push(this); /* apply mask */return this.attr('mask','url("#' + this.masker.attr('id') + '")');}, // Unmask element
-	unmask:function unmask(){delete this.masker;return this.attr('mask',null);}});SVG.Clip = SVG.invent({ // Initialize node
+	maskWith:function maskWith(element){ /* use given mask or create a new one */this.masker = element instanceof SVG.Mask?element:this.parent().mask().add(element); /* store reverence on self in mask */this.masker.targets.push(this); /* apply mask */return this.attr('mask','url("#' + this.masker.attr('id') + '")');}, // Unmask element
+	unmask:function unmask(){delete this.masker;return this.attr('mask',null);}});SVG.ClipPath = SVG.invent({ // Initialize node
 	create:function create(){this.constructor.call(this,SVG.create('clipPath')); /* keep references to clipped elements */this.targets = [];}, // Inherit from
 	inherit:SVG.Container, // Add class methods
 	extend:{ // Unclip all clipped elements and remove itself
-	remove:function remove(){ /* unclip all targets */for(var i=this.targets.length - 1;i >= 0;i--) if(this.targets[i])this.targets[i].unclip();delete this.targets; /* remove clipPath from parent */this.parent.removeElement(this);return this;}}, // Add parent method
+	remove:function remove(){ /* unclip all targets */for(var i=this.targets.length - 1;i >= 0;i--) if(this.targets[i])this.targets[i].unclip();delete this.targets; /* remove clipPath from parent */this.parent().removeElement(this);return this;}}, // Add parent method
 	construct:{ // Create clipping element
-	clip:function clip(){return this.defs().put(new SVG.Clip());}}}); //
+	clip:function clip(){return this.defs().put(new SVG.ClipPath());}}}); //
 	SVG.extend(SVG.Element,{ // Distribute clipPath to svg element
-	clipWith:function clipWith(element){ /* use given clip or create a new one */this.clipper = element instanceof SVG.Clip?element:this.parent.clip().add(element); /* store reverence on self in mask */this.clipper.targets.push(this); /* apply mask */return this.attr('clip-path','url("#' + this.clipper.attr('id') + '")');}, // Unclip element
+	clipWith:function clipWith(element){ /* use given clip or create a new one */this.clipper = element instanceof SVG.ClipPath?element:this.parent().clip().add(element); /* store reverence on self in mask */this.clipper.targets.push(this); /* apply mask */return this.attr('clip-path','url("#' + this.clipper.attr('id') + '")');}, // Unclip element
 	unclip:function unclip(){delete this.clipper;return this.attr('clip-path',null);}});SVG.Gradient = SVG.invent({ // Initialize node
 	create:function create(type){this.constructor.call(this,SVG.create(type + 'Gradient')); /* store type */this.type = type;}, // Inherit from
 	inherit:SVG.Container, // Add class methods
-	extend:{ // From position
-	from:function from(x,y){return this.type == 'radial'?this.attr({fx:new SVG.Number(x),fy:new SVG.Number(y)}):this.attr({x1:new SVG.Number(x),y1:new SVG.Number(y)});}, // To position
-	to:function to(x,y){return this.type == 'radial'?this.attr({cx:new SVG.Number(x),cy:new SVG.Number(y)}):this.attr({x2:new SVG.Number(x),y2:new SVG.Number(y)});}, // Radius for radial gradient
-	radius:function radius(r){return this.type == 'radial'?this.attr({r:new SVG.Number(r)}):this;}, // Add a color stop
+	extend:{ // Add a color stop
 	at:function at(offset,color,opacity){return this.put(new SVG.Stop()).update(offset,color,opacity);}, // Update gradient
 	update:function update(block){ /* remove all stops */this.clear(); /* invoke passed block */if(typeof block == 'function')block.call(this,this);return this;}, // Return the fill id
 	fill:function fill(){return 'url(#' + this.id() + ')';}, // Alias string convertion to fill
 	toString:function toString(){return this.fill();}}, // Add parent method
 	construct:{ // Create gradient element in defs
-	gradient:function gradient(type,block){return this.defs().gradient(type,block);}}});SVG.extend(SVG.Defs,{ // define gradient
+	gradient:function gradient(type,block){return this.defs().gradient(type,block);}}}); // Add animatable methods to both gradient and fx module
+	SVG.extend(SVG.Gradient,SVG.FX,{ // From position
+	from:function from(x,y){return (this.target || this).type == 'radial'?this.attr({fx:new SVG.Number(x),fy:new SVG.Number(y)}):this.attr({x1:new SVG.Number(x),y1:new SVG.Number(y)});}, // To position
+	to:function to(x,y){return (this.target || this).type == 'radial'?this.attr({cx:new SVG.Number(x),cy:new SVG.Number(y)}):this.attr({x2:new SVG.Number(x),y2:new SVG.Number(y)});}}); // Base gradient generation
+	SVG.extend(SVG.Defs,{ // define gradient
 	gradient:function gradient(type,block){return this.put(new SVG.Gradient(type)).update(block);}});SVG.Stop = SVG.invent({ // Initialize node
 	create:'stop', // Inherit from
 	inherit:SVG.Element, // Add class methods
@@ -2988,62 +3201,76 @@
 	inherit:SVG.Container, // Add class methods
 	extend:{ // Return the fill id
 	fill:function fill(){return 'url(#' + this.id() + ')';}, // Update pattern by rebuilding
-	update:function update(block){ /* remove content */this.clear(); /* invoke passed block */if(typeof block == 'function')block.call(this,this);return this;}, // Alias string convertion to fill
+	update:function update(block){ // remove content
+	this.clear(); // invoke passed block
+	if(typeof block == 'function')block.call(this,this);return this;}, // Alias string convertion to fill
 	toString:function toString(){return this.fill();}}, // Add parent method
 	construct:{ // Create pattern element in defs
 	pattern:function pattern(width,height,block){return this.defs().pattern(width,height,block);}}});SVG.extend(SVG.Defs,{ // Define gradient
 	pattern:function pattern(width,height,block){return this.put(new SVG.Pattern()).update(block).attr({x:0,y:0,width:width,height:height,patternUnits:'userSpaceOnUse'});}});SVG.Doc = SVG.invent({ // Initialize node
-	create:function create(element){ /* ensure the presence of a html element */this.parent = typeof element == 'string'?document.getElementById(element):element; /* If the target is an svg element, use that element as the main wrapper.
-	         This allows svg.js to work with svg documents as well. */this.constructor.call(this,this.parent.nodeName == 'svg'?this.parent:SVG.create('svg')); /* set svg element attributes */this.attr({xmlns:SVG.ns,version:'1.1',width:'100%',height:'100%'}).attr('xmlns:xlink',SVG.xlink,SVG.xmlns); /* create the <defs> node */this._defs = new SVG.Defs();this._defs.parent = this;this.node.appendChild(this._defs.node); /* turn off sub pixel offset by default */this.doSpof = false; /* ensure correct rendering */if(this.parent != this.node)this.stage();}, // Inherit from
+	create:function create(element){if(element){ /* ensure the presence of a dom element */element = typeof element == 'string'?document.getElementById(element):element; /* If the target is an svg element, use that element as the main wrapper.
+	         This allows svg.js to work with svg documents as well. */if(element.nodeName == 'svg'){this.constructor.call(this,element);}else {this.constructor.call(this,SVG.create('svg'));element.appendChild(this.node);} /* set svg element attributes and ensure defs node */this.namespace().size('100%','100%').defs();}}, // Inherit from
 	inherit:SVG.Container, // Add class methods
-	extend:{ /* enable drawing */stage:function stage(){var element=this; /* insert element */this.parent.appendChild(this.node); /* fix sub-pixel offset */element.spof(); /* make sure sub-pixel offset is fixed every time the window is resized */SVG.on(window,'resize',function(){element.spof();});return this;}, // Creates and returns defs element
-	defs:function defs(){return this._defs;}, // Fix for possible sub-pixel offset. See:
+	extend:{ // Add namespaces
+	namespace:function namespace(){return this.attr({xmlns:SVG.ns,version:'1.1'}).attr('xmlns:xlink',SVG.xlink,SVG.xmlns);}, // Creates and returns defs element
+	defs:function defs(){if(!this._defs){var defs; // Find or create a defs element in this instance
+	if(defs = this.node.getElementsByTagName('defs')[0])this._defs = SVG.adopt(defs);else this._defs = new SVG.Defs(); // Make sure the defs node is at the end of the stack
+	this.node.appendChild(this._defs.node);}return this._defs;}, // custom parent method
+	parent:function parent(){return this.node.parentNode.nodeName == '#document'?null:this.node.parentNode;}, // Fix for possible sub-pixel offset. See:
 	// https://bugzilla.mozilla.org/show_bug.cgi?id=608812
-	spof:function spof(){if(this.doSpof){var pos=this.node.getScreenCTM();if(pos)this.style('left',-pos.e % 1 + 'px').style('top',-pos.f % 1 + 'px');}return this;}, // Enable sub-pixel offset
-	fixSubPixelOffset:function fixSubPixelOffset(){this.doSpof = true;return this;}, // Removes the doc from the DOM
-	remove:function remove(){if(this.parent){this.parent.removeChild(this.node);this.parent = null;}return this;}}});SVG.Shape = SVG.invent({ // Initialize node
+	spof:function spof(_spof){var pos=this.node.getScreenCTM();if(pos)this.style('left',-pos.e % 1 + 'px').style('top',-pos.f % 1 + 'px');return this;}, // Removes the doc from the DOM
+	remove:function remove(){if(this.parent()){this.parent().removeChild(this.node);}return this;}}});SVG.Shape = SVG.invent({ // Initialize node
 	create:function create(element){this.constructor.call(this,element);}, // Inherit from
-	inherit:SVG.Element});SVG.Symbol = SVG.invent({ // Initialize node
-	create:'symbol', // Inherit from
-	inherit:SVG.Container, // Add parent method
-	construct:{ // Create a new symbol
-	symbol:function symbol(){return this.defs().put(new SVG.Symbol());}}});SVG.Use = SVG.invent({ // Initialize node
+	inherit:SVG.Element});SVG.Bare = SVG.invent({ // Initialize
+	create:function create(element,inherit){ // construct element
+	this.constructor.call(this,SVG.create(element)); // inherit custom methods
+	if(inherit)for(var method in inherit.prototype) if(typeof inherit.prototype[method] === 'function')this[method] = inherit.prototype[method];}, // Inherit from
+	inherit:SVG.Element, // Add methods
+	extend:{ // Insert some plain text
+	words:function words(text){ // remove contents
+	while(this.node.hasChildNodes()) this.node.removeChild(this.node.lastChild); // create text node
+	this.node.appendChild(document.createTextNode(text));return this;}}});SVG.extend(SVG.Parent,{ // Create an element that is not described by SVG.js
+	element:function element(_element,inherit){return this.put(new SVG.Bare(_element,inherit));}, // Add symbol element
+	symbol:function symbol(){return this.defs().element('symbol',SVG.Container);}});SVG.Use = SVG.invent({ // Initialize node
 	create:'use', // Inherit from
 	inherit:SVG.Shape, // Add class methods
 	extend:{ // Use element as a reference
-	element:function element(_element,file){ /* store target element */this.target = _element; /* set lined element */return this.attr('href',(file || '') + '#' + _element,SVG.xlink);}}, // Add parent method
+	element:function element(_element2,file){ /* Set lined element */return this.attr('href',(file || '') + '#' + _element2,SVG.xlink);}}, // Add parent method
 	construct:{ // Create a use element
 	use:function use(element,file){return this.put(new SVG.Use()).element(element,file);}}});SVG.Rect = SVG.invent({ // Initialize node
 	create:'rect', // Inherit from
 	inherit:SVG.Shape, // Add parent method
 	construct:{ // Create a rect element
-	rect:function rect(width,height){return this.put(new SVG.Rect().size(width,height));}}});SVG.Ellipse = SVG.invent({ // Initialize node
-	create:'ellipse', // Inherit from
-	inherit:SVG.Shape, // Add class methods
-	extend:{ // Move over x-axis
-	x:function x(_x4){return _x4 == null?this.cx() - this.attr('rx'):this.cx(_x4 + this.attr('rx'));}, // Move over y-axis
-	y:function y(_y4){return _y4 == null?this.cy() - this.attr('ry'):this.cy(_y4 + this.attr('ry'));}, // Move by center over x-axis
-	cx:function cx(x){return x == null?this.attr('cx'):this.attr('cx',new SVG.Number(x).divide(this.trans.scaleX));}, // Move by center over y-axis
-	cy:function cy(y){return y == null?this.attr('cy'):this.attr('cy',new SVG.Number(y).divide(this.trans.scaleY));}, // Set width of element
-	width:function width(_width2){return _width2 == null?this.attr('rx') * 2:this.attr('rx',new SVG.Number(_width2).divide(2));}, // Set height of element
-	height:function height(_height2){return _height2 == null?this.attr('ry') * 2:this.attr('ry',new SVG.Number(_height2).divide(2));}, // Custom size function
-	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr({rx:new SVG.Number(p.width).divide(2),ry:new SVG.Number(p.height).divide(2)});}}, // Add parent method
+	rect:function rect(width,height){return this.put(new SVG.Rect().size(width,height));}}});SVG.Circle = SVG.invent({ // Initialize node
+	create:'circle', // Inherit from
+	inherit:SVG.Shape, // Add parent method
 	construct:{ // Create circle element, based on ellipse
-	circle:function circle(size){return this.ellipse(size,size);}, // Create an ellipse
-	ellipse:function ellipse(width,height){return this.put(new SVG.Ellipse()).size(width,height).move(0,0);}}});SVG.Line = SVG.invent({ // Initialize node
+	circle:function circle(size){return this.put(new SVG.Circle()).rx(new SVG.Number(size).divide(2)).move(0,0);}}});SVG.extend(SVG.Circle,SVG.FX,{ // Radius x value
+	rx:function rx(_rx){return this.attr('r',_rx);}, // Alias radius x value
+	ry:function ry(_ry){return this.rx(_ry);}});SVG.Ellipse = SVG.invent({ // Initialize node
+	create:'ellipse', // Inherit from
+	inherit:SVG.Shape, // Add parent method
+	construct:{ // Create an ellipse
+	ellipse:function ellipse(width,height){return this.put(new SVG.Ellipse()).size(width,height).move(0,0);}}});SVG.extend(SVG.Ellipse,SVG.Rect,SVG.FX,{ // Radius x value
+	rx:function rx(_rx2){return this.attr('rx',_rx2);}, // Radius y value
+	ry:function ry(_ry2){return this.attr('ry',_ry2);}}); // Add common method
+	SVG.extend(SVG.Circle,SVG.Ellipse,{ // Move over x-axis
+	x:function x(_x4){return _x4 == null?this.cx() - this.rx():this.cx(_x4 + this.rx());}, // Move over y-axis
+	y:function y(_y4){return _y4 == null?this.cy() - this.ry():this.cy(_y4 + this.ry());}, // Move by center over x-axis
+	cx:function cx(x){return x == null?this.attr('cx'):this.attr('cx',x);}, // Move by center over y-axis
+	cy:function cy(y){return y == null?this.attr('cy'):this.attr('cy',y);}, // Set width of element
+	width:function width(_width2){return _width2 == null?this.rx() * 2:this.rx(new SVG.Number(_width2).divide(2));}, // Set height of element
+	height:function height(_height2){return _height2 == null?this.ry() * 2:this.ry(new SVG.Number(_height2).divide(2));}, // Custom size function
+	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.rx(new SVG.Number(p.width).divide(2)).ry(new SVG.Number(p.height).divide(2));}});SVG.Line = SVG.invent({ // Initialize node
 	create:'line', // Inherit from
 	inherit:SVG.Shape, // Add class methods
-	extend:{ // Move over x-axis
-	x:function x(_x5){var b=this.bbox();return _x5 == null?b.x:this.attr({x1:this.attr('x1') - b.x + _x5,x2:this.attr('x2') - b.x + _x5});}, // Move over y-axis
-	y:function y(_y5){var b=this.bbox();return _y5 == null?b.y:this.attr({y1:this.attr('y1') - b.y + _y5,y2:this.attr('y2') - b.y + _y5});}, // Move by center over x-axis
-	cx:function cx(x){var half=this.bbox().width / 2;return x == null?this.x() + half:this.x(x - half);}, // Move by center over y-axis
-	cy:function cy(y){var half=this.bbox().height / 2;return y == null?this.y() + half:this.y(y - half);}, // Set width of element
-	width:function width(_width3){var b=this.bbox();return _width3 == null?b.width:this.attr(this.attr('x1') < this.attr('x2')?'x2':'x1',b.x + _width3);}, // Set height of element
-	height:function height(_height3){var b=this.bbox();return _height3 == null?b.height:this.attr(this.attr('y1') < this.attr('y2')?'y2':'y1',b.y + _height3);}, // Set line size by width and height
-	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.width(p.width).height(p.height);}, // Set path data
-	plot:function plot(x1,y1,x2,y2){return this.attr({x1:x1,y1:y1,x2:x2,y2:y2});}}, // Add parent method
+	extend:{ // Get array
+	array:function array(){return new SVG.PointArray([[this.attr('x1'),this.attr('y1')],[this.attr('x2'),this.attr('y2')]]);}, // Overwrite native plot() method
+	plot:function plot(x1,y1,x2,y2){if(arguments.length == 4)x1 = {x1:x1,y1:y1,x2:x2,y2:y2};else x1 = new SVG.PointArray(x1).toLine();return this.attr(x1);}, // Move by left top corner
+	move:function move(x,y){return this.attr(this.array().move(x,y).toLine());}, // Set element size to given width and height
+	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr(this.array().size(p.width,p.height).toLine());}}, // Add parent method
 	construct:{ // Create a line element
-	line:function line(x1,y1,x2,y2){return this.put(new SVG.Line().plot(x1,y1,x2,y2));}}});SVG.Polyline = SVG.invent({ // Initialize node
+	line:function line(x1,y1,x2,y2){return this.put(new SVG.Line()).plot(x1,y1,x2,y2);}}});SVG.Polyline = SVG.invent({ // Initialize node
 	create:'polyline', // Inherit from
 	inherit:SVG.Shape, // Add parent method
 	construct:{ // Create a wrapped polyline element
@@ -3052,66 +3279,112 @@
 	inherit:SVG.Shape, // Add parent method
 	construct:{ // Create a wrapped polygon element
 	polygon:function polygon(p){return this.put(new SVG.Polygon()).plot(p);}}}); // Add polygon-specific functions
-	SVG.extend(SVG.Polyline,SVG.Polygon,{ // Define morphable array
-	morphArray:SVG.PointArray, // Plot new path
-	plot:function plot(p){return this.attr('points',this.array = new SVG.PointArray(p,[[0,0]]));}, // Move by left top corner
-	move:function move(x,y){return this.attr('points',this.array.move(x,y));}, // Move by left top corner over x-axis
-	x:function x(_x6){return _x6 == null?this.bbox().x:this.move(_x6,this.bbox().y);}, // Move by left top corner over y-axis
-	y:function y(_y6){return _y6 == null?this.bbox().y:this.move(this.bbox().x,_y6);}, // Set width of element
-	width:function width(_width4){var b=this.bbox();return _width4 == null?b.width:this.size(_width4,b.height);}, // Set height of element
-	height:function height(_height4){var b=this.bbox();return _height4 == null?b.height:this.size(b.width,_height4);}, // Set element size to given width and height
-	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr('points',this.array.size(p.width,p.height));}});SVG.Path = SVG.invent({ // Initialize node
+	SVG.extend(SVG.Polyline,SVG.Polygon,{ // Get array
+	array:function array(){return this._array || (this._array = new SVG.PointArray(this.attr('points')));}, // Plot new path
+	plot:function plot(p){return this.attr('points',this._array = new SVG.PointArray(p));}, // Move by left top corner
+	move:function move(x,y){return this.attr('points',this.array().move(x,y));}, // Set element size to given width and height
+	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr('points',this.array().size(p.width,p.height));}}); // unify all point to point elements
+	SVG.extend(SVG.Line,SVG.Polyline,SVG.Polygon,{ // Define morphable array
+	morphArray:SVG.PointArray, // Move by left top corner over x-axis
+	x:function x(_x5){return _x5 == null?this.bbox().x:this.move(_x5,this.bbox().y);}, // Move by left top corner over y-axis
+	y:function y(_y5){return _y5 == null?this.bbox().y:this.move(this.bbox().x,_y5);}, // Set width of element
+	width:function width(_width3){var b=this.bbox();return _width3 == null?b.width:this.size(_width3,b.height);}, // Set height of element
+	height:function height(_height3){var b=this.bbox();return _height3 == null?b.height:this.size(b.width,_height3);}});SVG.Path = SVG.invent({ // Initialize node
 	create:'path', // Inherit from
 	inherit:SVG.Shape, // Add class methods
-	extend:{ // Plot new poly points
-	plot:function plot(p){return this.attr('d',this.array = new SVG.PathArray(p,[['M',0,0]]));}, // Move by left top corner
-	move:function move(x,y){return this.attr('d',this.array.move(x,y));}, // Move by left top corner over x-axis
-	x:function x(_x7){return _x7 == null?this.bbox().x:this.move(_x7,this.bbox().y);}, // Move by left top corner over y-axis
-	y:function y(_y7){return _y7 == null?this.bbox().y:this.move(this.bbox().x,_y7);}, // Set element size to given width and height
-	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr('d',this.array.size(p.width,p.height));}, // Set width of element
-	width:function width(_width5){return _width5 == null?this.bbox().width:this.size(_width5,this.bbox().height);}, // Set height of element
-	height:function height(_height5){return _height5 == null?this.bbox().height:this.size(this.bbox().width,_height5);}}, // Add parent method
+	extend:{ // Define morphable array
+	morphArray:SVG.PathArray, // Get array
+	array:function array(){return this._array || (this._array = new SVG.PathArray(this.attr('d')));}, // Plot new poly points
+	plot:function plot(p){return this.attr('d',this._array = new SVG.PathArray(p));}, // Move by left top corner
+	move:function move(x,y){return this.attr('d',this.array().move(x,y));}, // Move by left top corner over x-axis
+	x:function x(_x6){return _x6 == null?this.bbox().x:this.move(_x6,this.bbox().y);}, // Move by left top corner over y-axis
+	y:function y(_y6){return _y6 == null?this.bbox().y:this.move(this.bbox().x,_y6);}, // Set element size to given width and height
+	size:function size(width,height){var p=proportionalSize(this.bbox(),width,height);return this.attr('d',this.array().size(p.width,p.height));}, // Set width of element
+	width:function width(_width4){return _width4 == null?this.bbox().width:this.size(_width4,this.bbox().height);}, // Set height of element
+	height:function height(_height4){return _height4 == null?this.bbox().height:this.size(this.bbox().width,_height4);}}, // Add parent method
 	construct:{ // Create a wrapped path element
 	path:function path(d){return this.put(new SVG.Path()).plot(d);}}});SVG.Image = SVG.invent({ // Initialize node
 	create:'image', // Inherit from
 	inherit:SVG.Shape, // Add class methods
 	extend:{ // (re)load image
-	load:function load(url){if(!url)return this;var self=this,img=document.createElement('img'); /* preload image */img.onload = function(){var p=self.doc(SVG.Pattern); /* ensure image size */if(self.width() == 0 && self.height() == 0)self.size(img.width,img.height); /* ensure pattern size if not set */if(p && p.width() == 0 && p.height() == 0)p.size(self.width(),self.height()); /* callback */if(typeof self._loaded === 'function')self._loaded.call(self,{width:img.width,height:img.height,ratio:img.width / img.height,url:url});};return this.attr('href',img.src = this.src = url,SVG.xlink);}, // Add loade callback
+	load:function load(url){if(!url)return this;var self=this,img=document.createElement('img'); // preload image
+	img.onload = function(){var p=self.parent(SVG.Pattern); // ensure image size
+	if(self.width() == 0 && self.height() == 0)self.size(img.width,img.height); // ensure pattern size if not set
+	if(p && p.width() == 0 && p.height() == 0)p.size(self.width(),self.height()); // callback
+	if(typeof self._loaded === 'function')self._loaded.call(self,{width:img.width,height:img.height,ratio:img.width / img.height,url:url});};return this.attr('href',img.src = this.src = url,SVG.xlink);}, // Add loaded callback
 	loaded:function loaded(_loaded){this._loaded = _loaded;return this;}}, // Add parent method
-	construct:{ // Create image element, load image and set its size
+	construct:{ // create image element, load image and set its size
 	image:function image(source,width,height){return this.put(new SVG.Image()).load(source).size(width || 0,height || width || 0);}}});SVG.Text = SVG.invent({ // Initialize node
-	create:function create(){this.constructor.call(this,SVG.create('text'));this._leading = new SVG.Number(1.3); /* store leading value for rebuilding */this._rebuild = true; /* enable automatic updating of dy values */this._build = false; /* disable build mode for adding multiple lines */ /* set default font */this.attr('font-family',SVG.defaults.attrs['font-family']);}, // Inherit from
+	create:function create(){this.constructor.call(this,SVG.create('text'));this._leading = new SVG.Number(1.3); // store leading value for rebuilding
+	this._rebuild = true; // enable automatic updating of dy values
+	this._build = false; // disable build mode for adding multiple lines
+	// set default font
+	this.attr('font-family',SVG.defaults.attrs['font-family']);}, // Inherit from
 	inherit:SVG.Shape, // Add class methods
-	extend:{ // Move over x-axis
-	x:function x(_x8){ /* act as getter */if(_x8 == null)return this.attr('x'); /* move lines as well if no textPath is present */if(!this.textPath)this.lines.each(function(){if(this.newLined)this.x(_x8);});return this.attr('x',_x8);}, // Move over y-axis
-	y:function y(_y8){var oy=this.attr('y'),o=typeof oy === 'number'?oy - this.bbox().y:0; /* act as getter */if(_y8 == null)return typeof oy === 'number'?oy - o:oy;return this.attr('y',typeof _y8 === 'number'?_y8 + o:_y8);}, // Move center over x-axis
+	extend:{clone:function clone(){ // clone element and assign new id
+	var clone=assignNewId(this.node.cloneNode(true)); // mark first level tspans as newlines
+	clone.lines().each(function(){this.newLined = true;}); // insert the clone after myself
+	this.after(clone);return clone;}, // Move over x-axis
+	x:function x(_x7){ // act as getter
+	if(_x7 == null)return this.attr('x'); // move lines as well if no textPath is present
+	if(!this.textPath)this.lines().each(function(){if(this.newLined)this.x(_x7);});return this.attr('x',_x7);}, // Move over y-axis
+	y:function y(_y7){var oy=this.attr('y'),o=typeof oy === 'number'?oy - this.bbox().y:0; // act as getter
+	if(_y7 == null)return typeof oy === 'number'?oy - o:oy;return this.attr('y',typeof _y7 === 'number'?_y7 + o:_y7);}, // Move center over x-axis
 	cx:function cx(x){return x == null?this.bbox().cx:this.x(x - this.bbox().width / 2);}, // Move center over y-axis
 	cy:function cy(y){return y == null?this.bbox().cy:this.y(y - this.bbox().height / 2);}, // Set the text content
-	text:function text(_text){ /* act as getter */if(typeof _text === 'undefined')return this.content; /* remove existing content */this.clear().build(true);if(typeof _text === 'function'){ /* call block */_text.call(this,this);}else { /* store text and make sure text is not blank */_text = (this.content = _text).split('\n'); /* build new lines */for(var i=0,il=_text.length;i < il;i++) this.tspan(_text[i]).newLine();} /* disable build mode and rebuild lines */return this.build(false).rebuild();}, // Set font size
+	text:function text(_text){ // act as getter
+	if(typeof _text === 'undefined')return this.content; // remove existing content
+	this.clear().build(true);if(typeof _text === 'function'){ // call block
+	_text.call(this,this);}else { // store text and make sure text is not blank
+	_text = (this.content = _text).split('\n'); // build new lines
+	for(var i=0,il=_text.length;i < il;i++) this.tspan(_text[i]).newLine();} // disable build mode and rebuild lines
+	return this.build(false).rebuild();}, // Set font size
 	size:function size(_size){return this.attr('font-size',_size).rebuild();}, // Set / get leading
-	leading:function leading(value){ /* act as getter */if(value == null)return this._leading; /* act as setter */this._leading = new SVG.Number(value);return this.rebuild();}, // Rebuild appearance type
-	rebuild:function rebuild(_rebuild){ /* store new rebuild flag if given */if(typeof _rebuild == 'boolean')this._rebuild = _rebuild; /* define position of all lines */if(this._rebuild){var self=this;this.lines.each(function(){if(this.newLined){if(!this.textPath)this.attr('x',self.attr('x'));this.attr('dy',self._leading * new SVG.Number(self.attr('font-size')));}});this.fire('rebuild');}return this;}, // Enable / disable build mode
+	leading:function leading(value){ // act as getter
+	if(value == null)return this._leading; // act as setter
+	this._leading = new SVG.Number(value);return this.rebuild();}, // Get all the first level lines
+	lines:function lines(){ // filter tspans and map them to SVG.js instances
+	var lines=SVG.utils.map(SVG.utils.filterSVGElements(this.node.childNodes),function(el){return SVG.adopt(el);}); // return an instance of SVG.set
+	return new SVG.Set(lines);}, // Rebuild appearance type
+	rebuild:function rebuild(_rebuild){ // store new rebuild flag if given
+	if(typeof _rebuild == 'boolean')this._rebuild = _rebuild; // define position of all lines
+	if(this._rebuild){var self=this;this.lines().each(function(){if(this.newLined){if(!this.textPath)this.attr('x',self.attr('x'));this.attr('dy',self._leading * new SVG.Number(self.attr('font-size')));}});this.fire('rebuild');}return this;}, // Enable / disable build mode
 	build:function build(_build){this._build = !!_build;return this;}}, // Add parent method
 	construct:{ // Create text element
 	text:function text(_text2){return this.put(new SVG.Text()).text(_text2);}, // Create plain text element
-	plain:function plain(text){return this.put(new SVG.Text()).plain(text);}}});SVG.TSpan = SVG.invent({ // Initialize node
+	plain:function plain(text){return this.put(new SVG.Text()).plain(text);}}});SVG.Tspan = SVG.invent({ // Initialize node
 	create:'tspan', // Inherit from
 	inherit:SVG.Shape, // Add class methods
 	extend:{ // Set text content
 	text:function text(_text3){typeof _text3 === 'function'?_text3.call(this,this):this.plain(_text3);return this;}, // Shortcut dx
 	dx:function dx(_dx){return this.attr('dx',_dx);}, // Shortcut dy
 	dy:function dy(_dy){return this.attr('dy',_dy);}, // Create new line
-	newLine:function newLine(){ /* fetch text parent */var t=this.doc(SVG.Text); /* mark new line */this.newLined = true; /* apply new hy¡n */return this.dy(t._leading * t.attr('font-size')).attr('x',t.x());}}});SVG.extend(SVG.Text,SVG.TSpan,{ // Create plain text node
-	plain:function plain(text){ /* clear if build mode is disabled */if(this._build === false)this.clear(); /* create text node */this.node.appendChild(document.createTextNode(this.content = text));return this;}, // Create a tspan
-	tspan:function tspan(text){var node=(this.textPath || this).node,tspan=new SVG.TSpan(); /* clear if build mode is disabled */if(this._build === false)this.clear(); /* add new tspan and reference */node.appendChild(tspan.node);tspan.parent = this; /* only first level tspans are considered to be "lines" */if(this instanceof SVG.Text)this.lines.add(tspan);return tspan.text(text);}, // Clear all lines
-	clear:function clear(){var node=(this.textPath || this).node; /* remove existing child nodes */while(node.hasChildNodes()) node.removeChild(node.lastChild); /* reset content references  */if(this instanceof SVG.Text){delete this.lines;this.lines = new SVG.Set();this.content = '';}return this;}, // Get length of text element
+	newLine:function newLine(){ // fetch text parent
+	var t=this.parent(SVG.Text); // mark new line
+	this.newLined = true; // apply new hy¡n
+	return this.dy(t._leading * t.attr('font-size')).attr('x',t.x());}}});SVG.extend(SVG.Text,SVG.Tspan,{ // Create plain text node
+	plain:function plain(text){ // clear if build mode is disabled
+	if(this._build === false)this.clear(); // create text node
+	this.node.appendChild(document.createTextNode(this.content = text));return this;}, // Create a tspan
+	tspan:function tspan(text){var node=(this.textPath() || this).node,tspan=new SVG.Tspan(); // clear if build mode is disabled
+	if(this._build === false)this.clear(); // add new tspan
+	node.appendChild(tspan.node);return tspan.text(text);}, // Clear all lines
+	clear:function clear(){var node=(this.textPath() || this).node; // remove existing child nodes
+	while(node.hasChildNodes()) node.removeChild(node.lastChild); // reset content references 
+	if(this instanceof SVG.Text)this.content = '';return this;}, // Get length of text element
 	length:function length(){return this.node.getComputedTextLength();}});SVG.TextPath = SVG.invent({ // Initialize node
 	create:'textPath', // Inherit from
 	inherit:SVG.Element, // Define parent class
 	parent:SVG.Text, // Add parent method
 	construct:{ // Create path for text to run on
-	path:function path(d){ /* create textPath element */this.textPath = new SVG.TextPath(); /* move lines to textpath */while(this.node.hasChildNodes()) this.textPath.node.appendChild(this.node.firstChild); /* add textPath element as child node */this.node.appendChild(this.textPath.node); /* create path in defs */this.track = this.doc().defs().path(d); /* create circular reference */this.textPath.parent = this; /* link textPath to path and add content */this.textPath.attr('href','#' + this.track,SVG.xlink);return this;}, // Plot path if any
-	plot:function plot(d){if(this.track)this.track.plot(d);return this;}}});SVG.Nested = SVG.invent({ // Initialize node
+	path:function path(d){ // create textPath element
+	var path=new SVG.TextPath(),track=this.doc().defs().path(d); // move lines to textpath
+	while(this.node.hasChildNodes()) path.node.appendChild(this.node.firstChild); // add textPath element as child node
+	this.node.appendChild(path.node); // link textPath to path and add content
+	path.attr('href','#' + track,SVG.xlink);return this;}, // Plot path if any
+	plot:function plot(d){var track=this.track();if(track)track.plot(d);return this;}, // Get the path track element
+	track:function track(){var path=this.textPath();if(path)return path.reference('href');}, // Get the textPath child
+	textPath:function textPath(){if(this.node.firstChild && this.node.firstChild.nodeName == 'textPath')return SVG.adopt(this.node.firstChild);}}});SVG.Nested = SVG.invent({ // Initialize node
 	create:function create(){this.constructor.call(this,SVG.create('svg'));this.style('overflow','visible');}, // Inherit from
 	inherit:SVG.Container, // Add parent method
 	construct:{ // Create nested svg document
@@ -3124,12 +3397,12 @@
 	target:function target(_target){return this.attr('target',_target);}}, // Add parent method
 	construct:{ // Create a hyperlink element
 	link:function link(url){return this.put(new SVG.A()).to(url);}}});SVG.extend(SVG.Element,{ // Create a hyperlink element
-	linkTo:function linkTo(url){var link=new SVG.A();if(typeof url == 'function')url.call(link,link);else link.to(url);return this.parent.put(link).put(this);}});SVG.Marker = SVG.invent({ // Initialize node
+	linkTo:function linkTo(url){var link=new SVG.A();if(typeof url == 'function')url.call(link,link);else link.to(url);return this.parent().put(link).put(this);}});SVG.Marker = SVG.invent({ // Initialize node
 	create:'marker', // Inherit from
 	inherit:SVG.Container, // Add class methods
 	extend:{ // Set width of element
-	width:function width(_width6){return this.attr('markerWidth',_width6);}, // Set height of element
-	height:function height(_height6){return this.attr('markerHeight',_height6);}, // Set marker refX and refY
+	width:function width(_width5){return this.attr('markerWidth',_width5);}, // Set height of element
+	height:function height(_height5){return this.attr('markerHeight',_height5);}, // Set marker refX and refY
 	ref:function ref(x,y){return this.attr('refX',x).attr('refY',y);}, // Update marker
 	update:function update(block){ /* remove all content */this.clear(); /* invoke passed block */if(typeof block == 'function')block.call(this,this);return this;}, // Return the fill id
 	toString:function toString(){return 'url(#' + this.id() + ')';}}, // Add parent method
@@ -3139,46 +3412,85 @@
 	return this.put(new SVG.Marker()).size(width,height).ref(width / 2,height / 2).viewbox(0,0,width,height).attr('orient','auto').update(block);}});SVG.extend(SVG.Line,SVG.Polyline,SVG.Polygon,SVG.Path,{ // Create and attach markers
 	marker:function marker(_marker,width,height,block){var attr=['marker']; // Build attribute name
 	if(_marker != 'all')attr.push(_marker);attr = attr.join('-'); // Set marker attribute
-	_marker = arguments[1] instanceof SVG.Marker?arguments[1]:this.doc().marker(width,height,block);return this.attr(attr,_marker);}});var sugar={stroke:['color','width','opacity','linecap','linejoin','miterlimit','dasharray','dashoffset'],fill:['color','opacity','rule'],prefix:function prefix(t,a){return a == 'color'?t:t + '-' + a;}} /* Add sugar for fill and stroke */;['fill','stroke'].forEach(function(m){var i,extension={};extension[m] = function(o){if(typeof o == 'string' || SVG.Color.isRgb(o) || o && typeof o.fill === 'function')this.attr(m,o);else  /* set all attributes from sugar.fill and sugar.stroke list */for(i = sugar[m].length - 1;i >= 0;i--) if(o[sugar[m][i]] != null)this.attr(sugar.prefix(m,sugar[m][i]),o[sugar[m][i]]);return this;};SVG.extend(SVG.Element,SVG.FX,extension);});SVG.extend(SVG.Element,SVG.FX,{ // Rotation
-	rotate:function rotate(deg,x,y){return this.transform({rotation:deg || 0,cx:x,cy:y});}, // Skew
-	skew:function skew(x,y){return this.transform({skewX:x || 0,skewY:y || 0});}, // Scale
-	scale:function scale(x,y){return this.transform({scaleX:x,scaleY:y == null?x:y});}, // Translate
-	translate:function translate(x,y){return this.transform({x:x,y:y});}, // Matrix
-	matrix:function matrix(m){return this.transform({matrix:m});}, // Opacity
-	opacity:function opacity(value){return this.attr('opacity',value);}});SVG.extend(SVG.Rect,SVG.Ellipse,SVG.FX,{ // Add x and y radius
-	radius:function radius(x,y){return this.attr({rx:x,ry:y || x});}});SVG.extend(SVG.Path,{ // Get path length
+	_marker = arguments[1] instanceof SVG.Marker?arguments[1]:this.doc().marker(width,height,block);return this.attr(attr,_marker);}}); // Define list of available attributes for stroke and fill
+	var sugar={stroke:['color','width','opacity','linecap','linejoin','miterlimit','dasharray','dashoffset'],fill:['color','opacity','rule'],prefix:function prefix(t,a){return a == 'color'?t:t + '-' + a;}} /* Add sugar for fill and stroke */;['fill','stroke'].forEach(function(m){var i,extension={};extension[m] = function(o){if(typeof o == 'string' || SVG.Color.isRgb(o) || o && typeof o.fill === 'function')this.attr(m,o);else  /* set all attributes from sugar.fill and sugar.stroke list */for(i = sugar[m].length - 1;i >= 0;i--) if(o[sugar[m][i]] != null)this.attr(sugar.prefix(m,sugar[m][i]),o[sugar[m][i]]);return this;};SVG.extend(SVG.Element,SVG.FX,extension);});SVG.extend(SVG.Element,SVG.FX,{ // Map rotation to transform
+	rotate:function rotate(d,cx,cy){return this.transform({rotation:d,cx:cx,cy:cy});}, // Map skew to transform
+	skew:function skew(x,y,cx,cy){return this.transform({skewX:x,skewY:y,cx:cx,cy:cy});}, // Map scale to transform
+	scale:function scale(x,y,cx,cy){return arguments.length == 1 || arguments.length == 3?this.transform({scale:x,cx:y,cy:cx}):this.transform({scaleX:x,scaleY:y,cx:cx,cy:cy});}, // Map translate to transform
+	translate:function translate(x,y){return this.transform({x:x,y:y});}, // Map flip to transform
+	flip:function flip(a,o){return this.transform({flip:a,offset:o});}, // Map matrix to transform
+	matrix:function matrix(m){return this.attr('transform',new SVG.Matrix(m));}, // Opacity
+	opacity:function opacity(value){return this.attr('opacity',value);}, // Relative move over x axis
+	dx:function dx(x){return this.x((this.target || this).x() + x);}, // Relative move over y axis
+	dy:function dy(y){return this.y((this.target || this).y() + y);}, // Relative move over x and y axes
+	dmove:function dmove(x,y){return this.dx(x).dy(y);}});SVG.extend(SVG.Rect,SVG.Ellipse,SVG.Circle,SVG.Gradient,SVG.FX,{ // Add x and y radius
+	radius:function radius(x,y){var type=(this.target || this).type;return type == 'radial' || type == 'circle'?this.attr({'r':new SVG.Number(x)}):this.rx(x).ry(y == null?x:y);}});SVG.extend(SVG.Path,{ // Get path length
 	length:function length(){return this.node.getTotalLength();}, // Get point at length
-	pointAt:function pointAt(length){return this.node.getPointAtLength(length);}});SVG.extend(SVG.Parent,SVG.Text,SVG.FX,{ // Set font 
+	pointAt:function pointAt(length){return this.node.getPointAtLength(length);}});SVG.extend(SVG.Parent,SVG.Text,SVG.FX,{ // Set font
 	font:function font(o){for(var k in o) k == 'leading'?this.leading(o[k]):k == 'anchor'?this.attr('text-anchor',o[k]):k == 'size' || k == 'family' || k == 'weight' || k == 'stretch' || k == 'variant' || k == 'style'?this.attr('font-' + k,o[k]):this.attr(k,o[k]);return this;}});SVG.Set = SVG.invent({ // Initialize
-	create:function create(){ /* set initial state */this.clear();}, // Add class methods
+	create:function create(members){ // Set initial state
+	Array.isArray(members)?this.members = members:this.clear();}, // Add class methods
 	extend:{ // Add element to set
 	add:function add(){var i,il,elements=[].slice.call(arguments);for(i = 0,il = elements.length;i < il;i++) this.members.push(elements[i]);return this;}, // Remove element from set
-	remove:function remove(element){var i=this.index(element); /* remove given child */if(i > -1)this.members.splice(i,1);return this;}, // Iterate over all members
+	remove:function remove(element){var i=this.index(element); // remove given child
+	if(i > -1)this.members.splice(i,1);return this;}, // Iterate over all members
 	each:function each(block){for(var i=0,il=this.members.length;i < il;i++) block.apply(this.members[i],[i,this.members]);return this;}, // Restore to defaults
-	clear:function clear(){ /* initialize store */this.members = [];return this;}, // Checks if a given element is present in set
+	clear:function clear(){ // initialize store
+	this.members = [];return this;}, // Get the length of a set
+	length:function length(){return this.members.length;}, // Checks if a given element is present in set
 	has:function has(element){return this.index(element) >= 0;}, // retuns index of given element in set
 	index:function index(element){return this.members.indexOf(element);}, // Get member at given index
 	get:function get(i){return this.members[i];}, // Get first member
 	first:function first(){return this.get(0);}, // Get last member
 	last:function last(){return this.get(this.members.length - 1);}, // Default value
 	valueOf:function valueOf(){return this.members;}, // Get the bounding box of all members included or empty box if set has no items
-	bbox:function bbox(){var box=new SVG.BBox(); /* return an empty box of there are no members */if(this.members.length == 0)return box; /* get the first rbox and update the target bbox */var rbox=this.members[0].rbox();box.x = rbox.x;box.y = rbox.y;box.width = rbox.width;box.height = rbox.height;this.each(function(){ /* user rbox for correct position and visual representation */box = box.merge(this.rbox());});return box;}}, // Add parent method
+	bbox:function bbox(){var box=new SVG.BBox(); // return an empty box of there are no members
+	if(this.members.length == 0)return box; // get the first rbox and update the target bbox
+	var rbox=this.members[0].rbox();box.x = rbox.x;box.y = rbox.y;box.width = rbox.width;box.height = rbox.height;this.each(function(){ // user rbox for correct position and visual representation
+	box = box.merge(this.rbox());});return box;}}, // Add parent method
 	construct:{ // Create a new set
-	set:function set(){return new SVG.Set();}}});SVG.SetFX = SVG.invent({ // Initialize node
-	create:function create(set){ /* store reference to set */this.set = set;}}); // Alias methods
-	SVG.Set.inherit = function(){var m,methods=[]; /* gather shape methods */for(var m in SVG.Shape.prototype) if(typeof SVG.Shape.prototype[m] == 'function' && typeof SVG.Set.prototype[m] != 'function')methods.push(m); /* apply shape aliasses */methods.forEach(function(method){SVG.Set.prototype[method] = function(){for(var i=0,il=this.members.length;i < il;i++) if(this.members[i] && typeof this.members[i][method] == 'function')this.members[i][method].apply(this.members[i],arguments);return method == 'animate'?this.fx || (this.fx = new SVG.SetFX(this)):this;};}); /* clear methods for the next round */methods = []; /* gather fx methods */for(var m in SVG.FX.prototype) if(typeof SVG.FX.prototype[m] == 'function' && typeof SVG.SetFX.prototype[m] != 'function')methods.push(m); /* apply fx aliasses */methods.forEach(function(method){SVG.SetFX.prototype[method] = function(){for(var i=0,il=this.set.members.length;i < il;i++) this.set.members[i].fx[method].apply(this.set.members[i].fx,arguments);return this;};});};SVG.extend(SVG.Element,{ // Store data values on svg nodes
+	set:function set(members){return new SVG.Set(members);}}});SVG.FX.Set = SVG.invent({ // Initialize node
+	create:function create(set){ // store reference to set
+	this.set = set;}}); // Alias methods
+	SVG.Set.inherit = function(){var m,methods=[]; // gather shape methods
+	for(var m in SVG.Shape.prototype) if(typeof SVG.Shape.prototype[m] == 'function' && typeof SVG.Set.prototype[m] != 'function')methods.push(m); // apply shape aliasses
+	methods.forEach(function(method){SVG.Set.prototype[method] = function(){for(var i=0,il=this.members.length;i < il;i++) if(this.members[i] && typeof this.members[i][method] == 'function')this.members[i][method].apply(this.members[i],arguments);return method == 'animate'?this.fx || (this.fx = new SVG.FX.Set(this)):this;};}); // clear methods for the next round
+	methods = []; // gather fx methods
+	for(var m in SVG.FX.prototype) if(typeof SVG.FX.prototype[m] == 'function' && typeof SVG.FX.Set.prototype[m] != 'function')methods.push(m); // apply fx aliasses
+	methods.forEach(function(method){SVG.FX.Set.prototype[method] = function(){for(var i=0,il=this.set.members.length;i < il;i++) this.set.members[i].fx[method].apply(this.set.members[i].fx,arguments);return this;};});}; //
+	SVG.extend(SVG.Element,{ // Store data values on svg nodes
 	data:function data(a,v,r){if(typeof a == 'object'){for(v in a) this.data(v,a[v]);}else if(arguments.length < 2){try{return JSON.parse(this.attr('data-' + a));}catch(e) {return this.attr('data-' + a);}}else {this.attr('data-' + a,v === null?null:r === true || typeof v === 'string' || typeof v === 'number'?v:JSON.stringify(v));}return this;}});SVG.extend(SVG.Element,{ // Remember arbitrary data
 	remember:function remember(k,v){ /* remember every item in an object individually */if(typeof arguments[0] == 'object')for(var v in k) this.remember(v,k[v]); /* retrieve memory */else if(arguments.length == 1)return this.memory()[k]; /* store memory */else this.memory()[k] = v;return this;}, // Erase a given memory
 	forget:function forget(){if(arguments.length == 0)this._memory = {};else for(var i=arguments.length - 1;i >= 0;i--) delete this.memory()[arguments[i]];return this;}, // Initialize or return local memory object
-	memory:function memory(){return this._memory || (this._memory = {});}});function camelCase(s){return s.toLowerCase().replace(/-(.)/g,function(m,g){return g.toUpperCase();});} // Ensure to six-based hex 
+	memory:function memory(){return this._memory || (this._memory = {});}}); // Method for getting an element by id
+	SVG.get = function(id){var node=document.getElementById(idFromReference(id) || id);if(node)return SVG.adopt(node);}; // Select elements by query string
+	SVG.select = function(query,parent){return new SVG.Set(SVG.utils.map((parent || document).querySelectorAll(query),function(node){return SVG.adopt(node);}));};SVG.extend(SVG.Parent,{ // Scoped select method
+	select:function select(query){return SVG.select(query,this.node);}}); // Convert dash-separated-string to camelCase
+	function camelCase(s){return s.toLowerCase().replace(/-(.)/g,function(m,g){return g.toUpperCase();});} // Capitalize first letter of a string
+	function capitalize(s){return s.charAt(0).toUpperCase() + s.slice(1);} // Ensure to six-based hex 
 	function fullHex(hex){return hex.length == 4?['#',hex.substring(1,2),hex.substring(1,2),hex.substring(2,3),hex.substring(2,3),hex.substring(3,4),hex.substring(3,4)].join(''):hex;} // Component to hex value
 	function compToHex(comp){var hex=comp.toString(16);return hex.length == 1?'0' + hex:hex;} // Calculate proportional width and height values when necessary
-	function proportionalSize(box,width,height){if(width == null || height == null){if(height == null)height = box.height / box.width * width;else if(width == null)width = box.width / box.height * height;}return {width:width,height:height};} // Calculate position according to from and to
-	function at(o,pos){ /* number recalculation (don't bother converting to SVG.Number for performance reasons) */return typeof o.from == 'number'?o.from + (o.to - o.from) * pos: /* instance recalculation */o instanceof SVG.Color || o instanceof SVG.Number?o.at(pos): /* for all other values wait until pos has reached 1 to return the final value */pos < 1?o.from:o.to;} // PathArray Helpers
-	function arrayToString(a){for(var i=0,il=a.length,s='';i < il;i++) {s += a[i][0];if(a[i][1] != null){s += a[i][1];if(a[i][2] != null){s += ' ';s += a[i][2];if(a[i][3] != null){s += ' ';s += a[i][3];s += ' ';s += a[i][4];if(a[i][5] != null){s += ' ';s += a[i][5];s += ' ';s += a[i][6];if(a[i][7] != null){s += ' ';s += a[i][7];}}}}}}return s + ' ';} // Add more bounding box properties
-	function boxProperties(b){b.x2 = b.x + b.width;b.y2 = b.y + b.height;b.cx = b.x + b.width / 2;b.cy = b.y + b.height / 2;} // Parse a matrix string
-	function parseMatrix(o){if(o.matrix){ /* split matrix string */var m=o.matrix.replace(/\s/g,'').split(','); /* pasrse values */if(m.length == 6){o.a = parseFloat(m[0]);o.b = parseFloat(m[1]);o.c = parseFloat(m[2]);o.d = parseFloat(m[3]);o.e = parseFloat(m[4]);o.f = parseFloat(m[5]);}}return o;} // Get id from reference string
-	function idFromReference(url){var m=url.toString().match(SVG.regex.reference);if(m)return m[1];}return SVG;});
+	function proportionalSize(box,width,height){if(height == null)height = box.height / box.width * width;else if(width == null)width = box.width / box.height * height;return {width:width,height:height};} // Delta transform point
+	function deltaTransformPoint(matrix,x,y){return {x:x * matrix.a + y * matrix.c + 0,y:x * matrix.b + y * matrix.d + 0};} // Map matrix array to object
+	function arrayToMatrix(a){return {a:a[0],b:a[1],c:a[2],d:a[3],e:a[4],f:a[5]};} // Parse matrix if required
+	function parseMatrix(matrix){if(!(matrix instanceof SVG.Matrix))matrix = new SVG.Matrix(matrix);return matrix;} // Add centre point to transform object
+	function ensureCentre(o,target){o.cx = o.cx == null?target.bbox().cx:o.cx;o.cy = o.cy == null?target.bbox().cy:o.cy;} // Convert string to matrix
+	function stringToMatrix(source){ // remove matrix wrapper and split to individual numbers
+	source = source.replace(SVG.regex.whitespace,'').replace(SVG.regex.matrix,'').split(SVG.regex.matrixElements); // convert string values to floats and convert to a matrix-formatted object
+	return arrayToMatrix(SVG.utils.map(source,function(n){return parseFloat(n);}));} // Calculate position according to from and to
+	function at(o,pos){ // number recalculation (don't bother converting to SVG.Number for performance reasons)
+	return typeof o.from == 'number'?o.from + (o.to - o.from) * pos: // instance recalculation
+	o instanceof SVG.Color || o instanceof SVG.Number || o instanceof SVG.Matrix?o.at(pos): // for all other values wait until pos has reached 1 to return the final value
+	pos < 1?o.from:o.to;} // PathArray Helpers
+	function arrayToString(a){for(var i=0,il=a.length,s='';i < il;i++) {s += a[i][0];if(a[i][1] != null){s += a[i][1];if(a[i][2] != null){s += ' ';s += a[i][2];if(a[i][3] != null){s += ' ';s += a[i][3];s += ' ';s += a[i][4];if(a[i][5] != null){s += ' ';s += a[i][5];s += ' ';s += a[i][6];if(a[i][7] != null){s += ' ';s += a[i][7];}}}}}}return s + ' ';} // Deep new id assignment
+	function assignNewId(node){ // do the same for SVG child nodes as well
+	for(var i=node.childNodes.length - 1;i >= 0;i--) if(node.childNodes[i] instanceof SVGElement)assignNewId(node.childNodes[i]);return SVG.adopt(node).id(SVG.eid(node.nodeName));} // Add more bounding box properties
+	function fullBox(b){if(b.x == null){b.x = 0;b.y = 0;b.width = 0;b.height = 0;}b.w = b.width;b.h = b.height;b.x2 = b.x + b.width;b.y2 = b.y + b.height;b.cx = b.x + b.width / 2;b.cy = b.y + b.height / 2;return b;} // Get id from reference string
+	function idFromReference(url){var m=url.toString().match(SVG.regex.reference);if(m)return m[1];} // Create matrix array for looping
+	var abcdef='abcdef'.split(''); // Add CustomEvent to IE9 and IE10 
+	if(typeof CustomEvent !== 'function'){ // Code from: https://developer.mozilla.org/en-US/docs/Web/API/CustomEvent
+	var CustomEvent=function CustomEvent(event,options){options = options || {bubbles:false,cancelable:false,detail:undefined};var e=document.createEvent('CustomEvent');e.initCustomEvent(event,options.bubbles,options.cancelable,options.detail);return e;};CustomEvent.prototype = window.Event.prototype;window.CustomEvent = CustomEvent;} // requestAnimationFrame / cancelAnimationFrame Polyfill with fallback based on Paul Irish
+	(function(w){var lastTime=0;var vendors=['moz','webkit'];for(var x=0;x < vendors.length && !window.requestAnimationFrame;++x) {w.requestAnimationFrame = w[vendors[x] + 'RequestAnimationFrame'];w.cancelAnimationFrame = w[vendors[x] + 'CancelAnimationFrame'] || w[vendors[x] + 'CancelRequestAnimationFrame'];}w.requestAnimationFrame = w.requestAnimationFrame || function(callback){var currTime=new Date().getTime();var timeToCall=Math.max(0,16 - (currTime - lastTime));var id=w.setTimeout(function(){callback(currTime + timeToCall);},timeToCall);lastTime = currTime + timeToCall;return id;};w.cancelAnimationFrame = w.cancelAnimationFrame || w.clearTimeout;})(window);return SVG;});
 
 /***/ }
 /******/ ]);

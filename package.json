@@ -15,7 +15,7 @@
     "grunt-contrib-uglify": "*",
     "grunt-webpack": "*",
     "jest-cli": "^0.5.8",
-    "svg.js": "1.1.0",
+    "svg.js": "2.1.1",
     "webpack": "^1.12.2"
   },
   "scripts": {

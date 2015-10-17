@@ -1,6 +1,6 @@
 import CharacterRenderer from './renderers/CharacterRenderer';
 import UserStrokeRenderer from './renderers/UserStrokeRenderer';
-import CharacterPositionerRenderer from './renderers/CharacterPositionerRenderer';
+import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';
 import UserStroke from './models/UserStroke';
 import StrokeMatcher from './StrokeMatcher';
@@ -21,7 +21,7 @@ const defaultOptions = {
   // animation options
 
   strokeAnimationDuration: 300,
-  strokeHighlightDuration: 500,
+  strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
 
   // colors
@@ -47,8 +47,6 @@ class HanziWriter {
     this.setOptions(options);
     this.setCharacter(character);
     this.setupListeners();
-    this.hintRenderer.draw();
-    this.characterRenderer.draw();
     this.lastAnimation = null;
   }
 
@@ -59,14 +57,14 @@ class HanziWriter {
       strokeWidth: this.options.strokeWidth,
       strokeAnimationDuration: this.options.strokeAnimationDuration,
       delayBetweenStrokes: this.options.delayBetweenStrokes,
-
-      // TODO: move highlighting to its own character
-      highlightColor: this.options.highlightColor,
-      strokeHighlightDuration: this.options.strokeHighlightDuration,
     };
     this.hintCharOptions = copyAndExtend(this.mainCharOptions, {
       strokeColor: this.options.hintColor,
       strokeWidth: this.options.hintWidth,
+    });
+    this.highlightCharOptions = copyAndExtend(this.mainCharOptions, {
+      strokeColor: this.options.highlightColor,
+      strokeAnimationDuration: this.options.strokeHighlightDuration,
     });
     this.userStrokeOptions = {
       strokeColor: this.options.drawingColor,
@@ -78,25 +76,20 @@ class HanziWriter {
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    const animation = this.setupAnimation();
-    this.characterRenderer.show(copyAndExtend(this.mainCharOptions, options), animation);
+    this.animate(animation => this.characterRenderer.show(animation));
   }
   hideCharacter(options = {}) {
-    const animation = this.setupAnimation();
-    this.characterRenderer.hide(copyAndExtend(this.mainCharOptions, options), animation);
+    this.animate(animation => this.characterRenderer.hide(animation));
   }
   animateCharacter(options = {}) {
-    const animation = this.setupAnimation();
-    this.characterRenderer.animate(copyAndExtend(this.mainCharOptions, options), animation);
+    this.animate(animation => this.characterRenderer.animate(animation));
   }
 
   showHint(options = {}) {
-    const animation = this.setupAnimation();
-    this.hintRenderer.show(copyAndExtend(this.hintCharOptions, options), animation);
+    this.animate(animation => this.hintRenderer.show(animation));
   }
   hideHint(options = {}) {
-    const animation = this.setupAnimation();
-    this.hintRenderer.hide(copyAndExtend(this.hintCharOptions, options), animation);
+    this.animate(animation => this.hintRenderer.hide(animation));
   }
 
   quiz(quizOptions = {}) {
@@ -114,15 +107,23 @@ class HanziWriter {
   }
 
   setCharacter(char) {
+    if (this.positioner) this. positioner.destroy();
+
     const pathStrings = this.options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
     this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
+    this.positioner = new PositionerRenderer(this.options);
+
     this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions);
     this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions);
-    this.positioner = new CharacterPositionerRenderer(this.characterRenderer, this.options);
-    this.hintPositioner = new CharacterPositionerRenderer(this.hintRenderer, this.options);
-    this.hintPositioner.setCanvas(this.svg);
+    this.highlightRenderer = new CharacterRenderer(this.character, this.highlightCharOptions);
+
+    this.positioner.positionRenderer(this.hintRenderer);
+    this.positioner.positionRenderer(this.characterRenderer);
+    this.positioner.positionRenderer(this.highlightRenderer); // need this to be on top
+
     this.positioner.setCanvas(this.svg);
+    this.positioner.draw();
   }
 
   // ------------- //
@@ -165,26 +166,33 @@ class HanziWriter {
   }
 
   endUserStroke() {
-    if (!this.userStroke) return;
-    const animation = this.setupAnimation();
-    const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-    const strokeMatcher = new StrokeMatcher(this.options);
-    const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-    this.userStrokeRenderer.fadeAndRemove({}, animation);
-    this.userStroke = null;
-    this.userStrokeRenderer = null;
-    if (!this.isQuizzing) return;
-    const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-    if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-      this.drawnStrokes.push(matchingStroke);
-      this.currentStrokeIndex += 1;
-      this.numRecentMistakes = 0;
-      this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), {}, animation);
-      if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
-    } else {
-      this.numRecentMistakes += 1;
-      if (this.numRecentMistakes > 3) this.characterRenderer.getStrokeRenderer(this.currentStrokeIndex).highlight();
-    }
+    this.animate((animation) => {
+      if (!this.userStroke) return Promise.resolve();
+
+      const promises = [];
+      const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
+      const strokeMatcher = new StrokeMatcher(this.options);
+      const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
+      promises.push(this.userStrokeRenderer.fadeAndRemove(animation));
+      this.userStroke = null;
+      this.userStrokeRenderer = null;
+      if (!this.isQuizzing) return Promise.resolve();
+      const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
+      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
+        this.drawnStrokes.push(matchingStroke);
+        this.currentStrokeIndex += 1;
+        this.numRecentMistakes = 0;
+        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
+        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
+      } else {
+        this.numRecentMistakes += 1;
+        if (this.numRecentMistakes > 3) {
+          const strokeHintRenderer = this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex);
+          promises.push(strokeHintRenderer.highlight(animation));
+        }
+      }
+      return Promise.all(promises);
+    });
   }
 
   getMousePoint(evt) {
@@ -201,6 +209,11 @@ class HanziWriter {
     if (this.lastAnimation) this.lastAnimation.cancel();
     this.lastAnimation = new Animation();
     return this.lastAnimation;
+  }
+
+  animate(func) {
+    const animation = this.setupAnimation();
+    func(animation).then(() => animation.finish());
   }
 }
 

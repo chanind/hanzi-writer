@@ -2,10 +2,11 @@ import PathRenderer from './PathRenderer';
 
 class StrokePartRenderer extends PathRenderer {
 
-  constructor(strokePart, options = {}) {
+  constructor(strokePart, stroke, options = {}) {
     super();
     this.options = options;
     this.strokePart = strokePart;
+    this.stroke = stroke;
   }
 
   getPathString() {
@@ -23,39 +24,29 @@ class StrokePartRenderer extends PathRenderer {
     this.canvas.circle(10).attr({fill: '#9F9'}).move(end.getX(), end.getY());
   }
 
-  highlight() {
-    this.path.animate(this.options.strokeHighlightDuration)
-      .attr({
-        fill: this.options.highlightColor,
-        stroke: this.options.highlightColor,
-        opacity: 1,
-      })
-      .after(() => {
-        this.path.animate(this.options.strokeHighlightDuration)
-          .attr({opacity: 0})
-          .after(() => this.path.attr(this.getStrokeAttrs(this.options)));
-      });
-  }
-
   draw() {
-    return super.draw().attr(this.getStrokeAttrs(this.options)).attr({opacity: 0});
+    return super.draw().attr(this.getStrokeAttrs()).attr({opacity: 0});
   }
 
-  show(animationOptions, animation) {
-    const svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration)
-      .opacity(1)
-      .after(animationOptions.onComplete);
-    animation.registerSvgAnimation(svgAnimation);
+  show(animation) {
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
+        .opacity(1)
+        .after(resolve);
+      animation.registerSvgAnimation(svgAnimation);
+    });
   }
 
-  hide(animationOptions, animation) {
-    const svgAnimation = this.path.animate(animationOptions.strokeAnimationDuration)
-      .opacity(0)
-      .after(animationOptions.onComplete);
-    animation.registerSvgAnimation(svgAnimation);
+  hide(animation) {
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
+        .opacity(0)
+        .after(resolve);
+      animation.registerSvgAnimation(svgAnimation);
+    });
   }
 
-  animate(animationOptions, animation) {
+  animate(animation) {
     const start = this.strokePart.getStartingPoint();
     if (!this.path) this.drawPath();
     if (!this.mask) {
@@ -66,13 +57,15 @@ class StrokePartRenderer extends PathRenderer {
     this.mask.radius(0);
     this.path
       .attr({opacity: 1})
-      .attr(this.getStrokeAttrs(animationOptions));
+      .attr(this.getStrokeAttrs());
 
-    const svgAnimation = this.mask.animate(animationOptions.strokeAnimationDuration)
-      .radius(this.strokePart.getLength())
-      .after(animationOptions.onComplete);
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.mask.animate(this.options.strokeAnimationDuration / this.stroke.getNumStrokeParts())
+        .radius(this.strokePart.getLength())
+        .after(resolve);
 
-    animation.registerSvgAnimation(svgAnimation);
+      animation.registerSvgAnimation(svgAnimation);
+    });
   }
 
   destroy() {
@@ -80,11 +73,11 @@ class StrokePartRenderer extends PathRenderer {
     if (this.mask) this.mask.remove();
   }
 
-  getStrokeAttrs(options) {
+  getStrokeAttrs() {
     return {
-      fill: options.strokeColor,
-      stroke: options.strokeColor,
-      'stroke-width': options.strokeWidth,
+      fill: this.options.strokeColor,
+      stroke: this.options.strokeColor,
+      'stroke-width': this.options.strokeWidth,
     };
   }
 }

@@ -10,6 +10,10 @@ class Stroke {
     return this._strokeParts;
   }
 
+  getNumStrokeParts() {
+    return this._strokeParts.length;
+  }
+
   getStrokeNum() {
     return this._strokeNum;
   }

@@ -19,6 +19,10 @@ class StrokePart {
     return Point.getBounds(this._points);
   }
 
+  getVector() {
+    return this.getEndingPoint().subtract(this.getStartingPoint());
+  }
+
   // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
   getDistance(point) {
     const start = this.getStartingPoint();

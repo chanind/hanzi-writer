@@ -13,6 +13,20 @@ class Point {
   getY() {
     return this._y;
   }
+
+  // return a new point subtracting point from this
+  subtract(point) {
+    return new Point(this.getX() - point.getX(), this.getY() - point.getY());
+  }
+
+  getMagnitude() {
+    return Math.sqrt(Math.pow(this.getX(), 2) + Math.pow(this.getY(), 2));
+  }
+
+  equals(point) {
+    if (!point) return false;
+    return point.getX() === this.getX() && point.getY() === this.getY();
+  }
 }
 
 Point.getBounds = (points) => {
@@ -37,7 +51,13 @@ Point.getOverallBounds = (boundables) => {
 };
 
 Point.getDistance = (point1, point2) => {
-  return Math.sqrt(Math.pow(point1.getX() - point2.getX(), 2) + Math.pow(point1.getY() - point2.getY(), 2));
+  const difference = point1.subtract(point2);
+  return difference.getMagnitude();
+};
+
+Point.cosineSimilarity = (point1, point2) => {
+  const rawDotProduct = point1.getX() * point2.getX() + point1.getY() * point2.getY();
+  return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
 };
 
 export default Point;

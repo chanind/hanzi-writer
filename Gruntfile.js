@@ -9,6 +9,12 @@ module.exports = function(grunt) {
         src: '**',
         dest: 'dist/',
         expand: true
+      },
+      data: {
+        cwd: 'data/',
+        src: '**',
+        dest: 'dist/data/',
+        expand: true
       }
     },
 
@@ -52,5 +58,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-webpack');
 
-  grunt.registerTask('default', ['clean:pre', 'copy:main', 'webpack:dist', 'uglify:dist', 'clean:post']);
+  grunt.registerTask('default', ['clean:pre', 'copy:main', 'copy:data', 'webpack:dist', 'uglify:dist', 'clean:post']);
 };

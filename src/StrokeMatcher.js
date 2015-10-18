@@ -1,3 +1,4 @@
+import Point from './models/Point';
 
 class StrokeMatcher {
 
@@ -15,7 +16,23 @@ class StrokeMatcher {
         bestAvgDist = avgDist;
       }
     }
-    if (bestAvgDist < this.options.matchDistanceThreshold) return closestStroke;
+
+    const withinDistThresh = bestAvgDist < this.options.matchDistanceThreshold;
+    const lengthRatio = this.getLength(points) / closestStroke.getLength();
+    const withinLengthThresh = lengthRatio > 0.5 && lengthRatio < 1.5;
+
+    if (withinDistThresh && withinLengthThresh) return closestStroke;
+  }
+
+  getLength(points) {
+    if (points.length < 2) return 0;
+    let length = 0;
+    let lastPoint = points[0];
+    for (const point of points) {
+      length += Point.getDistance(point, lastPoint);
+      lastPoint = point;
+    }
+    return length;
   }
 
 }

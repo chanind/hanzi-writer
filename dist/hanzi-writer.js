@@ -2120,6 +2120,10 @@
 	  return Point.getBounds(bounds);
 	};
 
+	Point.getDistance = function (point1, point2) {
+	  return Math.sqrt(Math.pow(point1.getX() - point2.getX(), 2) + Math.pow(point1.getY() - point2.getY(), 2));
+	};
+
 	exports['default'] = Point;
 	module.exports = exports['default'];
 
@@ -2175,17 +2179,23 @@
 
 /***/ },
 /* 15 */
-/***/ function(module, exports) {
+/***/ function(module, exports, __webpack_require__) {
 
-	"use strict";
+	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
+	Object.defineProperty(exports, '__esModule', {
 	  value: true
 	});
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _modelsPoint = __webpack_require__(13);
+
+	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
 
 	var StrokeMatcher = (function () {
 	  function StrokeMatcher(options) {
@@ -2195,7 +2205,7 @@
 	  }
 
 	  _createClass(StrokeMatcher, [{
-	    key: "getMatchingStroke",
+	    key: 'getMatchingStroke',
 	    value: function getMatchingStroke(points, strokes) {
 	      var closestStroke = null;
 	      var bestAvgDist = 0;
@@ -2218,8 +2228,8 @@
 	        _iteratorError = err;
 	      } finally {
 	        try {
-	          if (!_iteratorNormalCompletion && _iterator["return"]) {
-	            _iterator["return"]();
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
 	          }
 	        } finally {
 	          if (_didIteratorError) {
@@ -2228,15 +2238,53 @@
 	        }
 	      }
 
-	      if (bestAvgDist < this.options.matchDistanceThreshold) return closestStroke;
+	      var withinDistThresh = bestAvgDist < this.options.matchDistanceThreshold;
+	      var lengthRatio = this.getLength(points) / closestStroke.getLength();
+	      var withinLengthThresh = lengthRatio > 0.5 && lengthRatio < 1.5;
+
+	      if (withinDistThresh && withinLengthThresh) return closestStroke;
+	    }
+	  }, {
+	    key: 'getLength',
+	    value: function getLength(points) {
+	      if (points.length < 2) return 0;
+	      var length = 0;
+	      var lastPoint = points[0];
+	      var _iteratorNormalCompletion2 = true;
+	      var _didIteratorError2 = false;
+	      var _iteratorError2 = undefined;
+
+	      try {
+	        for (var _iterator2 = points[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          var point = _step2.value;
+
+	          length += _modelsPoint2['default'].getDistance(point, lastPoint);
+	          lastPoint = point;
+	        }
+	      } catch (err) {
+	        _didIteratorError2 = true;
+	        _iteratorError2 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+	            _iterator2['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError2) {
+	            throw _iteratorError2;
+	          }
+	        }
+	      }
+
+	      return length;
 	    }
 	  }]);
 
 	  return StrokeMatcher;
 	})();
 
-	exports["default"] = StrokeMatcher;
-	module.exports = exports["default"];
+	exports['default'] = StrokeMatcher;
+	module.exports = exports['default'];
 
 /***/ },
 /* 16 */
@@ -2417,6 +2465,13 @@
 	      return _Point2['default'].getOverallBounds(this.getStrokeParts());
 	    }
 	  }, {
+	    key: 'getLength',
+	    value: function getLength() {
+	      return this.getStrokeParts().reduce(function (acc, part) {
+	        return acc + part.getLength();
+	      }, 0);
+	    }
+	  }, {
 	    key: 'getDistance',
 	    value: function getDistance(point) {
 	      var distances = this._strokeParts.map(function (strokePart) {
@@ -2525,7 +2580,7 @@
 	    value: function getLength() {
 	      var start = this.getStartingPoint();
 	      var end = this.getEndingPoint();
-	      return Math.sqrt(Math.pow(start.getX() - end.getX(), 2) + Math.pow(start.getY() - end.getY(), 2));
+	      return _Point2['default'].getDistance(start, end);
 	    }
 	  }, {
 	    key: 'getStartingPoint',

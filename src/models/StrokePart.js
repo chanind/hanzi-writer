@@ -32,7 +32,7 @@ class StrokePart {
   getLength() {
     const start = this.getStartingPoint();
     const end = this.getEndingPoint();
-    return Math.sqrt(Math.pow(start.getX() - end.getX(), 2) + Math.pow(start.getY() - end.getY(), 2));
+    return Point.getDistance(start, end);
   }
 
   getStartingPoint() {

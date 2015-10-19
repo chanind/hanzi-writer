@@ -22,6 +22,10 @@ class Stroke {
     return Point.getOverallBounds(this.getStrokeParts());
   }
 
+  getLength() {
+    return this.getStrokeParts().reduce((acc, part) => acc + part.getLength(), 0);
+  }
+
   getDistance(point) {
     const distances = this._strokeParts.map((strokePart) => {
       return strokePart.getDistance(point);

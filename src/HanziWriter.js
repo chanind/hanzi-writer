@@ -34,7 +34,6 @@ const defaultOptions = {
   // undocumented obscure options
 
   drawingFadeDuration: 300,
-  matchDistanceThreshold: 30,
   drawingWidth: 4,
   strokeWidth: 2,
   hintWidth: 2,
@@ -186,7 +185,7 @@ class HanziWriter {
         if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
       } else {
         this.numRecentMistakes += 1;
-        if (this.numRecentMistakes > 3) {
+        if (this.numRecentMistakes > 2) {
           const strokeHintRenderer = this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex);
           promises.push(strokeHintRenderer.highlight(animation));
         }

@@ -121,7 +121,6 @@
 	  // undocumented obscure options
 
 	  drawingFadeDuration: 300,
-	  matchDistanceThreshold: 30,
 	  drawingWidth: 4,
 	  strokeWidth: 2,
 	  hintWidth: 2
@@ -1024,6 +1023,7 @@
 	exports.arrayMin = arrayMin;
 	exports.getExtremes = getExtremes;
 	exports.callIfExists = callIfExists;
+	exports.average = average;
 	exports.timeout = timeout;
 
 	var _util = __webpack_require__(7);
@@ -1089,6 +1089,36 @@
 
 	function callIfExists(callback) {
 	  if (callback) callback();
+	}
+
+	function average(arr) {
+	  var sum = 0;
+	  var _iteratorNormalCompletion2 = true;
+	  var _didIteratorError2 = false;
+	  var _iteratorError2 = undefined;
+
+	  try {
+	    for (var _iterator2 = arr[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	      var val = _step2.value;
+
+	      sum += val;
+	    }
+	  } catch (err) {
+	    _didIteratorError2 = true;
+	    _iteratorError2 = err;
+	  } finally {
+	    try {
+	      if (!_iteratorNormalCompletion2 && _iterator2['return']) {
+	        _iterator2['return']();
+	      }
+	    } finally {
+	      if (_didIteratorError2) {
+	        throw _iteratorError2;
+	      }
+	    }
+	  }
+
+	  return sum / arr.length;
 	}
 
 	function timeout() {
@@ -2062,6 +2092,24 @@
 	    value: function getY() {
 	      return this._y;
 	    }
+
+	    // return a new point subtracting point from this
+	  }, {
+	    key: 'subtract',
+	    value: function subtract(point) {
+	      return new Point(this.getX() - point.getX(), this.getY() - point.getY());
+	    }
+	  }, {
+	    key: 'getMagnitude',
+	    value: function getMagnitude() {
+	      return Math.sqrt(Math.pow(this.getX(), 2) + Math.pow(this.getY(), 2));
+	    }
+	  }, {
+	    key: 'equals',
+	    value: function equals(point) {
+	      if (!point) return false;
+	      return point.getX() === this.getX() && point.getY() === this.getY();
+	    }
 	  }]);
 
 	  return Point;
@@ -2121,7 +2169,13 @@
 	};
 
 	Point.getDistance = function (point1, point2) {
-	  return Math.sqrt(Math.pow(point1.getX() - point2.getX(), 2) + Math.pow(point1.getY() - point2.getY(), 2));
+	  var difference = point1.subtract(point2);
+	  return difference.getMagnitude();
+	};
+
+	Point.cosineSimilarity = function (point1, point2) {
+	  var rawDotProduct = point1.getX() * point2.getX() + point1.getY() * point2.getY();
+	  return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
 	};
 
 	exports['default'] = Point;
@@ -2197,16 +2251,24 @@
 
 	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
 
-	var StrokeMatcher = (function () {
-	  function StrokeMatcher(options) {
-	    _classCallCheck(this, StrokeMatcher);
+	var _utils = __webpack_require__(6);
 
-	    this.options = options;
+	var AVG_DIST_THRESHOLD = 30; // bigger = more lenient
+	var LENGTH_RATIO_THRESHOLD = 0.5; // 0 to 1, bigger = more lenient
+	var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
+	var START_AND_END_DIST_THRESHOLD = 60; // bigger = more lenient
+
+	var StrokeMatcher = (function () {
+	  function StrokeMatcher() {
+	    _classCallCheck(this, StrokeMatcher);
 	  }
 
 	  _createClass(StrokeMatcher, [{
 	    key: 'getMatchingStroke',
-	    value: function getMatchingStroke(points, strokes) {
+	    value: function getMatchingStroke(rawPoints, strokes) {
+	      var points = this._stripDuplicates(rawPoints);
+	      if (points.length < 2) return null;
+
 	      var closestStroke = null;
 	      var bestAvgDist = 0;
 	      var _iteratorNormalCompletion = true;
@@ -2238,28 +2300,47 @@
 	        }
 	      }
 
-	      var withinDistThresh = bestAvgDist < this.options.matchDistanceThreshold;
-	      var lengthRatio = this.getLength(points) / closestStroke.getLength();
-	      var withinLengthThresh = lengthRatio > 0.5 && lengthRatio < 1.5;
+	      var withinDistThresh = bestAvgDist < AVG_DIST_THRESHOLD;
+	      var lengthRatio = this._getLength(points) / closestStroke.getLength();
+	      var withinLengthThresh = lengthRatio > 1 - LENGTH_RATIO_THRESHOLD && lengthRatio < 1 + LENGTH_RATIO_THRESHOLD;
+	      var startAndEndMatch = this._startAndEndMatches(points, closestStroke);
+	      var directionMatches = this._directionMatches(points, closestStroke);
 
-	      if (withinDistThresh && withinLengthThresh) return closestStroke;
+	      if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
+	        return closestStroke;
+	      }
+	      return null;
 	    }
 	  }, {
-	    key: 'getLength',
-	    value: function getLength(points) {
-	      if (points.length < 2) return 0;
-	      var length = 0;
-	      var lastPoint = points[0];
+	    key: '_startAndEndMatches',
+	    value: function _startAndEndMatches(points, closestStroke) {
+	      var startingDist = _modelsPoint2['default'].getDistance(closestStroke.getStartingPoint(), points[0]);
+	      var endingDist = _modelsPoint2['default'].getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
+	      return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
+	    }
+	  }, {
+	    key: '_directionMatches',
+	    value: function _directionMatches(points, stroke) {
+	      var edgeVectors = this._getEdgeVectors(points);
+	      var strokeVectors = stroke.getVectors();
+	      var similarities = [];
 	      var _iteratorNormalCompletion2 = true;
 	      var _didIteratorError2 = false;
 	      var _iteratorError2 = undefined;
 
 	      try {
-	        for (var _iterator2 = points[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var point = _step2.value;
+	        var _loop = function () {
+	          var edgeVector = _step2.value;
 
-	          length += _modelsPoint2['default'].getDistance(point, lastPoint);
-	          lastPoint = point;
+	          var strokeSimilarities = strokeVectors.map(function (strokeVector) {
+	            return _modelsPoint2['default'].cosineSimilarity(strokeVector, edgeVector);
+	          });
+	          var maxSimilarity = Math.max.apply(Math, strokeSimilarities);
+	          similarities.push(maxSimilarity);
+	        };
+
+	        for (var _iterator2 = edgeVectors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+	          _loop();
 	        }
 	      } catch (err) {
 	        _didIteratorError2 = true;
@@ -2276,7 +2357,109 @@
 	        }
 	      }
 
+	      var avgSimilarity = (0, _utils.average)(similarities);
+	      return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+	    }
+	  }, {
+	    key: '_stripDuplicates',
+	    value: function _stripDuplicates(points) {
+	      if (points.length < 2) return points;
+	      var dedupedPoints = [points[0]];
+	      var _iteratorNormalCompletion3 = true;
+	      var _didIteratorError3 = false;
+	      var _iteratorError3 = undefined;
+
+	      try {
+	        for (var _iterator3 = points.slice(1)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+	          var point = _step3.value;
+
+	          if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
+	            dedupedPoints.push(point);
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError3 = true;
+	        _iteratorError3 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion3 && _iterator3['return']) {
+	            _iterator3['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError3) {
+	            throw _iteratorError3;
+	          }
+	        }
+	      }
+
+	      return dedupedPoints;
+	    }
+	  }, {
+	    key: '_getLength',
+	    value: function _getLength(points) {
+	      var length = 0;
+	      var lastPoint = points[0];
+	      var _iteratorNormalCompletion4 = true;
+	      var _didIteratorError4 = false;
+	      var _iteratorError4 = undefined;
+
+	      try {
+	        for (var _iterator4 = points[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+	          var point = _step4.value;
+
+	          length += _modelsPoint2['default'].getDistance(point, lastPoint);
+	          lastPoint = point;
+	        }
+	      } catch (err) {
+	        _didIteratorError4 = true;
+	        _iteratorError4 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion4 && _iterator4['return']) {
+	            _iterator4['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError4) {
+	            throw _iteratorError4;
+	          }
+	        }
+	      }
+
 	      return length;
+	    }
+
+	    // returns a list of the direction of all segments in the line connecting the points
+	  }, {
+	    key: '_getEdgeVectors',
+	    value: function _getEdgeVectors(points) {
+	      var vectors = [];
+	      var lastPoint = points[0];
+	      var _iteratorNormalCompletion5 = true;
+	      var _didIteratorError5 = false;
+	      var _iteratorError5 = undefined;
+
+	      try {
+	        for (var _iterator5 = points.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
+	          var point = _step5.value;
+
+	          vectors.push(point.subtract(lastPoint));
+	        }
+	      } catch (err) {
+	        _didIteratorError5 = true;
+	        _iteratorError5 = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion5 && _iterator5['return']) {
+	            _iterator5['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError5) {
+	            throw _iteratorError5;
+	          }
+	        }
+	      }
+
+	      return vectors;
 	    }
 	  }]);
 
@@ -2462,14 +2645,31 @@
 	  }, {
 	    key: 'getBounds',
 	    value: function getBounds() {
-	      return _Point2['default'].getOverallBounds(this.getStrokeParts());
+	      return _Point2['default'].getOverallBounds(this._strokeParts);
 	    }
 	  }, {
 	    key: 'getLength',
 	    value: function getLength() {
-	      return this.getStrokeParts().reduce(function (acc, part) {
+	      return this._strokeParts.reduce(function (acc, part) {
 	        return acc + part.getLength();
 	      }, 0);
+	    }
+	  }, {
+	    key: 'getVectors',
+	    value: function getVectors() {
+	      return this._strokeParts.map(function (strokePart) {
+	        return strokePart.getVector();
+	      });
+	    }
+	  }, {
+	    key: 'getStartingPoint',
+	    value: function getStartingPoint() {
+	      return this._strokeParts[0].getStartingPoint();
+	    }
+	  }, {
+	    key: 'getEndingPoint',
+	    value: function getEndingPoint() {
+	      return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
 	    }
 	  }, {
 	    key: 'getDistance',
@@ -2562,6 +2762,11 @@
 	    key: 'getBounds',
 	    value: function getBounds() {
 	      return _Point2['default'].getBounds(this._points);
+	    }
+	  }, {
+	    key: 'getVector',
+	    value: function getVector() {
+	      return this.getEndingPoint().subtract(this.getStartingPoint());
 	    }
 
 	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points

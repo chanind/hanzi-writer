@@ -19,11 +19,23 @@ class Stroke {
   }
 
   getBounds() {
-    return Point.getOverallBounds(this.getStrokeParts());
+    return Point.getOverallBounds(this._strokeParts);
   }
 
   getLength() {
-    return this.getStrokeParts().reduce((acc, part) => acc + part.getLength(), 0);
+    return this._strokeParts.reduce((acc, part) => acc + part.getLength(), 0);
+  }
+
+  getVectors() {
+    return this._strokeParts.map(strokePart => strokePart.getVector());
+  }
+
+  getStartingPoint() {
+    return this._strokeParts[0].getStartingPoint();
+  }
+
+  getEndingPoint() {
+    return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
   }
 
   getDistance(point) {

@@ -39,6 +39,14 @@ export function callIfExists(callback) {
   if (callback) callback();
 }
 
+export function average(arr) {
+  let sum = 0;
+  for (const val of arr) {
+    sum += val;
+  }
+  return sum / arr.length;
+}
+
 export function timeout(duration = 0) {
   return new Promise((resolve, reject) => {
     setTimeout(resolve, duration);

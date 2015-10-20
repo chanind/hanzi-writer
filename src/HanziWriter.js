@@ -1,12 +1,10 @@
 import CharacterRenderer from './renderers/CharacterRenderer';
-import UserStrokeRenderer from './renderers/UserStrokeRenderer';
 import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';
-import UserStroke from './models/UserStroke';
-import StrokeMatcher from './StrokeMatcher';
 import ZdtStrokeParser from './ZdtStrokeParser';
 import Positioner from './Positioner';
-import {inArray, copyAndExtend} from './utils';
+import Quiz from './Quiz';
+import {copyAndExtend} from './utils';
 import Animator from './Animator';
 import svg from 'svg.js';
 
@@ -43,11 +41,12 @@ const defaultOptions = {
 class HanziWriter {
 
   constructor(element, character, options = {}) {
-    this.svg = svg(element);
+    this._svg = svg(element);
     this.setOptions(options);
     this.setCharacter(character);
-    this.setupListeners();
-    this.animator = new Animator();
+    this._setupListeners();
+    this._animator = new Animator();
+    this._quiz = null;
   }
 
   setOptions(options) {
@@ -76,133 +75,104 @@ class HanziWriter {
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    this.animator.animate(animation => this.characterRenderer.show(animation));
+    this._animate(animation => this._characterRenderer.show(animation));
   }
   hideCharacter(options = {}) {
-    this.animator.animate(animation => this.characterRenderer.hide(animation));
+    this._animate(animation => this._characterRenderer.hide(animation));
   }
   animateCharacter(options = {}) {
-    this.animator.animate(animation => this.characterRenderer.animate(animation));
+    this._animate(animation => this._characterRenderer.animate(animation));
   }
 
   showHint(options = {}) {
-    this.animator.animate(animation => this.hintRenderer.show(animation));
+    this._animate(animation => this._hintRenderer.show(animation));
   }
   hideHint(options = {}) {
-    this.animator.animate(animation => this.hintRenderer.hide(animation));
+    this._animate(animation => this._hintRenderer.hide(animation));
   }
 
   quiz(quizOptions = {}) {
-    this.isQuizzing = true;
-    this.hideCharacter(quizOptions);
-    if (quizOptions.showHint) {
-      this.showHint();
-    } else {
-      this.hideHint();
-    }
-    this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
-    this.currentStrokeIndex = 0;
-    this.numRecentMistakes = 0;
-    this.drawnStrokes = [];
+    this.cancelQuiz();
+    this._quiz = new Quiz({
+      canvas: this._canvas,
+      animator: this._animator,
+      character: this._character,
+      characterRenderer: this._characterRenderer,
+      hintRenderer: this._hintRenderer,
+      highlightRenderer: this._highlightRenderer,
+      quizOptions: quizOptions,
+      userStrokeOptions: this.userStrokeOptions,
+    });
+  }
+
+  cancelQuiz() {
+    if (this._quiz) this._quiz.cancel();
+    this._quiz = null;
   }
 
   setCharacter(char) {
-    if (this.positionerRenderer) this.positionerRenderer.destroy();
-    if (this.characterRenderer) this.characterRenderer.destroy();
-    if (this.hintRenderer) this.hintRenderer.destroy();
-    if (this.highlightRenderer) this.highlightRenderer.destroy();
+    this.cancelQuiz();
+    if (this._positionerRenderer) this._positionerRenderer.destroy();
+    if (this._characterRenderer) this._characterRenderer.destroy();
+    if (this._hintRenderer) this._hintRenderer.destroy();
+    if (this._highlightRenderer) this._highlightRenderer.destroy();
 
     const pathStrings = this.options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
-    this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this.positioner = new Positioner(this.character, this.options);
+    this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+    this._positioner = new Positioner(this._character, this.options);
 
-    this.positionerRenderer = new PositionerRenderer(this.positioner).setCanvas(this.svg);
-    this.canvas = this.positionerRenderer.getPositionedCanvas();
+    this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
+    this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-    this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions).setCanvas(this.canvas).draw();
-    this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions).setCanvas(this.canvas).draw();
-    this.highlightRenderer = new CharacterRenderer(this.character, this.highlightCharOptions).setCanvas(this.canvas).draw();
+    this._hintRenderer = new CharacterRenderer(this._character, this.hintCharOptions).setCanvas(this._canvas).draw();
+    this._characterRenderer = new CharacterRenderer(this._character, this.mainCharOptions).setCanvas(this._canvas).draw();
+    this._highlightRenderer = new CharacterRenderer(this._character, this.highlightCharOptions).setCanvas(this._canvas).draw();
   }
 
   // ------------- //
 
-  setupListeners() {
-    this.svg.node.addEventListener('mousedown', (evt) => {
+  _setupListeners() {
+    this._svg.node.addEventListener('mousedown', (evt) => {
       evt.preventDefault();
-      this.startUserStroke(this.getMousePoint(evt));
+      this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
     });
-    this.svg.node.addEventListener('touchstart', (evt) => {
+    this._svg.node.addEventListener('touchstart', (evt) => {
       evt.preventDefault();
-      this.startUserStroke(this.getTouchPoint(evt));
+      this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
     });
-    this.svg.node.addEventListener('mousemove', (evt) => {
+    this._svg.node.addEventListener('mousemove', (evt) => {
       evt.preventDefault();
-      this.continueUserStroke(this.getMousePoint(evt));
+      this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
     });
-    this.svg.node.addEventListener('touchmove', (evt) => {
+    this._svg.node.addEventListener('touchmove', (evt) => {
       evt.preventDefault();
-      this.continueUserStroke(this.getTouchPoint(evt));
+      this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
     });
 
     // TODO: fix
-    document.addEventListener('mouseup', () => this.endUserStroke());
-    document.addEventListener('touchend', () => this.endUserStroke());
+    document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
+    document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
   }
 
-  startUserStroke(point) {
-    this.point = point;
-    if (this.userStroke) return this.endUserStroke();
-    this.userStroke = new UserStroke(point);
-    this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.userStrokeOptions);
-    this.userStrokeRenderer.setCanvas(this.canvas);
-    this.userStrokeRenderer.draw();
+  _forwardToQuiz(method, ...args) {
+    if (!this._quiz) return;
+    this._quiz[method](...args);
   }
 
-  continueUserStroke(point) {
-    if (this.userStroke) {
-      this.userStroke.appendPoint(point);
-      this.userStrokeRenderer.updatePath();
-    }
+  _getMousePoint(evt) {
+    return this._positioner.convertExternalPoint(new Point(evt.offsetX, evt.offsetY));
   }
 
-  endUserStroke() {
-    this.animator.animate((animation) => {
-      if (!this.userStroke) return Promise.resolve();
-
-      const promises = [];
-      const strokeMatcher = new StrokeMatcher();
-      const matchingStroke = strokeMatcher.getMatchingStroke(this.userStroke, this.character.getStrokes());
-      promises.push(this.userStrokeRenderer.fadeAndRemove(animation));
-      this.userStroke = null;
-      this.userStrokeRenderer = null;
-      if (!this.isQuizzing) return Promise.resolve();
-      const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-        this.drawnStrokes.push(matchingStroke);
-        this.currentStrokeIndex += 1;
-        this.numRecentMistakes = 0;
-        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
-        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
-      } else {
-        this.numRecentMistakes += 1;
-        if (this.numRecentMistakes > 2) {
-          const strokeHintRenderer = this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex);
-          promises.push(strokeHintRenderer.highlight(animation));
-        }
-      }
-      return Promise.all(promises);
-    });
+  _getTouchPoint(evt) {
+    const x = evt.touches[0].pageX - this._svg.node.offsetLeft;
+    const y = evt.touches[0].pageY - this._svg.node.offsetTop;
+    return this._positioner.convertExternalPoint(new Point(x, y));
   }
 
-  getMousePoint(evt) {
-    return this.positioner.convertExternalPoint(new Point(evt.offsetX, evt.offsetY));
-  }
-
-  getTouchPoint(evt) {
-    const x = evt.touches[0].pageX - this.svg.node.offsetLeft;
-    const y = evt.touches[0].pageY - this.svg.node.offsetTop;
-    return this.positioner.convertExternalPoint(new Point(x, y));
+  _animate(func, options = {}) {
+    this.cancelQuiz();
+    return this._animator.animate(func, options);
   }
 }
 

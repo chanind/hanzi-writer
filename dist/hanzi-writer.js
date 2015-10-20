@@ -60,41 +60,33 @@
 
 	var _renderersCharacterRenderer2 = _interopRequireDefault(_renderersCharacterRenderer);
 
-	var _renderersUserStrokeRenderer = __webpack_require__(11);
-
-	var _renderersUserStrokeRenderer2 = _interopRequireDefault(_renderersUserStrokeRenderer);
-
-	var _renderersPositionerRenderer = __webpack_require__(12);
+	var _renderersPositionerRenderer = __webpack_require__(11);
 
 	var _renderersPositionerRenderer2 = _interopRequireDefault(_renderersPositionerRenderer);
 
-	var _modelsPoint = __webpack_require__(13);
+	var _modelsPoint = __webpack_require__(12);
 
 	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
 
-	var _modelsUserStroke = __webpack_require__(14);
-
-	var _modelsUserStroke2 = _interopRequireDefault(_modelsUserStroke);
-
-	var _StrokeMatcher = __webpack_require__(15);
-
-	var _StrokeMatcher2 = _interopRequireDefault(_StrokeMatcher);
-
-	var _ZdtStrokeParser = __webpack_require__(16);
+	var _ZdtStrokeParser = __webpack_require__(13);
 
 	var _ZdtStrokeParser2 = _interopRequireDefault(_ZdtStrokeParser);
 
-	var _Positioner = __webpack_require__(20);
+	var _Positioner = __webpack_require__(17);
 
 	var _Positioner2 = _interopRequireDefault(_Positioner);
 
+	var _Quiz = __webpack_require__(18);
+
+	var _Quiz2 = _interopRequireDefault(_Quiz);
+
 	var _utils = __webpack_require__(6);
 
-	var _Animator = __webpack_require__(21);
+	var _Animator = __webpack_require__(22);
 
 	var _Animator2 = _interopRequireDefault(_Animator);
 
-	var _svgJs = __webpack_require__(23);
+	var _svgJs = __webpack_require__(24);
 
 	var _svgJs2 = _interopRequireDefault(_svgJs);
 
@@ -136,11 +128,12 @@
 
 	    _classCallCheck(this, HanziWriter);
 
-	    this.svg = (0, _svgJs2['default'])(element);
+	    this._svg = (0, _svgJs2['default'])(element);
 	    this.setOptions(options);
 	    this.setCharacter(character);
-	    this.setupListeners();
-	    this.animator = new _Animator2['default']();
+	    this._setupListeners();
+	    this._animator = new _Animator2['default']();
+	    this._quiz = null;
 	  }
 
 	  // set up window.HanziWriter if we're in the browser
@@ -179,8 +172,8 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animator.animate(function (animation) {
-	        return _this.characterRenderer.show(animation);
+	      this._animate(function (animation) {
+	        return _this._characterRenderer.show(animation);
 	      });
 	    }
 	  }, {
@@ -190,8 +183,8 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animator.animate(function (animation) {
-	        return _this2.characterRenderer.hide(animation);
+	      this._animate(function (animation) {
+	        return _this2._characterRenderer.hide(animation);
 	      });
 	    }
 	  }, {
@@ -201,8 +194,8 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animator.animate(function (animation) {
-	        return _this3.characterRenderer.animate(animation);
+	      this._animate(function (animation) {
+	        return _this3._characterRenderer.animate(animation);
 	      });
 	    }
 	  }, {
@@ -212,8 +205,8 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animator.animate(function (animation) {
-	        return _this4.hintRenderer.show(animation);
+	      this._animate(function (animation) {
+	        return _this4._hintRenderer.show(animation);
 	      });
 	    }
 	  }, {
@@ -223,8 +216,8 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animator.animate(function (animation) {
-	        return _this5.hintRenderer.hide(animation);
+	      this._animate(function (animation) {
+	        return _this5._hintRenderer.hide(animation);
 	      });
 	    }
 	  }, {
@@ -232,132 +225,110 @@
 	    value: function quiz() {
 	      var quizOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.isQuizzing = true;
-	      this.hideCharacter(quizOptions);
-	      if (quizOptions.showHint) {
-	        this.showHint();
-	      } else {
-	        this.hideHint();
-	      }
-	      this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
-	      this.currentStrokeIndex = 0;
-	      this.numRecentMistakes = 0;
-	      this.drawnStrokes = [];
+	      this.cancelQuiz();
+	      this._quiz = new _Quiz2['default']({
+	        canvas: this._canvas,
+	        animator: this._animator,
+	        character: this._character,
+	        characterRenderer: this._characterRenderer,
+	        hintRenderer: this._hintRenderer,
+	        highlightRenderer: this._highlightRenderer,
+	        quizOptions: quizOptions,
+	        userStrokeOptions: this.userStrokeOptions
+	      });
+	    }
+	  }, {
+	    key: 'cancelQuiz',
+	    value: function cancelQuiz() {
+	      if (this._quiz) this._quiz.cancel();
+	      this._quiz = null;
 	    }
 	  }, {
 	    key: 'setCharacter',
 	    value: function setCharacter(char) {
-	      if (this.positionerRenderer) this.positionerRenderer.destroy();
-	      if (this.characterRenderer) this.characterRenderer.destroy();
-	      if (this.hintRenderer) this.hintRenderer.destroy();
-	      if (this.highlightRenderer) this.highlightRenderer.destroy();
+	      this.cancelQuiz();
+	      if (this._positionerRenderer) this._positionerRenderer.destroy();
+	      if (this._characterRenderer) this._characterRenderer.destroy();
+	      if (this._hintRenderer) this._hintRenderer.destroy();
+	      if (this._highlightRenderer) this._highlightRenderer.destroy();
 
 	      var pathStrings = this.options.charDataLoader(char);
 	      var zdtStrokeParser = new _ZdtStrokeParser2['default']();
-	      this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-	      this.positioner = new _Positioner2['default'](this.character, this.options);
+	      this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+	      this._positioner = new _Positioner2['default'](this._character, this.options);
 
-	      this.positionerRenderer = new _renderersPositionerRenderer2['default'](this.positioner).setCanvas(this.svg);
-	      this.canvas = this.positionerRenderer.getPositionedCanvas();
+	      this._positionerRenderer = new _renderersPositionerRenderer2['default'](this._positioner).setCanvas(this._svg);
+	      this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-	      this.hintRenderer = new _renderersCharacterRenderer2['default'](this.character, this.hintCharOptions).setCanvas(this.canvas).draw();
-	      this.characterRenderer = new _renderersCharacterRenderer2['default'](this.character, this.mainCharOptions).setCanvas(this.canvas).draw();
-	      this.highlightRenderer = new _renderersCharacterRenderer2['default'](this.character, this.highlightCharOptions).setCanvas(this.canvas).draw();
+	      this._hintRenderer = new _renderersCharacterRenderer2['default'](this._character, this.hintCharOptions).setCanvas(this._canvas).draw();
+	      this._characterRenderer = new _renderersCharacterRenderer2['default'](this._character, this.mainCharOptions).setCanvas(this._canvas).draw();
+	      this._highlightRenderer = new _renderersCharacterRenderer2['default'](this._character, this.highlightCharOptions).setCanvas(this._canvas).draw();
 	    }
 
 	    // ------------- //
 
 	  }, {
-	    key: 'setupListeners',
-	    value: function setupListeners() {
+	    key: '_setupListeners',
+	    value: function _setupListeners() {
 	      var _this6 = this;
 
-	      this.svg.node.addEventListener('mousedown', function (evt) {
+	      this._svg.node.addEventListener('mousedown', function (evt) {
 	        evt.preventDefault();
-	        _this6.startUserStroke(_this6.getMousePoint(evt));
+	        _this6._forwardToQuiz('startUserStroke', _this6._getMousePoint(evt));
 	      });
-	      this.svg.node.addEventListener('touchstart', function (evt) {
+	      this._svg.node.addEventListener('touchstart', function (evt) {
 	        evt.preventDefault();
-	        _this6.startUserStroke(_this6.getTouchPoint(evt));
+	        _this6._forwardToQuiz('startUserStroke', _this6._getTouchPoint(evt));
 	      });
-	      this.svg.node.addEventListener('mousemove', function (evt) {
+	      this._svg.node.addEventListener('mousemove', function (evt) {
 	        evt.preventDefault();
-	        _this6.continueUserStroke(_this6.getMousePoint(evt));
+	        _this6._forwardToQuiz('continueUserStroke', _this6._getMousePoint(evt));
 	      });
-	      this.svg.node.addEventListener('touchmove', function (evt) {
+	      this._svg.node.addEventListener('touchmove', function (evt) {
 	        evt.preventDefault();
-	        _this6.continueUserStroke(_this6.getTouchPoint(evt));
+	        _this6._forwardToQuiz('continueUserStroke', _this6._getTouchPoint(evt));
 	      });
 
 	      // TODO: fix
 	      document.addEventListener('mouseup', function () {
-	        return _this6.endUserStroke();
+	        return _this6._forwardToQuiz('endUserStroke');
 	      });
 	      document.addEventListener('touchend', function () {
-	        return _this6.endUserStroke();
+	        return _this6._forwardToQuiz('endUserStroke');
 	      });
 	    }
 	  }, {
-	    key: 'startUserStroke',
-	    value: function startUserStroke(point) {
-	      this.point = point;
-	      if (this.userStroke) return this.endUserStroke();
-	      this.userStroke = new _modelsUserStroke2['default'](point);
-	      this.userStrokeRenderer = new _renderersUserStrokeRenderer2['default'](this.userStroke, this.userStrokeOptions);
-	      this.userStrokeRenderer.setCanvas(this.canvas);
-	      this.userStrokeRenderer.draw();
-	    }
-	  }, {
-	    key: 'continueUserStroke',
-	    value: function continueUserStroke(point) {
-	      if (this.userStroke) {
-	        this.userStroke.appendPoint(point);
-	        this.userStrokeRenderer.updatePath();
+	    key: '_forwardToQuiz',
+	    value: function _forwardToQuiz(method) {
+	      var _quiz;
+
+	      if (!this._quiz) return;
+
+	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	        args[_key - 1] = arguments[_key];
 	      }
-	    }
-	  }, {
-	    key: 'endUserStroke',
-	    value: function endUserStroke() {
-	      var _this7 = this;
 
-	      this.animator.animate(function (animation) {
-	        if (!_this7.userStroke) return Promise.resolve();
+	      (_quiz = this._quiz)[method].apply(_quiz, args);
+	    }
+	  }, {
+	    key: '_getMousePoint',
+	    value: function _getMousePoint(evt) {
+	      return this._positioner.convertExternalPoint(new _modelsPoint2['default'](evt.offsetX, evt.offsetY));
+	    }
+	  }, {
+	    key: '_getTouchPoint',
+	    value: function _getTouchPoint(evt) {
+	      var x = evt.touches[0].pageX - this._svg.node.offsetLeft;
+	      var y = evt.touches[0].pageY - this._svg.node.offsetTop;
+	      return this._positioner.convertExternalPoint(new _modelsPoint2['default'](x, y));
+	    }
+	  }, {
+	    key: '_animate',
+	    value: function _animate(func) {
+	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	        var promises = [];
-	        var strokeMatcher = new _StrokeMatcher2['default']();
-	        var matchingStroke = strokeMatcher.getMatchingStroke(_this7.userStroke, _this7.character.getStrokes());
-	        promises.push(_this7.userStrokeRenderer.fadeAndRemove(animation));
-	        _this7.userStroke = null;
-	        _this7.userStrokeRenderer = null;
-	        if (!_this7.isQuizzing) return Promise.resolve();
-	        var isValidStroke = matchingStroke && !(0, _utils.inArray)(matchingStroke, _this7.drawnStrokes);
-	        if (isValidStroke && (!_this7.enforceStrokeOrder || matchingStroke === _this7.character.getStroke(_this7.currentStrokeIndex))) {
-	          _this7.drawnStrokes.push(matchingStroke);
-	          _this7.currentStrokeIndex += 1;
-	          _this7.numRecentMistakes = 0;
-	          _this7.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
-	          if (_this7.drawnStrokes.length === _this7.character.getNumStrokes()) _this7.isQuizzing = false;
-	        } else {
-	          _this7.numRecentMistakes += 1;
-	          if (_this7.numRecentMistakes > 2) {
-	            var strokeHintRenderer = _this7.highlightRenderer.getStrokeRenderer(_this7.currentStrokeIndex);
-	            promises.push(strokeHintRenderer.highlight(animation));
-	          }
-	        }
-	        return Promise.all(promises);
-	      });
-	    }
-	  }, {
-	    key: 'getMousePoint',
-	    value: function getMousePoint(evt) {
-	      return this.positioner.convertExternalPoint(new _modelsPoint2['default'](evt.offsetX, evt.offsetY));
-	    }
-	  }, {
-	    key: 'getTouchPoint',
-	    value: function getTouchPoint(evt) {
-	      var x = evt.touches[0].pageX - this.svg.node.offsetLeft;
-	      var y = evt.touches[0].pageY - this.svg.node.offsetTop;
-	      return this.positioner.convertExternalPoint(new _modelsPoint2['default'](x, y));
+	      this.cancelQuiz();
+	      return this._animator.animate(func, options);
 	    }
 	  }]);
 
@@ -1845,89 +1816,6 @@
 
 	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
 
-	var _PathRenderer2 = __webpack_require__(5);
-
-	var _PathRenderer3 = _interopRequireDefault(_PathRenderer2);
-
-	var UserStrokeRenderer = (function (_PathRenderer) {
-	  _inherits(UserStrokeRenderer, _PathRenderer);
-
-	  function UserStrokeRenderer(userStroke) {
-	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-	    _classCallCheck(this, UserStrokeRenderer);
-
-	    _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'constructor', this).call(this);
-	    this.options = options;
-	    this.userStroke = userStroke;
-	  }
-
-	  _createClass(UserStrokeRenderer, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this.userStroke.getPoints();
-	    }
-	  }, {
-	    key: 'updatePath',
-	    value: function updatePath() {
-	      this.path.plot(this.getPathString());
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this);
-	      this.path.attr(this.getStrokeAttrs());
-	      return this;
-	    }
-	  }, {
-	    key: 'fadeAndRemove',
-	    value: function fadeAndRemove(animation) {
-	      var _this = this;
-
-	      return new Promise(function (resolve, reject) {
-	        var svgAnimation = _this.path.animate(_this.options.fadeDuration).attr({ opacity: 0 }).after(resolve);
-	        animation.registerSvgAnimation(svgAnimation);
-	      }).then(function () {
-	        return _this.destroy();
-	      });
-	    }
-	  }, {
-	    key: 'getStrokeAttrs',
-	    value: function getStrokeAttrs() {
-	      return {
-	        fill: 'none',
-	        stroke: this.options.strokeColor,
-	        'stroke-width': this.options.strokeWidth
-	      };
-	    }
-	  }]);
-
-	  return UserStrokeRenderer;
-	})(_PathRenderer3['default']);
-
-	exports['default'] = UserStrokeRenderer;
-	module.exports = exports['default'];
-
-/***/ },
-/* 12 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
-
 	var _Renderer2 = __webpack_require__(2);
 
 	var _Renderer3 = _interopRequireDefault(_Renderer2);
@@ -1972,7 +1860,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 13 */
+/* 12 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -2097,6 +1985,136 @@
 	module.exports = exports['default'];
 
 /***/ },
+/* 13 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _modelsPoint = __webpack_require__(12);
+
+	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
+
+	var _modelsStroke = __webpack_require__(14);
+
+	var _modelsStroke2 = _interopRequireDefault(_modelsStroke);
+
+	var _modelsStrokePart = __webpack_require__(15);
+
+	var _modelsStrokePart2 = _interopRequireDefault(_modelsStrokePart);
+
+	var _modelsCharacter = __webpack_require__(16);
+
+	var _modelsCharacter2 = _interopRequireDefault(_modelsCharacter);
+
+	var ZdtStrokeParser = (function () {
+	  function ZdtStrokeParser() {
+	    _classCallCheck(this, ZdtStrokeParser);
+	  }
+
+	  _createClass(ZdtStrokeParser, [{
+	    key: 'generateCharacter',
+	    value: function generateCharacter(symbol, zdtPathStrings) {
+	      var strokes = this.generateStrokes(zdtPathStrings);
+	      return new _modelsCharacter2['default'](symbol, strokes);
+	    }
+	  }, {
+	    key: 'generateStrokes',
+	    value: function generateStrokes(zdtPathStrings) {
+	      var strokes = [];
+	      var strokeParts = [];
+	      var strokeNum = 0;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = zdtPathStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var zdtPathString = _step.value;
+
+	          var _extractStrokeData2 = this._extractStrokeData(zdtPathString);
+
+	          var points = _extractStrokeData2.points;
+	          var isComplete = _extractStrokeData2.isComplete;
+	          var strokeType = _extractStrokeData2.strokeType;
+
+	          var strokePart = new _modelsStrokePart2['default'](strokeType, points);
+	          strokeParts.push(strokePart);
+	          if (isComplete) {
+	            strokes.push(new _modelsStroke2['default'](strokeParts, strokeNum));
+	            strokeNum += 1;
+	            strokeParts = [];
+	          }
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return strokes;
+	    }
+	  }, {
+	    key: '_extractStrokeData',
+	    value: function _extractStrokeData(zdtPathString) {
+	      var _this = this;
+
+	      var _zdtPathString$split = zdtPathString.split(':');
+
+	      var _zdtPathString$split2 = _slicedToArray(_zdtPathString$split, 2);
+
+	      var metadataString = _zdtPathString$split2[0];
+	      var rawPathString = _zdtPathString$split2[1];
+
+	      var pathString = rawPathString.replace(/;?\s*$/, '');
+	      var points = pathString.split(';').map(function (pointString) {
+	        return _this._parsePoint(pointString);
+	      });
+	      var isComplete = metadataString[2] === 'P';
+	      var strokeType = parseInt(metadataString[1], 10);
+	      return { points: points, isComplete: isComplete, strokeType: strokeType };
+	    }
+	  }, {
+	    key: '_parsePoint',
+	    value: function _parsePoint(pointString) {
+	      var _pointString$split = pointString.split(',');
+
+	      var _pointString$split2 = _slicedToArray(_pointString$split, 2);
+
+	      var x = _pointString$split2[0];
+	      var y = _pointString$split2[1];
+
+	      return new _modelsPoint2['default'](x, y);
+	    }
+	  }]);
+
+	  return ZdtStrokeParser;
+	})();
+
+	exports['default'] = ZdtStrokeParser;
+	module.exports = exports['default'];
+
+/***/ },
 /* 14 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2112,38 +2130,107 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _Point = __webpack_require__(13);
+	var _Point = __webpack_require__(12);
 
 	var _Point2 = _interopRequireDefault(_Point);
 
-	var UserStroke = (function () {
-	  function UserStroke(startingPoint) {
-	    _classCallCheck(this, UserStroke);
+	var Stroke = (function () {
+	  function Stroke(strokeParts, strokeNum) {
+	    _classCallCheck(this, Stroke);
 
-	    this._points = [startingPoint];
+	    this._strokeParts = strokeParts;
+	    this._strokeNum = strokeNum;
 	  }
 
-	  _createClass(UserStroke, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this._points;
+	  _createClass(Stroke, [{
+	    key: 'getStrokeParts',
+	    value: function getStrokeParts() {
+	      return this._strokeParts;
+	    }
+	  }, {
+	    key: 'getNumStrokeParts',
+	    value: function getNumStrokeParts() {
+	      return this._strokeParts.length;
+	    }
+	  }, {
+	    key: 'getStrokeNum',
+	    value: function getStrokeNum() {
+	      return this._strokeNum;
 	    }
 	  }, {
 	    key: 'getBounds',
 	    value: function getBounds() {
-	      return _Point2['default'].getBounds(this._points);
+	      return _Point2['default'].getOverallBounds(this._strokeParts);
 	    }
 	  }, {
-	    key: 'appendPoint',
-	    value: function appendPoint(point) {
-	      this._points.push(point);
+	    key: 'getLength',
+	    value: function getLength() {
+	      return this._strokeParts.reduce(function (acc, part) {
+	        return acc + part.getLength();
+	      }, 0);
+	    }
+	  }, {
+	    key: 'getVectors',
+	    value: function getVectors() {
+	      return this._strokeParts.map(function (strokePart) {
+	        return strokePart.getVector();
+	      });
+	    }
+	  }, {
+	    key: 'getStartingPoint',
+	    value: function getStartingPoint() {
+	      return this._strokeParts[0].getStartingPoint();
+	    }
+	  }, {
+	    key: 'getEndingPoint',
+	    value: function getEndingPoint() {
+	      return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
+	    }
+	  }, {
+	    key: 'getDistance',
+	    value: function getDistance(point) {
+	      var distances = this._strokeParts.map(function (strokePart) {
+	        return strokePart.getDistance(point);
+	      });
+	      return Math.min.apply(Math, distances);
+	    }
+	  }, {
+	    key: 'getAverageDistance',
+	    value: function getAverageDistance(points) {
+	      var totalDist = 0;
+	      var _iteratorNormalCompletion = true;
+	      var _didIteratorError = false;
+	      var _iteratorError = undefined;
+
+	      try {
+	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+	          var point = _step.value;
+
+	          totalDist += this.getDistance(point);
+	        }
+	      } catch (err) {
+	        _didIteratorError = true;
+	        _iteratorError = err;
+	      } finally {
+	        try {
+	          if (!_iteratorNormalCompletion && _iterator['return']) {
+	            _iterator['return']();
+	          }
+	        } finally {
+	          if (_didIteratorError) {
+	            throw _iteratorError;
+	          }
+	        }
+	      }
+
+	      return totalDist / points.length;
 	    }
 	  }]);
 
-	  return UserStroke;
+	  return Stroke;
 	})();
 
-	exports['default'] = UserStroke;
+	exports['default'] = Stroke;
 	module.exports = exports['default'];
 
 /***/ },
@@ -2162,7 +2249,438 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _modelsPoint = __webpack_require__(13);
+	var _Point = __webpack_require__(12);
+
+	var _Point2 = _interopRequireDefault(_Point);
+
+	var _utils = __webpack_require__(6);
+
+	var StrokePart = (function () {
+	  function StrokePart(strokeType, points) {
+	    _classCallCheck(this, StrokePart);
+
+	    this._strokeType = strokeType;
+	    this._points = points;
+	  }
+
+	  _createClass(StrokePart, [{
+	    key: 'getPoints',
+	    value: function getPoints() {
+	      return this._points;
+	    }
+	  }, {
+	    key: 'getStrokeType',
+	    value: function getStrokeType() {
+	      return this._strokeType;
+	    }
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      return _Point2['default'].getBounds(this._points);
+	    }
+	  }, {
+	    key: 'getVector',
+	    value: function getVector() {
+	      return this.getEndingPoint().subtract(this.getStartingPoint());
+	    }
+
+	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+	  }, {
+	    key: 'getDistance',
+	    value: function getDistance(point) {
+	      var start = this.getStartingPoint();
+	      var end = this.getEndingPoint();
+	      var dx = end.getX() - start.getX();
+	      var dy = end.getY() - start.getY();
+	      var length = this.getLength();
+	      return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
+	    }
+	  }, {
+	    key: 'getLength',
+	    value: function getLength() {
+	      var start = this.getStartingPoint();
+	      var end = this.getEndingPoint();
+	      return _Point2['default'].getDistance(start, end);
+	    }
+	  }, {
+	    key: 'getStartingPoint',
+	    value: function getStartingPoint() {
+	      return this._getExtremePoint(false);
+	    }
+	  }, {
+	    key: 'getEndingPoint',
+	    value: function getEndingPoint() {
+	      return this._getExtremePoint(true);
+	    }
+
+	    // where to start or end drawing the stroke based on the stroke type
+	  }, {
+	    key: '_getExtremePoint',
+	    value: function _getExtremePoint(isReverse) {
+	      var strokeType = this.getStrokeType();
+	      var points = this.getPoints();
+	      var adjStrokeType = strokeType;
+	      var adjIsReverse = isReverse;
+	      var xs = points.map(function (point) {
+	        return point.getX();
+	      });
+	      var ys = points.map(function (point) {
+	        return point.getY();
+	      });
+	      var extremeXs = (0, _utils.getExtremes)(xs);
+	      var extremeYs = (0, _utils.getExtremes)(ys);
+
+	      // handle reversed strokes
+	      if (strokeType > StrokePart.FORWARD_SLASH_STROKE) {
+	        adjStrokeType = strokeType - StrokePart.FORWARD_SLASH_STROKE;
+	        adjIsReverse = !isReverse;
+	      }
+
+	      var minIndex = adjIsReverse ? 0 : 2;
+	      var maxIndex = adjIsReverse ? 2 : 0;
+	      var midIndex = 1;
+
+	      if (adjStrokeType === StrokePart.HORIZONTAL_STROKE) return new _Point2['default'](extremeXs[minIndex], extremeYs[midIndex]);
+	      if (adjStrokeType === StrokePart.BACK_SLASH_STROKE) return new _Point2['default'](extremeXs[minIndex], extremeYs[minIndex]);
+	      if (adjStrokeType === StrokePart.VERTICAL_STROKE) return new _Point2['default'](extremeXs[midIndex], extremeYs[minIndex]);
+	      if (adjStrokeType === StrokePart.FORWARD_SLASH_STROKE) return new _Point2['default'](extremeXs[maxIndex], extremeYs[minIndex]);
+	    }
+	  }]);
+
+	  return StrokePart;
+	})();
+
+	StrokePart.HORIZONTAL_STROKE = 1;
+	StrokePart.BACK_SLASH_STROKE = 2;
+	StrokePart.VERTICAL_STROKE = 3;
+	StrokePart.FORWARD_SLASH_STROKE = 4;
+	StrokePart.REVERSE_HORIZONTAL_STROKE = 5;
+	StrokePart.REVERSE_BACK_SLASH_STROKE = 6;
+	StrokePart.REVERSE_VERTICAL_STROKE = 7;
+	StrokePart.REVERSE_FORWARD_SLASH_STROKE = 8;
+
+	exports['default'] = StrokePart;
+	module.exports = exports['default'];
+
+/***/ },
+/* 16 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _Point = __webpack_require__(12);
+
+	var _Point2 = _interopRequireDefault(_Point);
+
+	var Character = (function () {
+	  function Character(symbol, strokes) {
+	    _classCallCheck(this, Character);
+
+	    this._symbol = symbol;
+	    this._strokes = strokes;
+	  }
+
+	  _createClass(Character, [{
+	    key: 'getSymbol',
+	    value: function getSymbol() {
+	      return this._symbol;
+	    }
+	  }, {
+	    key: 'getStrokes',
+	    value: function getStrokes() {
+	      return this._strokes;
+	    }
+	  }, {
+	    key: 'getStroke',
+	    value: function getStroke(strokeNum) {
+	      return this._strokes[strokeNum];
+	    }
+	  }, {
+	    key: 'getNumStrokes',
+	    value: function getNumStrokes() {
+	      return this._strokes.length;
+	    }
+	  }, {
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      return _Point2['default'].getOverallBounds(this.getStrokes());
+	    }
+	  }]);
+
+	  return Character;
+	})();
+
+	exports['default'] = Character;
+	module.exports = exports['default'];
+
+/***/ },
+/* 17 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _modelsPoint = __webpack_require__(12);
+
+	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
+
+	var Positioner = (function () {
+	  function Positioner(character, options) {
+	    _classCallCheck(this, Positioner);
+
+	    this._character = character;
+	    this._options = options;
+	    this._calculateScaleAndOffset();
+	  }
+
+	  _createClass(Positioner, [{
+	    key: 'convertExternalPoint',
+	    value: function convertExternalPoint(point) {
+	      var x = (point.getX() - this._xOffset) / this._scale;
+	      var y = (point.getY() - this._yOffset) / this._scale;
+	      return new _modelsPoint2['default'](x, y);
+	    }
+	  }, {
+	    key: 'getXOffset',
+	    value: function getXOffset() {
+	      return this._xOffset;
+	    }
+	  }, {
+	    key: 'getYOffset',
+	    value: function getYOffset() {
+	      return this._yOffset;
+	    }
+	  }, {
+	    key: 'getScale',
+	    value: function getScale() {
+	      return this._scale;
+	    }
+	  }, {
+	    key: '_calculateScaleAndOffset',
+	    value: function _calculateScaleAndOffset() {
+	      var bounds = this._character.getBounds();
+	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
+	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
+	      var effectiveWidth = this._options.width - 2 * this._options.padding;
+	      var effectiveHeight = this._options.height - 2 * this._options.padding;
+	      var scaleX = effectiveWidth / preScaledWidth;
+	      var scaleY = effectiveHeight / preScaledHeight;
+
+	      this._scale = Math.min(scaleX, scaleY);
+
+	      var xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
+	      var yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
+	      this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
+	      this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
+	    }
+	  }]);
+
+	  return Positioner;
+	})();
+
+	exports['default'] = Positioner;
+	module.exports = exports['default'];
+
+/***/ },
+/* 18 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _StrokeMatcher = __webpack_require__(19);
+
+	var _StrokeMatcher2 = _interopRequireDefault(_StrokeMatcher);
+
+	var _modelsUserStroke = __webpack_require__(20);
+
+	var _modelsUserStroke2 = _interopRequireDefault(_modelsUserStroke);
+
+	var _renderersUserStrokeRenderer = __webpack_require__(21);
+
+	var _renderersUserStrokeRenderer2 = _interopRequireDefault(_renderersUserStrokeRenderer);
+
+	var _utils = __webpack_require__(6);
+
+	var Quiz = (function () {
+	  // TODO: too many dependencies... do something about this
+
+	  function Quiz(_ref) {
+	    var canvas = _ref.canvas;
+	    var animator = _ref.animator;
+	    var character = _ref.character;
+	    var characterRenderer = _ref.characterRenderer;
+	    var hintRenderer = _ref.hintRenderer;
+	    var highlightRenderer = _ref.highlightRenderer;
+	    var quizOptions = _ref.quizOptions;
+	    var userStrokeOptions = _ref.userStrokeOptions;
+
+	    _classCallCheck(this, Quiz);
+
+	    this._canvas = canvas;
+	    this._animator = animator;
+	    this._character = character;
+	    this._characterRenderer = characterRenderer;
+	    this._hintRenderer = hintRenderer;
+	    this._highlightRenderer = highlightRenderer;
+	    this._quizOptions = quizOptions;
+	    this._userStrokeOptions = userStrokeOptions;
+
+	    this._currentStrokeIndex = 0;
+	    this._numRecentMistakes = 0;
+	    this._totalMistakes = 0;
+	    this._drawnStrokes = [];
+	    this._isActive = true;
+	    this._strokeMatcher = new _StrokeMatcher2['default']();
+
+	    this._setupCharacter();
+	  }
+
+	  _createClass(Quiz, [{
+	    key: 'startUserStroke',
+	    value: function startUserStroke(point) {
+	      if (!this._isActive) return null;
+	      if (this._userStroke) return this.endUserStroke();
+	      this._userStroke = new _modelsUserStroke2['default'](point);
+	      this._userStrokeRenderer = new _renderersUserStrokeRenderer2['default'](this._userStroke, this._userStrokeOptions);
+	      this._userStrokeRenderer.setCanvas(this._canvas).draw();
+	    }
+	  }, {
+	    key: 'continueUserStroke',
+	    value: function continueUserStroke(point) {
+	      if (!this._userStroke) return;
+	      this._userStroke.appendPoint(point);
+	      this._userStrokeRenderer.updatePath();
+	    }
+	  }, {
+	    key: 'endUserStroke',
+	    value: function endUserStroke() {
+	      var _this = this;
+
+	      if (!this._userStroke) return Promise.resolve();
+
+	      this._animator.animate(function (animation) {
+	        var promises = [];
+	        var matchingStroke = _this._strokeMatcher.getMatchingStroke(_this._userStroke, _this._character.getStrokes());
+	        promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
+	        _this._userStroke = null;
+	        _this._userStrokeRenderer = null;
+	        if (!_this._isActive) return Promise.resolve();
+
+	        if (_this._isValidStroke(matchingStroke)) {
+	          _this._handleSuccess();
+	          _this._drawMatchingStroke(matchingStroke, animation);
+	        } else {
+	          _this._handleFaiulure();
+	          if (_this._numRecentMistakes > 2) {
+	            promises.push(_this._highlightCorrectStroke(animation));
+	          }
+	        }
+	        return Promise.all(promises);
+	      });
+	    }
+	  }, {
+	    key: 'cancel',
+	    value: function cancel() {
+	      this._isActive = false;
+	    }
+	  }, {
+	    key: '_handleSuccess',
+	    value: function _handleSuccess() {
+	      this._currentStrokeIndex += 1;
+	      this._numRecentMistakes = 0;
+	      if (this._currentStrokeIndex === this._character.getNumStrokes()) this.isQuizzing = false;
+	    }
+	  }, {
+	    key: '_handleFaiulure',
+	    value: function _handleFaiulure() {
+	      this._numRecentMistakes += 1;
+	      this._totalMistakes += 1;
+	    }
+	  }, {
+	    key: '_highlightCorrectStroke',
+	    value: function _highlightCorrectStroke(animation) {
+	      var strokeHintRenderer = this._highlightRenderer.getStrokeRenderer(this._currentStrokeIndex);
+	      return strokeHintRenderer.highlight(animation);
+	    }
+	  }, {
+	    key: '_drawMatchingStroke',
+	    value: function _drawMatchingStroke(stroke, animation) {
+	      this._drawnStrokes.push(stroke);
+	      this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
+	    }
+	  }, {
+	    key: '_isValidStroke',
+	    value: function _isValidStroke(stroke) {
+	      if (!stroke) return false;
+	      if ((0, _utils.inArray)(stroke, this._drawnStrokes)) return false;
+	      return stroke === this._character.getStroke(this._currentStrokeIndex);
+	    }
+
+	    // hide the caracter, show hint if needed
+	  }, {
+	    key: '_setupCharacter',
+	    value: function _setupCharacter() {
+	      var _this2 = this;
+
+	      this._animator.animate(function (animation) {
+	        var hintAction = _this2._quizOptions.showHint ? 'show' : 'hide';
+	        return Promise.all([_this2._characterRenderer.hide(animation), _this2._hintRenderer[hintAction](animation)]);
+	      });
+	    }
+	  }]);
+
+	  return Quiz;
+	})();
+
+	exports['default'] = Quiz;
+	module.exports = exports['default'];
+
+/***/ },
+/* 19 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _modelsPoint = __webpack_require__(12);
 
 	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
 
@@ -2385,445 +2903,6 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 16 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i['return']) _i['return'](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError('Invalid attempt to destructure non-iterable instance'); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	var _modelsPoint = __webpack_require__(13);
-
-	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
-
-	var _modelsStroke = __webpack_require__(17);
-
-	var _modelsStroke2 = _interopRequireDefault(_modelsStroke);
-
-	var _modelsStrokePart = __webpack_require__(18);
-
-	var _modelsStrokePart2 = _interopRequireDefault(_modelsStrokePart);
-
-	var _modelsCharacter = __webpack_require__(19);
-
-	var _modelsCharacter2 = _interopRequireDefault(_modelsCharacter);
-
-	var ZdtStrokeParser = (function () {
-	  function ZdtStrokeParser() {
-	    _classCallCheck(this, ZdtStrokeParser);
-	  }
-
-	  _createClass(ZdtStrokeParser, [{
-	    key: 'generateCharacter',
-	    value: function generateCharacter(symbol, zdtPathStrings) {
-	      var strokes = this.generateStrokes(zdtPathStrings);
-	      return new _modelsCharacter2['default'](symbol, strokes);
-	    }
-	  }, {
-	    key: 'generateStrokes',
-	    value: function generateStrokes(zdtPathStrings) {
-	      var strokes = [];
-	      var strokeParts = [];
-	      var strokeNum = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = zdtPathStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var zdtPathString = _step.value;
-
-	          var _extractStrokeData2 = this._extractStrokeData(zdtPathString);
-
-	          var points = _extractStrokeData2.points;
-	          var isComplete = _extractStrokeData2.isComplete;
-	          var strokeType = _extractStrokeData2.strokeType;
-
-	          var strokePart = new _modelsStrokePart2['default'](strokeType, points);
-	          strokeParts.push(strokePart);
-	          if (isComplete) {
-	            strokes.push(new _modelsStroke2['default'](strokeParts, strokeNum));
-	            strokeNum += 1;
-	            strokeParts = [];
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator['return']) {
-	            _iterator['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-
-	      return strokes;
-	    }
-	  }, {
-	    key: '_extractStrokeData',
-	    value: function _extractStrokeData(zdtPathString) {
-	      var _this = this;
-
-	      var _zdtPathString$split = zdtPathString.split(':');
-
-	      var _zdtPathString$split2 = _slicedToArray(_zdtPathString$split, 2);
-
-	      var metadataString = _zdtPathString$split2[0];
-	      var rawPathString = _zdtPathString$split2[1];
-
-	      var pathString = rawPathString.replace(/;?\s*$/, '');
-	      var points = pathString.split(';').map(function (pointString) {
-	        return _this._parsePoint(pointString);
-	      });
-	      var isComplete = metadataString[2] === 'P';
-	      var strokeType = parseInt(metadataString[1], 10);
-	      return { points: points, isComplete: isComplete, strokeType: strokeType };
-	    }
-	  }, {
-	    key: '_parsePoint',
-	    value: function _parsePoint(pointString) {
-	      var _pointString$split = pointString.split(',');
-
-	      var _pointString$split2 = _slicedToArray(_pointString$split, 2);
-
-	      var x = _pointString$split2[0];
-	      var y = _pointString$split2[1];
-
-	      return new _modelsPoint2['default'](x, y);
-	    }
-	  }]);
-
-	  return ZdtStrokeParser;
-	})();
-
-	exports['default'] = ZdtStrokeParser;
-	module.exports = exports['default'];
-
-/***/ },
-/* 17 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	var _Point = __webpack_require__(13);
-
-	var _Point2 = _interopRequireDefault(_Point);
-
-	var Stroke = (function () {
-	  function Stroke(strokeParts, strokeNum) {
-	    _classCallCheck(this, Stroke);
-
-	    this._strokeParts = strokeParts;
-	    this._strokeNum = strokeNum;
-	  }
-
-	  _createClass(Stroke, [{
-	    key: 'getStrokeParts',
-	    value: function getStrokeParts() {
-	      return this._strokeParts;
-	    }
-	  }, {
-	    key: 'getNumStrokeParts',
-	    value: function getNumStrokeParts() {
-	      return this._strokeParts.length;
-	    }
-	  }, {
-	    key: 'getStrokeNum',
-	    value: function getStrokeNum() {
-	      return this._strokeNum;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2['default'].getOverallBounds(this._strokeParts);
-	    }
-	  }, {
-	    key: 'getLength',
-	    value: function getLength() {
-	      return this._strokeParts.reduce(function (acc, part) {
-	        return acc + part.getLength();
-	      }, 0);
-	    }
-	  }, {
-	    key: 'getVectors',
-	    value: function getVectors() {
-	      return this._strokeParts.map(function (strokePart) {
-	        return strokePart.getVector();
-	      });
-	    }
-	  }, {
-	    key: 'getStartingPoint',
-	    value: function getStartingPoint() {
-	      return this._strokeParts[0].getStartingPoint();
-	    }
-	  }, {
-	    key: 'getEndingPoint',
-	    value: function getEndingPoint() {
-	      return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
-	    }
-	  }, {
-	    key: 'getDistance',
-	    value: function getDistance(point) {
-	      var distances = this._strokeParts.map(function (strokePart) {
-	        return strokePart.getDistance(point);
-	      });
-	      return Math.min.apply(Math, distances);
-	    }
-	  }, {
-	    key: 'getAverageDistance',
-	    value: function getAverageDistance(points) {
-	      var totalDist = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var point = _step.value;
-
-	          totalDist += this.getDistance(point);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator['return']) {
-	            _iterator['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
-
-	      return totalDist / points.length;
-	    }
-	  }]);
-
-	  return Stroke;
-	})();
-
-	exports['default'] = Stroke;
-	module.exports = exports['default'];
-
-/***/ },
-/* 18 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	var _Point = __webpack_require__(13);
-
-	var _Point2 = _interopRequireDefault(_Point);
-
-	var _utils = __webpack_require__(6);
-
-	var StrokePart = (function () {
-	  function StrokePart(strokeType, points) {
-	    _classCallCheck(this, StrokePart);
-
-	    this._strokeType = strokeType;
-	    this._points = points;
-	  }
-
-	  _createClass(StrokePart, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this._points;
-	    }
-	  }, {
-	    key: 'getStrokeType',
-	    value: function getStrokeType() {
-	      return this._strokeType;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2['default'].getBounds(this._points);
-	    }
-	  }, {
-	    key: 'getVector',
-	    value: function getVector() {
-	      return this.getEndingPoint().subtract(this.getStartingPoint());
-	    }
-
-	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
-	  }, {
-	    key: 'getDistance',
-	    value: function getDistance(point) {
-	      var start = this.getStartingPoint();
-	      var end = this.getEndingPoint();
-	      var dx = end.getX() - start.getX();
-	      var dy = end.getY() - start.getY();
-	      var length = this.getLength();
-	      return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
-	    }
-	  }, {
-	    key: 'getLength',
-	    value: function getLength() {
-	      var start = this.getStartingPoint();
-	      var end = this.getEndingPoint();
-	      return _Point2['default'].getDistance(start, end);
-	    }
-	  }, {
-	    key: 'getStartingPoint',
-	    value: function getStartingPoint() {
-	      return this._getExtremePoint(false);
-	    }
-	  }, {
-	    key: 'getEndingPoint',
-	    value: function getEndingPoint() {
-	      return this._getExtremePoint(true);
-	    }
-
-	    // where to start or end drawing the stroke based on the stroke type
-	  }, {
-	    key: '_getExtremePoint',
-	    value: function _getExtremePoint(isReverse) {
-	      var strokeType = this.getStrokeType();
-	      var points = this.getPoints();
-	      var adjStrokeType = strokeType;
-	      var adjIsReverse = isReverse;
-	      var xs = points.map(function (point) {
-	        return point.getX();
-	      });
-	      var ys = points.map(function (point) {
-	        return point.getY();
-	      });
-	      var extremeXs = (0, _utils.getExtremes)(xs);
-	      var extremeYs = (0, _utils.getExtremes)(ys);
-
-	      // handle reversed strokes
-	      if (strokeType > StrokePart.FORWARD_SLASH_STROKE) {
-	        adjStrokeType = strokeType - StrokePart.FORWARD_SLASH_STROKE;
-	        adjIsReverse = !isReverse;
-	      }
-
-	      var minIndex = adjIsReverse ? 0 : 2;
-	      var maxIndex = adjIsReverse ? 2 : 0;
-	      var midIndex = 1;
-
-	      if (adjStrokeType === StrokePart.HORIZONTAL_STROKE) return new _Point2['default'](extremeXs[minIndex], extremeYs[midIndex]);
-	      if (adjStrokeType === StrokePart.BACK_SLASH_STROKE) return new _Point2['default'](extremeXs[minIndex], extremeYs[minIndex]);
-	      if (adjStrokeType === StrokePart.VERTICAL_STROKE) return new _Point2['default'](extremeXs[midIndex], extremeYs[minIndex]);
-	      if (adjStrokeType === StrokePart.FORWARD_SLASH_STROKE) return new _Point2['default'](extremeXs[maxIndex], extremeYs[minIndex]);
-	    }
-	  }]);
-
-	  return StrokePart;
-	})();
-
-	StrokePart.HORIZONTAL_STROKE = 1;
-	StrokePart.BACK_SLASH_STROKE = 2;
-	StrokePart.VERTICAL_STROKE = 3;
-	StrokePart.FORWARD_SLASH_STROKE = 4;
-	StrokePart.REVERSE_HORIZONTAL_STROKE = 5;
-	StrokePart.REVERSE_BACK_SLASH_STROKE = 6;
-	StrokePart.REVERSE_VERTICAL_STROKE = 7;
-	StrokePart.REVERSE_FORWARD_SLASH_STROKE = 8;
-
-	exports['default'] = StrokePart;
-	module.exports = exports['default'];
-
-/***/ },
-/* 19 */
-/***/ function(module, exports, __webpack_require__) {
-
-	'use strict';
-
-	Object.defineProperty(exports, '__esModule', {
-	  value: true
-	});
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
-
-	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
-
-	var _Point = __webpack_require__(13);
-
-	var _Point2 = _interopRequireDefault(_Point);
-
-	var Character = (function () {
-	  function Character(symbol, strokes) {
-	    _classCallCheck(this, Character);
-
-	    this._symbol = symbol;
-	    this._strokes = strokes;
-	  }
-
-	  _createClass(Character, [{
-	    key: 'getSymbol',
-	    value: function getSymbol() {
-	      return this._symbol;
-	    }
-	  }, {
-	    key: 'getStrokes',
-	    value: function getStrokes() {
-	      return this._strokes;
-	    }
-	  }, {
-	    key: 'getStroke',
-	    value: function getStroke(strokeNum) {
-	      return this._strokes[strokeNum];
-	    }
-	  }, {
-	    key: 'getNumStrokes',
-	    value: function getNumStrokes() {
-	      return this._strokes.length;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2['default'].getOverallBounds(this.getStrokes());
-	    }
-	  }]);
-
-	  return Character;
-	})();
-
-	exports['default'] = Character;
-	module.exports = exports['default'];
-
-/***/ },
 /* 20 */
 /***/ function(module, exports, __webpack_require__) {
 
@@ -2839,65 +2918,38 @@
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _modelsPoint = __webpack_require__(13);
+	var _Point = __webpack_require__(12);
 
-	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
+	var _Point2 = _interopRequireDefault(_Point);
 
-	var Positioner = (function () {
-	  function Positioner(character, options) {
-	    _classCallCheck(this, Positioner);
+	var UserStroke = (function () {
+	  function UserStroke(startingPoint) {
+	    _classCallCheck(this, UserStroke);
 
-	    this._character = character;
-	    this._options = options;
-	    this._calculateScaleAndOffset();
+	    this._points = [startingPoint];
 	  }
 
-	  _createClass(Positioner, [{
-	    key: 'convertExternalPoint',
-	    value: function convertExternalPoint(point) {
-	      var x = (point.getX() - this._xOffset) / this._scale;
-	      var y = (point.getY() - this._yOffset) / this._scale;
-	      return new _modelsPoint2['default'](x, y);
+	  _createClass(UserStroke, [{
+	    key: 'getPoints',
+	    value: function getPoints() {
+	      return this._points;
 	    }
 	  }, {
-	    key: 'getXOffset',
-	    value: function getXOffset() {
-	      return this._xOffset;
+	    key: 'getBounds',
+	    value: function getBounds() {
+	      return _Point2['default'].getBounds(this._points);
 	    }
 	  }, {
-	    key: 'getYOffset',
-	    value: function getYOffset() {
-	      return this._yOffset;
-	    }
-	  }, {
-	    key: 'getScale',
-	    value: function getScale() {
-	      return this._scale;
-	    }
-	  }, {
-	    key: '_calculateScaleAndOffset',
-	    value: function _calculateScaleAndOffset() {
-	      var bounds = this._character.getBounds();
-	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
-	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
-	      var effectiveWidth = this._options.width - 2 * this._options.padding;
-	      var effectiveHeight = this._options.height - 2 * this._options.padding;
-	      var scaleX = effectiveWidth / preScaledWidth;
-	      var scaleY = effectiveHeight / preScaledHeight;
-
-	      this._scale = Math.min(scaleX, scaleY);
-
-	      var xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
-	      var yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
-	      this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
-	      this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
+	    key: 'appendPoint',
+	    value: function appendPoint(point) {
+	      this._points.push(point);
 	    }
 	  }]);
 
-	  return Positioner;
+	  return UserStroke;
 	})();
 
-	exports['default'] = Positioner;
+	exports['default'] = UserStroke;
 	module.exports = exports['default'];
 
 /***/ },
@@ -2912,11 +2964,94 @@
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+	var _get = function get(_x2, _x3, _x4) { var _again = true; _function: while (_again) { var object = _x2, property = _x3, receiver = _x4; desc = parent = getter = undefined; _again = false; if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { _x2 = parent; _x3 = property; _x4 = receiver; _again = true; continue _function; } } else if ('value' in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } } };
+
 	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
-	var _Animation = __webpack_require__(22);
+	function _inherits(subClass, superClass) { if (typeof superClass !== 'function' && superClass !== null) { throw new TypeError('Super expression must either be null or a function, not ' + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+	var _PathRenderer2 = __webpack_require__(5);
+
+	var _PathRenderer3 = _interopRequireDefault(_PathRenderer2);
+
+	var UserStrokeRenderer = (function (_PathRenderer) {
+	  _inherits(UserStrokeRenderer, _PathRenderer);
+
+	  function UserStrokeRenderer(userStroke) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    _classCallCheck(this, UserStrokeRenderer);
+
+	    _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'constructor', this).call(this);
+	    this.options = options;
+	    this.userStroke = userStroke;
+	  }
+
+	  _createClass(UserStrokeRenderer, [{
+	    key: 'getPoints',
+	    value: function getPoints() {
+	      return this.userStroke.getPoints();
+	    }
+	  }, {
+	    key: 'updatePath',
+	    value: function updatePath() {
+	      this.path.plot(this.getPathString());
+	    }
+	  }, {
+	    key: 'draw',
+	    value: function draw() {
+	      _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this);
+	      this.path.attr(this.getStrokeAttrs());
+	      return this;
+	    }
+	  }, {
+	    key: 'fadeAndRemove',
+	    value: function fadeAndRemove(animation) {
+	      var _this = this;
+
+	      return new Promise(function (resolve, reject) {
+	        var svgAnimation = _this.path.animate(_this.options.fadeDuration).attr({ opacity: 0 }).after(resolve);
+	        animation.registerSvgAnimation(svgAnimation);
+	      }).then(function () {
+	        return _this.destroy();
+	      });
+	    }
+	  }, {
+	    key: 'getStrokeAttrs',
+	    value: function getStrokeAttrs() {
+	      return {
+	        fill: 'none',
+	        stroke: this.options.strokeColor,
+	        'stroke-width': this.options.strokeWidth
+	      };
+	    }
+	  }]);
+
+	  return UserStrokeRenderer;
+	})(_PathRenderer3['default']);
+
+	exports['default'] = UserStrokeRenderer;
+	module.exports = exports['default'];
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _Animation = __webpack_require__(23);
 
 	var _Animation2 = _interopRequireDefault(_Animation);
 
@@ -2956,7 +3091,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 22 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3040,7 +3175,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!

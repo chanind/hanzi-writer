@@ -84,13 +84,17 @@
 
 	var _ZdtStrokeParser2 = _interopRequireDefault(_ZdtStrokeParser);
 
+	var _Positioner = __webpack_require__(20);
+
+	var _Positioner2 = _interopRequireDefault(_Positioner);
+
 	var _utils = __webpack_require__(6);
 
-	var _Animation = __webpack_require__(20);
+	var _Animator = __webpack_require__(21);
 
-	var _Animation2 = _interopRequireDefault(_Animation);
+	var _Animator2 = _interopRequireDefault(_Animator);
 
-	var _svgJs = __webpack_require__(21);
+	var _svgJs = __webpack_require__(23);
 
 	var _svgJs2 = _interopRequireDefault(_svgJs);
 
@@ -136,7 +140,7 @@
 	    this.setOptions(options);
 	    this.setCharacter(character);
 	    this.setupListeners();
-	    this.lastAnimation = null;
+	    this.animator = new _Animator2['default']();
 	  }
 
 	  // set up window.HanziWriter if we're in the browser
@@ -175,7 +179,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        return _this.characterRenderer.show(animation);
 	      });
 	    }
@@ -186,7 +190,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        return _this2.characterRenderer.hide(animation);
 	      });
 	    }
@@ -197,7 +201,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        return _this3.characterRenderer.animate(animation);
 	      });
 	    }
@@ -208,7 +212,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        return _this4.hintRenderer.show(animation);
 	      });
 	    }
@@ -219,7 +223,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        return _this5.hintRenderer.hide(animation);
 	      });
 	    }
@@ -243,23 +247,22 @@
 	  }, {
 	    key: 'setCharacter',
 	    value: function setCharacter(char) {
-	      if (this.positioner) this.positioner.destroy();
+	      if (this.positionerRenderer) this.positionerRenderer.destroy();
+	      if (this.characterRenderer) this.characterRenderer.destroy();
+	      if (this.hintRenderer) this.hintRenderer.destroy();
+	      if (this.highlightRenderer) this.highlightRenderer.destroy();
 
 	      var pathStrings = this.options.charDataLoader(char);
 	      var zdtStrokeParser = new _ZdtStrokeParser2['default']();
 	      this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-	      this.positioner = new _renderersPositionerRenderer2['default'](this.options);
+	      this.positioner = new _Positioner2['default'](this.character, this.options);
 
-	      this.characterRenderer = new _renderersCharacterRenderer2['default'](this.character, this.mainCharOptions);
-	      this.hintRenderer = new _renderersCharacterRenderer2['default'](this.character, this.hintCharOptions);
-	      this.highlightRenderer = new _renderersCharacterRenderer2['default'](this.character, this.highlightCharOptions);
+	      this.positionerRenderer = new _renderersPositionerRenderer2['default'](this.positioner).setCanvas(this.svg);
+	      this.canvas = this.positionerRenderer.getPositionedCanvas();
 
-	      this.positioner.positionRenderer(this.hintRenderer);
-	      this.positioner.positionRenderer(this.characterRenderer);
-	      this.positioner.positionRenderer(this.highlightRenderer); // need this to be on top
-
-	      this.positioner.setCanvas(this.svg);
-	      this.positioner.draw();
+	      this.hintRenderer = new _renderersCharacterRenderer2['default'](this.character, this.hintCharOptions).setCanvas(this.canvas).draw();
+	      this.characterRenderer = new _renderersCharacterRenderer2['default'](this.character, this.mainCharOptions).setCanvas(this.canvas).draw();
+	      this.highlightRenderer = new _renderersCharacterRenderer2['default'](this.character, this.highlightCharOptions).setCanvas(this.canvas).draw();
 	    }
 
 	    // ------------- //
@@ -285,6 +288,8 @@
 	        evt.preventDefault();
 	        _this6.continueUserStroke(_this6.getTouchPoint(evt));
 	      });
+
+	      // TODO: fix
 	      document.addEventListener('mouseup', function () {
 	        return _this6.endUserStroke();
 	      });
@@ -299,7 +304,7 @@
 	      if (this.userStroke) return this.endUserStroke();
 	      this.userStroke = new _modelsUserStroke2['default'](point);
 	      this.userStrokeRenderer = new _renderersUserStrokeRenderer2['default'](this.userStroke, this.userStrokeOptions);
-	      this.userStrokeRenderer.setCanvas(this.svg);
+	      this.userStrokeRenderer.setCanvas(this.canvas);
 	      this.userStrokeRenderer.draw();
 	    }
 	  }, {
@@ -315,13 +320,12 @@
 	    value: function endUserStroke() {
 	      var _this7 = this;
 
-	      this.animate(function (animation) {
+	      this.animator.animate(function (animation) {
 	        if (!_this7.userStroke) return Promise.resolve();
 
 	        var promises = [];
-	        var translatedPoints = _this7.positioner.convertExternalPoints(_this7.userStroke.getPoints());
-	        var strokeMatcher = new _StrokeMatcher2['default'](_this7.options);
-	        var matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, _this7.character.getStrokes());
+	        var strokeMatcher = new _StrokeMatcher2['default']();
+	        var matchingStroke = strokeMatcher.getMatchingStroke(_this7.userStroke, _this7.character.getStrokes());
 	        promises.push(_this7.userStrokeRenderer.fadeAndRemove(animation));
 	        _this7.userStroke = null;
 	        _this7.userStrokeRenderer = null;
@@ -335,7 +339,7 @@
 	          if (_this7.drawnStrokes.length === _this7.character.getNumStrokes()) _this7.isQuizzing = false;
 	        } else {
 	          _this7.numRecentMistakes += 1;
-	          if (_this7.numRecentMistakes > 3) {
+	          if (_this7.numRecentMistakes > 2) {
 	            var strokeHintRenderer = _this7.highlightRenderer.getStrokeRenderer(_this7.currentStrokeIndex);
 	            promises.push(strokeHintRenderer.highlight(animation));
 	          }
@@ -346,29 +350,14 @@
 	  }, {
 	    key: 'getMousePoint',
 	    value: function getMousePoint(evt) {
-	      return new _modelsPoint2['default'](evt.offsetX, evt.offsetY);
+	      return this.positioner.convertExternalPoint(new _modelsPoint2['default'](evt.offsetX, evt.offsetY));
 	    }
 	  }, {
 	    key: 'getTouchPoint',
 	    value: function getTouchPoint(evt) {
 	      var x = evt.touches[0].pageX - this.svg.node.offsetLeft;
 	      var y = evt.touches[0].pageY - this.svg.node.offsetTop;
-	      return new _modelsPoint2['default'](x, y);
-	    }
-	  }, {
-	    key: 'setupAnimation',
-	    value: function setupAnimation() {
-	      if (this.lastAnimation) this.lastAnimation.cancel();
-	      this.lastAnimation = new _Animation2['default']();
-	      return this.lastAnimation;
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(func) {
-	      var animation = this.setupAnimation();
-	      func(animation).then(function () {
-	        return animation.finish();
-	      });
+	      return this.positioner.convertExternalPoint(new _modelsPoint2['default'](x, y));
 	    }
 	  }]);
 
@@ -496,6 +485,8 @@
 	          }
 	        }
 	      }
+
+	      return this;
 	    }
 	  }, {
 	    key: 'getStrokeRenderer',
@@ -547,6 +538,8 @@
 	          }
 	        }
 	      }
+
+	      return this;
 	    }
 	  }]);
 
@@ -579,11 +572,13 @@
 	    this.parentRenderer = null;
 	  }
 
+	  // implement in children
+
 	  _createClass(Renderer, [{
 	    key: "draw",
-	    value: function draw() {}
-	    // implement in children
-
+	    value: function draw() {
+	      return this;
+	    }
 	  }, {
 	    key: "registerChild",
 	    value: function registerChild(child) {
@@ -595,11 +590,13 @@
 	    key: "setParent",
 	    value: function setParent(parent) {
 	      this.parentRenderer = parent;
+	      return this;
 	    }
 	  }, {
 	    key: "setCanvas",
 	    value: function setCanvas(canvas) {
 	      this.canvas = canvas;
+	      return this;
 	    }
 
 	    // extend this in children with extra behavior
@@ -731,6 +728,8 @@
 	          }
 	        }
 	      }
+
+	      return this;
 	    }
 	  }, {
 	    key: 'animate',
@@ -845,7 +844,9 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      return _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs()).attr({ opacity: 0 });
+	      _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'draw', this).call(this);
+	      this.path.attr(this.getStrokeAttrs()).attr({ opacity: 0 });
+	      return this;
 	    }
 	  }, {
 	    key: 'show',
@@ -991,7 +992,8 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      return this.drawPath();
+	      this.drawPath();
+	      return this;
 	    }
 	  }, {
 	    key: 'destroy',
@@ -1873,7 +1875,9 @@
 	  }, {
 	    key: 'draw',
 	    value: function draw() {
-	      return _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this).attr(this.getStrokeAttrs());
+	      _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this);
+	      this.path.attr(this.getStrokeAttrs());
+	      return this;
 	    }
 	  }, {
 	    key: 'fadeAndRemove',
@@ -1928,125 +1932,36 @@
 
 	var _Renderer3 = _interopRequireDefault(_Renderer2);
 
-	var _modelsPoint = __webpack_require__(13);
-
-	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
-
 	var PositionerRenderer = (function (_Renderer) {
 	  _inherits(PositionerRenderer, _Renderer);
 
-	  function PositionerRenderer() {
-	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	  function PositionerRenderer(positioner) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
 	    _classCallCheck(this, PositionerRenderer);
 
 	    _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'constructor', this).call(this);
-	    this.options = options;
-	    this.positionedRenderers = [];
+	    this.positioner = positioner;
+	    this.positonedCanvas = null;
 	  }
 
 	  _createClass(PositionerRenderer, [{
-	    key: 'positionRenderer',
-	    value: function positionRenderer(boundableRenderer) {
-	      this.registerChild(boundableRenderer);
-	      this.positionedRenderers.push(boundableRenderer);
-	    }
-	  }, {
-	    key: 'convertExternalPoints',
-	    value: function convertExternalPoints(points) {
-	      var _this = this;
-
-	      return points.map(function (point) {
-	        return _this.convertExternalPoint(point);
-	      });
-	    }
-	  }, {
-	    key: 'convertExternalPoint',
-	    value: function convertExternalPoint(point) {
-	      var x = (point.getX() - this.xOffset) / this.scale;
-	      var y = (point.getY() - this.yOffset) / this.scale;
-	      return new _modelsPoint2['default'](x, y);
-	    }
-	  }, {
-	    key: 'getNestedCanvas',
-	    value: function getNestedCanvas() {
-	      this.calculateScaleAndOffset();
-	      return this.canvas.group().move(this.xOffset, this.yOffset).transform({ scaleX: this.scale, scaleY: this.scale });
-	    }
-	  }, {
-	    key: 'calculateScaleAndOffset',
-	    value: function calculateScaleAndOffset() {
-	      var bounds = _modelsPoint2['default'].getOverallBounds(this.positionedRenderers);
-	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
-	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
-	      var effectiveWidth = this.options.width - 2 * this.options.padding;
-	      var effectiveHeight = this.options.height - 2 * this.options.padding;
-	      var scaleX = effectiveWidth / preScaledWidth;
-	      var scaleY = effectiveHeight / preScaledHeight;
-
-	      this.scale = Math.min(scaleX, scaleY);
-
-	      var xCenteringBuffer = this.options.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
-	      var yCenteringBuffer = this.options.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
-	      this.xOffset = -1 * bounds[0].getX() * this.scale + xCenteringBuffer;
-	      this.yOffset = -1 * bounds[0].getY() * this.scale + yCenteringBuffer;
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = this.positionedRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var renderer = _step.value;
-
-	          renderer.draw();
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator['return']) {
-	            _iterator['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
+	    key: 'getPositionedCanvas',
+	    value: function getPositionedCanvas() {
+	      return this.positonedCanvas;
 	    }
 	  }, {
 	    key: 'setCanvas',
 	    value: function setCanvas(canvas) {
 	      _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
-
-	      try {
-	        for (var _iterator2 = this.positionedRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var renderer = _step2.value;
-
-	          renderer.setCanvas(this.getNestedCanvas());
-	        }
-	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2['return']) {
-	            _iterator2['return']();
-	          }
-	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
-	          }
-	        }
-	      }
+	      this.positonedCanvas = this.canvas.group().move(this.positioner.getXOffset(), this.positioner.getYOffset()).transform({ scaleX: this.positioner.getScale(), scaleY: this.positioner.getScale() });
+	      return this;
+	    }
+	  }, {
+	    key: 'destroy',
+	    value: function destroy() {
+	      _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'destroy', this).call(this);
+	      this.positonedCanvas.remove();
 	    }
 	  }]);
 
@@ -2253,10 +2168,10 @@
 
 	var _utils = __webpack_require__(6);
 
-	var AVG_DIST_THRESHOLD = 30; // bigger = more lenient
+	var AVG_DIST_THRESHOLD = 50; // bigger = more lenient
 	var LENGTH_RATIO_THRESHOLD = 0.5; // 0 to 1, bigger = more lenient
 	var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
-	var START_AND_END_DIST_THRESHOLD = 60; // bigger = more lenient
+	var START_AND_END_DIST_THRESHOLD = 100; // bigger = more lenient
 
 	var StrokeMatcher = (function () {
 	  function StrokeMatcher() {
@@ -2265,8 +2180,8 @@
 
 	  _createClass(StrokeMatcher, [{
 	    key: 'getMatchingStroke',
-	    value: function getMatchingStroke(rawPoints, strokes) {
-	      var points = this._stripDuplicates(rawPoints);
+	    value: function getMatchingStroke(userStroke, strokes) {
+	      var points = this._stripDuplicates(userStroke.getPoints());
 	      if (points.length < 2) return null;
 
 	      var closestStroke = null;
@@ -2920,6 +2835,138 @@
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _modelsPoint = __webpack_require__(13);
+
+	var _modelsPoint2 = _interopRequireDefault(_modelsPoint);
+
+	var Positioner = (function () {
+	  function Positioner(character, options) {
+	    _classCallCheck(this, Positioner);
+
+	    this._character = character;
+	    this._options = options;
+	    this._calculateScaleAndOffset();
+	  }
+
+	  _createClass(Positioner, [{
+	    key: 'convertExternalPoint',
+	    value: function convertExternalPoint(point) {
+	      var x = (point.getX() - this._xOffset) / this._scale;
+	      var y = (point.getY() - this._yOffset) / this._scale;
+	      return new _modelsPoint2['default'](x, y);
+	    }
+	  }, {
+	    key: 'getXOffset',
+	    value: function getXOffset() {
+	      return this._xOffset;
+	    }
+	  }, {
+	    key: 'getYOffset',
+	    value: function getYOffset() {
+	      return this._yOffset;
+	    }
+	  }, {
+	    key: 'getScale',
+	    value: function getScale() {
+	      return this._scale;
+	    }
+	  }, {
+	    key: '_calculateScaleAndOffset',
+	    value: function _calculateScaleAndOffset() {
+	      var bounds = this._character.getBounds();
+	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
+	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
+	      var effectiveWidth = this._options.width - 2 * this._options.padding;
+	      var effectiveHeight = this._options.height - 2 * this._options.padding;
+	      var scaleX = effectiveWidth / preScaledWidth;
+	      var scaleY = effectiveHeight / preScaledHeight;
+
+	      this._scale = Math.min(scaleX, scaleY);
+
+	      var xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
+	      var yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
+	      this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
+	      this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
+	    }
+	  }]);
+
+	  return Positioner;
+	})();
+
+	exports['default'] = Positioner;
+	module.exports = exports['default'];
+
+/***/ },
+/* 21 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
+	function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { 'default': obj }; }
+
+	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
+
+	var _Animation = __webpack_require__(22);
+
+	var _Animation2 = _interopRequireDefault(_Animation);
+
+	var Animator = (function () {
+	  function Animator() {
+	    _classCallCheck(this, Animator);
+	  }
+
+	  _createClass(Animator, [{
+	    key: 'construct',
+	    value: function construct() {
+	      this._lastAnimation = null;
+	    }
+	  }, {
+	    key: 'animate',
+	    value: function animate(func) {
+	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	      var animation = this._setupAnimation(options);
+	      func(animation).then(function () {
+	        return animation.finish();
+	      });
+	    }
+	  }, {
+	    key: '_setupAnimation',
+	    value: function _setupAnimation(options) {
+	      if (this._lastAnimation) this._lastAnimation.cancel();
+	      this._lastAnimation = new _Animation2['default'](options);
+	      return this._lastAnimation;
+	    }
+	  }]);
+
+	  return Animator;
+	})();
+
+	exports['default'] = Animator;
+	module.exports = exports['default'];
+
+/***/ },
+/* 22 */
+/***/ function(module, exports, __webpack_require__) {
+
+	'use strict';
+
+	Object.defineProperty(exports, '__esModule', {
+	  value: true
+	});
+
+	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ('value' in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
+
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError('Cannot call a class as a function'); } }
 
 	var _utils = __webpack_require__(6);
@@ -2993,7 +3040,7 @@
 	module.exports = exports['default'];
 
 /***/ },
-/* 21 */
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!

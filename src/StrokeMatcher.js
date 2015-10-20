@@ -8,8 +8,8 @@ const START_AND_END_DIST_THRESHOLD = 100; // bigger = more lenient
 
 class StrokeMatcher {
 
-  getMatchingStroke(rawPoints, strokes) {
-    const points = this._stripDuplicates(rawPoints);
+  getMatchingStroke(userStroke, strokes) {
+    const points = this._stripDuplicates(userStroke.getPoints());
     if (points.length < 2) return null;
 
     let closestStroke = null;

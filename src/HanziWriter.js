@@ -5,8 +5,9 @@ import Point from './models/Point';
 import UserStroke from './models/UserStroke';
 import StrokeMatcher from './StrokeMatcher';
 import ZdtStrokeParser from './ZdtStrokeParser';
+import Positioner from './Positioner';
 import {inArray, copyAndExtend} from './utils';
-import Animation from './Animation';
+import Animator from './Animator';
 import svg from 'svg.js';
 
 const defaultOptions = {
@@ -46,7 +47,7 @@ class HanziWriter {
     this.setOptions(options);
     this.setCharacter(character);
     this.setupListeners();
-    this.lastAnimation = null;
+    this.animator = new Animator();
   }
 
   setOptions(options) {
@@ -75,20 +76,20 @@ class HanziWriter {
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.show(animation));
+    this.animator.animate(animation => this.characterRenderer.show(animation));
   }
   hideCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.hide(animation));
+    this.animator.animate(animation => this.characterRenderer.hide(animation));
   }
   animateCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.animate(animation));
+    this.animator.animate(animation => this.characterRenderer.animate(animation));
   }
 
   showHint(options = {}) {
-    this.animate(animation => this.hintRenderer.show(animation));
+    this.animator.animate(animation => this.hintRenderer.show(animation));
   }
   hideHint(options = {}) {
-    this.animate(animation => this.hintRenderer.hide(animation));
+    this.animator.animate(animation => this.hintRenderer.hide(animation));
   }
 
   quiz(quizOptions = {}) {
@@ -106,23 +107,22 @@ class HanziWriter {
   }
 
   setCharacter(char) {
-    if (this.positioner) this. positioner.destroy();
+    if (this.positionerRenderer) this.positionerRenderer.destroy();
+    if (this.characterRenderer) this.characterRenderer.destroy();
+    if (this.hintRenderer) this.hintRenderer.destroy();
+    if (this.highlightRenderer) this.highlightRenderer.destroy();
 
     const pathStrings = this.options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
     this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this.positioner = new PositionerRenderer(this.options);
+    this.positioner = new Positioner(this.character, this.options);
 
-    this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions);
-    this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions);
-    this.highlightRenderer = new CharacterRenderer(this.character, this.highlightCharOptions);
+    this.positionerRenderer = new PositionerRenderer(this.positioner).setCanvas(this.svg);
+    this.canvas = this.positionerRenderer.getPositionedCanvas();
 
-    this.positioner.positionRenderer(this.hintRenderer);
-    this.positioner.positionRenderer(this.characterRenderer);
-    this.positioner.positionRenderer(this.highlightRenderer); // need this to be on top
-
-    this.positioner.setCanvas(this.svg);
-    this.positioner.draw();
+    this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions).setCanvas(this.canvas).draw();
+    this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions).setCanvas(this.canvas).draw();
+    this.highlightRenderer = new CharacterRenderer(this.character, this.highlightCharOptions).setCanvas(this.canvas).draw();
   }
 
   // ------------- //
@@ -144,6 +144,8 @@ class HanziWriter {
       evt.preventDefault();
       this.continueUserStroke(this.getTouchPoint(evt));
     });
+
+    // TODO: fix
     document.addEventListener('mouseup', () => this.endUserStroke());
     document.addEventListener('touchend', () => this.endUserStroke());
   }
@@ -153,7 +155,7 @@ class HanziWriter {
     if (this.userStroke) return this.endUserStroke();
     this.userStroke = new UserStroke(point);
     this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.userStrokeOptions);
-    this.userStrokeRenderer.setCanvas(this.svg);
+    this.userStrokeRenderer.setCanvas(this.canvas);
     this.userStrokeRenderer.draw();
   }
 
@@ -165,13 +167,12 @@ class HanziWriter {
   }
 
   endUserStroke() {
-    this.animate((animation) => {
+    this.animator.animate((animation) => {
       if (!this.userStroke) return Promise.resolve();
 
       const promises = [];
-      const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-      const strokeMatcher = new StrokeMatcher(this.options);
-      const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
+      const strokeMatcher = new StrokeMatcher();
+      const matchingStroke = strokeMatcher.getMatchingStroke(this.userStroke, this.character.getStrokes());
       promises.push(this.userStrokeRenderer.fadeAndRemove(animation));
       this.userStroke = null;
       this.userStrokeRenderer = null;
@@ -195,24 +196,13 @@ class HanziWriter {
   }
 
   getMousePoint(evt) {
-    return new Point(evt.offsetX, evt.offsetY);
+    return this.positioner.convertExternalPoint(new Point(evt.offsetX, evt.offsetY));
   }
 
   getTouchPoint(evt) {
     const x = evt.touches[0].pageX - this.svg.node.offsetLeft;
     const y = evt.touches[0].pageY - this.svg.node.offsetTop;
-    return new Point(x, y);
-  }
-
-  setupAnimation() {
-    if (this.lastAnimation) this.lastAnimation.cancel();
-    this.lastAnimation = new Animation();
-    return this.lastAnimation;
-  }
-
-  animate(func) {
-    const animation = this.setupAnimation();
-    func(animation).then(() => animation.finish());
+    return this.positioner.convertExternalPoint(new Point(x, y));
   }
 }
 

@@ -6,7 +6,10 @@ class Renderer {
     this.parentRenderer = null;
   }
 
-  draw() {} // implement in children
+  // implement in children
+  draw() {
+    return this;
+  }
 
   registerChild(child) {
     this.childRenderers.push(child);
@@ -16,10 +19,12 @@ class Renderer {
 
   setParent(parent) {
     this.parentRenderer = parent;
+    return this;
   }
 
   setCanvas(canvas) {
     this.canvas = canvas;
+    return this;
   }
 
   // extend this in children with extra behavior

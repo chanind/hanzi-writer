@@ -16,7 +16,9 @@ class UserStrokeRenderer extends PathRenderer {
   }
 
   draw() {
-    return super.draw().attr(this.getStrokeAttrs());
+    super.draw();
+    this.path.attr(this.getStrokeAttrs());
+    return this;
   }
 
   fadeAndRemove(animation) {

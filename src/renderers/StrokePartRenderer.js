@@ -25,7 +25,9 @@ class StrokePartRenderer extends PathRenderer {
   }
 
   draw() {
-    return super.draw().attr(this.getStrokeAttrs()).attr({opacity: 0});
+    super.draw();
+    this.path.attr(this.getStrokeAttrs()).attr({opacity: 0});
+    return this;
   }
 
   show(animation) {

@@ -35,6 +35,7 @@ class CharacterRenderer extends Renderer {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.draw();
     }
+    return this;
   }
 
   getStrokeRenderer(strokeNum) {
@@ -56,6 +57,7 @@ class CharacterRenderer extends Renderer {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.setCanvas(canvas);
     }
+    return this;
   }
 }
 

@@ -26,6 +26,7 @@ class StrokeRenderer extends Renderer {
     for (const strokePartRenderer of this.strokePartRenderers) {
       strokePartRenderer.draw(this.canvas);
     }
+    return this;
   }
 
   animate(animation) {

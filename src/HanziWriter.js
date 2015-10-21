@@ -1,16 +1,17 @@
 import CharacterRenderer from './renderers/CharacterRenderer';
-import UserStrokeRenderer from './renderers/UserStrokeRenderer';
 import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';
-import UserStroke from './models/UserStroke';
-import StrokeMatcher from './StrokeMatcher';
 import ZdtStrokeParser from './ZdtStrokeParser';
-import {inArray, copyAndExtend} from './utils';
-import Animation from './Animation';
+import Positioner from './Positioner';
+import Quiz from './Quiz';
+import {copyAndExtend} from './utils';
+import Animator from './Animator';
 import svg from 'svg.js';
 
 const defaultOptions = {
   charDataLoader: (char) => global.hanziData[char],
+  showOutline: true,
+  showCharacter: true,
 
   // positioning options
 
@@ -31,6 +32,11 @@ const defaultOptions = {
   hintColor: '#DDD',
   drawingColor: '#333',
 
+  // quiz options
+
+  showHintAfterMisses: 3,
+  highlightOnComplete: true,
+
   // undocumented obscure options
 
   drawingFadeDuration: 300,
@@ -42,177 +48,140 @@ const defaultOptions = {
 class HanziWriter {
 
   constructor(element, character, options = {}) {
-    this.svg = svg(element);
+    this._animator = new Animator();
+    this._svg = svg(element);
     this.setOptions(options);
     this.setCharacter(character);
-    this.setupListeners();
-    this.lastAnimation = null;
+    this._setupListeners();
+    this._quiz = null;
   }
 
   setOptions(options) {
-    this.options = copyAndExtend(defaultOptions, options);
-    this.mainCharOptions = {
-      strokeColor: this.options.strokeColor,
-      strokeWidth: this.options.strokeWidth,
-      strokeAnimationDuration: this.options.strokeAnimationDuration,
-      delayBetweenStrokes: this.options.delayBetweenStrokes,
+    this._options = copyAndExtend(defaultOptions, options);
+    this._mainCharOptions = {
+      strokeColor: this._options.strokeColor,
+      strokeWidth: this._options.strokeWidth,
+      strokeAnimationDuration: this._options.strokeAnimationDuration,
+      delayBetweenStrokes: this._options.delayBetweenStrokes,
     };
-    this.hintCharOptions = copyAndExtend(this.mainCharOptions, {
-      strokeColor: this.options.hintColor,
-      strokeWidth: this.options.hintWidth,
+    this._outlineCharOptions = copyAndExtend(this._mainCharOptions, {
+      strokeColor: this._options.hintColor,
+      strokeWidth: this._options.hintWidth,
     });
-    this.highlightCharOptions = copyAndExtend(this.mainCharOptions, {
-      strokeColor: this.options.highlightColor,
-      strokeAnimationDuration: this.options.strokeHighlightDuration,
+    this._highlightCharOptions = copyAndExtend(this._mainCharOptions, {
+      strokeColor: this._options.highlightColor,
+      strokeAnimationDuration: this._options.strokeHighlightDuration,
     });
-    this.userStrokeOptions = {
-      strokeColor: this.options.drawingColor,
-      strokeWidth: this.options.drawingWidth,
-      fadeDuration: this.options.drawingFadeDuration,
+    this._userStrokeOptions = {
+      strokeColor: this._options.drawingColor,
+      strokeWidth: this._options.drawingWidth,
+      fadeDuration: this._options.drawingFadeDuration,
     };
   }
 
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.show(animation));
+    this._animate(animation => this._characterRenderer.show(animation));
   }
   hideCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.hide(animation));
+    this._animate(animation => this._characterRenderer.hide(animation));
   }
   animateCharacter(options = {}) {
-    this.animate(animation => this.characterRenderer.animate(animation));
+    this._animate(animation => this._characterRenderer.animate(animation));
   }
 
-  showHint(options = {}) {
-    this.animate(animation => this.hintRenderer.show(animation));
+  showOutline(options = {}) {
+    this._animate(animation => this._outlineRenderer.show(animation));
   }
-  hideHint(options = {}) {
-    this.animate(animation => this.hintRenderer.hide(animation));
+  hideOutline(options = {}) {
+    this._animate(animation => this._outlineRenderer.hide(animation));
   }
 
   quiz(quizOptions = {}) {
-    this.isQuizzing = true;
-    this.hideCharacter(quizOptions);
-    if (quizOptions.showHint) {
-      this.showHint();
-    } else {
-      this.hideHint();
-    }
-    this.enforceStrokeOrder = quizOptions.enforceStrokeOrder;
-    this.currentStrokeIndex = 0;
-    this.numRecentMistakes = 0;
-    this.drawnStrokes = [];
+    this.cancelQuiz();
+    this._quiz = new Quiz({
+      canvas: this._canvas,
+      animator: this._animator,
+      character: this._character,
+      characterRenderer: this._characterRenderer,
+      highlightRenderer: this._highlightRenderer,
+      quizOptions: copyAndExtend(this._options, quizOptions),
+      userStrokeOptions: this._userStrokeOptions,
+    });
+  }
+
+  cancelQuiz() {
+    if (this._quiz) this._quiz.cancel();
+    this._quiz = null;
   }
 
   setCharacter(char) {
-    if (this.positioner) this. positioner.destroy();
+    this.cancelQuiz();
+    if (this._positionerRenderer) this._positionerRenderer.destroy();
+    if (this._characterRenderer) this._characterRenderer.destroy();
+    if (this._outlineRenderer) this._outlineRenderer.destroy();
+    if (this._highlightRenderer) this._highlightRenderer.destroy();
 
-    const pathStrings = this.options.charDataLoader(char);
+    const pathStrings = this._options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
-    this.character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this.positioner = new PositionerRenderer(this.options);
+    this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+    this._positioner = new Positioner(this._character, this._options);
 
-    this.characterRenderer = new CharacterRenderer(this.character, this.mainCharOptions);
-    this.hintRenderer = new CharacterRenderer(this.character, this.hintCharOptions);
-    this.highlightRenderer = new CharacterRenderer(this.character, this.highlightCharOptions);
+    this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
+    this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-    this.positioner.positionRenderer(this.hintRenderer);
-    this.positioner.positionRenderer(this.characterRenderer);
-    this.positioner.positionRenderer(this.highlightRenderer); // need this to be on top
+    this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
+    this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
+    this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
 
-    this.positioner.setCanvas(this.svg);
-    this.positioner.draw();
+    if (this._options.showCharacter) this.showCharacter();
+    if (this._options.showOutline) this.showOutline();
   }
 
   // ------------- //
 
-  setupListeners() {
-    this.svg.node.addEventListener('mousedown', (evt) => {
+  _setupListeners() {
+    this._svg.node.addEventListener('mousedown', (evt) => {
       evt.preventDefault();
-      this.startUserStroke(this.getMousePoint(evt));
+      this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
     });
-    this.svg.node.addEventListener('touchstart', (evt) => {
+    this._svg.node.addEventListener('touchstart', (evt) => {
       evt.preventDefault();
-      this.startUserStroke(this.getTouchPoint(evt));
+      this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
     });
-    this.svg.node.addEventListener('mousemove', (evt) => {
+    this._svg.node.addEventListener('mousemove', (evt) => {
       evt.preventDefault();
-      this.continueUserStroke(this.getMousePoint(evt));
+      this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
     });
-    this.svg.node.addEventListener('touchmove', (evt) => {
+    this._svg.node.addEventListener('touchmove', (evt) => {
       evt.preventDefault();
-      this.continueUserStroke(this.getTouchPoint(evt));
+      this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
     });
-    document.addEventListener('mouseup', () => this.endUserStroke());
-    document.addEventListener('touchend', () => this.endUserStroke());
+
+    // TODO: fix
+    document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
+    document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
   }
 
-  startUserStroke(point) {
-    this.point = point;
-    if (this.userStroke) return this.endUserStroke();
-    this.userStroke = new UserStroke(point);
-    this.userStrokeRenderer = new UserStrokeRenderer(this.userStroke, this.userStrokeOptions);
-    this.userStrokeRenderer.setCanvas(this.svg);
-    this.userStrokeRenderer.draw();
+  _forwardToQuiz(method, ...args) {
+    if (!this._quiz) return;
+    this._quiz[method](...args);
   }
 
-  continueUserStroke(point) {
-    if (this.userStroke) {
-      this.userStroke.appendPoint(point);
-      this.userStrokeRenderer.updatePath();
-    }
+  _getMousePoint(evt) {
+    return this._positioner.convertExternalPoint(new Point(evt.offsetX, evt.offsetY));
   }
 
-  endUserStroke() {
-    this.animate((animation) => {
-      if (!this.userStroke) return Promise.resolve();
-
-      const promises = [];
-      const translatedPoints = this.positioner.convertExternalPoints(this.userStroke.getPoints());
-      const strokeMatcher = new StrokeMatcher(this.options);
-      const matchingStroke = strokeMatcher.getMatchingStroke(translatedPoints, this.character.getStrokes());
-      promises.push(this.userStrokeRenderer.fadeAndRemove(animation));
-      this.userStroke = null;
-      this.userStrokeRenderer = null;
-      if (!this.isQuizzing) return Promise.resolve();
-      const isValidStroke = matchingStroke && !inArray(matchingStroke, this.drawnStrokes);
-      if (isValidStroke && (!this.enforceStrokeOrder || matchingStroke === this.character.getStroke(this.currentStrokeIndex))) {
-        this.drawnStrokes.push(matchingStroke);
-        this.currentStrokeIndex += 1;
-        this.numRecentMistakes = 0;
-        this.characterRenderer.showStroke(matchingStroke.getStrokeNum(), animation);
-        if (this.drawnStrokes.length === this.character.getNumStrokes()) this.isQuizzing = false;
-      } else {
-        this.numRecentMistakes += 1;
-        if (this.numRecentMistakes > 2) {
-          const strokeHintRenderer = this.highlightRenderer.getStrokeRenderer(this.currentStrokeIndex);
-          promises.push(strokeHintRenderer.highlight(animation));
-        }
-      }
-      return Promise.all(promises);
-    });
+  _getTouchPoint(evt) {
+    const x = evt.touches[0].pageX - this._svg.node.offsetLeft;
+    const y = evt.touches[0].pageY - this._svg.node.offsetTop;
+    return this._positioner.convertExternalPoint(new Point(x, y));
   }
 
-  getMousePoint(evt) {
-    return new Point(evt.offsetX, evt.offsetY);
-  }
-
-  getTouchPoint(evt) {
-    const x = evt.touches[0].pageX - this.svg.node.offsetLeft;
-    const y = evt.touches[0].pageY - this.svg.node.offsetTop;
-    return new Point(x, y);
-  }
-
-  setupAnimation() {
-    if (this.lastAnimation) this.lastAnimation.cancel();
-    this.lastAnimation = new Animation();
-    return this.lastAnimation;
-  }
-
-  animate(func) {
-    const animation = this.setupAnimation();
-    func(animation).then(() => animation.finish());
+  _animate(func, options = {}) {
+    this.cancelQuiz();
+    return this._animator.animate(func, options);
   }
 }
 

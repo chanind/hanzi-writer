@@ -27,6 +27,10 @@ class CharacterRenderer extends Renderer {
     return Promise.all(promises);
   }
 
+  flash(animation) {
+    return this.show(animation).then(() => this.hide(animation));
+  }
+
   showStroke(strokeNum, animation) {
     return this.getStrokeRenderer(strokeNum).show(animation);
   }
@@ -35,6 +39,7 @@ class CharacterRenderer extends Renderer {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.draw();
     }
+    return this;
   }
 
   getStrokeRenderer(strokeNum) {
@@ -56,6 +61,7 @@ class CharacterRenderer extends Renderer {
     for (const strokeRenderer of this.strokeRenderers) {
       strokeRenderer.setCanvas(canvas);
     }
+    return this;
   }
 }
 

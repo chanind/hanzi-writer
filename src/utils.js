@@ -35,8 +35,8 @@ export function getExtremes(numArray) {
   return [max, mid, min];
 }
 
-export function callIfExists(callback) {
-  if (callback) callback();
+export function callIfExists(callback, ...args) {
+  if (callback) callback(...args);
 }
 
 export function average(arr) {

@@ -21,7 +21,8 @@ class PathRenderer extends Renderer {
   }
 
   draw() {
-    return this.drawPath();
+    this.drawPath();
+    return this;
   }
 
   destroy() {

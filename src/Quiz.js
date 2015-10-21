@@ -1,16 +1,16 @@
 import StrokeMatcher from './StrokeMatcher';
 import UserStroke from './models/UserStroke';
 import UserStrokeRenderer from './renderers/UserStrokeRenderer';
-import {inArray} from './utils';
+import {inArray, callIfExists} from './utils';
 
 class Quiz {
   // TODO: too many dependencies... do something about this
-  constructor({canvas, animator, character, characterRenderer, hintRenderer, highlightRenderer, quizOptions, userStrokeOptions}) {
+  constructor({canvas, animator, character, characterRenderer, outlineRenderer, highlightRenderer, quizOptions, userStrokeOptions}) {
     this._canvas = canvas;
     this._animator = animator;
     this._character = character;
     this._characterRenderer = characterRenderer;
-    this._hintRenderer = hintRenderer;
+    this._outlineRenderer = outlineRenderer;
     this._highlightRenderer = highlightRenderer;
     this._quizOptions = quizOptions;
     this._userStrokeOptions = userStrokeOptions;
@@ -51,11 +51,10 @@ class Quiz {
       if (!this._isActive) return Promise.resolve();
 
       if (this._isValidStroke(matchingStroke)) {
-        this._handleSuccess();
-        this._drawMatchingStroke(matchingStroke, animation);
+        this._handleSuccess(matchingStroke, animation);
       } else {
         this._handleFaiulure();
-        if (this._numRecentMistakes > 2) {
+        if (this._numRecentMistakes >= this._quizOptions.showHintAfterMisses) {
           promises.push(this._highlightCorrectStroke(animation));
         }
       }
@@ -67,15 +66,39 @@ class Quiz {
     this._isActive = false;
   }
 
-  _handleSuccess() {
+  _handleSuccess(stroke, animation) {
+    callIfExists(this._quizOptions.onCorrectStroke, {
+      character: this._character.getSymbol(),
+      strokeNum: this._currentStrokeIndex,
+      mistakesOnStroke: this._numRecentMistakes,
+      totalMistakes: this._totalMistakes,
+      strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1,
+    });
     this._currentStrokeIndex += 1;
     this._numRecentMistakes = 0;
-    if (this._currentStrokeIndex === this._character.getNumStrokes()) this.isQuizzing = false;
+    let promise = this._drawMatchingStroke(stroke, animation);
+    if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+      callIfExists(this._quizOptions.onComplete, {
+        character: this._character.getSymbol(),
+        totalMistakes: this._totalMistakes,
+      });
+      if (this._quizOptions.highlightOnComplete) {
+        promise = promise.then(() => this._highlightRenderer.flash(animation));
+      }
+    }
+    return promise;
   }
 
   _handleFaiulure() {
     this._numRecentMistakes += 1;
     this._totalMistakes += 1;
+    callIfExists(this._quizOptions.onCorrectStroke, {
+      character: this._character.getSymbol(),
+      strokeNum: this._currentStrokeIndex,
+      mistakesOnStroke: this._numRecentMistakes,
+      totalMistakes: this._totalMistakes,
+      strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex,
+    });
   }
 
   _highlightCorrectStroke(animation) {
@@ -85,7 +108,7 @@ class Quiz {
 
   _drawMatchingStroke(stroke, animation) {
     this._drawnStrokes.push(stroke);
-    this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
+    return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
   }
 
   _isValidStroke(stroke) {
@@ -97,10 +120,10 @@ class Quiz {
   // hide the caracter, show hint if needed
   _setupCharacter() {
     this._animator.animate((animation) => {
-      const hintAction = this._quizOptions.showHint ? 'show' : 'hide';
+      const outlineAction = this._quizOptions.showOutline ? 'show' : 'hide';
       return Promise.all([
         this._characterRenderer.hide(animation),
-        this._hintRenderer[hintAction](animation),
+        this._outlineRenderer[outlineAction](animation),
       ]);
     });
   }

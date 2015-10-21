@@ -122,6 +122,15 @@
 	  hintWidth: 2
 	};
 
+	var defaultQuizOptions = {
+	  onMissedStroke: null,
+	  onCorrectStroke: null,
+	  onComplete: null,
+	  showOutline: true,
+	  showHintAfterMisses: 3,
+	  highlightOnComplete: true
+	};
+
 	var HanziWriter = (function () {
 	  function HanziWriter(element, character) {
 	    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
@@ -141,25 +150,25 @@
 	  _createClass(HanziWriter, [{
 	    key: 'setOptions',
 	    value: function setOptions(options) {
-	      this.options = (0, _utils.copyAndExtend)(defaultOptions, options);
-	      this.mainCharOptions = {
-	        strokeColor: this.options.strokeColor,
-	        strokeWidth: this.options.strokeWidth,
-	        strokeAnimationDuration: this.options.strokeAnimationDuration,
-	        delayBetweenStrokes: this.options.delayBetweenStrokes
+	      this._options = (0, _utils.copyAndExtend)(defaultOptions, options);
+	      this._mainCharOptions = {
+	        strokeColor: this._options.strokeColor,
+	        strokeWidth: this._options.strokeWidth,
+	        strokeAnimationDuration: this._options.strokeAnimationDuration,
+	        delayBetweenStrokes: this._options.delayBetweenStrokes
 	      };
-	      this.hintCharOptions = (0, _utils.copyAndExtend)(this.mainCharOptions, {
-	        strokeColor: this.options.hintColor,
-	        strokeWidth: this.options.hintWidth
+	      this._outlineCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
+	        strokeColor: this._options.hintColor,
+	        strokeWidth: this._options.hintWidth
 	      });
-	      this.highlightCharOptions = (0, _utils.copyAndExtend)(this.mainCharOptions, {
-	        strokeColor: this.options.highlightColor,
-	        strokeAnimationDuration: this.options.strokeHighlightDuration
+	      this._highlightCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
+	        strokeColor: this._options.highlightColor,
+	        strokeAnimationDuration: this._options.strokeHighlightDuration
 	      });
-	      this.userStrokeOptions = {
-	        strokeColor: this.options.drawingColor,
-	        strokeWidth: this.options.drawingWidth,
-	        fadeDuration: this.options.drawingFadeDuration
+	      this._userStrokeOptions = {
+	        strokeColor: this._options.drawingColor,
+	        strokeWidth: this._options.drawingWidth,
+	        fadeDuration: this._options.drawingFadeDuration
 	      };
 	    }
 
@@ -199,25 +208,25 @@
 	      });
 	    }
 	  }, {
-	    key: 'showHint',
-	    value: function showHint() {
+	    key: 'showOutline',
+	    value: function showOutline() {
 	      var _this4 = this;
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	      this._animate(function (animation) {
-	        return _this4._hintRenderer.show(animation);
+	        return _this4._outlineRenderer.show(animation);
 	      });
 	    }
 	  }, {
-	    key: 'hideHint',
-	    value: function hideHint() {
+	    key: 'hideOutline',
+	    value: function hideOutline() {
 	      var _this5 = this;
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
 	      this._animate(function (animation) {
-	        return _this5._hintRenderer.hide(animation);
+	        return _this5._outlineRenderer.hide(animation);
 	      });
 	    }
 	  }, {
@@ -231,10 +240,10 @@
 	        animator: this._animator,
 	        character: this._character,
 	        characterRenderer: this._characterRenderer,
-	        hintRenderer: this._hintRenderer,
+	        outlineRenderer: this._outlineRenderer,
 	        highlightRenderer: this._highlightRenderer,
-	        quizOptions: quizOptions,
-	        userStrokeOptions: this.userStrokeOptions
+	        quizOptions: (0, _utils.copyAndExtend)(defaultQuizOptions, quizOptions),
+	        userStrokeOptions: this._userStrokeOptions
 	      });
 	    }
 	  }, {
@@ -249,20 +258,20 @@
 	      this.cancelQuiz();
 	      if (this._positionerRenderer) this._positionerRenderer.destroy();
 	      if (this._characterRenderer) this._characterRenderer.destroy();
-	      if (this._hintRenderer) this._hintRenderer.destroy();
+	      if (this._outlineRenderer) this._outlineRenderer.destroy();
 	      if (this._highlightRenderer) this._highlightRenderer.destroy();
 
-	      var pathStrings = this.options.charDataLoader(char);
+	      var pathStrings = this._options.charDataLoader(char);
 	      var zdtStrokeParser = new _ZdtStrokeParser2['default']();
 	      this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
-	      this._positioner = new _Positioner2['default'](this._character, this.options);
+	      this._positioner = new _Positioner2['default'](this._character, this._options);
 
 	      this._positionerRenderer = new _renderersPositionerRenderer2['default'](this._positioner).setCanvas(this._svg);
 	      this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-	      this._hintRenderer = new _renderersCharacterRenderer2['default'](this._character, this.hintCharOptions).setCanvas(this._canvas).draw();
-	      this._characterRenderer = new _renderersCharacterRenderer2['default'](this._character, this.mainCharOptions).setCanvas(this._canvas).draw();
-	      this._highlightRenderer = new _renderersCharacterRenderer2['default'](this._character, this.highlightCharOptions).setCanvas(this._canvas).draw();
+	      this._outlineRenderer = new _renderersCharacterRenderer2['default'](this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
+	      this._characterRenderer = new _renderersCharacterRenderer2['default'](this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
+	      this._highlightRenderer = new _renderersCharacterRenderer2['default'](this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
 	    }
 
 	    // ------------- //
@@ -425,6 +434,15 @@
 	      return Promise.all(promises);
 	    }
 	  }, {
+	    key: 'flash',
+	    value: function flash(animation) {
+	      var _this2 = this;
+
+	      return this.show(animation).then(function () {
+	        return _this2.hide(animation);
+	      });
+	    }
+	  }, {
 	    key: 'showStroke',
 	    value: function showStroke(strokeNum, animation) {
 	      return this.getStrokeRenderer(strokeNum).show(animation);
@@ -467,13 +485,13 @@
 	  }, {
 	    key: 'animate',
 	    value: function animate(animation) {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      if (!animation.isActive()) return null;
 	      var renderChain = this.hide(animation);
 	      this.strokeRenderers.forEach(function (strokeRenderer, index) {
 	        if (index > 0) renderChain = renderChain.then(function () {
-	          return (0, _utils.timeout)(_this2.options.delayBetweenStrokes);
+	          return (0, _utils.timeout)(_this3.options.delayBetweenStrokes);
 	        });
 	        renderChain = renderChain.then(function () {
 	          return strokeRenderer.animate(animation);
@@ -1061,7 +1079,11 @@
 	}
 
 	function callIfExists(callback) {
-	  if (callback) callback();
+	  for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	    args[_key - 1] = arguments[_key];
+	  }
+
+	  if (callback) callback.apply(undefined, args);
 	}
 
 	function average(arr) {
@@ -2538,7 +2560,7 @@
 	    var animator = _ref.animator;
 	    var character = _ref.character;
 	    var characterRenderer = _ref.characterRenderer;
-	    var hintRenderer = _ref.hintRenderer;
+	    var outlineRenderer = _ref.outlineRenderer;
 	    var highlightRenderer = _ref.highlightRenderer;
 	    var quizOptions = _ref.quizOptions;
 	    var userStrokeOptions = _ref.userStrokeOptions;
@@ -2549,7 +2571,7 @@
 	    this._animator = animator;
 	    this._character = character;
 	    this._characterRenderer = characterRenderer;
-	    this._hintRenderer = hintRenderer;
+	    this._outlineRenderer = outlineRenderer;
 	    this._highlightRenderer = highlightRenderer;
 	    this._quizOptions = quizOptions;
 	    this._userStrokeOptions = userStrokeOptions;
@@ -2596,11 +2618,10 @@
 	        if (!_this._isActive) return Promise.resolve();
 
 	        if (_this._isValidStroke(matchingStroke)) {
-	          _this._handleSuccess();
-	          _this._drawMatchingStroke(matchingStroke, animation);
+	          _this._handleSuccess(matchingStroke, animation);
 	        } else {
 	          _this._handleFaiulure();
-	          if (_this._numRecentMistakes > 2) {
+	          if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
 	            promises.push(_this._highlightCorrectStroke(animation));
 	          }
 	        }
@@ -2614,16 +2635,44 @@
 	    }
 	  }, {
 	    key: '_handleSuccess',
-	    value: function _handleSuccess() {
+	    value: function _handleSuccess(stroke, animation) {
+	      var _this2 = this;
+
+	      (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	        character: this._character.getSymbol(),
+	        strokeNum: this._currentStrokeIndex,
+	        mistakesOnStroke: this._numRecentMistakes,
+	        totalMistakes: this._totalMistakes,
+	        strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1
+	      });
 	      this._currentStrokeIndex += 1;
 	      this._numRecentMistakes = 0;
-	      if (this._currentStrokeIndex === this._character.getNumStrokes()) this.isQuizzing = false;
+	      var promise = this._drawMatchingStroke(stroke, animation);
+	      if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+	        (0, _utils.callIfExists)(this._quizOptions.onComplete, {
+	          character: this._character.getSymbol(),
+	          totalMistakes: this._totalMistakes
+	        });
+	        if (this._quizOptions.highlightOnComplete) {
+	          promise = promise.then(function () {
+	            return _this2._highlightRenderer.flash(animation);
+	          });
+	        }
+	      }
+	      return promise;
 	    }
 	  }, {
 	    key: '_handleFaiulure',
 	    value: function _handleFaiulure() {
 	      this._numRecentMistakes += 1;
 	      this._totalMistakes += 1;
+	      (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	        character: this._character.getSymbol(),
+	        strokeNum: this._currentStrokeIndex,
+	        mistakesOnStroke: this._numRecentMistakes,
+	        totalMistakes: this._totalMistakes,
+	        strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex
+	      });
 	    }
 	  }, {
 	    key: '_highlightCorrectStroke',
@@ -2635,7 +2684,7 @@
 	    key: '_drawMatchingStroke',
 	    value: function _drawMatchingStroke(stroke, animation) {
 	      this._drawnStrokes.push(stroke);
-	      this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
+	      return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
 	    }
 	  }, {
 	    key: '_isValidStroke',
@@ -2649,11 +2698,11 @@
 	  }, {
 	    key: '_setupCharacter',
 	    value: function _setupCharacter() {
-	      var _this2 = this;
+	      var _this3 = this;
 
 	      this._animator.animate(function (animation) {
-	        var hintAction = _this2._quizOptions.showHint ? 'show' : 'hide';
-	        return Promise.all([_this2._characterRenderer.hide(animation), _this2._hintRenderer[hintAction](animation)]);
+	        var outlineAction = _this3._quizOptions.showOutline ? 'show' : 'hide';
+	        return Promise.all([_this3._characterRenderer.hide(animation), _this3._outlineRenderer[outlineAction](animation)]);
 	      });
 	    }
 	  }]);
@@ -2738,7 +2787,6 @@
 	      var withinLengthThresh = lengthRatio > 1 - LENGTH_RATIO_THRESHOLD && lengthRatio < 1 + LENGTH_RATIO_THRESHOLD;
 	      var startAndEndMatch = this._startAndEndMatches(points, closestStroke);
 	      var directionMatches = this._directionMatches(points, closestStroke);
-
 	      if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
 	        return closestStroke;
 	      }

@@ -38,6 +38,15 @@ const defaultOptions = {
   hintWidth: 2,
 };
 
+const defaultQuizOptions = {
+  onMissedStroke: null,
+  onCorrectStroke: null,
+  onComplete: null,
+  showOutline: true,
+  showHintAfterMisses: 3,
+  highlightOnComplete: true,
+};
+
 class HanziWriter {
 
   constructor(element, character, options = {}) {
@@ -50,25 +59,25 @@ class HanziWriter {
   }
 
   setOptions(options) {
-    this.options = copyAndExtend(defaultOptions, options);
-    this.mainCharOptions = {
-      strokeColor: this.options.strokeColor,
-      strokeWidth: this.options.strokeWidth,
-      strokeAnimationDuration: this.options.strokeAnimationDuration,
-      delayBetweenStrokes: this.options.delayBetweenStrokes,
+    this._options = copyAndExtend(defaultOptions, options);
+    this._mainCharOptions = {
+      strokeColor: this._options.strokeColor,
+      strokeWidth: this._options.strokeWidth,
+      strokeAnimationDuration: this._options.strokeAnimationDuration,
+      delayBetweenStrokes: this._options.delayBetweenStrokes,
     };
-    this.hintCharOptions = copyAndExtend(this.mainCharOptions, {
-      strokeColor: this.options.hintColor,
-      strokeWidth: this.options.hintWidth,
+    this._outlineCharOptions = copyAndExtend(this._mainCharOptions, {
+      strokeColor: this._options.hintColor,
+      strokeWidth: this._options.hintWidth,
     });
-    this.highlightCharOptions = copyAndExtend(this.mainCharOptions, {
-      strokeColor: this.options.highlightColor,
-      strokeAnimationDuration: this.options.strokeHighlightDuration,
+    this._highlightCharOptions = copyAndExtend(this._mainCharOptions, {
+      strokeColor: this._options.highlightColor,
+      strokeAnimationDuration: this._options.strokeHighlightDuration,
     });
-    this.userStrokeOptions = {
-      strokeColor: this.options.drawingColor,
-      strokeWidth: this.options.drawingWidth,
-      fadeDuration: this.options.drawingFadeDuration,
+    this._userStrokeOptions = {
+      strokeColor: this._options.drawingColor,
+      strokeWidth: this._options.drawingWidth,
+      fadeDuration: this._options.drawingFadeDuration,
     };
   }
 
@@ -84,11 +93,11 @@ class HanziWriter {
     this._animate(animation => this._characterRenderer.animate(animation));
   }
 
-  showHint(options = {}) {
-    this._animate(animation => this._hintRenderer.show(animation));
+  showOutline(options = {}) {
+    this._animate(animation => this._outlineRenderer.show(animation));
   }
-  hideHint(options = {}) {
-    this._animate(animation => this._hintRenderer.hide(animation));
+  hideOutline(options = {}) {
+    this._animate(animation => this._outlineRenderer.hide(animation));
   }
 
   quiz(quizOptions = {}) {
@@ -98,10 +107,10 @@ class HanziWriter {
       animator: this._animator,
       character: this._character,
       characterRenderer: this._characterRenderer,
-      hintRenderer: this._hintRenderer,
+      outlineRenderer: this._outlineRenderer,
       highlightRenderer: this._highlightRenderer,
-      quizOptions: quizOptions,
-      userStrokeOptions: this.userStrokeOptions,
+      quizOptions: copyAndExtend(defaultQuizOptions, quizOptions),
+      userStrokeOptions: this._userStrokeOptions,
     });
   }
 
@@ -114,20 +123,20 @@ class HanziWriter {
     this.cancelQuiz();
     if (this._positionerRenderer) this._positionerRenderer.destroy();
     if (this._characterRenderer) this._characterRenderer.destroy();
-    if (this._hintRenderer) this._hintRenderer.destroy();
+    if (this._outlineRenderer) this._outlineRenderer.destroy();
     if (this._highlightRenderer) this._highlightRenderer.destroy();
 
-    const pathStrings = this.options.charDataLoader(char);
+    const pathStrings = this._options.charDataLoader(char);
     const zdtStrokeParser = new ZdtStrokeParser();
     this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this._positioner = new Positioner(this._character, this.options);
+    this._positioner = new Positioner(this._character, this._options);
 
     this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
     this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-    this._hintRenderer = new CharacterRenderer(this._character, this.hintCharOptions).setCanvas(this._canvas).draw();
-    this._characterRenderer = new CharacterRenderer(this._character, this.mainCharOptions).setCanvas(this._canvas).draw();
-    this._highlightRenderer = new CharacterRenderer(this._character, this.highlightCharOptions).setCanvas(this._canvas).draw();
+    this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
+    this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
+    this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
   }
 
   // ------------- //

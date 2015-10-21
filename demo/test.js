@@ -10,7 +10,7 @@ function updateCharacter() {
 		width: 400,
 		height: 400
 	});
-	writer.showHint();
+	writer.showOutline();
 	writer.showCharacter();
 	isCharVisible = true;
 	isHintVisible = true;
@@ -38,8 +38,7 @@ window.onload = function() {
 	});
 	document.querySelector('.js-quiz').addEventListener('click', function() {
 		writer.quiz({
-			enforceStrokeOrder: true,
-			showHint: true
+			showOutline: true
 		});
 	});
 }

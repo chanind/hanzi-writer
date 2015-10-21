@@ -27,7 +27,6 @@ class StrokeMatcher {
     const withinLengthThresh = lengthRatio > (1 - LENGTH_RATIO_THRESHOLD) && lengthRatio < (1 + LENGTH_RATIO_THRESHOLD);
     const startAndEndMatch = this._startAndEndMatches(points, closestStroke);
     const directionMatches = this._directionMatches(points, closestStroke);
-
     if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
       return closestStroke;
     }

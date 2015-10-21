@@ -1,6 +1,6 @@
 var writer;
 var isCharVisible;
-var isHintVisible;
+var isOutlineVisible;
 
 function updateCharacter() {
 	document.querySelector('#target').innerHTML = '';
@@ -10,10 +10,8 @@ function updateCharacter() {
 		width: 400,
 		height: 400
 	});
-	writer.showOutline();
-	writer.showCharacter();
 	isCharVisible = true;
-	isHintVisible = true;
+	isOutlineVisible = true;
 	window.writer = writer;
 }
 
@@ -30,8 +28,8 @@ window.onload = function() {
 		isCharVisible = !isCharVisible;
 	});
 	document.querySelector('.js-toggle-hint').addEventListener('click', function() {
-		isHintVisible ? writer.hideHint() : writer.showHint();
-		isHintVisible = !isHintVisible;
+		isOutlineVisible ? writer.hideOutline() : writer.showOutline();
+		isOutlineVisible = !isOutlineVisible;
 	});
 	document.querySelector('.js-animate').addEventListener('click', function() {
 		writer.animateCharacter();

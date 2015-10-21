@@ -5,12 +5,11 @@ import {inArray, callIfExists} from './utils';
 
 class Quiz {
   // TODO: too many dependencies... do something about this
-  constructor({canvas, animator, character, characterRenderer, outlineRenderer, highlightRenderer, quizOptions, userStrokeOptions}) {
+  constructor({canvas, animator, character, characterRenderer, highlightRenderer, quizOptions, userStrokeOptions}) {
     this._canvas = canvas;
     this._animator = animator;
     this._character = character;
     this._characterRenderer = characterRenderer;
-    this._outlineRenderer = outlineRenderer;
     this._highlightRenderer = highlightRenderer;
     this._quizOptions = quizOptions;
     this._userStrokeOptions = userStrokeOptions;
@@ -117,15 +116,9 @@ class Quiz {
     return stroke === this._character.getStroke(this._currentStrokeIndex);
   }
 
-  // hide the caracter, show hint if needed
+  // hide the caracter
   _setupCharacter() {
-    this._animator.animate((animation) => {
-      const outlineAction = this._quizOptions.showOutline ? 'show' : 'hide';
-      return Promise.all([
-        this._characterRenderer.hide(animation),
-        this._outlineRenderer[outlineAction](animation),
-      ]);
-    });
+    this._animator.animate(animation => this._characterRenderer.hide(animation));
   }
 }
 

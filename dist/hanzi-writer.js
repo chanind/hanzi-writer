@@ -94,6 +94,8 @@
 	  charDataLoader: function charDataLoader(char) {
 	    return global.hanziData[char];
 	  },
+	  showOutline: true,
+	  showCharacter: true,
 
 	  // positioning options
 
@@ -114,6 +116,11 @@
 	  hintColor: '#DDD',
 	  drawingColor: '#333',
 
+	  // quiz options
+
+	  showHintAfterMisses: 3,
+	  highlightOnComplete: true,
+
 	  // undocumented obscure options
 
 	  drawingFadeDuration: 300,
@@ -122,26 +129,17 @@
 	  hintWidth: 2
 	};
 
-	var defaultQuizOptions = {
-	  onMissedStroke: null,
-	  onCorrectStroke: null,
-	  onComplete: null,
-	  showOutline: true,
-	  showHintAfterMisses: 3,
-	  highlightOnComplete: true
-	};
-
 	var HanziWriter = (function () {
 	  function HanziWriter(element, character) {
 	    var options = arguments.length <= 2 || arguments[2] === undefined ? {} : arguments[2];
 
 	    _classCallCheck(this, HanziWriter);
 
+	    this._animator = new _Animator2['default']();
 	    this._svg = (0, _svgJs2['default'])(element);
 	    this.setOptions(options);
 	    this.setCharacter(character);
 	    this._setupListeners();
-	    this._animator = new _Animator2['default']();
 	    this._quiz = null;
 	  }
 
@@ -240,9 +238,8 @@
 	        animator: this._animator,
 	        character: this._character,
 	        characterRenderer: this._characterRenderer,
-	        outlineRenderer: this._outlineRenderer,
 	        highlightRenderer: this._highlightRenderer,
-	        quizOptions: (0, _utils.copyAndExtend)(defaultQuizOptions, quizOptions),
+	        quizOptions: (0, _utils.copyAndExtend)(this._options, quizOptions),
 	        userStrokeOptions: this._userStrokeOptions
 	      });
 	    }
@@ -272,6 +269,9 @@
 	      this._outlineRenderer = new _renderersCharacterRenderer2['default'](this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
 	      this._characterRenderer = new _renderersCharacterRenderer2['default'](this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
 	      this._highlightRenderer = new _renderersCharacterRenderer2['default'](this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
+
+	      if (this._options.showCharacter) this.showCharacter();
+	      if (this._options.showOutline) this.showOutline();
 	    }
 
 	    // ------------- //
@@ -2560,7 +2560,6 @@
 	    var animator = _ref.animator;
 	    var character = _ref.character;
 	    var characterRenderer = _ref.characterRenderer;
-	    var outlineRenderer = _ref.outlineRenderer;
 	    var highlightRenderer = _ref.highlightRenderer;
 	    var quizOptions = _ref.quizOptions;
 	    var userStrokeOptions = _ref.userStrokeOptions;
@@ -2571,7 +2570,6 @@
 	    this._animator = animator;
 	    this._character = character;
 	    this._characterRenderer = characterRenderer;
-	    this._outlineRenderer = outlineRenderer;
 	    this._highlightRenderer = highlightRenderer;
 	    this._quizOptions = quizOptions;
 	    this._userStrokeOptions = userStrokeOptions;
@@ -2694,15 +2692,14 @@
 	      return stroke === this._character.getStroke(this._currentStrokeIndex);
 	    }
 
-	    // hide the caracter, show hint if needed
+	    // hide the caracter
 	  }, {
 	    key: '_setupCharacter',
 	    value: function _setupCharacter() {
 	      var _this3 = this;
 
 	      this._animator.animate(function (animation) {
-	        var outlineAction = _this3._quizOptions.showOutline ? 'show' : 'hide';
-	        return Promise.all([_this3._characterRenderer.hide(animation), _this3._outlineRenderer[outlineAction](animation)]);
+	        return _this3._characterRenderer.hide(animation);
 	      });
 	    }
 	  }]);

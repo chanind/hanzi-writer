@@ -10,6 +10,8 @@ import svg from 'svg.js';
 
 const defaultOptions = {
   charDataLoader: (char) => global.hanziData[char],
+  showOutline: true,
+  showCharacter: true,
 
   // positioning options
 
@@ -30,6 +32,11 @@ const defaultOptions = {
   hintColor: '#DDD',
   drawingColor: '#333',
 
+  // quiz options
+
+  showHintAfterMisses: 3,
+  highlightOnComplete: true,
+
   // undocumented obscure options
 
   drawingFadeDuration: 300,
@@ -38,23 +45,14 @@ const defaultOptions = {
   hintWidth: 2,
 };
 
-const defaultQuizOptions = {
-  onMissedStroke: null,
-  onCorrectStroke: null,
-  onComplete: null,
-  showOutline: true,
-  showHintAfterMisses: 3,
-  highlightOnComplete: true,
-};
-
 class HanziWriter {
 
   constructor(element, character, options = {}) {
+    this._animator = new Animator();
     this._svg = svg(element);
     this.setOptions(options);
     this.setCharacter(character);
     this._setupListeners();
-    this._animator = new Animator();
     this._quiz = null;
   }
 
@@ -107,9 +105,8 @@ class HanziWriter {
       animator: this._animator,
       character: this._character,
       characterRenderer: this._characterRenderer,
-      outlineRenderer: this._outlineRenderer,
       highlightRenderer: this._highlightRenderer,
-      quizOptions: copyAndExtend(defaultQuizOptions, quizOptions),
+      quizOptions: copyAndExtend(this._options, quizOptions),
       userStrokeOptions: this._userStrokeOptions,
     });
   }
@@ -137,6 +134,9 @@ class HanziWriter {
     this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
     this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
     this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
+
+    if (this._options.showCharacter) this.showCharacter();
+    if (this._options.showOutline) this.showOutline();
   }
 
   // ------------- //

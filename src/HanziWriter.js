@@ -82,20 +82,20 @@ class HanziWriter {
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    this._animate(animation => this._characterRenderer.show(animation));
+    this._animate(animation => this._characterRenderer.show(animation), options);
   }
   hideCharacter(options = {}) {
-    this._animate(animation => this._characterRenderer.hide(animation));
+    this._animate(animation => this._characterRenderer.hide(animation), options);
   }
   animateCharacter(options = {}) {
-    this._animate(animation => this._characterRenderer.animate(animation));
+    this._animate(animation => this._characterRenderer.animate(animation), options);
   }
 
   showOutline(options = {}) {
-    this._animate(animation => this._outlineRenderer.show(animation));
+    this._animate(animation => this._outlineRenderer.show(animation), options);
   }
   hideOutline(options = {}) {
-    this._animate(animation => this._outlineRenderer.hide(animation));
+    this._animate(animation => this._outlineRenderer.hide(animation), options);
   }
 
   quiz(quizOptions = {}) {

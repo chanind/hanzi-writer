@@ -48,7 +48,12 @@ module.exports = function(grunt) {
 
     clean: {
       pre: ['dist'],
-      post: ['dist/**/__tests__', 'dist/**.js', '!dist/hanzi-writer.js', '!dist/hanzi-writer.min.js', '!dist/data.js']
+      post: [
+        'dist/*',
+        '!dist/hanzi-writer.js',
+        '!dist/hanzi-writer.min.js',
+        '!dist/data',
+      ]
     }
 
   });

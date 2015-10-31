@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1">
 		<title>Hanzi Writer</title>
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css">
+		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
 		<link rel="stylesheet" href="styles.css" />
 	</head>
 	<body>
@@ -47,8 +47,14 @@
           <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="First slide">
           <div class="container">
             <div class="carousel-caption">
-              <div id="han" class="char"></div>
-              <div id="zi" class="char"></div>
+              <div id="ni" class="char"></div>
+              <div id="hao" class="char"></div>
+              <h1>Character Animations and Stroke Quizzes</h1>
+              <p>
+              	HanziWriter is a free and open-source javascript library
+             		for both animating simplified Chinese characters and quizzing
+             		users on character stroke order.
+              </p>
             </div>
           </div>
         </div>
@@ -61,6 +67,25 @@
     <!-- Wrap the rest of the page in another container to center all the content. -->
 
     <div class="container marketing">
+
+      <div class="text-center">
+	      <h1>Try it out</h1>
+	      <p class="subtext">Test yourself by drawing the character <strong>我</strong> with your mouse or finger</p>
+	      <div id="wo-quiz" class="wo-quiz"></div>
+
+        <div class="wo-quiz-controls">
+          <form class="form-inline">
+            <div class="checkbox">
+              <label>
+                <input type="checkbox" checked="checked" id="wo-show-outline" /> Show Outline
+              </label>
+              <button class="btn btn-default" id="wo-reset">Reset</button>
+            </div>
+          </form>
+        </div>
+      </div>
+
+      <hr class="featurette-divider">
 
       <!-- Three columns of text below the carousel -->
       <div class="row">

@@ -181,7 +181,7 @@
 
 	      this._animate(function (animation) {
 	        return _this._characterRenderer.show(animation);
-	      });
+	      }, options);
 	    }
 	  }, {
 	    key: 'hideCharacter',
@@ -192,7 +192,7 @@
 
 	      this._animate(function (animation) {
 	        return _this2._characterRenderer.hide(animation);
-	      });
+	      }, options);
 	    }
 	  }, {
 	    key: 'animateCharacter',
@@ -203,7 +203,7 @@
 
 	      this._animate(function (animation) {
 	        return _this3._characterRenderer.animate(animation);
-	      });
+	      }, options);
 	    }
 	  }, {
 	    key: 'showOutline',
@@ -214,7 +214,7 @@
 
 	      this._animate(function (animation) {
 	        return _this4._outlineRenderer.show(animation);
-	      });
+	      }, options);
 	    }
 	  }, {
 	    key: 'hideOutline',
@@ -225,7 +225,7 @@
 
 	      this._animate(function (animation) {
 	        return _this5._outlineRenderer.hide(animation);
-	      });
+	      }, options);
 	    }
 	  }, {
 	    key: 'quiz',

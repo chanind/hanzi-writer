@@ -1,169 +1,80 @@
-<!DOCTYPE html>
-<html lang="en-us">
-	<head>
-		<meta charset="utf-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-		<title>Hanzi Writer</title>
-		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
-		<!-- <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap-theme.min.css"> -->
-		<link rel="stylesheet" href="styles.css" />
-	</head>
-	<body>
-
-		<div class="navbar-wrapper">
+---
+layout: default
+---
+<!-- Carousel
+================================================== -->
+<div class="carousel slide" data-ride="carousel">
+  <div class="carousel-inner" role="listbox">
+    <div class="item active">
+      <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="First slide">
       <div class="container">
-
-        <nav class="navbar navbar-inverse navbar-static-top">
-          <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="#">Hanzi Writer</a>
-            </div>
-            <div id="navbar" class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
-                <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li>
-              </ul>
-            </div>
-          </div>
-        </nav>
-
+        <div class="carousel-caption">
+          <div id="ni" class="char"></div>
+          <div id="hao" class="char"></div>
+          <h1>Character Animations and Stroke Quizzes</h1>
+          <p>
+            HanziWriter is a free and open-source javascript library
+            for both animating simplified Chinese characters and quizzing
+            users on character stroke order.
+          </p>
+        </div>
       </div>
     </div>
+  </div>
+</div><!-- /.carousel -->
 
 
-    <!-- Carousel
-    ================================================== -->
-    <div class="carousel slide" data-ride="carousel">
-      <div class="carousel-inner" role="listbox">
-        <div class="item active">
-          <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="First slide">
-          <div class="container">
-            <div class="carousel-caption">
-              <div id="ni" class="char"></div>
-              <div id="hao" class="char"></div>
-              <h1>Character Animations and Stroke Quizzes</h1>
-              <p>
-              	HanziWriter is a free and open-source javascript library
-             		for both animating simplified Chinese characters and quizzing
-             		users on character stroke order.
-              </p>
-            </div>
-          </div>
+<!-- Marketing messaging and featurettes
+================================================== -->
+<!-- Wrap the rest of the page in another container to center all the content. -->
+
+<div class="container marketing">
+
+  <div class="text-center">
+    <h1>Try it out</h1>
+    <p class="subtext">Test yourself by drawing the character <strong>我</strong> with your mouse or finger</p>
+    <div id="wo-quiz" class="wo-quiz"></div>
+
+    <div class="wo-quiz-controls">
+      <form class="form-inline">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" checked="checked" id="wo-show-outline" /> Show Outline
+          </label>
+          <button class="btn btn-default" id="wo-reset">Reset</button>
         </div>
-      </div>
-    </div><!-- /.carousel -->
+      </form>
+    </div>
+  </div>
+
+  <hr class="featurette-divider">
+
+  <h1>Getting Started</h1>
+
+  <p>
+    To get started, download a copy of the HanziWriter javascript <strong><a href="https://github.com/chanind/hanzi-writer/blob/master/dist/hanzi-writer.min.js">Here</a></strong>. Including this JS file in your web page will
+    make available a global HanziWriter class.
+  </p>
+
+  <h2>Loading Character Data</h2>
+
+  <p>
+    On its own, the HanziWriter JS file isn't enough to render characters. You also need to load the corresponding character data for any character you wish to display. There are several ways to do this. In the Hanzi Writer repo there is a <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder which contains all the character data for each character in several different formats.
+  </p>
+  <p>
+    The easiest method is to simply include the <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.js">all.js</a> file in your webpage which includes all the data for every character and puts it in a global variable accessible to the HanziWriter. The all.js file is about 4.5MB so it's not recommended to use this method for production web sites. This should be fine if HanziWriter is used in a webview in a mobile app, however. There is also an <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.json">all.json</a> version if you would prefer to load this data via JSON.
+  </p>
+  <p>
+    The <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder also includes the data for each individual character as a separate JSON file. You can use host these files from your server and load them via AJAX inside of HanziWriter however you see fit. Loading character data is way is accomplished via passing a custom closure to `charDataLoader`. An example is shown below using jQuery:
+  </p>
+
+  {% highlight javascript %}
+var writer = new HanziWriter('target', '我', {
+  charDataLoader: function(char, onComplete) {
+    $.getJSON("/my/server/" + char + ".json", onComplete);
+  }
+});
+  {% endhighlight %}
 
 
-    <!-- Marketing messaging and featurettes
-    ================================================== -->
-    <!-- Wrap the rest of the page in another container to center all the content. -->
-
-    <div class="container marketing">
-
-      <div class="text-center">
-	      <h1>Try it out</h1>
-	      <p class="subtext">Test yourself by drawing the character <strong>我</strong> with your mouse or finger</p>
-	      <div id="wo-quiz" class="wo-quiz"></div>
-
-        <div class="wo-quiz-controls">
-          <form class="form-inline">
-            <div class="checkbox">
-              <label>
-                <input type="checkbox" checked="checked" id="wo-show-outline" /> Show Outline
-              </label>
-              <button class="btn btn-default" id="wo-reset">Reset</button>
-            </div>
-          </form>
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <!-- Three columns of text below the carousel -->
-      <div class="row">
-        <div class="col-lg-4">
-          <img class="img-circle" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Generic placeholder image" width="140" height="140">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Etiam porta sem malesuada magna mollis euismod. Nullam id dolor id nibh ultricies vehicula ut id elit. Morbi leo risus, porta ac consectetur ac, vestibulum at eros. Praesent commodo cursus magna.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div><!-- /.col-lg-4 -->
-        <div class="col-lg-4">
-          <img class="img-circle" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Generic placeholder image" width="140" height="140">
-          <h2>Heading</h2>
-          <p>Duis mollis, est non commodo luctus, nisi erat porttitor ligula, eget lacinia odio sem nec elit. Cras mattis consectetur purus sit amet fermentum. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div><!-- /.col-lg-4 -->
-        <div class="col-lg-4">
-          <img class="img-circle" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="Generic placeholder image" width="140" height="140">
-          <h2>Heading</h2>
-          <p>Donec sed odio dui. Cras justo odio, dapibus ac facilisis in, egestas eget quam. Vestibulum id ligula porta felis euismod semper. Fusce dapibus, tellus ac cursus commodo, tortor mauris condimentum nibh, ut fermentum massa justo sit amet risus.</p>
-          <p><a class="btn btn-default" href="#" role="button">View details &raquo;</a></p>
-        </div><!-- /.col-lg-4 -->
-      </div><!-- /.row -->
-
-
-      <!-- START THE FEATURETTES -->
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-md-7">
-          <h2 class="featurette-heading">First featurette heading. <span class="text-muted">It'll blow your mind.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-        <div class="col-md-5">
-          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-md-7 col-md-push-5">
-          <h2 class="featurette-heading">Oh yeah, it's that good. <span class="text-muted">See for yourself.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-        <div class="col-md-5 col-md-pull-7">
-          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <div class="row featurette">
-        <div class="col-md-7">
-          <h2 class="featurette-heading">And lastly, this one. <span class="text-muted">Checkmate.</span></h2>
-          <p class="lead">Donec ullamcorper nulla non metus auctor fringilla. Vestibulum id ligula porta felis euismod semper. Praesent commodo cursus magna, vel scelerisque nisl consectetur. Fusce dapibus, tellus ac cursus commodo.</p>
-        </div>
-        <div class="col-md-5">
-          <img class="featurette-image img-responsive center-block" data-src="holder.js/500x500/auto" alt="Generic placeholder image">
-        </div>
-      </div>
-
-      <hr class="featurette-divider">
-
-      <!-- /END THE FEATURETTES -->
-
-
-      <!-- FOOTER -->
-      <footer>
-        <p class="pull-right"><a href="#">Back to top</a></p>
-        <p>&copy; 2014 Company, Inc. &middot; <a href="#">Privacy</a> &middot; <a href="#">Terms</a></p>
-      </footer>
-
-    </div><!-- /.container -->
-
-		<script type="application/javascript" src="dist/data/all.js"></script>
-		<script type="application/javascript" src="dist/hanzi-writer.js"></script>
-		<script type="application/javascript" src="test.js"></script>
-		
-	</body>
-</html>
+</div><!-- /.container -->

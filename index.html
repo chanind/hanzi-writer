@@ -13,7 +13,7 @@ layout: default
           <div id="hao" class="char"></div>
           <h1>Character Animations and Stroke Quizzes</h1>
           <p>
-            HanziWriter is a free and open-source javascript library
+            Hanzi Writer is a free and open-source javascript library
             for both animating simplified Chinese characters and quizzing
             users on character stroke order.
           </p>
@@ -47,7 +47,7 @@ layout: default
     </div>
   </div>
 
-  <hr class="featurette-divider">
+  <hr class="featurette-divider" />
 
   <h1>Getting Started</h1>
 
@@ -55,6 +55,64 @@ layout: default
     To get started, download a copy of the HanziWriter javascript <strong><a href="https://github.com/chanind/hanzi-writer/blob/master/dist/hanzi-writer.min.js">Here</a></strong>. Including this JS file in your web page will
     make available a global HanziWriter class.
   </p>
+
+  <h2>Basic Usage</h2>
+
+  <p>
+    Creating a new HanziWriter instance requires passing in a target div (either ID or DOM reference),
+    the character you'd like to render, and an options object. All options are optional, but they are
+    illustrated below to give a sense of what options are available.
+  </p>
+  {% highlight javascript %}
+var writer = new HanziWriter('target-div', '我', {
+  charDataLoader: // character loading closure - see section below for more info,
+  showOutline: true, // show a faded outline of the character
+  showCharacter: true, // whether or not to draw the completed character
+
+  // positioning options
+
+  width: 200, // width of the character, in px
+  height: 200, // height of the character, in px
+  padding: 20, // padding between edges of character and edges of the target div, in px
+
+  // animation options
+
+  strokeAnimationDuration: 300, // duration of each stroke in ms
+  delayBetweenStrokes: 1000, // delay between drawing subsequent strokes in ms
+
+  // colors
+
+  strokeColor: '#555',
+  highlightColor: '#AAF', // color used to highlight strokes as a hint during quizzing
+  outlineColor: '#DDD', 
+  drawingColor: '#333', // color of the line drawn by the user during quizzing
+
+  // quiz options
+
+  showHintAfterMisses: 3, // give a hint after this many subsequent mistakes during quizzing
+  highlightOnComplete: true, // flash the character when the quiz is successfully completed
+});
+
+// animate the strokes in the character
+writer.animate({
+  onComplete: function() { console.log('finished animating!'); }
+});
+
+// quiz the user on this character
+writer.quiz({
+  onCorrectStroke: function(status) { console.log('got a stroke correct! :)', status); },
+  onMistake: function(status) { console.log('Oh no, you made a mistake drawing the stroke :(', status); },
+  onComplete: function(status) { console.log('Yay you finished the whole character! :D', status); }
+});
+
+// other misc methods
+writer.showCharacter();
+writer.hideCharacter();
+writer.showOutline();
+writer.hideOutline();
+writer.cancelQuiz();
+writer.setCharacter('你'); // change which character is being displayed
+  {% endhighlight %}
 
   <h2>Loading Character Data</h2>
 
@@ -65,7 +123,7 @@ layout: default
     The easiest method is to simply include the <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.js">all.js</a> file in your webpage which includes all the data for every character and puts it in a global variable accessible to the HanziWriter. The all.js file is about 4.5MB so it's not recommended to use this method for production web sites. This should be fine if HanziWriter is used in a webview in a mobile app, however. There is also an <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.json">all.json</a> version if you would prefer to load this data via JSON.
   </p>
   <p>
-    The <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder also includes the data for each individual character as a separate JSON file. You can use host these files from your server and load them via AJAX inside of HanziWriter however you see fit. Loading character data is way is accomplished via passing a custom closure to `charDataLoader`. An example is shown below using jQuery:
+    The <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder also includes the data for each individual character as a separate JSON file. You can use host these files from your server and load them via AJAX inside of HanziWriter however you see fit. Loading character data is way is accomplished via passing a custom closure to the <i>charDataLoader</i> option. An example is shown below using jQuery:
   </p>
 
   {% highlight javascript %}
@@ -76,5 +134,30 @@ var writer = new HanziWriter('target', '我', {
 });
   {% endhighlight %}
 
+  <p>
+    If you know in advance which character you'd like to render you can hardcode just the data for that
+    character into the <i>charDataLoader</i> closure. To do this, open up the JSON for the character you'd
+    like to render and copy the result into the <i>charDataLoader</i> closure. For example, here's how you could embed the data for the character <b>人</b>:
+  </p>
+
+  {% highlight javascript %}
+var writer = new HanziWriter('target', '人', {
+  charDataLoader: function(char) {
+    if (char !== '人') throw "invalid character, only have data for 人";
+    return ["#4PR:99,172;92,181;85,190;77,198;67,208;58,216;50,223;42,228;35,232;24,238;16,243;11,245;4,245;3,245;8,240;22,229;29,224;38,216;48,207;58,197;69,184;77,174;86,163;93,152;100,142;105,132;111,121;115,111;119,102;122,93;125,85;127,78;129,71;130,60;130,53;129,48;128,42;132,42;139,44;145,48;152,52;156,61;154,65;152,72;149,81;145,93;141,102;137,111;133,120;128,129;123,138;118,146;112,155;106,164","#2PR:246,219;235,214;225,209;216,204;208,199;202,193;193,186;185,179;176,170;168,161;159,151;150,142;142,132;135,124;128,115;122,107;118,116;133,137;146,156;159,173;170,188;181,201;190,212;201,226;210,236;217,242;221,245;228,247;237,247;242,247;250,247;259,246;271,245;284,243;293,241;296,239;293,237;286,234;275,229;259,223;"]；
+  }
+});
+  {% endhighlight %}
+
+  <h2>Compatibility</h2>
+
+  <p>
+    Hanzi Writer uses SVG to draw characters, so it should work with any browser which supports SVG. It should
+    work with IE 9+.
+  </p>
+
+  <h2>Data and problems</h2>
+
+  HanziWriter's stroke animation data was extracted from the ZDT chinese dictionary
 
 </div><!-- /.container -->

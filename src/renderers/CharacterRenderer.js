@@ -22,9 +22,17 @@ class CharacterRenderer extends Renderer {
     return Promise.all(promises);
   }
 
+  showImmediate() {
+    this.strokeRenderers.map(renderer => renderer.showImmediate());
+  }
+
   hide(animation) {
     const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.hide(animation));
     return Promise.all(promises);
+  }
+
+  hideImmediate() {
+    this.strokeRenderers.map(renderer => renderer.hideImmediate());
   }
 
   flash(animation) {

@@ -29,7 +29,7 @@ const defaultOptions = {
 
   strokeColor: '#555',
   highlightColor: '#AAF',
-  hintColor: '#DDD',
+  outlineColor: '#DDD',
   drawingColor: '#333',
 
   // quiz options
@@ -42,7 +42,7 @@ const defaultOptions = {
   drawingFadeDuration: 300,
   drawingWidth: 4,
   strokeWidth: 2,
-  hintWidth: 2,
+  outlineWidth: 2,
 };
 
 class HanziWriter {
@@ -65,8 +65,8 @@ class HanziWriter {
       delayBetweenStrokes: this._options.delayBetweenStrokes,
     };
     this._outlineCharOptions = copyAndExtend(this._mainCharOptions, {
-      strokeColor: this._options.hintColor,
-      strokeWidth: this._options.hintWidth,
+      strokeColor: this._options.outlineColor,
+      strokeWidth: this._options.outlineWidth,
     });
     this._highlightCharOptions = copyAndExtend(this._mainCharOptions, {
       strokeColor: this._options.highlightColor,
@@ -88,6 +88,7 @@ class HanziWriter {
     this._animate(animation => this._characterRenderer.hide(animation), options);
   }
   animateCharacter(options = {}) {
+    this.cancelQuiz();
     this._animate(animation => this._characterRenderer.animate(animation), options);
   }
 
@@ -122,24 +123,37 @@ class HanziWriter {
     if (this._characterRenderer) this._characterRenderer.destroy();
     if (this._outlineRenderer) this._outlineRenderer.destroy();
     if (this._highlightRenderer) this._highlightRenderer.destroy();
+    this._loadCharacterData(char).then(pathStrings => {
+      const zdtStrokeParser = new ZdtStrokeParser();
+      this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+      this._positioner = new Positioner(this._character, this._options);
 
-    const pathStrings = this._options.charDataLoader(char);
-    const zdtStrokeParser = new ZdtStrokeParser();
-    this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
-    this._positioner = new Positioner(this._character, this._options);
+      this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
+      this._canvas = this._positionerRenderer.getPositionedCanvas();
 
-    this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
-    this._canvas = this._positionerRenderer.getPositionedCanvas();
+      this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
+      this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
+      this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
 
-    this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
-    this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
-    this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
-
-    if (this._options.showCharacter) this.showCharacter();
-    if (this._options.showOutline) this.showOutline();
+      if (this._options.showCharacter) this._characterRenderer.showImmediate();
+      if (this._options.showOutline) this._outlineRenderer.showImmediate();
+    });
   }
 
   // ------------- //
+
+  _loadCharacterData(char) {
+    if (this.isLoadingCharData) this.cancelLoadingCharData();
+    this.isLoadingCharData = true;
+    return new Promise((resolve, reject) => {
+      this.cancelLoadingCharData = reject;
+      const returnedData = this._options.charDataLoader(char, resolve);
+      if (returnedData) resolve(returnedData);
+    }).then((data) => {
+      this.isLoadingCharData = false;
+      return data;
+    });
+  }
 
   _setupListeners() {
     this._svg.node.addEventListener('mousedown', (evt) => {
@@ -180,7 +194,6 @@ class HanziWriter {
   }
 
   _animate(func, options = {}) {
-    this.cancelQuiz();
     return this._animator.animate(func, options);
   }
 }

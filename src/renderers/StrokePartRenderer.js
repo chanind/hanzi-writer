@@ -48,6 +48,9 @@ class StrokePartRenderer extends PathRenderer {
     });
   }
 
+  hideImmediate() { this.path.opacity(0); }
+  showImmediate() { this.path.opacity(1); }
+
   animate(animation) {
     const start = this.strokePart.getStartingPoint();
     if (!this.path) this.drawPath();

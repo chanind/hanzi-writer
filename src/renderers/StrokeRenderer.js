@@ -17,9 +17,17 @@ class StrokeRenderer extends Renderer {
     return Promise.all(promises);
   }
 
+  showImmediate() {
+    this.strokePartRenderers.map(renderer => renderer.showImmediate());
+  }
+
   hide(animation) {
     const promises = this.strokePartRenderers.map(strokePartRenderer => strokePartRenderer.hide(animation));
     return Promise.all(promises);
+  }
+
+  hideImmediate() {
+    this.strokePartRenderers.map(renderer => renderer.hideImmediate());
   }
 
   draw() {

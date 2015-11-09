@@ -113,7 +113,7 @@
 
 	  strokeColor: '#555',
 	  highlightColor: '#AAF',
-	  hintColor: '#DDD',
+	  outlineColor: '#DDD',
 	  drawingColor: '#333',
 
 	  // quiz options
@@ -126,7 +126,7 @@
 	  drawingFadeDuration: 300,
 	  drawingWidth: 4,
 	  strokeWidth: 2,
-	  hintWidth: 2
+	  outlineWidth: 2
 	};
 
 	var HanziWriter = (function () {
@@ -156,8 +156,8 @@
 	        delayBetweenStrokes: this._options.delayBetweenStrokes
 	      };
 	      this._outlineCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
-	        strokeColor: this._options.hintColor,
-	        strokeWidth: this._options.hintWidth
+	        strokeColor: this._options.outlineColor,
+	        strokeWidth: this._options.outlineWidth
 	      });
 	      this._highlightCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
 	        strokeColor: this._options.highlightColor,
@@ -201,6 +201,7 @@
 
 	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
 
+	      this.cancelQuiz();
 	      this._animate(function (animation) {
 	        return _this3._characterRenderer.animate(animation);
 	      }, options);
@@ -252,58 +253,76 @@
 	  }, {
 	    key: 'setCharacter',
 	    value: function setCharacter(char) {
+	      var _this6 = this;
+
 	      this.cancelQuiz();
 	      if (this._positionerRenderer) this._positionerRenderer.destroy();
 	      if (this._characterRenderer) this._characterRenderer.destroy();
 	      if (this._outlineRenderer) this._outlineRenderer.destroy();
 	      if (this._highlightRenderer) this._highlightRenderer.destroy();
+	      this._loadCharacterData(char).then(function (pathStrings) {
+	        var zdtStrokeParser = new _ZdtStrokeParser2['default']();
+	        _this6._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+	        _this6._positioner = new _Positioner2['default'](_this6._character, _this6._options);
 
-	      var pathStrings = this._options.charDataLoader(char);
-	      var zdtStrokeParser = new _ZdtStrokeParser2['default']();
-	      this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
-	      this._positioner = new _Positioner2['default'](this._character, this._options);
+	        _this6._positionerRenderer = new _renderersPositionerRenderer2['default'](_this6._positioner).setCanvas(_this6._svg);
+	        _this6._canvas = _this6._positionerRenderer.getPositionedCanvas();
 
-	      this._positionerRenderer = new _renderersPositionerRenderer2['default'](this._positioner).setCanvas(this._svg);
-	      this._canvas = this._positionerRenderer.getPositionedCanvas();
+	        _this6._outlineRenderer = new _renderersCharacterRenderer2['default'](_this6._character, _this6._outlineCharOptions).setCanvas(_this6._canvas).draw();
+	        _this6._characterRenderer = new _renderersCharacterRenderer2['default'](_this6._character, _this6._mainCharOptions).setCanvas(_this6._canvas).draw();
+	        _this6._highlightRenderer = new _renderersCharacterRenderer2['default'](_this6._character, _this6._highlightCharOptions).setCanvas(_this6._canvas).draw();
 
-	      this._outlineRenderer = new _renderersCharacterRenderer2['default'](this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
-	      this._characterRenderer = new _renderersCharacterRenderer2['default'](this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
-	      this._highlightRenderer = new _renderersCharacterRenderer2['default'](this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
-
-	      if (this._options.showCharacter) this.showCharacter();
-	      if (this._options.showOutline) this.showOutline();
+	        if (_this6._options.showCharacter) _this6._characterRenderer.showImmediate();
+	        if (_this6._options.showOutline) _this6._outlineRenderer.showImmediate();
+	      });
 	    }
 
 	    // ------------- //
 
 	  }, {
+	    key: '_loadCharacterData',
+	    value: function _loadCharacterData(char) {
+	      var _this7 = this;
+
+	      if (this.isLoadingCharData) this.cancelLoadingCharData();
+	      this.isLoadingCharData = true;
+	      return new Promise(function (resolve, reject) {
+	        _this7.cancelLoadingCharData = reject;
+	        var returnedData = _this7._options.charDataLoader(char, resolve);
+	        if (returnedData) resolve(returnedData);
+	      }).then(function (data) {
+	        _this7.isLoadingCharData = false;
+	        return data;
+	      });
+	    }
+	  }, {
 	    key: '_setupListeners',
 	    value: function _setupListeners() {
-	      var _this6 = this;
+	      var _this8 = this;
 
 	      this._svg.node.addEventListener('mousedown', function (evt) {
 	        evt.preventDefault();
-	        _this6._forwardToQuiz('startUserStroke', _this6._getMousePoint(evt));
+	        _this8._forwardToQuiz('startUserStroke', _this8._getMousePoint(evt));
 	      });
 	      this._svg.node.addEventListener('touchstart', function (evt) {
 	        evt.preventDefault();
-	        _this6._forwardToQuiz('startUserStroke', _this6._getTouchPoint(evt));
+	        _this8._forwardToQuiz('startUserStroke', _this8._getTouchPoint(evt));
 	      });
 	      this._svg.node.addEventListener('mousemove', function (evt) {
 	        evt.preventDefault();
-	        _this6._forwardToQuiz('continueUserStroke', _this6._getMousePoint(evt));
+	        _this8._forwardToQuiz('continueUserStroke', _this8._getMousePoint(evt));
 	      });
 	      this._svg.node.addEventListener('touchmove', function (evt) {
 	        evt.preventDefault();
-	        _this6._forwardToQuiz('continueUserStroke', _this6._getTouchPoint(evt));
+	        _this8._forwardToQuiz('continueUserStroke', _this8._getTouchPoint(evt));
 	      });
 
 	      // TODO: fix
 	      document.addEventListener('mouseup', function () {
-	        return _this6._forwardToQuiz('endUserStroke');
+	        return _this8._forwardToQuiz('endUserStroke');
 	      });
 	      document.addEventListener('touchend', function () {
-	        return _this6._forwardToQuiz('endUserStroke');
+	        return _this8._forwardToQuiz('endUserStroke');
 	      });
 	    }
 	  }, {
@@ -336,7 +355,6 @@
 	    value: function _animate(func) {
 	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	      this.cancelQuiz();
 	      return this._animator.animate(func, options);
 	    }
 	  }]);
@@ -426,12 +444,26 @@
 	      return Promise.all(promises);
 	    }
 	  }, {
+	    key: 'showImmediate',
+	    value: function showImmediate() {
+	      this.strokeRenderers.map(function (renderer) {
+	        return renderer.showImmediate();
+	      });
+	    }
+	  }, {
 	    key: 'hide',
 	    value: function hide(animation) {
 	      var promises = this.strokeRenderers.map(function (strokeRenderer) {
 	        return strokeRenderer.hide(animation);
 	      });
 	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'hideImmediate',
+	    value: function hideImmediate() {
+	      this.strokeRenderers.map(function (renderer) {
+	        return renderer.hideImmediate();
+	      });
 	    }
 	  }, {
 	    key: 'flash',
@@ -683,12 +715,26 @@
 	      return Promise.all(promises);
 	    }
 	  }, {
+	    key: 'showImmediate',
+	    value: function showImmediate() {
+	      this.strokePartRenderers.map(function (renderer) {
+	        return renderer.showImmediate();
+	      });
+	    }
+	  }, {
 	    key: 'hide',
 	    value: function hide(animation) {
 	      var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
 	        return strokePartRenderer.hide(animation);
 	      });
 	      return Promise.all(promises);
+	    }
+	  }, {
+	    key: 'hideImmediate',
+	    value: function hideImmediate() {
+	      this.strokePartRenderers.map(function (renderer) {
+	        return renderer.hideImmediate();
+	      });
 	    }
 	  }, {
 	    key: 'draw',
@@ -856,6 +902,16 @@
 	        var svgAnimation = _this2.path.animate(_this2.options.strokeAnimationDuration).opacity(0).after(resolve);
 	        animation.registerSvgAnimation(svgAnimation);
 	      });
+	    }
+	  }, {
+	    key: 'hideImmediate',
+	    value: function hideImmediate() {
+	      this.path.opacity(0);
+	    }
+	  }, {
+	    key: 'showImmediate',
+	    value: function showImmediate() {
+	      this.path.opacity(1);
 	    }
 	  }, {
 	    key: 'animate',

@@ -1,0 +1,28 @@
+{
+  "name": "hanzi-writer",
+  "version": "0.1.0",
+  "author": "David Chanin <chanindav@gmail.com>",
+  "devDependencies": {
+    "babel-jest": "*",
+    "babel-loader": "*",
+    "babel-eslint": "*",
+    "eslint-config-airbnb": "*",
+    "eslint-loader": "*",
+    "eslint-plugin-react": "*",
+    "grunt": "*",
+    "grunt-contrib-clean": "*",
+    "grunt-contrib-copy": "*",
+    "grunt-contrib-uglify": "*",
+    "grunt-webpack": "*",
+    "jest-cli": "^0.5.8",
+    "svg.js": "2.1.1",
+    "webpack": "^1.12.2"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "jest": {
+    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
+    "unmockedModulePathPatterns": ["models", "util", "clone"]
+  }
+}

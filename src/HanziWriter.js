@@ -207,7 +207,7 @@ class HanziWriter {
   _animateWithData(func, options = {}) {
     return this._withData(() => {
       return this._animate(func, options);
-    })
+    });
   }
 }
 

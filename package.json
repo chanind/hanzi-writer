@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
-    "babel-jest": "*",
-    "babel-loader": "*",
     "babel-eslint": "*",
+    "babel-jest": "*",
+    "babel-core": "^6.0.0",
+    "babel-loader": "^6.0.0",
+    "babel-preset-es2015": "^6.0.0",
+    "babel-preset-stage-2": "^6.0.0",
     "eslint-config-airbnb": "*",
     "eslint-loader": "*",
     "eslint-plugin-react": "*",
@@ -23,6 +26,10 @@
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
-    "unmockedModulePathPatterns": ["models", "util", "clone"]
+    "unmockedModulePathPatterns": [
+      "models",
+      "util",
+      "clone"
+    ]
   }
 }

@@ -22,14 +22,26 @@ module.exports = function(grunt) {
       options: {
         module: {
           loaders: [
-            { test: /\.js$/, loader: 'babel-loader' },
-            { test: /\.js$/, loader: 'eslint-loader' }
+            {
+              test: /\.js$/,
+              exclude: /node_modules/,
+              loader: 'babel',
+              query: {
+                cacheDirectory: true,
+                presets: ['es2015', 'stage-2']
+              }
+            },
+            {
+              test: /\.js$/,
+              loader: 'eslint-loader',
+            }
           ],
         },
-        eslint: {  
-          configFile: '.eslintrc.js'
+         eslint: {  
+          configFile: '.eslintrc'
         }
       },
+
       dist: {
         entry: './src/HanziWriter.js',
         output: {

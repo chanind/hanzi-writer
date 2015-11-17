@@ -1,5 +1,4 @@
-const StrokePart = require('../StrokePart');
-
+import StrokePart from '../StrokePart';
 import Point from '../Point';
 
 describe('StrokePart', () => {

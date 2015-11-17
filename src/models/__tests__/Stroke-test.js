@@ -1,5 +1,4 @@
-const Stroke = require('../Stroke');
-
+import Stroke from '../Stroke';
 import Point from '../Point';
 import StrokePart from '../StrokePart';
 

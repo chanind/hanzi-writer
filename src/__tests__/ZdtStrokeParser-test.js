@@ -1,12 +1,13 @@
 jest.dontMock('../ZdtStrokeParser');
+const ZdtStrokeParser = require('../ZdtStrokeParser').default;
 import Point from '../models/Point';
 import Stroke from '../models/Stroke';
 import StrokePart from '../models/StrokePart';
 import Character from '../models/Character';
 
-const ZdtStrokeParser = require('../ZdtStrokeParser');
-
 describe('ZdtStrokeParser', () => {
+  console.log(ZdtStrokeParser);
+  console.log(new ZdtStrokeParser);
   const zdtStrokeParser = new ZdtStrokeParser();
 
   it('should parse simple zdt string data into characters', () => {

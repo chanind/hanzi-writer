@@ -82,33 +82,35 @@ class HanziWriter {
   // ------ public API ------ //
 
   showCharacter(options = {}) {
-    this._animate(animation => this._characterRenderer.show(animation), options);
+    this._animateWithData(animation => this._characterRenderer.show(animation), options);
   }
   hideCharacter(options = {}) {
-    this._animate(animation => this._characterRenderer.hide(animation), options);
+    this._animateWithData(animation => this._characterRenderer.hide(animation), options);
   }
   animateCharacter(options = {}) {
     this.cancelQuiz();
-    this._animate(animation => this._characterRenderer.animate(animation), options);
+    this._animateWithData(animation => this._characterRenderer.animate(animation), options);
   }
 
   showOutline(options = {}) {
-    this._animate(animation => this._outlineRenderer.show(animation), options);
+    this._animateWithData(animation => this._outlineRenderer.show(animation), options);
   }
   hideOutline(options = {}) {
-    this._animate(animation => this._outlineRenderer.hide(animation), options);
+    this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
   }
 
   quiz(quizOptions = {}) {
-    this.cancelQuiz();
-    this._quiz = new Quiz({
-      canvas: this._canvas,
-      animator: this._animator,
-      character: this._character,
-      characterRenderer: this._characterRenderer,
-      highlightRenderer: this._highlightRenderer,
-      quizOptions: copyAndExtend(this._options, quizOptions),
-      userStrokeOptions: this._userStrokeOptions,
+    this._withData(() => {
+      this.cancelQuiz();
+      this._quiz = new Quiz({
+        canvas: this._canvas,
+        animator: this._animator,
+        character: this._character,
+        characterRenderer: this._characterRenderer,
+        highlightRenderer: this._highlightRenderer,
+        quizOptions: copyAndExtend(this._options, quizOptions),
+        userStrokeOptions: this._userStrokeOptions,
+      });
     });
   }
 
@@ -123,7 +125,7 @@ class HanziWriter {
     if (this._characterRenderer) this._characterRenderer.destroy();
     if (this._outlineRenderer) this._outlineRenderer.destroy();
     if (this._highlightRenderer) this._highlightRenderer.destroy();
-    this._loadCharacterData(char).then(pathStrings => {
+    this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
       const zdtStrokeParser = new ZdtStrokeParser();
       this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
       this._positioner = new Positioner(this._character, this._options);
@@ -153,6 +155,11 @@ class HanziWriter {
       this.isLoadingCharData = false;
       return data;
     });
+  }
+
+  _withData(func) {
+    this._withDataPromise = this._withDataPromise.then(func);
+    return this._withDataPromise;
   }
 
   _setupListeners() {
@@ -195,6 +202,12 @@ class HanziWriter {
 
   _animate(func, options = {}) {
     return this._animator.animate(func, options);
+  }
+
+  _animateWithData(func, options = {}) {
+    return this._withData(() => {
+      return this._animate(func, options);
+    });
   }
 }
 

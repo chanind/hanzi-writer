@@ -3,9 +3,12 @@
   "version": "0.1.0",
   "author": "David Chanin <chanindav@gmail.com>",
   "devDependencies": {
-    "babel-jest": "*",
-    "babel-loader": "*",
+    "babel-core": "^6.0.0",
     "babel-eslint": "*",
+    "babel-jest": "*",
+    "babel-loader": "^6.0.0",
+    "babel-preset-es2015": "^6.1.18",
+    "babel-preset-stage-2": "^6.0.0",
     "eslint-config-airbnb": "*",
     "eslint-loader": "*",
     "eslint-plugin-react": "*",
@@ -14,7 +17,7 @@
     "grunt-contrib-copy": "*",
     "grunt-contrib-uglify": "*",
     "grunt-webpack": "*",
-    "jest-cli": "^0.5.8",
+    "jest-cli": "^0.7.1",
     "svg.js": "2.1.1",
     "webpack": "^1.12.2"
   },
@@ -22,7 +25,18 @@
     "test": "jest"
   },
   "jest": {
-    "scriptPreprocessor": "<rootDir>/node_modules/babel-jest",
-    "unmockedModulePathPatterns": ["models", "util", "clone"]
+    "scriptPreprocessor": "<rootDir>/babel-jest-processor.js",
+    "preprocessCachingDisabled": true,
+    "testFileExtensions": [
+      "js"
+    ],
+    "moduleFileExtensions": [
+      "js"
+    ],
+    "unmockedModulePathPatterns": [
+      "models",
+      "util",
+      "clone"
+    ]
   }
 }

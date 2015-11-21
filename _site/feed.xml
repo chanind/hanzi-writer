@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Hanzi Writer</title>
-    <description>Write an awesome description for your new site here. You can edit this line in _config.yml. It will appear in your document head meta (for Google search results) and in your feed.xml site description.
+    <description>Hanzi Writer is a free and open-source javascript library for both animating simplified Chinese characters and quizzing users on character stroke order.
 </description>
-    <link>http://chanind.github.io/hanzi-writer//</link>
-    <atom:link href="http://chanind.github.io/hanzi-writer//feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sat, 21 Nov 2015 13:12:31 -0500</pubDate>
-    <lastBuildDate>Sat, 21 Nov 2015 13:12:31 -0500</lastBuildDate>
+    <link>http://chanind.github.io/hanzi-writer/hanzi-writer/</link>
+    <atom:link href="http://chanind.github.io/hanzi-writer/hanzi-writer/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Sat, 21 Nov 2015 14:29:36 -0500</pubDate>
+    <lastBuildDate>Sat, 21 Nov 2015 14:29:36 -0500</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
@@ -28,8 +28,8 @@
 
 </description>
         <pubDate>Sun, 01 Nov 2015 14:44:24 -0500</pubDate>
-        <link>http://chanind.github.io/hanzi-writer//jekyll/update/2015/11/01/welcome-to-jekyll.html</link>
-        <guid isPermaLink="true">http://chanind.github.io/hanzi-writer//jekyll/update/2015/11/01/welcome-to-jekyll.html</guid>
+        <link>http://chanind.github.io/hanzi-writer/hanzi-writer/jekyll/update/2015/11/01/welcome-to-jekyll.html</link>
+        <guid isPermaLink="true">http://chanind.github.io/hanzi-writer/hanzi-writer/jekyll/update/2015/11/01/welcome-to-jekyll.html</guid>
         
         
         <category>jekyll</category>

@@ -5,11 +5,12 @@ import ZdtStrokeParser from './ZdtStrokeParser';
 import Positioner from './Positioner';
 import Quiz from './Quiz';
 import {copyAndExtend} from './utils';
+import defaultCharDataLoader from './defaultCharDataLoader';
 import Animator from './Animator';
 import svg from 'svg.js';
 
 const defaultOptions = {
-  charDataLoader: (char) => global.hanziData[char],
+  charDataLoader: defaultCharDataLoader,
   showOutline: true,
   showCharacter: true,
 
@@ -165,18 +166,22 @@ class HanziWriter {
   _setupListeners() {
     this._svg.node.addEventListener('mousedown', (evt) => {
       evt.preventDefault();
+      if (this.isLoadingCharData) return;
       this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
     });
     this._svg.node.addEventListener('touchstart', (evt) => {
       evt.preventDefault();
+      if (this.isLoadingCharData) return;
       this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
     });
     this._svg.node.addEventListener('mousemove', (evt) => {
       evt.preventDefault();
+      if (this.isLoadingCharData) return;
       this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
     });
     this._svg.node.addEventListener('touchmove', (evt) => {
       evt.preventDefault();
+      if (this.isLoadingCharData) return;
       this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
     });
 

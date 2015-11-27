@@ -44,13 +44,9 @@
 /* 0 */
 /***/ function(module, exports, __webpack_require__) {
 
-	'use strict';
+	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
 
 	var _CharacterRenderer = __webpack_require__(1);
 
@@ -332,10 +328,10 @@
 	      });
 
 	      // TODO: fix
-	      document.addEventListener('mouseup', function () {
+	      global.document.addEventListener('mouseup', function () {
 	        return _this9._forwardToQuiz('endUserStroke');
 	      });
-	      document.addEventListener('touchend', function () {
+	      global.document.addEventListener('touchend', function () {
 	        return _this9._forwardToQuiz('endUserStroke');
 	      });
 	    }
@@ -405,7 +401,8 @@
 	}
 
 	// set up module.exports if we're in node/webpack
-	exports.default = HanziWriter;
+	module.exports = HanziWriter;
+	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
 /* 1 */

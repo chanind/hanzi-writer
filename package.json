@@ -1,6 +1,6 @@
 {
   "name": "hanzi-writer",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "author": "David Chanin <chanindav@gmail.com> (http://chanind.github.io/hanzi-writer/)",
   "description": "Hanzi Writer is a free and open-source javascript library for both animating simplified Chinese characters and quizzing users on character stroke order.",
   "repository": "chanind/hanzi-writer",

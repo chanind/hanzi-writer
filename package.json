@@ -26,8 +26,7 @@
   },
   "scripts": {
     "test": "jest",
-    "compile": "grunt",
-    "prepublish": "npm run compile"
+    "prepublish": "grunt"
   },
   "jest": {
     "scriptPreprocessor": "<rootDir>/babel-jest-processor.js",

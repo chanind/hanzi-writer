@@ -186,8 +186,8 @@ class HanziWriter {
     });
 
     // TODO: fix
-    document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
-    document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
+    global.document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
+    global.document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
   }
 
   _forwardToQuiz(method, ...args) {

@@ -4,4 +4,6 @@ cdn/
 data/
 _site/
 dist/data/all.js
+dist/data/hanzi-writer.js
+dist/data/hanzi-writer.min.js
 dist/data/all.json

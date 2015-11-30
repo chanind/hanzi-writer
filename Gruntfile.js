@@ -45,7 +45,9 @@ module.exports = function(grunt) {
       dist: {
         entry: './src/HanziWriter.js',
         output: {
-          filename: 'dist/hanzi-writer.js'       
+          filename: 'dist/hanzi-writer.js',
+          library: true,
+          libraryTarget: 'commonjs2'     
         }
       }
     },

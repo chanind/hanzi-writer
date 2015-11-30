@@ -402,7 +402,9 @@ module.exports =
 	}
 
 	// set up module.exports if we're in node/webpack
-	module.exports = HanziWriter;
+	if (true) {
+	  module.exports = HanziWriter;
+	}
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },

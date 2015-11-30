@@ -231,4 +231,6 @@ if (typeof window !== 'undefined') {
 }
 
 // set up module.exports if we're in node/webpack
-module.exports = HanziWriter;
+if (typeof module !== 'undefined') {
+  module.exports = HanziWriter;
+}

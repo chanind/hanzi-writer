@@ -10,3 +10,10 @@ github_username:  chanind
 
 # Build settings
 markdown: kramdown
+exclude:
+  - node_modules
+  - cdn/*/src
+  - cdn/*/data
+  - cdn/*/demo
+  - cdn/*/dist/all.js
+  - cdn/*/dist/all.json

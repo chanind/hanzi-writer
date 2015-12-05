@@ -47,8 +47,13 @@ layout: default
   <h1>Getting Started</h1>
 
   <p>
-    To get started, download a copy of the HanziWriter javascript <strong><a href="https://github.com/chanind/hanzi-writer/blob/master/dist/hanzi-writer.min.js">Here</a></strong>. Including this JS file in your web page will
-    make available a global HanziWriter class.
+    Download a copy of the HanziWriter javascript:<br />
+    <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production<br />
+    <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development<br />
+  </p>
+
+  <p>
+    You can also install HanziWriter from NPM: <code>npm install hanzi-writer</code>
   </p>
 
   <h2>Basic Usage</h2>
@@ -120,7 +125,7 @@ writer.setCharacter('你'); // change which character is being displayed
     connection. In the Hanzi Writer repo there is a <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder which contains all the character data for each character in several different formats.
   </p>
   <p>
-    If you wish to use HanziWriter from within a webview in a mobile app the easiest method is to simply include the <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.js">all.js</a> file in your webpage which includes all the data for every character in a giant javascript object and puts it in a global variable named <code>hanziData</code>. The all.js file is about 4.5MB. There is also an <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.json">all.json</a> version if you would prefer to load this data via JSON. And example of how to use the all.js file is shown below:
+    If you wish to use HanziWriter from within a webview in a mobile app the easiest method is to simply include the <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.js">all.js</a> file in your webpage which includes all the data for every character in a giant javascript object and puts it in a global variable named <code>hanziData</code>. The all.js file is about 4.5MB. There is also an <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.json">all.json</a> version if you would prefer to load this data via JSON. An example of how to use the all.js file is shown below:
   </p>
 
   {% highlight javascript %}

@@ -48,10 +48,6 @@
 
 	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
-
 	var _CharacterRenderer = __webpack_require__(1);
 
 	var _CharacterRenderer2 = _interopRequireDefault(_CharacterRenderer);
@@ -78,11 +74,15 @@
 
 	var _utils = __webpack_require__(6);
 
-	var _Animator = __webpack_require__(22);
+	var _defaultCharDataLoader = __webpack_require__(22);
+
+	var _defaultCharDataLoader2 = _interopRequireDefault(_defaultCharDataLoader);
+
+	var _Animator = __webpack_require__(23);
 
 	var _Animator2 = _interopRequireDefault(_Animator);
 
-	var _svg = __webpack_require__(24);
+	var _svg = __webpack_require__(25);
 
 	var _svg2 = _interopRequireDefault(_svg);
 
@@ -91,9 +91,7 @@
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
 	var defaultOptions = {
-	  charDataLoader: function charDataLoader(char) {
-	    return global.hanziData[char];
-	  },
+	  charDataLoader: _defaultCharDataLoader2.default,
 	  showOutline: true,
 	  showCharacter: true,
 
@@ -310,26 +308,30 @@
 
 	      this._svg.node.addEventListener('mousedown', function (evt) {
 	        evt.preventDefault();
+	        if (_this9.isLoadingCharData) return;
 	        _this9._forwardToQuiz('startUserStroke', _this9._getMousePoint(evt));
 	      });
 	      this._svg.node.addEventListener('touchstart', function (evt) {
 	        evt.preventDefault();
+	        if (_this9.isLoadingCharData) return;
 	        _this9._forwardToQuiz('startUserStroke', _this9._getTouchPoint(evt));
 	      });
 	      this._svg.node.addEventListener('mousemove', function (evt) {
 	        evt.preventDefault();
+	        if (_this9.isLoadingCharData) return;
 	        _this9._forwardToQuiz('continueUserStroke', _this9._getMousePoint(evt));
 	      });
 	      this._svg.node.addEventListener('touchmove', function (evt) {
 	        evt.preventDefault();
+	        if (_this9.isLoadingCharData) return;
 	        _this9._forwardToQuiz('continueUserStroke', _this9._getTouchPoint(evt));
 	      });
 
 	      // TODO: fix
-	      document.addEventListener('mouseup', function () {
+	      global.document.addEventListener('mouseup', function () {
 	        return _this9._forwardToQuiz('endUserStroke');
 	      });
-	      document.addEventListener('touchend', function () {
+	      global.document.addEventListener('touchend', function () {
 	        return _this9._forwardToQuiz('endUserStroke');
 	      });
 	    }
@@ -399,7 +401,9 @@
 	}
 
 	// set up module.exports if we're in node/webpack
-	exports.default = HanziWriter;
+	if (true) {
+	  module.exports = HanziWriter;
+	}
 	/* WEBPACK VAR INJECTION */}.call(exports, (function() { return this; }())))
 
 /***/ },
@@ -3202,6 +3206,37 @@
 
 /***/ },
 /* 22 */
+/***/ function(module, exports) {
+
+	'use strict';
+
+	Object.defineProperty(exports, "__esModule", {
+	  value: true
+	});
+
+	exports.default = function (char, onLoad) {
+	  // load char data from hanziwriter.org cdn (currently hosted on github pages)
+	  var xhr = new XMLHttpRequest();
+	  xhr.overrideMimeType('application/json');
+	  xhr.open('GET', getCharDataUrl(char), true);
+	  xhr.onreadystatechange = function () {
+	    if (xhr.readyState === 4 && xhr.status === 200) {
+	      onLoad(JSON.parse(xhr.responseText));
+	    }
+	  };
+	  xhr.send(null);
+	};
+
+	// corresponds to the integer in the gh-pages branch under the cdn folder
+	// make sure to check out a new version of the master branch in gh-pages when changing the data format
+	// otherwise this may break any existing hanzi-writer deploys in the wild
+	var DATA_VERSION = 1;
+	var getCharDataUrl = function getCharDataUrl(char) {
+	  return 'http://chanind.github.io/hanzi-writer/cdn/' + DATA_VERSION + '/data/' + char + '.json';
+	};
+
+/***/ },
+/* 23 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3212,7 +3247,7 @@
 	  value: true
 	});
 
-	var _Animation = __webpack_require__(23);
+	var _Animation = __webpack_require__(24);
 
 	var _Animation2 = _interopRequireDefault(_Animation);
 
@@ -3255,7 +3290,7 @@
 	exports.default = Animator;
 
 /***/ },
-/* 23 */
+/* 24 */
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
@@ -3338,7 +3373,7 @@
 	exports.default = Animation;
 
 /***/ },
-/* 24 */
+/* 25 */
 /***/ function(module, exports, __webpack_require__) {
 
 	var __WEBPACK_AMD_DEFINE_FACTORY__, __WEBPACK_AMD_DEFINE_RESULT__;/*!

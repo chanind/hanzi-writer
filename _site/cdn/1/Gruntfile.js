@@ -45,7 +45,16 @@ module.exports = function(grunt) {
       dist: {
         entry: './src/HanziWriter.js',
         output: {
-          filename: 'dist/hanzi-writer.js'       
+          filename: 'dist/hanzi-writer.js'
+        }
+      },
+
+      lib: {
+        entry: './src/HanziWriter.js',
+        output: {
+          filename: 'dist/hanzi-writer-lib.js',
+          library: true,
+          libraryTarget: 'commonjs2'
         }
       }
     },
@@ -53,7 +62,8 @@ module.exports = function(grunt) {
     uglify: {
       dist: {
         files: {
-          'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js']
+          'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js'],
+          'dist/hanzi-writer-lib.min.js': ['dist/hanzi-writer-lib.js']
         }
       }
     },
@@ -64,6 +74,8 @@ module.exports = function(grunt) {
         'dist/*',
         '!dist/hanzi-writer.js',
         '!dist/hanzi-writer.min.js',
+        '!dist/hanzi-writer-lib.js',
+        '!dist/hanzi-writer-lib.min.js',
         '!dist/data',
       ]
     }
@@ -75,5 +87,5 @@ module.exports = function(grunt) {
   grunt.loadNpmTasks('grunt-contrib-uglify');
   grunt.loadNpmTasks('grunt-webpack');
 
-  grunt.registerTask('default', ['clean:pre', 'copy:main', 'copy:data', 'webpack:dist', 'uglify:dist', 'clean:post']);
+  grunt.registerTask('default', ['clean:pre', 'copy:main', 'copy:data', 'webpack:dist', 'webpack:lib', 'uglify:dist', 'clean:post']);
 };

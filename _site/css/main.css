@@ -273,3 +273,47 @@ body {
 
 .wo-quiz-controls .btn {
   margin-left: 20px; }
+
+.title {
+  color: white;
+  background: linear-gradient(to bottom, #333, #222);
+  padding: 15px 0;
+  margin: 0 0 30px;
+  text-shadow: 0 0 15px #4B89DB; }
+
+#target {
+  background: white;
+  clear: both;
+  border: 1px solid black;
+  width: 400px;
+  height: 400px;
+  margin: 0 auto; }
+
+.char-form {
+  margin: 0 0 20px; }
+
+.char-form button {
+  padding: 8px 5px;
+  line-height: 14px;
+  display: inline-block;
+  vertical-align: top; }
+
+.char-input {
+  font-size: 16px;
+  padding: 5px;
+  width: 33px;
+  text-align: center; }
+
+.actions {
+  width: 400px;
+  margin: 0 auto; }
+
+.actions button {
+  display: block;
+  width: 97px;
+  float: left;
+  margin-right: 4px;
+  margin-bottom: 4px; }
+
+.actions button:last-child {
+  margin-right: 0; }

@@ -33,21 +33,17 @@
         <nav class="navbar navbar-inverse navbar-static-top">
           <div class="container">
             <div class="navbar-header">
-              <!-- <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
+              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
                 <span class="sr-only">Toggle navigation</span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
                 <span class="icon-bar"></span>
-              </button> -->
+              </button>
               <a class="navbar-brand" href="/hanzi-writer/">Hanzi Writer</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
-              <ul class="nav navbar-nav">
+              <ul class="nav navbar-nav navbar-right">
                 <li><a href="https://github.com/chanind/hanzi-writer">Github</a></li>
-
-                <!-- <li class="active"><a href="#">Home</a></li>
-                <li><a href="#about">About</a></li>
-                <li><a href="#contact">Contact</a></li> -->
               </ul>
             </div>
           </div>
@@ -58,22 +54,17 @@
 
     <!-- Carousel
 ================================================== -->
-<div class="carousel slide" data-ride="carousel">
-  <div class="carousel-inner" role="listbox">
-    <div class="item active">
-      <img class="first-slide" src="data:image/gif;base64,R0lGODlhAQABAIAAAHd3dwAAACH5BAAAAAAALAAAAAABAAEAAAICRAEAOw==" alt="First slide">
-      <div class="container">
-        <div class="carousel-caption">
-          <div id="ni" class="char"></div>
-          <div id="hao" class="char"></div>
-          <h1>Character Animations and Stroke Quizzes</h1>
-          <p>
-            Hanzi Writer is a free and open-source javascript library
-            for both animating simplified Chinese characters and quizzing
-            users on character stroke order.
-          </p>
-        </div>
-      </div>
+<div class="intro">
+  <div class="container">
+    <div class="intro-inner">
+      <div id="ni" class="char"></div>
+      <div id="hao" class="char"></div>
+      <h1>Character Animations and Stroke Quizzes</h1>
+      <p>
+        Hanzi Writer is a free and open-source javascript library
+        for both animating simplified Chinese characters and quizzing
+        users on character stroke order.
+      </p>
     </div>
   </div>
 </div><!-- /.carousel -->
@@ -238,6 +229,8 @@
 
 <script type="application/javascript" src="cdn/1/dist/hanzi-writer.js"></script>
 <script type="application/javascript" src="test.js"></script>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
 
   </body>
 

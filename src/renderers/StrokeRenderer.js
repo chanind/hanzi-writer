@@ -1,6 +1,6 @@
 import Renderer from './Renderer';
 import StrokePartRenderer from './StrokePartRenderer';
-import {Promise} from 'es6-promise';
+
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {

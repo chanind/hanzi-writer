@@ -2,7 +2,7 @@ import StrokeMatcher from './StrokeMatcher';
 import UserStroke from './models/UserStroke';
 import UserStrokeRenderer from './renderers/UserStrokeRenderer';
 import {inArray, callIfExists} from './utils';
-import {Promise} from 'es6-promise';
+
 
 class Quiz {
   // TODO: too many dependencies... do something about this

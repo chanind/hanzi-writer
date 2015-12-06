@@ -12,6 +12,7 @@
     "babel-loader": "^6.0.0",
     "babel-preset-es2015": "^6.1.18",
     "babel-preset-stage-2": "^6.0.0",
+    "babel-polyfill": "*",
     "eslint-config-airbnb": "*",
     "eslint-loader": "*",
     "eslint-plugin-react": "*",
@@ -22,8 +23,7 @@
     "grunt-webpack": "*",
     "jest-cli": "^0.7.1",
     "svg.js": "2.1.1",
-    "webpack": "^1.12.2",
-    "es6-promise": "*"
+    "webpack": "^1.12.2"
   },
   "scripts": {
     "test": "jest",

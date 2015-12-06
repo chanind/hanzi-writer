@@ -1,3 +1,5 @@
+require('babel-polyfill'); // polyfill for old IE and whatnot
+
 import CharacterRenderer from './renderers/CharacterRenderer';
 import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';
@@ -8,7 +10,7 @@ import {copyAndExtend} from './utils';
 import defaultCharDataLoader from './defaultCharDataLoader';
 import Animator from './Animator';
 import svg from 'svg.js';
-import {Promise} from 'es6-promise';
+
 
 const defaultOptions = {
   charDataLoader: defaultCharDataLoader,

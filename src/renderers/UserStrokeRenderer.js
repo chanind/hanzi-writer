@@ -1,5 +1,5 @@
 import PathRenderer from './PathRenderer';
-import {Promise} from 'es6-promise';
+
 
 class UserStrokeRenderer extends PathRenderer {
   constructor(userStroke, options = {}) {

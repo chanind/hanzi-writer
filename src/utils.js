@@ -1,5 +1,5 @@
 import {_extend as extend} from 'util';
-import {Promise} from 'es6-promise';
+
 
 // TODO: recursive clone
 const clone = (obj) => {

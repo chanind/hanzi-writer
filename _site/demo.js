@@ -1,42 +1,62 @@
-var writer;
+var animationWriter;
+var quizWriter;
+var character;
 var isCharVisible;
 var isOutlineVisible;
 
 function updateCharacter() {
-  document.querySelector('#target').innerHTML = '';
+  $('#animation-target').html('');
+  $('#quiz-target').html('');
 
-  var character = document.querySelector('.js-char').value
-  writer = new HanziWriter('target', character, {
-    width: 400,
-    height: 400
+  var character = $('#character-select').val();
+  $('.char-symbol').text(character);
+  animationWriter = new HanziWriter('animation-target', character, {
+    width: 300,
+    height: 300,
+    showOutline: shouldShowOutline('animation'),
+    showCharacter: false
   });
-  isCharVisible = true;
-  isOutlineVisible = true;
-  window.writer = writer;
+  quizWriter = new HanziWriter('quiz-target', character, {
+    width: 300,
+    height: 300,
+    showOutline: shouldShowOutline('quiz'),
+    showCharacter: false,
+    showHintAfterMisses: 1
+  });
+  quizWriter.quiz();
+
+  // for easier debugging
+  window.animationWriter = animationWriter;
+  window.quizWriter = quizWriter;
+}
+
+function shouldShowOutline(demoType) {
+  return $('#' + demoType + '-show-outline').prop('checked');
 }
 
 $(function() {
   updateCharacter();
 
-  document.querySelector('.js-char-form').addEventListener('submit', function(evt) {
+  $('.js-char-form').on('submit', function(evt) {
     evt.preventDefault();
     updateCharacter();
   });
 
-  document.querySelector('.js-toggle').addEventListener('click', function() {
-    isCharVisible ? writer.hideCharacter() : writer.showCharacter();
-    isCharVisible = !isCharVisible;
+  $('#animate').on('click', function(evt) {
+    evt.preventDefault();
+    animationWriter.animateCharacter();
   });
-  document.querySelector('.js-toggle-hint').addEventListener('click', function() {
-    isOutlineVisible ? writer.hideOutline() : writer.showOutline();
-    isOutlineVisible = !isOutlineVisible;
+  $('#quiz-reset').on('click', function(evt) {
+    evt.preventDefault();
+    quizWriter.quiz();
   });
-  document.querySelector('.js-animate').addEventListener('click', function() {
-    writer.animateCharacter();
+
+  $('#animation-show-outline').on('click', function() {
+    var method = shouldShowOutline('animation') ? 'showOutline' : 'hideOutline';
+    animationWriter[method]();
   });
-  document.querySelector('.js-quiz').addEventListener('click', function() {
-    writer.quiz({
-      showOutline: true
-    });
+  $('#quiz-show-outline').on('click', function() {
+    var method = shouldShowOutline('quiz') ? 'showOutline' : 'hideOutline';
+    quizWriter[method]();
   });
 });

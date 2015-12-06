@@ -1,90 +1,37 @@
-// body, html {
-//   background: #f4f0ea;
-//   margin: 0;
-//   padding: 0;
-//   text-align: center;
-//   font-family: 'Raleway', sans-serif;
-//   font-size: 14px;
-// }
-// body {
-//   padding-bottom: 80px;
-// }
-// * {
-//   box-sizing: border-box;
-// }
-
-// input, button {
-//   outline: none;
-// }
-// button, #target, .title {
-//   box-shadow: 0 1px 5px rgba(0,0,0,0.15);
-// }
-
-// button, #target {
-//   text-shadow: 0 1px 1px white;
-// }
-
-.title {
-  color: white;
-  background: linear-gradient(to bottom, #333, #222);
-  padding: 15px 0;
-  margin: 0 0 30px;
-  text-shadow: 0 0 15px #4B89DB;
-}
-
-#target {
+.demo-target {
   background: white;
   clear: both;
-  border: 1px solid black;
-  width: 400px;
-  height: 400px;
+  border: 1px solid #AAA;
+  width: 300px;
+  height: 300px;
   margin: 0 auto;
 }
 
-.char-form {
-  margin: 0 0 20px;
-}
-
-.char-form button {
-  padding: 8px 5px;
-  line-height: 14px;
-  display: inline-block;
-  vertical-align: top;
-}
-
-.char-input {
-  font-size: 16px;
-  padding: 5px;
-  width: 33px;
+.demo {
+  margin-top: 100px;
   text-align: center;
 }
 
-.actions {
-  width: 400px;
-  margin: 0 auto;
+.demo-divider {
+  margin: 40px 0;
 }
 
-.actions button {
-  display: block;
-  width: 97px;
-  float: left;
-  margin-right: 4px;
-  margin-bottom: 4px;
-}
-.actions button:last-child {
-  margin-right: 0;
+.char-select-form {
+  margin-bottom: 20px;
 }
 
-// button {
-//   background: none;
-//   border: 1px solid #444;
-//   color: #444;
-//   cursor: pointer;
-//   transition: all 300ms;
-// }
+.demo-controls {
+  border: 1px solid #AAA;
+  margin: 10px auto;
+  padding: 10px;
+  width: 300px;
+}
 
-// button:hover {
-//   color: #1e6cd2;
-//   border: 1px solid #1e6cd2;
-//   box-shadow: none;
-// }
+.demo-controls .btn {
+  margin-left: 20px
+}
+
+.character-select {
+  width: auto !important;
+  display: inline-block !important;
+}

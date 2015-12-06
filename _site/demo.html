@@ -43,7 +43,7 @@
             </div>
             <div id="navbar" class="navbar-collapse collapse">
               <ul class="nav navbar-nav navbar-right">
-                <li><a href="demo.html">Demo</a></li>
+                <li><a href="demo.html">Demos</a></li>
                 <li><a href="https://github.com/chanind/hanzi-writer">Github</a></li>
               </ul>
             </div>
@@ -53,22 +53,49 @@
       </div>
     </div>
 
-    <form class="js-char-form char-form">
-  <label>
-    Character
-    <input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
-  </label>
-  <button type="submit">Update</button>
-</form>
-<div class="actions">
-  <button class="js-toggle">Show/hide</button>
-  <button class="js-toggle-hint">Outline on/off</button>
-  <button class="js-animate">Animate</button>
-  <button class="js-quiz">Quiz yourself</button>
-</div>
+    <div class="demo container">
+  <h1>Hanzi Writer Demos</h1>
+  <form class="form-inline char-select-form js-char-form">
+    <div class="form-group">
+      <label for="character-select">
+        Character
+      </label>
+      <input type="text" class="form-control character-select" id="character-select" size="1" maxlength="1" value="我" />
+    </div>
+    <button type="submit" class="btn btn-default">Update demos</button>
+  </form>
 
-<div id="target">
+  <hr class="demo-divider" />
 
+  <h4>Character Animation</h4>
+  <div class="demo-target" id="animation-target"></div>
+  <div class="demo-controls">
+    <form class="form-inline">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" checked="checked" id="animation-show-outline" /> Show Outline
+          </label>
+          <button class="btn btn-primary" id="animate">Animate!</button>
+        </div>
+      </form>
+  </div>
+
+  <hr class="demo-divider" />
+
+  <h4>Stroke Quiz</h4>
+  <p>Quiz yourself by drawing the character <strong class="char-symbol"></strong> below with your mouse or finger</p>
+
+  <div class="demo-target" id="quiz-target"></div>
+  <div class="demo-controls">
+    <form class="form-inline">
+        <div class="checkbox">
+          <label>
+            <input type="checkbox" checked="checked" id="quiz-show-outline" /> Show Outline
+          </label>
+          <button class="btn btn-primary" id="quiz-reset">Reset</button>
+        </div>
+      </form>
+  </div>
 </div>
 
     <hr class="featurette-divider" />
@@ -81,10 +108,12 @@
 </div>
 
 <script type="application/javascript" src="cdn/1/dist/hanzi-writer.js"></script>
-<script type="application/javascript" src="test.js"></script>
 <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.3/jquery.min.js"></script>
 <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/js/bootstrap.min.js" integrity="sha384-0mSbJDEHialfmuBBQP6A4Qrprq5OVfW37PRR3j5ELqxss1yVqOtnepnHVP9aJ7xS" crossorigin="anonymous"></script>
-<script type="application/javascript" src="demo.js"></script>
+
+
+  <script type="application/javascript" src="demo.js"></script>
+
 
 
   </body>

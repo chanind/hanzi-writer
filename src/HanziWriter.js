@@ -8,6 +8,7 @@ import {copyAndExtend} from './utils';
 import defaultCharDataLoader from './defaultCharDataLoader';
 import Animator from './Animator';
 import svg from 'svg.js';
+import {Promise} from 'es6-promise';
 
 const defaultOptions = {
   charDataLoader: defaultCharDataLoader,

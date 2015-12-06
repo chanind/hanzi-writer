@@ -1,6 +1,7 @@
 import Renderer from './Renderer';
 import StrokeRenderer from './StrokeRenderer';
 import {timeout} from '../utils';
+import {Promise} from 'es6-promise';
 
 class CharacterRenderer extends Renderer {
 

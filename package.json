@@ -22,7 +22,8 @@
     "grunt-webpack": "*",
     "jest-cli": "^0.7.1",
     "svg.js": "2.1.1",
-    "webpack": "^1.12.2"
+    "webpack": "^1.12.2",
+    "es6-promise": "*"
   },
   "scripts": {
     "test": "jest",

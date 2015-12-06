@@ -1,4 +1,5 @@
 import PathRenderer from './PathRenderer';
+import {Promise} from 'es6-promise';
 
 class StrokePartRenderer extends PathRenderer {
 

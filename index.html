@@ -173,7 +173,7 @@ var writer = new HanziWriter('target', '人', {
 
   <p>
     Hanzi Writer uses SVG to draw characters, so it should work with any browser which supports SVG. It should
-    work with IE 9+.
+    work with IE 10+ out of the box. It can work with IE 9 as well if a custom <code>charDataLoader</code> option is used as IE9 can't load character data from the Hanzi Writer CDN due to CORS issues.
   </p>
 
   <h2>Data Source</h2>

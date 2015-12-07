@@ -47,8 +47,6 @@ module.exports =
 
 	/* WEBPACK VAR INJECTION */(function(global) {'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
 	var _CharacterRenderer = __webpack_require__(1);
 
 	var _CharacterRenderer2 = _interopRequireDefault(_CharacterRenderer);
@@ -144,244 +142,223 @@ module.exports =
 	    this._quiz = null;
 	  }
 
-	  _createClass(HanziWriter, [{
-	    key: 'setOptions',
-	    value: function setOptions(options) {
-	      this._options = (0, _utils.copyAndExtend)(defaultOptions, options);
-	      this._mainCharOptions = {
-	        strokeColor: this._options.strokeColor,
-	        strokeWidth: this._options.strokeWidth,
-	        strokeAnimationDuration: this._options.strokeAnimationDuration,
-	        delayBetweenStrokes: this._options.delayBetweenStrokes
-	      };
-	      this._outlineCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
-	        strokeColor: this._options.outlineColor,
-	        strokeWidth: this._options.outlineWidth
+	  HanziWriter.prototype.setOptions = function setOptions(options) {
+	    this._options = (0, _utils.copyAndExtend)(defaultOptions, options);
+	    this._mainCharOptions = {
+	      strokeColor: this._options.strokeColor,
+	      strokeWidth: this._options.strokeWidth,
+	      strokeAnimationDuration: this._options.strokeAnimationDuration,
+	      delayBetweenStrokes: this._options.delayBetweenStrokes
+	    };
+	    this._outlineCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
+	      strokeColor: this._options.outlineColor,
+	      strokeWidth: this._options.outlineWidth
+	    });
+	    this._highlightCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
+	      strokeColor: this._options.highlightColor,
+	      strokeAnimationDuration: this._options.strokeHighlightDuration
+	    });
+	    this._userStrokeOptions = {
+	      strokeColor: this._options.drawingColor,
+	      strokeWidth: this._options.drawingWidth,
+	      fadeDuration: this._options.drawingFadeDuration
+	    };
+	  };
+
+	  // ------ public API ------ //
+
+	  HanziWriter.prototype.showCharacter = function showCharacter() {
+	    var _this = this;
+
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this._animateWithData(function (animation) {
+	      return _this._characterRenderer.show(animation);
+	    }, options);
+	  };
+
+	  HanziWriter.prototype.hideCharacter = function hideCharacter() {
+	    var _this2 = this;
+
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this._animateWithData(function (animation) {
+	      return _this2._characterRenderer.hide(animation);
+	    }, options);
+	  };
+
+	  HanziWriter.prototype.animateCharacter = function animateCharacter() {
+	    var _this3 = this;
+
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this.cancelQuiz();
+	    this._animateWithData(function (animation) {
+	      return _this3._characterRenderer.animate(animation);
+	    }, options);
+	  };
+
+	  HanziWriter.prototype.showOutline = function showOutline() {
+	    var _this4 = this;
+
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this._animateWithData(function (animation) {
+	      return _this4._outlineRenderer.show(animation);
+	    }, options);
+	  };
+
+	  HanziWriter.prototype.hideOutline = function hideOutline() {
+	    var _this5 = this;
+
+	    var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this._animateWithData(function (animation) {
+	      return _this5._outlineRenderer.hide(animation);
+	    }, options);
+	  };
+
+	  HanziWriter.prototype.quiz = function quiz() {
+	    var _this6 = this;
+
+	    var quizOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+
+	    this._withData(function () {
+	      _this6.cancelQuiz();
+	      _this6._quiz = new _Quiz2.default({
+	        canvas: _this6._canvas,
+	        animator: _this6._animator,
+	        character: _this6._character,
+	        characterRenderer: _this6._characterRenderer,
+	        highlightRenderer: _this6._highlightRenderer,
+	        quizOptions: (0, _utils.copyAndExtend)(_this6._options, quizOptions),
+	        userStrokeOptions: _this6._userStrokeOptions
 	      });
-	      this._highlightCharOptions = (0, _utils.copyAndExtend)(this._mainCharOptions, {
-	        strokeColor: this._options.highlightColor,
-	        strokeAnimationDuration: this._options.strokeHighlightDuration
-	      });
-	      this._userStrokeOptions = {
-	        strokeColor: this._options.drawingColor,
-	        strokeWidth: this._options.drawingWidth,
-	        fadeDuration: this._options.drawingFadeDuration
-	      };
+	    });
+	  };
+
+	  HanziWriter.prototype.cancelQuiz = function cancelQuiz() {
+	    if (this._quiz) this._quiz.cancel();
+	    this._quiz = null;
+	  };
+
+	  HanziWriter.prototype.setCharacter = function setCharacter(char) {
+	    var _this7 = this;
+
+	    this.cancelQuiz();
+	    if (this._positionerRenderer) this._positionerRenderer.destroy();
+	    if (this._characterRenderer) this._characterRenderer.destroy();
+	    if (this._outlineRenderer) this._outlineRenderer.destroy();
+	    if (this._highlightRenderer) this._highlightRenderer.destroy();
+	    this._withDataPromise = this._loadCharacterData(char).then(function (pathStrings) {
+	      var zdtStrokeParser = new _ZdtStrokeParser2.default();
+	      _this7._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+	      _this7._positioner = new _Positioner2.default(_this7._character, _this7._options);
+
+	      _this7._positionerRenderer = new _PositionerRenderer2.default(_this7._positioner).setCanvas(_this7._svg);
+	      _this7._canvas = _this7._positionerRenderer.getPositionedCanvas();
+
+	      _this7._outlineRenderer = new _CharacterRenderer2.default(_this7._character, _this7._outlineCharOptions).setCanvas(_this7._canvas).draw();
+	      _this7._characterRenderer = new _CharacterRenderer2.default(_this7._character, _this7._mainCharOptions).setCanvas(_this7._canvas).draw();
+	      _this7._highlightRenderer = new _CharacterRenderer2.default(_this7._character, _this7._highlightCharOptions).setCanvas(_this7._canvas).draw();
+
+	      if (_this7._options.showCharacter) _this7._characterRenderer.showImmediate();
+	      if (_this7._options.showOutline) _this7._outlineRenderer.showImmediate();
+	    });
+	  };
+
+	  // ------------- //
+
+	  HanziWriter.prototype._loadCharacterData = function _loadCharacterData(char) {
+	    var _this8 = this;
+
+	    if (this.isLoadingCharData) this.cancelLoadingCharData();
+	    this.isLoadingCharData = true;
+	    return new Promise(function (resolve, reject) {
+	      _this8.cancelLoadingCharData = reject;
+	      var returnedData = _this8._options.charDataLoader(char, resolve);
+	      if (returnedData) resolve(returnedData);
+	    }).then(function (data) {
+	      _this8.isLoadingCharData = false;
+	      return data;
+	    });
+	  };
+
+	  HanziWriter.prototype._withData = function _withData(func) {
+	    this._withDataPromise = this._withDataPromise.then(func);
+	    return this._withDataPromise;
+	  };
+
+	  HanziWriter.prototype._setupListeners = function _setupListeners() {
+	    var _this9 = this;
+
+	    this._svg.node.addEventListener('mousedown', function (evt) {
+	      evt.preventDefault();
+	      if (_this9.isLoadingCharData) return;
+	      _this9._forwardToQuiz('startUserStroke', _this9._getMousePoint(evt));
+	    });
+	    this._svg.node.addEventListener('touchstart', function (evt) {
+	      evt.preventDefault();
+	      if (_this9.isLoadingCharData) return;
+	      _this9._forwardToQuiz('startUserStroke', _this9._getTouchPoint(evt));
+	    });
+	    this._svg.node.addEventListener('mousemove', function (evt) {
+	      evt.preventDefault();
+	      if (_this9.isLoadingCharData) return;
+	      _this9._forwardToQuiz('continueUserStroke', _this9._getMousePoint(evt));
+	    });
+	    this._svg.node.addEventListener('touchmove', function (evt) {
+	      evt.preventDefault();
+	      if (_this9.isLoadingCharData) return;
+	      _this9._forwardToQuiz('continueUserStroke', _this9._getTouchPoint(evt));
+	    });
+
+	    // TODO: fix
+	    global.document.addEventListener('mouseup', function () {
+	      return _this9._forwardToQuiz('endUserStroke');
+	    });
+	    global.document.addEventListener('touchend', function () {
+	      return _this9._forwardToQuiz('endUserStroke');
+	    });
+	  };
+
+	  HanziWriter.prototype._forwardToQuiz = function _forwardToQuiz(method) {
+	    var _quiz;
+
+	    if (!this._quiz) return;
+
+	    for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
+	      args[_key - 1] = arguments[_key];
 	    }
 
-	    // ------ public API ------ //
+	    (_quiz = this._quiz)[method].apply(_quiz, args);
+	  };
 
-	  }, {
-	    key: 'showCharacter',
-	    value: function showCharacter() {
-	      var _this = this;
+	  HanziWriter.prototype._getMousePoint = function _getMousePoint(evt) {
+	    return this._positioner.convertExternalPoint(new _Point2.default(evt.offsetX, evt.offsetY));
+	  };
 
-	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	  HanziWriter.prototype._getTouchPoint = function _getTouchPoint(evt) {
+	    var x = evt.touches[0].pageX - this._svg.node.offsetLeft;
+	    var y = evt.touches[0].pageY - this._svg.node.offsetTop;
+	    return this._positioner.convertExternalPoint(new _Point2.default(x, y));
+	  };
 
-	      this._animateWithData(function (animation) {
-	        return _this._characterRenderer.show(animation);
-	      }, options);
-	    }
-	  }, {
-	    key: 'hideCharacter',
-	    value: function hideCharacter() {
-	      var _this2 = this;
+	  HanziWriter.prototype._animate = function _animate(func) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	    return this._animator.animate(func, options);
+	  };
 
-	      this._animateWithData(function (animation) {
-	        return _this2._characterRenderer.hide(animation);
-	      }, options);
-	    }
-	  }, {
-	    key: 'animateCharacter',
-	    value: function animateCharacter() {
-	      var _this3 = this;
+	  HanziWriter.prototype._animateWithData = function _animateWithData(func) {
+	    var _this10 = this;
 
-	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
 
-	      this.cancelQuiz();
-	      this._animateWithData(function (animation) {
-	        return _this3._characterRenderer.animate(animation);
-	      }, options);
-	    }
-	  }, {
-	    key: 'showOutline',
-	    value: function showOutline() {
-	      var _this4 = this;
-
-	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	      this._animateWithData(function (animation) {
-	        return _this4._outlineRenderer.show(animation);
-	      }, options);
-	    }
-	  }, {
-	    key: 'hideOutline',
-	    value: function hideOutline() {
-	      var _this5 = this;
-
-	      var options = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	      this._animateWithData(function (animation) {
-	        return _this5._outlineRenderer.hide(animation);
-	      }, options);
-	    }
-	  }, {
-	    key: 'quiz',
-	    value: function quiz() {
-	      var _this6 = this;
-
-	      var quizOptions = arguments.length <= 0 || arguments[0] === undefined ? {} : arguments[0];
-
-	      this._withData(function () {
-	        _this6.cancelQuiz();
-	        _this6._quiz = new _Quiz2.default({
-	          canvas: _this6._canvas,
-	          animator: _this6._animator,
-	          character: _this6._character,
-	          characterRenderer: _this6._characterRenderer,
-	          highlightRenderer: _this6._highlightRenderer,
-	          quizOptions: (0, _utils.copyAndExtend)(_this6._options, quizOptions),
-	          userStrokeOptions: _this6._userStrokeOptions
-	        });
-	      });
-	    }
-	  }, {
-	    key: 'cancelQuiz',
-	    value: function cancelQuiz() {
-	      if (this._quiz) this._quiz.cancel();
-	      this._quiz = null;
-	    }
-	  }, {
-	    key: 'setCharacter',
-	    value: function setCharacter(char) {
-	      var _this7 = this;
-
-	      this.cancelQuiz();
-	      if (this._positionerRenderer) this._positionerRenderer.destroy();
-	      if (this._characterRenderer) this._characterRenderer.destroy();
-	      if (this._outlineRenderer) this._outlineRenderer.destroy();
-	      if (this._highlightRenderer) this._highlightRenderer.destroy();
-	      this._withDataPromise = this._loadCharacterData(char).then(function (pathStrings) {
-	        var zdtStrokeParser = new _ZdtStrokeParser2.default();
-	        _this7._character = zdtStrokeParser.generateCharacter(char, pathStrings);
-	        _this7._positioner = new _Positioner2.default(_this7._character, _this7._options);
-
-	        _this7._positionerRenderer = new _PositionerRenderer2.default(_this7._positioner).setCanvas(_this7._svg);
-	        _this7._canvas = _this7._positionerRenderer.getPositionedCanvas();
-
-	        _this7._outlineRenderer = new _CharacterRenderer2.default(_this7._character, _this7._outlineCharOptions).setCanvas(_this7._canvas).draw();
-	        _this7._characterRenderer = new _CharacterRenderer2.default(_this7._character, _this7._mainCharOptions).setCanvas(_this7._canvas).draw();
-	        _this7._highlightRenderer = new _CharacterRenderer2.default(_this7._character, _this7._highlightCharOptions).setCanvas(_this7._canvas).draw();
-
-	        if (_this7._options.showCharacter) _this7._characterRenderer.showImmediate();
-	        if (_this7._options.showOutline) _this7._outlineRenderer.showImmediate();
-	      });
-	    }
-
-	    // ------------- //
-
-	  }, {
-	    key: '_loadCharacterData',
-	    value: function _loadCharacterData(char) {
-	      var _this8 = this;
-
-	      if (this.isLoadingCharData) this.cancelLoadingCharData();
-	      this.isLoadingCharData = true;
-	      return new Promise(function (resolve, reject) {
-	        _this8.cancelLoadingCharData = reject;
-	        var returnedData = _this8._options.charDataLoader(char, resolve);
-	        if (returnedData) resolve(returnedData);
-	      }).then(function (data) {
-	        _this8.isLoadingCharData = false;
-	        return data;
-	      });
-	    }
-	  }, {
-	    key: '_withData',
-	    value: function _withData(func) {
-	      this._withDataPromise = this._withDataPromise.then(func);
-	      return this._withDataPromise;
-	    }
-	  }, {
-	    key: '_setupListeners',
-	    value: function _setupListeners() {
-	      var _this9 = this;
-
-	      this._svg.node.addEventListener('mousedown', function (evt) {
-	        evt.preventDefault();
-	        if (_this9.isLoadingCharData) return;
-	        _this9._forwardToQuiz('startUserStroke', _this9._getMousePoint(evt));
-	      });
-	      this._svg.node.addEventListener('touchstart', function (evt) {
-	        evt.preventDefault();
-	        if (_this9.isLoadingCharData) return;
-	        _this9._forwardToQuiz('startUserStroke', _this9._getTouchPoint(evt));
-	      });
-	      this._svg.node.addEventListener('mousemove', function (evt) {
-	        evt.preventDefault();
-	        if (_this9.isLoadingCharData) return;
-	        _this9._forwardToQuiz('continueUserStroke', _this9._getMousePoint(evt));
-	      });
-	      this._svg.node.addEventListener('touchmove', function (evt) {
-	        evt.preventDefault();
-	        if (_this9.isLoadingCharData) return;
-	        _this9._forwardToQuiz('continueUserStroke', _this9._getTouchPoint(evt));
-	      });
-
-	      // TODO: fix
-	      global.document.addEventListener('mouseup', function () {
-	        return _this9._forwardToQuiz('endUserStroke');
-	      });
-	      global.document.addEventListener('touchend', function () {
-	        return _this9._forwardToQuiz('endUserStroke');
-	      });
-	    }
-	  }, {
-	    key: '_forwardToQuiz',
-	    value: function _forwardToQuiz(method) {
-	      var _quiz;
-
-	      if (!this._quiz) return;
-
-	      for (var _len = arguments.length, args = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
-	        args[_key - 1] = arguments[_key];
-	      }
-
-	      (_quiz = this._quiz)[method].apply(_quiz, args);
-	    }
-	  }, {
-	    key: '_getMousePoint',
-	    value: function _getMousePoint(evt) {
-	      return this._positioner.convertExternalPoint(new _Point2.default(evt.offsetX, evt.offsetY));
-	    }
-	  }, {
-	    key: '_getTouchPoint',
-	    value: function _getTouchPoint(evt) {
-	      var x = evt.touches[0].pageX - this._svg.node.offsetLeft;
-	      var y = evt.touches[0].pageY - this._svg.node.offsetTop;
-	      return this._positioner.convertExternalPoint(new _Point2.default(x, y));
-	    }
-	  }, {
-	    key: '_animate',
-	    value: function _animate(func) {
-	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-	      return this._animator.animate(func, options);
-	    }
-	  }, {
-	    key: '_animateWithData',
-	    value: function _animateWithData(func) {
-	      var _this10 = this;
-
-	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
-
-	      return this._withData(function () {
-	        return _this10._animate(func, options);
-	      });
-	    }
-	  }]);
+	    return this._withData(function () {
+	      return _this10._animate(func, options);
+	    });
+	  };
 
 	  return HanziWriter;
 	})();
@@ -415,13 +392,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Renderer2 = __webpack_require__(2);
 
@@ -449,7 +420,7 @@ module.exports =
 
 	    _classCallCheck(this, CharacterRenderer);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(CharacterRenderer).call(this));
+	    var _this = _possibleConstructorReturn(this, _Renderer.call(this));
 
 	    _this.options = options;
 	    _this.character = character;
@@ -459,139 +430,108 @@ module.exports =
 	    return _this;
 	  }
 
-	  _createClass(CharacterRenderer, [{
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return this.character.getBounds();
-	    }
-	  }, {
-	    key: 'show',
-	    value: function show(animation) {
-	      var promises = this.strokeRenderers.map(function (strokeRenderer) {
-	        return strokeRenderer.show(animation);
-	      });
-	      return Promise.all(promises);
-	    }
-	  }, {
-	    key: 'showImmediate',
-	    value: function showImmediate() {
-	      this.strokeRenderers.map(function (renderer) {
-	        return renderer.showImmediate();
-	      });
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide(animation) {
-	      var promises = this.strokeRenderers.map(function (strokeRenderer) {
-	        return strokeRenderer.hide(animation);
-	      });
-	      return Promise.all(promises);
-	    }
-	  }, {
-	    key: 'hideImmediate',
-	    value: function hideImmediate() {
-	      this.strokeRenderers.map(function (renderer) {
-	        return renderer.hideImmediate();
-	      });
-	    }
-	  }, {
-	    key: 'flash',
-	    value: function flash(animation) {
-	      var _this2 = this;
+	  CharacterRenderer.prototype.getBounds = function getBounds() {
+	    return this.character.getBounds();
+	  };
 
-	      return this.show(animation).then(function () {
-	        return _this2.hide(animation);
-	      });
-	    }
-	  }, {
-	    key: 'showStroke',
-	    value: function showStroke(strokeNum, animation) {
-	      return this.getStrokeRenderer(strokeNum).show(animation);
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  CharacterRenderer.prototype.show = function show(animation) {
+	    var promises = this.strokeRenderers.map(function (strokeRenderer) {
+	      return strokeRenderer.show(animation);
+	    });
+	    return Promise.all(promises);
+	  };
 
-	      try {
-	        for (var _iterator = this.strokeRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var strokeRenderer = _step.value;
+	  CharacterRenderer.prototype.showImmediate = function showImmediate() {
+	    this.strokeRenderers.map(function (renderer) {
+	      return renderer.showImmediate();
+	    });
+	  };
 
-	          strokeRenderer.draw();
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	  CharacterRenderer.prototype.hide = function hide(animation) {
+	    var promises = this.strokeRenderers.map(function (strokeRenderer) {
+	      return strokeRenderer.hide(animation);
+	    });
+	    return Promise.all(promises);
+	  };
+
+	  CharacterRenderer.prototype.hideImmediate = function hideImmediate() {
+	    this.strokeRenderers.map(function (renderer) {
+	      return renderer.hideImmediate();
+	    });
+	  };
+
+	  CharacterRenderer.prototype.flash = function flash(animation) {
+	    var _this2 = this;
+
+	    return this.show(animation).then(function () {
+	      return _this2.hide(animation);
+	    });
+	  };
+
+	  CharacterRenderer.prototype.showStroke = function showStroke(strokeNum, animation) {
+	    return this.getStrokeRenderer(strokeNum).show(animation);
+	  };
+
+	  CharacterRenderer.prototype.draw = function draw() {
+	    for (var _iterator = this.strokeRenderers, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
+
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      return this;
-	    }
-	  }, {
-	    key: 'getStrokeRenderer',
-	    value: function getStrokeRenderer(strokeNum) {
-	      return this.strokeRenderers[strokeNum];
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(animation) {
-	      var _this3 = this;
+	      var strokeRenderer = _ref;
 
-	      if (!animation.isActive()) return null;
-	      var renderChain = this.hide(animation);
-	      this.strokeRenderers.forEach(function (strokeRenderer, index) {
-	        if (index > 0) renderChain = renderChain.then(function () {
-	          return (0, _utils.timeout)(_this3.options.delayBetweenStrokes);
-	        });
-	        renderChain = renderChain.then(function () {
-	          return strokeRenderer.animate(animation);
-	        });
+	      strokeRenderer.draw();
+	    }
+	    return this;
+	  };
+
+	  CharacterRenderer.prototype.getStrokeRenderer = function getStrokeRenderer(strokeNum) {
+	    return this.strokeRenderers[strokeNum];
+	  };
+
+	  CharacterRenderer.prototype.animate = function animate(animation) {
+	    var _this3 = this;
+
+	    if (!animation.isActive()) return null;
+	    var renderChain = this.hide(animation);
+	    this.strokeRenderers.forEach(function (strokeRenderer, index) {
+	      if (index > 0) renderChain = renderChain.then(function () {
+	        return (0, _utils.timeout)(_this3.options.delayBetweenStrokes);
 	      });
-	      return renderChain;
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(CharacterRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
+	      renderChain = renderChain.then(function () {
+	        return strokeRenderer.animate(animation);
+	      });
+	    });
+	    return renderChain;
+	  };
 
-	      try {
-	        for (var _iterator2 = this.strokeRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var strokeRenderer = _step2.value;
+	  CharacterRenderer.prototype.setCanvas = function setCanvas(canvas) {
+	    _Renderer.prototype.setCanvas.call(this, canvas);
+	    for (var _iterator2 = this.strokeRenderers, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+	      var _ref2;
 
-	          strokeRenderer.setCanvas(canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
-	          }
-	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
-	          }
-	        }
+	      if (_isArray2) {
+	        if (_i2 >= _iterator2.length) break;
+	        _ref2 = _iterator2[_i2++];
+	      } else {
+	        _i2 = _iterator2.next();
+	        if (_i2.done) break;
+	        _ref2 = _i2.value;
 	      }
 
-	      return this;
+	      var strokeRenderer = _ref2;
+
+	      strokeRenderer.setCanvas(canvas);
 	    }
-	  }]);
+	    return this;
+	  };
 
 	  return CharacterRenderer;
 	})(_Renderer3.default);
@@ -604,11 +544,7 @@ module.exports =
 
 	"use strict";
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -623,63 +559,47 @@ module.exports =
 
 	  // implement in children
 
-	  _createClass(Renderer, [{
-	    key: "draw",
-	    value: function draw() {
-	      return this;
-	    }
-	  }, {
-	    key: "registerChild",
-	    value: function registerChild(child) {
-	      this.childRenderers.push(child);
-	      child.setParent(this);
-	      return child;
-	    }
-	  }, {
-	    key: "setParent",
-	    value: function setParent(parent) {
-	      this.parentRenderer = parent;
-	      return this;
-	    }
-	  }, {
-	    key: "setCanvas",
-	    value: function setCanvas(canvas) {
-	      this.canvas = canvas;
-	      return this;
-	    }
+	  Renderer.prototype.draw = function draw() {
+	    return this;
+	  };
 
-	    // extend this in children with extra behavior
+	  Renderer.prototype.registerChild = function registerChild(child) {
+	    this.childRenderers.push(child);
+	    child.setParent(this);
+	    return child;
+	  };
 
-	  }, {
-	    key: "destroy",
-	    value: function destroy() {
-	      this.isDestroyed = true;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  Renderer.prototype.setParent = function setParent(parent) {
+	    this.parentRenderer = parent;
+	    return this;
+	  };
 
-	      try {
-	        for (var _iterator = this.childRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var child = _step.value;
+	  Renderer.prototype.setCanvas = function setCanvas(canvas) {
+	    this.canvas = canvas;
+	    return this;
+	  };
 
-	          child.destroy();
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	  // extend this in children with extra behavior
+
+	  Renderer.prototype.destroy = function destroy() {
+	    this.isDestroyed = true;
+	    for (var _iterator = this.childRenderers, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
+
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
+
+	      var child = _ref;
+
+	      child.destroy();
 	    }
-	  }]);
+	  };
 
 	  return Renderer;
 	})();
@@ -692,13 +612,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Renderer2 = __webpack_require__(2);
 
@@ -726,7 +640,7 @@ module.exports =
 
 	    _classCallCheck(this, StrokeRenderer);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(StrokeRenderer).call(this));
+	    var _this = _possibleConstructorReturn(this, _Renderer.call(this));
 
 	    _this.stroke = stroke;
 	    _this.strokePartRenderers = _this.stroke.getStrokeParts().map(function (strokePart) {
@@ -736,117 +650,90 @@ module.exports =
 	    return _this;
 	  }
 
-	  _createClass(StrokeRenderer, [{
-	    key: 'show',
-	    value: function show(animation) {
-	      var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
-	        return strokePartRenderer.show(animation);
-	      });
-	      return Promise.all(promises);
-	    }
-	  }, {
-	    key: 'showImmediate',
-	    value: function showImmediate() {
-	      this.strokePartRenderers.map(function (renderer) {
-	        return renderer.showImmediate();
-	      });
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide(animation) {
-	      var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
-	        return strokePartRenderer.hide(animation);
-	      });
-	      return Promise.all(promises);
-	    }
-	  }, {
-	    key: 'hideImmediate',
-	    value: function hideImmediate() {
-	      this.strokePartRenderers.map(function (renderer) {
-	        return renderer.hideImmediate();
-	      });
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  StrokeRenderer.prototype.show = function show(animation) {
+	    var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
+	      return strokePartRenderer.show(animation);
+	    });
+	    return Promise.all(promises);
+	  };
 
-	      try {
-	        for (var _iterator = this.strokePartRenderers[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var strokePartRenderer = _step.value;
+	  StrokeRenderer.prototype.showImmediate = function showImmediate() {
+	    this.strokePartRenderers.map(function (renderer) {
+	      return renderer.showImmediate();
+	    });
+	  };
 
-	          strokePartRenderer.draw(this.canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	  StrokeRenderer.prototype.hide = function hide(animation) {
+	    var promises = this.strokePartRenderers.map(function (strokePartRenderer) {
+	      return strokePartRenderer.hide(animation);
+	    });
+	    return Promise.all(promises);
+	  };
+
+	  StrokeRenderer.prototype.hideImmediate = function hideImmediate() {
+	    this.strokePartRenderers.map(function (renderer) {
+	      return renderer.hideImmediate();
+	    });
+	  };
+
+	  StrokeRenderer.prototype.draw = function draw() {
+	    for (var _iterator = this.strokePartRenderers, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
+
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      return this;
+	      var strokePartRenderer = _ref;
+
+	      strokePartRenderer.draw(this.canvas);
 	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(animation) {
-	      if (!animation.isActive()) return null;
-	      var renderChain = Promise.resolve();
-	      this.strokePartRenderers.forEach(function (strokePartRenderer) {
-	        renderChain = renderChain.then(function () {
-	          return strokePartRenderer.animate(animation);
-	        });
+	    return this;
+	  };
+
+	  StrokeRenderer.prototype.animate = function animate(animation) {
+	    if (!animation.isActive()) return null;
+	    var renderChain = Promise.resolve();
+	    this.strokePartRenderers.forEach(function (strokePartRenderer) {
+	      renderChain = renderChain.then(function () {
+	        return strokePartRenderer.animate(animation);
 	      });
-	      return renderChain;
-	    }
-	  }, {
-	    key: 'highlight',
-	    value: function highlight(animation) {
-	      var _this2 = this;
+	    });
+	    return renderChain;
+	  };
 
-	      return this.animate(animation).then(function () {
-	        return _this2.hide(animation);
-	      });
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(StrokeRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
+	  StrokeRenderer.prototype.highlight = function highlight(animation) {
+	    var _this2 = this;
 
-	      try {
-	        for (var _iterator2 = this.strokePartRenderers[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          var strokePartRenderer = _step2.value;
+	    return this.animate(animation).then(function () {
+	      return _this2.hide(animation);
+	    });
+	  };
 
-	          strokePartRenderer.setCanvas(canvas);
-	        }
-	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
-	          }
-	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
-	          }
-	        }
+	  StrokeRenderer.prototype.setCanvas = function setCanvas(canvas) {
+	    _Renderer.prototype.setCanvas.call(this, canvas);
+	    for (var _iterator2 = this.strokePartRenderers, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+	      var _ref2;
+
+	      if (_isArray2) {
+	        if (_i2 >= _iterator2.length) break;
+	        _ref2 = _iterator2[_i2++];
+	      } else {
+	        _i2 = _iterator2.next();
+	        if (_i2.done) break;
+	        _ref2 = _i2.value;
 	      }
+
+	      var strokePartRenderer = _ref2;
+
+	      strokePartRenderer.setCanvas(canvas);
 	    }
-	  }]);
+	  };
 
 	  return StrokeRenderer;
 	})(_Renderer3.default);
@@ -858,10 +745,6 @@ module.exports =
 /***/ function(module, exports, __webpack_require__) {
 
 	'use strict';
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
 
 	var _PathRenderer2 = __webpack_require__(5);
 
@@ -883,7 +766,7 @@ module.exports =
 
 	    _classCallCheck(this, StrokePartRenderer);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(StrokePartRenderer).call(this));
+	    var _this = _possibleConstructorReturn(this, _PathRenderer.call(this));
 
 	    _this.options = options;
 	    _this.strokePart = strokePart;
@@ -891,98 +774,85 @@ module.exports =
 	    return _this;
 	  }
 
-	  _createClass(StrokePartRenderer, [{
-	    key: 'getPathString',
-	    value: function getPathString() {
-	      return _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'getPathString', this).call(this) + ' z';
-	    }
-	  }, {
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this.strokePart.getPoints();
-	    }
-	  }, {
-	    key: 'markAnimationPoints',
-	    value: function markAnimationPoints() {
-	      var start = this.strokePart.getStartingPoint();
-	      var end = this.strokePart.getEndingPoint();
-	      this.canvas.circle(10).attr({ fill: '#9F9' }).move(start.getX(), start.getY());
-	      this.canvas.circle(10).attr({ fill: '#9F9' }).move(end.getX(), end.getY());
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'draw', this).call(this);
-	      this.path.attr(this.getStrokeAttrs()).attr({ opacity: 0 });
-	      return this;
-	    }
-	  }, {
-	    key: 'show',
-	    value: function show(animation) {
-	      var _this2 = this;
+	  StrokePartRenderer.prototype.getPathString = function getPathString() {
+	    return _PathRenderer.prototype.getPathString.call(this) + ' z';
+	  };
 
-	      return new Promise(function (resolve, reject) {
-	        var svgAnimation = _this2.path.animate(_this2.options.strokeAnimationDuration).opacity(1).after(resolve);
-	        animation.registerSvgAnimation(svgAnimation);
-	      });
-	    }
-	  }, {
-	    key: 'hide',
-	    value: function hide(animation) {
-	      var _this3 = this;
+	  StrokePartRenderer.prototype.getPoints = function getPoints() {
+	    return this.strokePart.getPoints();
+	  };
 
-	      return new Promise(function (resolve, reject) {
-	        var svgAnimation = _this3.path.animate(_this3.options.strokeAnimationDuration).opacity(0).after(resolve);
-	        animation.registerSvgAnimation(svgAnimation);
-	      });
-	    }
-	  }, {
-	    key: 'hideImmediate',
-	    value: function hideImmediate() {
-	      this.path.opacity(0);
-	    }
-	  }, {
-	    key: 'showImmediate',
-	    value: function showImmediate() {
-	      this.path.opacity(1);
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(animation) {
-	      var _this4 = this;
+	  StrokePartRenderer.prototype.markAnimationPoints = function markAnimationPoints() {
+	    var start = this.strokePart.getStartingPoint();
+	    var end = this.strokePart.getEndingPoint();
+	    this.canvas.circle(10).attr({ fill: '#9F9' }).move(start.getX(), start.getY());
+	    this.canvas.circle(10).attr({ fill: '#9F9' }).move(end.getX(), end.getY());
+	  };
 
-	      var start = this.strokePart.getStartingPoint();
-	      if (!this.path) this.drawPath();
-	      if (!this.mask) {
-	        this.mask = this.canvas.circle(0).center(start.getX(), start.getY());
-	        this.path.clipWith(this.mask);
-	      }
+	  StrokePartRenderer.prototype.draw = function draw() {
+	    _PathRenderer.prototype.draw.call(this);
+	    this.path.attr(this.getStrokeAttrs()).attr({ opacity: 0 });
+	    return this;
+	  };
 
-	      this.mask.radius(0);
-	      this.path.attr({ opacity: 1 }).attr(this.getStrokeAttrs());
+	  StrokePartRenderer.prototype.show = function show(animation) {
+	    var _this2 = this;
 
-	      return new Promise(function (resolve, reject) {
-	        var svgAnimation = _this4.mask.animate(_this4.options.strokeAnimationDuration / _this4.stroke.getNumStrokeParts()).radius(_this4.strokePart.getLength()).after(resolve);
+	    return new Promise(function (resolve, reject) {
+	      var svgAnimation = _this2.path.animate(_this2.options.strokeAnimationDuration).opacity(1).after(resolve);
+	      animation.registerSvgAnimation(svgAnimation);
+	    });
+	  };
 
-	        animation.registerSvgAnimation(svgAnimation);
-	      });
+	  StrokePartRenderer.prototype.hide = function hide(animation) {
+	    var _this3 = this;
+
+	    return new Promise(function (resolve, reject) {
+	      var svgAnimation = _this3.path.animate(_this3.options.strokeAnimationDuration).opacity(0).after(resolve);
+	      animation.registerSvgAnimation(svgAnimation);
+	    });
+	  };
+
+	  StrokePartRenderer.prototype.hideImmediate = function hideImmediate() {
+	    this.path.opacity(0);
+	  };
+
+	  StrokePartRenderer.prototype.showImmediate = function showImmediate() {
+	    this.path.opacity(1);
+	  };
+
+	  StrokePartRenderer.prototype.animate = function animate(animation) {
+	    var _this4 = this;
+
+	    var start = this.strokePart.getStartingPoint();
+	    if (!this.path) this.drawPath();
+	    if (!this.mask) {
+	      this.mask = this.canvas.circle(0).center(start.getX(), start.getY());
+	      this.path.clipWith(this.mask);
 	    }
-	  }, {
-	    key: 'destroy',
-	    value: function destroy() {
-	      _get(Object.getPrototypeOf(StrokePartRenderer.prototype), 'destroy', this).call(this);
-	      if (this.mask) this.mask.remove();
-	    }
-	  }, {
-	    key: 'getStrokeAttrs',
-	    value: function getStrokeAttrs() {
-	      return {
-	        fill: this.options.strokeColor,
-	        stroke: this.options.strokeColor,
-	        'stroke-width': this.options.strokeWidth
-	      };
-	    }
-	  }]);
+
+	    this.mask.radius(0);
+	    this.path.attr({ opacity: 1 }).attr(this.getStrokeAttrs());
+
+	    return new Promise(function (resolve, reject) {
+	      var svgAnimation = _this4.mask.animate(_this4.options.strokeAnimationDuration / _this4.stroke.getNumStrokeParts()).radius(_this4.strokePart.getLength()).after(resolve);
+
+	      animation.registerSvgAnimation(svgAnimation);
+	    });
+	  };
+
+	  StrokePartRenderer.prototype.destroy = function destroy() {
+	    _PathRenderer.prototype.destroy.call(this);
+	    if (this.mask) this.mask.remove();
+	  };
+
+	  StrokePartRenderer.prototype.getStrokeAttrs = function getStrokeAttrs() {
+	    return {
+	      fill: this.options.strokeColor,
+	      stroke: this.options.strokeColor,
+	      'stroke-width': this.options.strokeWidth
+	    };
+	  };
 
 	  return StrokePartRenderer;
 	})(_PathRenderer3.default);
@@ -995,13 +865,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Renderer2 = __webpack_require__(2);
 
@@ -1021,66 +885,49 @@ module.exports =
 	  function PathRenderer() {
 	    _classCallCheck(this, PathRenderer);
 
-	    return _possibleConstructorReturn(this, Object.getPrototypeOf(PathRenderer).apply(this, arguments));
+	    return _possibleConstructorReturn(this, _Renderer.apply(this, arguments));
 	  }
 
-	  _createClass(PathRenderer, [{
-	    key: 'getPoints',
-	    value: function getPoints() {} // overwrite in children
+	  PathRenderer.prototype.getPoints = function getPoints() {}; // overwrite in children
 
-	  }, {
-	    key: 'getPathString',
-	    value: function getPathString() {
-	      var points = this.getPoints();
-	      var start = points[0];
-	      var remainingPoints = points.slice(1);
-	      var pathString = 'M ' + start.getX() + ' ' + start.getY();
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  PathRenderer.prototype.getPathString = function getPathString() {
+	    var points = this.getPoints();
+	    var start = points[0];
+	    var remainingPoints = points.slice(1);
+	    var pathString = 'M ' + start.getX() + ' ' + start.getY();
+	    for (var _iterator = remainingPoints, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
 
-	      try {
-	        for (var _iterator = remainingPoints[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var point = _step.value;
-
-	          pathString += ' L ' + point.getX() + ' ' + point.getY();
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      return pathString;
+	      var point = _ref;
+
+	      pathString += ' L ' + point.getX() + ' ' + point.getY();
 	    }
-	  }, {
-	    key: 'drawPath',
-	    value: function drawPath() {
-	      this.path = this.canvas.path(this.getPathString());
-	      return this.path;
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      this.drawPath();
-	      return this;
-	    }
-	  }, {
-	    key: 'destroy',
-	    value: function destroy() {
-	      _get(Object.getPrototypeOf(PathRenderer.prototype), 'destroy', this).call(this);
-	      if (this.path) this.path.remove();
-	    }
-	  }]);
+	    return pathString;
+	  };
+
+	  PathRenderer.prototype.drawPath = function drawPath() {
+	    this.path = this.canvas.path(this.getPathString());
+	    return this.path;
+	  };
+
+	  PathRenderer.prototype.draw = function draw() {
+	    this.drawPath();
+	    return this;
+	  };
+
+	  PathRenderer.prototype.destroy = function destroy() {
+	    _Renderer.prototype.destroy.call(this);
+	    if (this.path) this.path.remove();
+	  };
 
 	  return PathRenderer;
 	})(_Renderer3.default);
@@ -1093,9 +940,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 	exports.copyAndExtend = copyAndExtend;
 	exports.inArray = inArray;
 	exports.emptyFunc = emptyFunc;
@@ -1122,31 +967,22 @@ module.exports =
 	}
 
 	function inArray(val, array) {
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	  for (var _iterator = array, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	    var _ref;
 
-	  try {
-	    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var arrayVal = _step.value;
+	    if (_isArray) {
+	      if (_i >= _iterator.length) break;
+	      _ref = _iterator[_i++];
+	    } else {
+	      _i = _iterator.next();
+	      if (_i.done) break;
+	      _ref = _i.value;
+	    }
 
-	      if (val === arrayVal) return true;
-	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator.return) {
-	        _iterator.return();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
+	    var arrayVal = _ref;
+
+	    if (val === arrayVal) return true;
 	  }
-
 	  return false;
 	}
 
@@ -1177,31 +1013,22 @@ module.exports =
 
 	function average(arr) {
 	  var sum = 0;
-	  var _iteratorNormalCompletion2 = true;
-	  var _didIteratorError2 = false;
-	  var _iteratorError2 = undefined;
+	  for (var _iterator2 = arr, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+	    var _ref2;
 
-	  try {
-	    for (var _iterator2 = arr[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	      var val = _step2.value;
+	    if (_isArray2) {
+	      if (_i2 >= _iterator2.length) break;
+	      _ref2 = _iterator2[_i2++];
+	    } else {
+	      _i2 = _iterator2.next();
+	      if (_i2.done) break;
+	      _ref2 = _i2.value;
+	    }
 
-	      sum += val;
-	    }
-	  } catch (err) {
-	    _didIteratorError2 = true;
-	    _iteratorError2 = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	        _iterator2.return();
-	      }
-	    } finally {
-	      if (_didIteratorError2) {
-	        throw _iteratorError2;
-	      }
-	    }
+	    var val = _ref2;
+
+	    sum += val;
 	  }
-
 	  return sum / arr.length;
 	}
 
@@ -1949,13 +1776,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Renderer2 = __webpack_require__(2);
 
@@ -1977,32 +1798,27 @@ module.exports =
 
 	    _classCallCheck(this, PositionerRenderer);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(PositionerRenderer).call(this));
+	    var _this = _possibleConstructorReturn(this, _Renderer.call(this));
 
 	    _this.positioner = positioner;
 	    _this.positonedCanvas = null;
 	    return _this;
 	  }
 
-	  _createClass(PositionerRenderer, [{
-	    key: 'getPositionedCanvas',
-	    value: function getPositionedCanvas() {
-	      return this.positonedCanvas;
-	    }
-	  }, {
-	    key: 'setCanvas',
-	    value: function setCanvas(canvas) {
-	      _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'setCanvas', this).call(this, canvas);
-	      this.positonedCanvas = this.canvas.group().move(this.positioner.getXOffset(), this.positioner.getYOffset()).transform({ scaleX: this.positioner.getScale(), scaleY: this.positioner.getScale() });
-	      return this;
-	    }
-	  }, {
-	    key: 'destroy',
-	    value: function destroy() {
-	      _get(Object.getPrototypeOf(PositionerRenderer.prototype), 'destroy', this).call(this);
-	      this.positonedCanvas.remove();
-	    }
-	  }]);
+	  PositionerRenderer.prototype.getPositionedCanvas = function getPositionedCanvas() {
+	    return this.positonedCanvas;
+	  };
+
+	  PositionerRenderer.prototype.setCanvas = function setCanvas(canvas) {
+	    _Renderer.prototype.setCanvas.call(this, canvas);
+	    this.positonedCanvas = this.canvas.group().move(this.positioner.getXOffset(), this.positioner.getYOffset()).transform({ scaleX: this.positioner.getScale(), scaleY: this.positioner.getScale() });
+	    return this;
+	  };
+
+	  PositionerRenderer.prototype.destroy = function destroy() {
+	    _Renderer.prototype.destroy.call(this);
+	    this.positonedCanvas.remove();
+	  };
 
 	  return PositionerRenderer;
 	})(_Renderer3.default);
@@ -2015,13 +1831,7 @@ module.exports =
 
 	'use strict';
 
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _utils = __webpack_require__(6);
 
@@ -2035,36 +1845,28 @@ module.exports =
 	    this._y = parseInt(y, 10);
 	  }
 
-	  _createClass(Point, [{
-	    key: 'getX',
-	    value: function getX() {
-	      return this._x;
-	    }
-	  }, {
-	    key: 'getY',
-	    value: function getY() {
-	      return this._y;
-	    }
+	  Point.prototype.getX = function getX() {
+	    return this._x;
+	  };
 
-	    // return a new point subtracting point from this
+	  Point.prototype.getY = function getY() {
+	    return this._y;
+	  };
 
-	  }, {
-	    key: 'subtract',
-	    value: function subtract(point) {
-	      return new Point(this.getX() - point.getX(), this.getY() - point.getY());
-	    }
-	  }, {
-	    key: 'getMagnitude',
-	    value: function getMagnitude() {
-	      return Math.sqrt(Math.pow(this.getX(), 2) + Math.pow(this.getY(), 2));
-	    }
-	  }, {
-	    key: 'equals',
-	    value: function equals(point) {
-	      if (!point) return false;
-	      return point.getX() === this.getX() && point.getY() === this.getY();
-	    }
-	  }]);
+	  // return a new point subtracting point from this
+
+	  Point.prototype.subtract = function subtract(point) {
+	    return new Point(this.getX() - point.getX(), this.getY() - point.getY());
+	  };
+
+	  Point.prototype.getMagnitude = function getMagnitude() {
+	    return Math.sqrt(Math.pow(this.getX(), 2) + Math.pow(this.getY(), 2));
+	  };
+
+	  Point.prototype.equals = function equals(point) {
+	    if (!point) return false;
+	    return point.getX() === this.getX() && point.getY() === this.getY();
+	  };
 
 	  return Point;
 	})();
@@ -2086,39 +1888,28 @@ module.exports =
 	// boundable here refers to any object with a getBounds() method
 	Point.getOverallBounds = function (boundables) {
 	  var bounds = [];
-	  var _iteratorNormalCompletion = true;
-	  var _didIteratorError = false;
-	  var _iteratorError = undefined;
+	  for (var _iterator = boundables, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	    var _ref;
 
-	  try {
-	    for (var _iterator = boundables[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	      var boundable = _step.value;
-
-	      var _boundable$getBounds = boundable.getBounds();
-
-	      var _boundable$getBounds2 = _slicedToArray(_boundable$getBounds, 2);
-
-	      var lowerBound = _boundable$getBounds2[0];
-	      var upperBound = _boundable$getBounds2[1];
-
-	      bounds.push(lowerBound);
-	      bounds.push(upperBound);
+	    if (_isArray) {
+	      if (_i >= _iterator.length) break;
+	      _ref = _iterator[_i++];
+	    } else {
+	      _i = _iterator.next();
+	      if (_i.done) break;
+	      _ref = _i.value;
 	    }
-	  } catch (err) {
-	    _didIteratorError = true;
-	    _iteratorError = err;
-	  } finally {
-	    try {
-	      if (!_iteratorNormalCompletion && _iterator.return) {
-	        _iterator.return();
-	      }
-	    } finally {
-	      if (_didIteratorError) {
-	        throw _iteratorError;
-	      }
-	    }
+
+	    var boundable = _ref;
+
+	    var _boundable$getBounds = boundable.getBounds();
+
+	    var lowerBound = _boundable$getBounds[0];
+	    var upperBound = _boundable$getBounds[1];
+
+	    bounds.push(lowerBound);
+	    bounds.push(upperBound);
 	  }
-
 	  return Point.getBounds(bounds);
 	};
 
@@ -2140,13 +1931,7 @@ module.exports =
 
 	'use strict';
 
-	var _slicedToArray = (function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; })();
-
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2173,90 +1958,71 @@ module.exports =
 	    _classCallCheck(this, ZdtStrokeParser);
 	  }
 
-	  _createClass(ZdtStrokeParser, [{
-	    key: 'generateCharacter',
-	    value: function generateCharacter(symbol, zdtPathStrings) {
-	      var strokes = this.generateStrokes(zdtPathStrings);
-	      return new _Character2.default(symbol, strokes);
-	    }
-	  }, {
-	    key: 'generateStrokes',
-	    value: function generateStrokes(zdtPathStrings) {
-	      var strokes = [];
-	      var strokeParts = [];
-	      var strokeNum = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  ZdtStrokeParser.prototype.generateCharacter = function generateCharacter(symbol, zdtPathStrings) {
+	    var strokes = this.generateStrokes(zdtPathStrings);
+	    return new _Character2.default(symbol, strokes);
+	  };
 
-	      try {
-	        for (var _iterator = zdtPathStrings[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var zdtPathString = _step.value;
+	  ZdtStrokeParser.prototype.generateStrokes = function generateStrokes(zdtPathStrings) {
+	    var strokes = [];
+	    var strokeParts = [];
+	    var strokeNum = 0;
+	    for (var _iterator = zdtPathStrings, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
 
-	          var _extractStrokeData2 = this._extractStrokeData(zdtPathString);
-
-	          var points = _extractStrokeData2.points;
-	          var isComplete = _extractStrokeData2.isComplete;
-	          var strokeType = _extractStrokeData2.strokeType;
-
-	          var strokePart = new _StrokePart2.default(strokeType, points);
-	          strokeParts.push(strokePart);
-	          if (isComplete) {
-	            strokes.push(new _Stroke2.default(strokeParts, strokeNum));
-	            strokeNum += 1;
-	            strokeParts = [];
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      return strokes;
+	      var zdtPathString = _ref;
+
+	      var _extractStrokeData2 = this._extractStrokeData(zdtPathString);
+
+	      var points = _extractStrokeData2.points;
+	      var isComplete = _extractStrokeData2.isComplete;
+	      var strokeType = _extractStrokeData2.strokeType;
+
+	      var strokePart = new _StrokePart2.default(strokeType, points);
+	      strokeParts.push(strokePart);
+	      if (isComplete) {
+	        strokes.push(new _Stroke2.default(strokeParts, strokeNum));
+	        strokeNum += 1;
+	        strokeParts = [];
+	      }
 	    }
-	  }, {
-	    key: '_extractStrokeData',
-	    value: function _extractStrokeData(zdtPathString) {
-	      var _this = this;
+	    return strokes;
+	  };
 
-	      var _zdtPathString$split = zdtPathString.split(':');
+	  ZdtStrokeParser.prototype._extractStrokeData = function _extractStrokeData(zdtPathString) {
+	    var _this = this;
 
-	      var _zdtPathString$split2 = _slicedToArray(_zdtPathString$split, 2);
+	    var _zdtPathString$split = zdtPathString.split(':');
 
-	      var metadataString = _zdtPathString$split2[0];
-	      var rawPathString = _zdtPathString$split2[1];
+	    var metadataString = _zdtPathString$split[0];
+	    var rawPathString = _zdtPathString$split[1];
 
-	      var pathString = rawPathString.replace(/;?\s*$/, '');
-	      var points = pathString.split(';').map(function (pointString) {
-	        return _this._parsePoint(pointString);
-	      });
-	      var isComplete = metadataString[2] === 'P';
-	      var strokeType = parseInt(metadataString[1], 10);
-	      return { points: points, isComplete: isComplete, strokeType: strokeType };
-	    }
-	  }, {
-	    key: '_parsePoint',
-	    value: function _parsePoint(pointString) {
-	      var _pointString$split = pointString.split(',');
+	    var pathString = rawPathString.replace(/;?\s*$/, '');
+	    var points = pathString.split(';').map(function (pointString) {
+	      return _this._parsePoint(pointString);
+	    });
+	    var isComplete = metadataString[2] === 'P';
+	    var strokeType = parseInt(metadataString[1], 10);
+	    return { points: points, isComplete: isComplete, strokeType: strokeType };
+	  };
 
-	      var _pointString$split2 = _slicedToArray(_pointString$split, 2);
+	  ZdtStrokeParser.prototype._parsePoint = function _parsePoint(pointString) {
+	    var _pointString$split = pointString.split(',');
 
-	      var x = _pointString$split2[0];
-	      var y = _pointString$split2[1];
+	    var x = _pointString$split[0];
+	    var y = _pointString$split[1];
 
-	      return new _Point2.default(x, y);
-	    }
-	  }]);
+	    return new _Point2.default(x, y);
+	  };
 
 	  return ZdtStrokeParser;
 	})();
@@ -2269,11 +2035,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2291,90 +2053,69 @@ module.exports =
 	    this._strokeNum = strokeNum;
 	  }
 
-	  _createClass(Stroke, [{
-	    key: 'getStrokeParts',
-	    value: function getStrokeParts() {
-	      return this._strokeParts;
-	    }
-	  }, {
-	    key: 'getNumStrokeParts',
-	    value: function getNumStrokeParts() {
-	      return this._strokeParts.length;
-	    }
-	  }, {
-	    key: 'getStrokeNum',
-	    value: function getStrokeNum() {
-	      return this._strokeNum;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2.default.getOverallBounds(this._strokeParts);
-	    }
-	  }, {
-	    key: 'getLength',
-	    value: function getLength() {
-	      return this._strokeParts.reduce(function (acc, part) {
-	        return acc + part.getLength();
-	      }, 0);
-	    }
-	  }, {
-	    key: 'getVectors',
-	    value: function getVectors() {
-	      return this._strokeParts.map(function (strokePart) {
-	        return strokePart.getVector();
-	      });
-	    }
-	  }, {
-	    key: 'getStartingPoint',
-	    value: function getStartingPoint() {
-	      return this._strokeParts[0].getStartingPoint();
-	    }
-	  }, {
-	    key: 'getEndingPoint',
-	    value: function getEndingPoint() {
-	      return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
-	    }
-	  }, {
-	    key: 'getDistance',
-	    value: function getDistance(point) {
-	      var distances = this._strokeParts.map(function (strokePart) {
-	        return strokePart.getDistance(point);
-	      });
-	      return Math.min.apply(Math, distances);
-	    }
-	  }, {
-	    key: 'getAverageDistance',
-	    value: function getAverageDistance(points) {
-	      var totalDist = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	  Stroke.prototype.getStrokeParts = function getStrokeParts() {
+	    return this._strokeParts;
+	  };
 
-	      try {
-	        for (var _iterator = points[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var point = _step.value;
+	  Stroke.prototype.getNumStrokeParts = function getNumStrokeParts() {
+	    return this._strokeParts.length;
+	  };
 
-	          totalDist += this.getDistance(point);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	  Stroke.prototype.getStrokeNum = function getStrokeNum() {
+	    return this._strokeNum;
+	  };
+
+	  Stroke.prototype.getBounds = function getBounds() {
+	    return _Point2.default.getOverallBounds(this._strokeParts);
+	  };
+
+	  Stroke.prototype.getLength = function getLength() {
+	    return this._strokeParts.reduce(function (acc, part) {
+	      return acc + part.getLength();
+	    }, 0);
+	  };
+
+	  Stroke.prototype.getVectors = function getVectors() {
+	    return this._strokeParts.map(function (strokePart) {
+	      return strokePart.getVector();
+	    });
+	  };
+
+	  Stroke.prototype.getStartingPoint = function getStartingPoint() {
+	    return this._strokeParts[0].getStartingPoint();
+	  };
+
+	  Stroke.prototype.getEndingPoint = function getEndingPoint() {
+	    return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
+	  };
+
+	  Stroke.prototype.getDistance = function getDistance(point) {
+	    var distances = this._strokeParts.map(function (strokePart) {
+	      return strokePart.getDistance(point);
+	    });
+	    return Math.min.apply(Math, distances);
+	  };
+
+	  Stroke.prototype.getAverageDistance = function getAverageDistance(points) {
+	    var totalDist = 0;
+	    for (var _iterator = points, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
+
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      return totalDist / points.length;
+	      var point = _ref;
+
+	      totalDist += this.getDistance(point);
 	    }
-	  }]);
+	    return totalDist / points.length;
+	  };
 
 	  return Stroke;
 	})();
@@ -2387,11 +2128,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2411,91 +2148,78 @@ module.exports =
 	    this._points = points;
 	  }
 
-	  _createClass(StrokePart, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this._points;
-	    }
-	  }, {
-	    key: 'getStrokeType',
-	    value: function getStrokeType() {
-	      return this._strokeType;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2.default.getBounds(this._points);
-	    }
-	  }, {
-	    key: 'getVector',
-	    value: function getVector() {
-	      return this.getEndingPoint().subtract(this.getStartingPoint());
+	  StrokePart.prototype.getPoints = function getPoints() {
+	    return this._points;
+	  };
+
+	  StrokePart.prototype.getStrokeType = function getStrokeType() {
+	    return this._strokeType;
+	  };
+
+	  StrokePart.prototype.getBounds = function getBounds() {
+	    return _Point2.default.getBounds(this._points);
+	  };
+
+	  StrokePart.prototype.getVector = function getVector() {
+	    return this.getEndingPoint().subtract(this.getStartingPoint());
+	  };
+
+	  // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+
+	  StrokePart.prototype.getDistance = function getDistance(point) {
+	    var start = this.getStartingPoint();
+	    var end = this.getEndingPoint();
+	    var dx = end.getX() - start.getX();
+	    var dy = end.getY() - start.getY();
+	    var length = this.getLength();
+	    return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
+	  };
+
+	  StrokePart.prototype.getLength = function getLength() {
+	    var start = this.getStartingPoint();
+	    var end = this.getEndingPoint();
+	    return _Point2.default.getDistance(start, end);
+	  };
+
+	  StrokePart.prototype.getStartingPoint = function getStartingPoint() {
+	    return this._getExtremePoint(false);
+	  };
+
+	  StrokePart.prototype.getEndingPoint = function getEndingPoint() {
+	    return this._getExtremePoint(true);
+	  };
+
+	  // where to start or end drawing the stroke based on the stroke type
+
+	  StrokePart.prototype._getExtremePoint = function _getExtremePoint(isReverse) {
+	    var strokeType = this.getStrokeType();
+	    var points = this.getPoints();
+	    var adjStrokeType = strokeType;
+	    var adjIsReverse = isReverse;
+	    var xs = points.map(function (point) {
+	      return point.getX();
+	    });
+	    var ys = points.map(function (point) {
+	      return point.getY();
+	    });
+	    var extremeXs = (0, _utils.getExtremes)(xs);
+	    var extremeYs = (0, _utils.getExtremes)(ys);
+
+	    // handle reversed strokes
+	    if (strokeType > StrokePart.FORWARD_SLASH_STROKE) {
+	      adjStrokeType = strokeType - StrokePart.FORWARD_SLASH_STROKE;
+	      adjIsReverse = !isReverse;
 	    }
 
-	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
+	    var minIndex = adjIsReverse ? 0 : 2;
+	    var maxIndex = adjIsReverse ? 2 : 0;
+	    var midIndex = 1;
 
-	  }, {
-	    key: 'getDistance',
-	    value: function getDistance(point) {
-	      var start = this.getStartingPoint();
-	      var end = this.getEndingPoint();
-	      var dx = end.getX() - start.getX();
-	      var dy = end.getY() - start.getY();
-	      var length = this.getLength();
-	      return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
-	    }
-	  }, {
-	    key: 'getLength',
-	    value: function getLength() {
-	      var start = this.getStartingPoint();
-	      var end = this.getEndingPoint();
-	      return _Point2.default.getDistance(start, end);
-	    }
-	  }, {
-	    key: 'getStartingPoint',
-	    value: function getStartingPoint() {
-	      return this._getExtremePoint(false);
-	    }
-	  }, {
-	    key: 'getEndingPoint',
-	    value: function getEndingPoint() {
-	      return this._getExtremePoint(true);
-	    }
-
-	    // where to start or end drawing the stroke based on the stroke type
-
-	  }, {
-	    key: '_getExtremePoint',
-	    value: function _getExtremePoint(isReverse) {
-	      var strokeType = this.getStrokeType();
-	      var points = this.getPoints();
-	      var adjStrokeType = strokeType;
-	      var adjIsReverse = isReverse;
-	      var xs = points.map(function (point) {
-	        return point.getX();
-	      });
-	      var ys = points.map(function (point) {
-	        return point.getY();
-	      });
-	      var extremeXs = (0, _utils.getExtremes)(xs);
-	      var extremeYs = (0, _utils.getExtremes)(ys);
-
-	      // handle reversed strokes
-	      if (strokeType > StrokePart.FORWARD_SLASH_STROKE) {
-	        adjStrokeType = strokeType - StrokePart.FORWARD_SLASH_STROKE;
-	        adjIsReverse = !isReverse;
-	      }
-
-	      var minIndex = adjIsReverse ? 0 : 2;
-	      var maxIndex = adjIsReverse ? 2 : 0;
-	      var midIndex = 1;
-
-	      if (adjStrokeType === StrokePart.HORIZONTAL_STROKE) return new _Point2.default(extremeXs[minIndex], extremeYs[midIndex]);
-	      if (adjStrokeType === StrokePart.BACK_SLASH_STROKE) return new _Point2.default(extremeXs[minIndex], extremeYs[minIndex]);
-	      if (adjStrokeType === StrokePart.VERTICAL_STROKE) return new _Point2.default(extremeXs[midIndex], extremeYs[minIndex]);
-	      if (adjStrokeType === StrokePart.FORWARD_SLASH_STROKE) return new _Point2.default(extremeXs[maxIndex], extremeYs[minIndex]);
-	    }
-	  }]);
+	    if (adjStrokeType === StrokePart.HORIZONTAL_STROKE) return new _Point2.default(extremeXs[minIndex], extremeYs[midIndex]);
+	    if (adjStrokeType === StrokePart.BACK_SLASH_STROKE) return new _Point2.default(extremeXs[minIndex], extremeYs[minIndex]);
+	    if (adjStrokeType === StrokePart.VERTICAL_STROKE) return new _Point2.default(extremeXs[midIndex], extremeYs[minIndex]);
+	    if (adjStrokeType === StrokePart.FORWARD_SLASH_STROKE) return new _Point2.default(extremeXs[maxIndex], extremeYs[minIndex]);
+	  };
 
 	  return StrokePart;
 	})();
@@ -2517,11 +2241,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2539,32 +2259,25 @@ module.exports =
 	    this._strokes = strokes;
 	  }
 
-	  _createClass(Character, [{
-	    key: 'getSymbol',
-	    value: function getSymbol() {
-	      return this._symbol;
-	    }
-	  }, {
-	    key: 'getStrokes',
-	    value: function getStrokes() {
-	      return this._strokes;
-	    }
-	  }, {
-	    key: 'getStroke',
-	    value: function getStroke(strokeNum) {
-	      return this._strokes[strokeNum];
-	    }
-	  }, {
-	    key: 'getNumStrokes',
-	    value: function getNumStrokes() {
-	      return this._strokes.length;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2.default.getOverallBounds(this.getStrokes());
-	    }
-	  }]);
+	  Character.prototype.getSymbol = function getSymbol() {
+	    return this._symbol;
+	  };
+
+	  Character.prototype.getStrokes = function getStrokes() {
+	    return this._strokes;
+	  };
+
+	  Character.prototype.getStroke = function getStroke(strokeNum) {
+	    return this._strokes[strokeNum];
+	  };
+
+	  Character.prototype.getNumStrokes = function getNumStrokes() {
+	    return this._strokes.length;
+	  };
+
+	  Character.prototype.getBounds = function getBounds() {
+	    return _Point2.default.getOverallBounds(this.getStrokes());
+	  };
 
 	  return Character;
 	})();
@@ -2577,11 +2290,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2600,47 +2309,40 @@ module.exports =
 	    this._calculateScaleAndOffset();
 	  }
 
-	  _createClass(Positioner, [{
-	    key: 'convertExternalPoint',
-	    value: function convertExternalPoint(point) {
-	      var x = (point.getX() - this._xOffset) / this._scale;
-	      var y = (point.getY() - this._yOffset) / this._scale;
-	      return new _Point2.default(x, y);
-	    }
-	  }, {
-	    key: 'getXOffset',
-	    value: function getXOffset() {
-	      return this._xOffset;
-	    }
-	  }, {
-	    key: 'getYOffset',
-	    value: function getYOffset() {
-	      return this._yOffset;
-	    }
-	  }, {
-	    key: 'getScale',
-	    value: function getScale() {
-	      return this._scale;
-	    }
-	  }, {
-	    key: '_calculateScaleAndOffset',
-	    value: function _calculateScaleAndOffset() {
-	      var bounds = this._character.getBounds();
-	      var preScaledWidth = bounds[1].getX() - bounds[0].getX();
-	      var preScaledHeight = bounds[1].getY() - bounds[0].getY();
-	      var effectiveWidth = this._options.width - 2 * this._options.padding;
-	      var effectiveHeight = this._options.height - 2 * this._options.padding;
-	      var scaleX = effectiveWidth / preScaledWidth;
-	      var scaleY = effectiveHeight / preScaledHeight;
+	  Positioner.prototype.convertExternalPoint = function convertExternalPoint(point) {
+	    var x = (point.getX() - this._xOffset) / this._scale;
+	    var y = (point.getY() - this._yOffset) / this._scale;
+	    return new _Point2.default(x, y);
+	  };
 
-	      this._scale = Math.min(scaleX, scaleY);
+	  Positioner.prototype.getXOffset = function getXOffset() {
+	    return this._xOffset;
+	  };
 
-	      var xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
-	      var yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
-	      this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
-	      this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
-	    }
-	  }]);
+	  Positioner.prototype.getYOffset = function getYOffset() {
+	    return this._yOffset;
+	  };
+
+	  Positioner.prototype.getScale = function getScale() {
+	    return this._scale;
+	  };
+
+	  Positioner.prototype._calculateScaleAndOffset = function _calculateScaleAndOffset() {
+	    var bounds = this._character.getBounds();
+	    var preScaledWidth = bounds[1].getX() - bounds[0].getX();
+	    var preScaledHeight = bounds[1].getY() - bounds[0].getY();
+	    var effectiveWidth = this._options.width - 2 * this._options.padding;
+	    var effectiveHeight = this._options.height - 2 * this._options.padding;
+	    var scaleX = effectiveWidth / preScaledWidth;
+	    var scaleY = effectiveHeight / preScaledHeight;
+
+	    this._scale = Math.min(scaleX, scaleY);
+
+	    var xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
+	    var yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
+	    this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
+	    this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
+	  };
 
 	  return Positioner;
 	})();
@@ -2653,11 +2355,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _StrokeMatcher = __webpack_require__(19);
 
@@ -2709,126 +2407,113 @@ module.exports =
 	    this._setupCharacter();
 	  }
 
-	  _createClass(Quiz, [{
-	    key: 'startUserStroke',
-	    value: function startUserStroke(point) {
-	      if (!this._isActive) return null;
-	      if (this._userStroke) return this.endUserStroke();
-	      this._userStroke = new _UserStroke2.default(point);
-	      this._userStrokeRenderer = new _UserStrokeRenderer2.default(this._userStroke, this._userStrokeOptions);
-	      this._userStrokeRenderer.setCanvas(this._canvas).draw();
-	    }
-	  }, {
-	    key: 'continueUserStroke',
-	    value: function continueUserStroke(point) {
-	      if (!this._userStroke) return;
-	      this._userStroke.appendPoint(point);
-	      this._userStrokeRenderer.updatePath();
-	    }
-	  }, {
-	    key: 'endUserStroke',
-	    value: function endUserStroke() {
-	      var _this = this;
+	  Quiz.prototype.startUserStroke = function startUserStroke(point) {
+	    if (!this._isActive) return null;
+	    if (this._userStroke) return this.endUserStroke();
+	    this._userStroke = new _UserStroke2.default(point);
+	    this._userStrokeRenderer = new _UserStrokeRenderer2.default(this._userStroke, this._userStrokeOptions);
+	    this._userStrokeRenderer.setCanvas(this._canvas).draw();
+	  };
 
-	      if (!this._userStroke) return Promise.resolve();
+	  Quiz.prototype.continueUserStroke = function continueUserStroke(point) {
+	    if (!this._userStroke) return;
+	    this._userStroke.appendPoint(point);
+	    this._userStrokeRenderer.updatePath();
+	  };
 
-	      this._animator.animate(function (animation) {
-	        var promises = [];
-	        var matchingStroke = _this._strokeMatcher.getMatchingStroke(_this._userStroke, _this._character.getStrokes());
-	        promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
-	        _this._userStroke = null;
-	        _this._userStrokeRenderer = null;
-	        if (!_this._isActive) return Promise.resolve();
+	  Quiz.prototype.endUserStroke = function endUserStroke() {
+	    var _this = this;
 
-	        if (_this._isValidStroke(matchingStroke)) {
-	          _this._handleSuccess(matchingStroke, animation);
-	        } else {
-	          _this._handleFaiulure();
-	          if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
-	            promises.push(_this._highlightCorrectStroke(animation));
-	          }
-	        }
-	        return Promise.all(promises);
-	      });
-	    }
-	  }, {
-	    key: 'cancel',
-	    value: function cancel() {
-	      this._isActive = false;
-	    }
-	  }, {
-	    key: '_handleSuccess',
-	    value: function _handleSuccess(stroke, animation) {
-	      var _this2 = this;
+	    if (!this._userStroke) return Promise.resolve();
 
-	      (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
-	        character: this._character.getSymbol(),
-	        strokeNum: this._currentStrokeIndex,
-	        mistakesOnStroke: this._numRecentMistakes,
-	        totalMistakes: this._totalMistakes,
-	        strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1
-	      });
-	      this._currentStrokeIndex += 1;
-	      this._numRecentMistakes = 0;
-	      var promise = this._drawMatchingStroke(stroke, animation);
-	      if (this._currentStrokeIndex === this._character.getNumStrokes()) {
-	        (0, _utils.callIfExists)(this._quizOptions.onComplete, {
-	          character: this._character.getSymbol(),
-	          totalMistakes: this._totalMistakes
-	        });
-	        if (this._quizOptions.highlightOnComplete) {
-	          promise = promise.then(function () {
-	            return _this2._highlightRenderer.flash(animation);
-	          });
+	    this._animator.animate(function (animation) {
+	      var promises = [];
+	      var matchingStroke = _this._strokeMatcher.getMatchingStroke(_this._userStroke, _this._character.getStrokes());
+	      promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
+	      _this._userStroke = null;
+	      _this._userStrokeRenderer = null;
+	      if (!_this._isActive) return Promise.resolve();
+
+	      if (_this._isValidStroke(matchingStroke)) {
+	        _this._handleSuccess(matchingStroke, animation);
+	      } else {
+	        _this._handleFaiulure();
+	        if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
+	          promises.push(_this._highlightCorrectStroke(animation));
 	        }
 	      }
-	      return promise;
-	    }
-	  }, {
-	    key: '_handleFaiulure',
-	    value: function _handleFaiulure() {
-	      this._numRecentMistakes += 1;
-	      this._totalMistakes += 1;
-	      (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	      return Promise.all(promises);
+	    });
+	  };
+
+	  Quiz.prototype.cancel = function cancel() {
+	    this._isActive = false;
+	  };
+
+	  Quiz.prototype._handleSuccess = function _handleSuccess(stroke, animation) {
+	    var _this2 = this;
+
+	    (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	      character: this._character.getSymbol(),
+	      strokeNum: this._currentStrokeIndex,
+	      mistakesOnStroke: this._numRecentMistakes,
+	      totalMistakes: this._totalMistakes,
+	      strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1
+	    });
+	    this._currentStrokeIndex += 1;
+	    this._numRecentMistakes = 0;
+	    var promise = this._drawMatchingStroke(stroke, animation);
+	    if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+	      (0, _utils.callIfExists)(this._quizOptions.onComplete, {
 	        character: this._character.getSymbol(),
-	        strokeNum: this._currentStrokeIndex,
-	        mistakesOnStroke: this._numRecentMistakes,
-	        totalMistakes: this._totalMistakes,
-	        strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex
+	        totalMistakes: this._totalMistakes
 	      });
+	      if (this._quizOptions.highlightOnComplete) {
+	        promise = promise.then(function () {
+	          return _this2._highlightRenderer.flash(animation);
+	        });
+	      }
 	    }
-	  }, {
-	    key: '_highlightCorrectStroke',
-	    value: function _highlightCorrectStroke(animation) {
-	      var strokeHintRenderer = this._highlightRenderer.getStrokeRenderer(this._currentStrokeIndex);
-	      return strokeHintRenderer.highlight(animation);
-	    }
-	  }, {
-	    key: '_drawMatchingStroke',
-	    value: function _drawMatchingStroke(stroke, animation) {
-	      this._drawnStrokes.push(stroke);
-	      return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
-	    }
-	  }, {
-	    key: '_isValidStroke',
-	    value: function _isValidStroke(stroke) {
-	      if (!stroke) return false;
-	      if ((0, _utils.inArray)(stroke, this._drawnStrokes)) return false;
-	      return stroke === this._character.getStroke(this._currentStrokeIndex);
-	    }
+	    return promise;
+	  };
 
-	    // hide the caracter
+	  Quiz.prototype._handleFaiulure = function _handleFaiulure() {
+	    this._numRecentMistakes += 1;
+	    this._totalMistakes += 1;
+	    (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	      character: this._character.getSymbol(),
+	      strokeNum: this._currentStrokeIndex,
+	      mistakesOnStroke: this._numRecentMistakes,
+	      totalMistakes: this._totalMistakes,
+	      strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex
+	    });
+	  };
 
-	  }, {
-	    key: '_setupCharacter',
-	    value: function _setupCharacter() {
-	      var _this3 = this;
+	  Quiz.prototype._highlightCorrectStroke = function _highlightCorrectStroke(animation) {
+	    var strokeHintRenderer = this._highlightRenderer.getStrokeRenderer(this._currentStrokeIndex);
+	    return strokeHintRenderer.highlight(animation);
+	  };
 
-	      this._animator.animate(function (animation) {
-	        return _this3._characterRenderer.hide(animation);
-	      });
-	    }
-	  }]);
+	  Quiz.prototype._drawMatchingStroke = function _drawMatchingStroke(stroke, animation) {
+	    this._drawnStrokes.push(stroke);
+	    return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
+	  };
+
+	  Quiz.prototype._isValidStroke = function _isValidStroke(stroke) {
+	    if (!stroke) return false;
+	    if ((0, _utils.inArray)(stroke, this._drawnStrokes)) return false;
+	    return stroke === this._character.getStroke(this._currentStrokeIndex);
+	  };
+
+	  // hide the caracter
+
+	  Quiz.prototype._setupCharacter = function _setupCharacter() {
+	    var _this3 = this;
+
+	    this._animator.animate(function (animation) {
+	      return _this3._characterRenderer.hide(animation);
+	    });
+	  };
 
 	  return Quiz;
 	})();
@@ -2841,11 +2526,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -2867,205 +2548,155 @@ module.exports =
 	    _classCallCheck(this, StrokeMatcher);
 	  }
 
-	  _createClass(StrokeMatcher, [{
-	    key: 'getMatchingStroke',
-	    value: function getMatchingStroke(userStroke, strokes) {
-	      var points = this._stripDuplicates(userStroke.getPoints());
-	      if (points.length < 2) return null;
+	  StrokeMatcher.prototype.getMatchingStroke = function getMatchingStroke(userStroke, strokes) {
+	    var points = this._stripDuplicates(userStroke.getPoints());
+	    if (points.length < 2) return null;
 
-	      var closestStroke = null;
-	      var bestAvgDist = 0;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
+	    var closestStroke = null;
+	    var bestAvgDist = 0;
+	    for (var _iterator = strokes, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
 
-	      try {
-	        for (var _iterator = strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var stroke = _step.value;
-
-	          var avgDist = stroke.getAverageDistance(points);
-	          if (avgDist < bestAvgDist || !closestStroke) {
-	            closestStroke = stroke;
-	            bestAvgDist = avgDist;
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
 	      }
 
-	      var withinDistThresh = bestAvgDist < AVG_DIST_THRESHOLD;
-	      var lengthRatio = this._getLength(points) / closestStroke.getLength();
-	      var withinLengthThresh = lengthRatio > 1 - LENGTH_RATIO_THRESHOLD && lengthRatio < 1 + LENGTH_RATIO_THRESHOLD;
-	      var startAndEndMatch = this._startAndEndMatches(points, closestStroke);
-	      var directionMatches = this._directionMatches(points, closestStroke);
-	      if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
-	        return closestStroke;
+	      var stroke = _ref;
+
+	      var avgDist = stroke.getAverageDistance(points);
+	      if (avgDist < bestAvgDist || !closestStroke) {
+	        closestStroke = stroke;
+	        bestAvgDist = avgDist;
 	      }
-	      return null;
 	    }
-	  }, {
-	    key: '_startAndEndMatches',
-	    value: function _startAndEndMatches(points, closestStroke) {
-	      var startingDist = _Point2.default.getDistance(closestStroke.getStartingPoint(), points[0]);
-	      var endingDist = _Point2.default.getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
-	      return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
+
+	    var withinDistThresh = bestAvgDist < AVG_DIST_THRESHOLD;
+	    var lengthRatio = this._getLength(points) / closestStroke.getLength();
+	    var withinLengthThresh = lengthRatio > 1 - LENGTH_RATIO_THRESHOLD && lengthRatio < 1 + LENGTH_RATIO_THRESHOLD;
+	    var startAndEndMatch = this._startAndEndMatches(points, closestStroke);
+	    var directionMatches = this._directionMatches(points, closestStroke);
+	    if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
+	      return closestStroke;
 	    }
-	  }, {
-	    key: '_directionMatches',
-	    value: function _directionMatches(points, stroke) {
-	      var edgeVectors = this._getEdgeVectors(points);
-	      var strokeVectors = stroke.getVectors();
-	      var similarities = [];
-	      var _iteratorNormalCompletion2 = true;
-	      var _didIteratorError2 = false;
-	      var _iteratorError2 = undefined;
+	    return null;
+	  };
 
-	      try {
-	        var _loop = function _loop() {
-	          var edgeVector = _step2.value;
+	  StrokeMatcher.prototype._startAndEndMatches = function _startAndEndMatches(points, closestStroke) {
+	    var startingDist = _Point2.default.getDistance(closestStroke.getStartingPoint(), points[0]);
+	    var endingDist = _Point2.default.getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
+	    return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
+	  };
 
-	          var strokeSimilarities = strokeVectors.map(function (strokeVector) {
-	            return _Point2.default.cosineSimilarity(strokeVector, edgeVector);
-	          });
-	          var maxSimilarity = Math.max.apply(Math, strokeSimilarities);
-	          similarities.push(maxSimilarity);
-	        };
+	  StrokeMatcher.prototype._directionMatches = function _directionMatches(points, stroke) {
+	    var edgeVectors = this._getEdgeVectors(points);
+	    var strokeVectors = stroke.getVectors();
+	    var similarities = [];
 
-	        for (var _iterator2 = edgeVectors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-	          _loop();
-	        }
-	      } catch (err) {
-	        _didIteratorError2 = true;
-	        _iteratorError2 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion2 && _iterator2.return) {
-	            _iterator2.return();
-	          }
-	        } finally {
-	          if (_didIteratorError2) {
-	            throw _iteratorError2;
-	          }
-	        }
+	    var _loop = function _loop() {
+	      if (_isArray2) {
+	        if (_i2 >= _iterator2.length) return 'break';
+	        _ref2 = _iterator2[_i2++];
+	      } else {
+	        _i2 = _iterator2.next();
+	        if (_i2.done) return 'break';
+	        _ref2 = _i2.value;
 	      }
 
-	      var avgSimilarity = (0, _utils.average)(similarities);
-	      return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+	      var edgeVector = _ref2;
+
+	      var strokeSimilarities = strokeVectors.map(function (strokeVector) {
+	        return _Point2.default.cosineSimilarity(strokeVector, edgeVector);
+	      });
+	      var maxSimilarity = Math.max.apply(Math, strokeSimilarities);
+	      similarities.push(maxSimilarity);
+	    };
+
+	    for (var _iterator2 = edgeVectors, _isArray2 = Array.isArray(_iterator2), _i2 = 0, _iterator2 = _isArray2 ? _iterator2 : _iterator2[Symbol.iterator]();;) {
+	      var _ref2;
+
+	      var _ret = _loop();
+
+	      if (_ret === 'break') break;
 	    }
-	  }, {
-	    key: '_stripDuplicates',
-	    value: function _stripDuplicates(points) {
-	      if (points.length < 2) return points;
-	      var dedupedPoints = [points[0]];
-	      var _iteratorNormalCompletion3 = true;
-	      var _didIteratorError3 = false;
-	      var _iteratorError3 = undefined;
+	    var avgSimilarity = (0, _utils.average)(similarities);
+	    return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+	  };
 
-	      try {
-	        for (var _iterator3 = points.slice(1)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-	          var point = _step3.value;
+	  StrokeMatcher.prototype._stripDuplicates = function _stripDuplicates(points) {
+	    if (points.length < 2) return points;
+	    var dedupedPoints = [points[0]];
+	    for (var _iterator3 = points.slice(1), _isArray3 = Array.isArray(_iterator3), _i3 = 0, _iterator3 = _isArray3 ? _iterator3 : _iterator3[Symbol.iterator]();;) {
+	      var _ref3;
 
-	          if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
-	            dedupedPoints.push(point);
-	          }
-	        }
-	      } catch (err) {
-	        _didIteratorError3 = true;
-	        _iteratorError3 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion3 && _iterator3.return) {
-	            _iterator3.return();
-	          }
-	        } finally {
-	          if (_didIteratorError3) {
-	            throw _iteratorError3;
-	          }
-	        }
+	      if (_isArray3) {
+	        if (_i3 >= _iterator3.length) break;
+	        _ref3 = _iterator3[_i3++];
+	      } else {
+	        _i3 = _iterator3.next();
+	        if (_i3.done) break;
+	        _ref3 = _i3.value;
 	      }
 
-	      return dedupedPoints;
+	      var point = _ref3;
+
+	      if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
+	        dedupedPoints.push(point);
+	      }
 	    }
-	  }, {
-	    key: '_getLength',
-	    value: function _getLength(points) {
-	      var length = 0;
-	      var lastPoint = points[0];
-	      var _iteratorNormalCompletion4 = true;
-	      var _didIteratorError4 = false;
-	      var _iteratorError4 = undefined;
+	    return dedupedPoints;
+	  };
 
-	      try {
-	        for (var _iterator4 = points[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
-	          var point = _step4.value;
+	  StrokeMatcher.prototype._getLength = function _getLength(points) {
+	    var length = 0;
+	    var lastPoint = points[0];
+	    for (var _iterator4 = points, _isArray4 = Array.isArray(_iterator4), _i4 = 0, _iterator4 = _isArray4 ? _iterator4 : _iterator4[Symbol.iterator]();;) {
+	      var _ref4;
 
-	          length += _Point2.default.getDistance(point, lastPoint);
-	          lastPoint = point;
-	        }
-	      } catch (err) {
-	        _didIteratorError4 = true;
-	        _iteratorError4 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion4 && _iterator4.return) {
-	            _iterator4.return();
-	          }
-	        } finally {
-	          if (_didIteratorError4) {
-	            throw _iteratorError4;
-	          }
-	        }
+	      if (_isArray4) {
+	        if (_i4 >= _iterator4.length) break;
+	        _ref4 = _iterator4[_i4++];
+	      } else {
+	        _i4 = _iterator4.next();
+	        if (_i4.done) break;
+	        _ref4 = _i4.value;
 	      }
 
-	      return length;
+	      var point = _ref4;
+
+	      length += _Point2.default.getDistance(point, lastPoint);
+	      lastPoint = point;
 	    }
+	    return length;
+	  };
 
-	    // returns a list of the direction of all segments in the line connecting the points
+	  // returns a list of the direction of all segments in the line connecting the points
 
-	  }, {
-	    key: '_getEdgeVectors',
-	    value: function _getEdgeVectors(points) {
-	      var vectors = [];
-	      var lastPoint = points[0];
-	      var _iteratorNormalCompletion5 = true;
-	      var _didIteratorError5 = false;
-	      var _iteratorError5 = undefined;
+	  StrokeMatcher.prototype._getEdgeVectors = function _getEdgeVectors(points) {
+	    var vectors = [];
+	    var lastPoint = points[0];
+	    for (var _iterator5 = points.slice(1), _isArray5 = Array.isArray(_iterator5), _i5 = 0, _iterator5 = _isArray5 ? _iterator5 : _iterator5[Symbol.iterator]();;) {
+	      var _ref5;
 
-	      try {
-	        for (var _iterator5 = points.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-	          var point = _step5.value;
-
-	          vectors.push(point.subtract(lastPoint));
-	        }
-	      } catch (err) {
-	        _didIteratorError5 = true;
-	        _iteratorError5 = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-	            _iterator5.return();
-	          }
-	        } finally {
-	          if (_didIteratorError5) {
-	            throw _iteratorError5;
-	          }
-	        }
+	      if (_isArray5) {
+	        if (_i5 >= _iterator5.length) break;
+	        _ref5 = _iterator5[_i5++];
+	      } else {
+	        _i5 = _iterator5.next();
+	        if (_i5.done) break;
+	        _ref5 = _i5.value;
 	      }
 
-	      return vectors;
+	      var point = _ref5;
+
+	      vectors.push(point.subtract(lastPoint));
 	    }
-	  }]);
+	    return vectors;
+	  };
 
 	  return StrokeMatcher;
 	})();
@@ -3078,11 +2709,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Point = __webpack_require__(12);
 
@@ -3099,22 +2726,17 @@ module.exports =
 	    this._points = [startingPoint];
 	  }
 
-	  _createClass(UserStroke, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this._points;
-	    }
-	  }, {
-	    key: 'getBounds',
-	    value: function getBounds() {
-	      return _Point2.default.getBounds(this._points);
-	    }
-	  }, {
-	    key: 'appendPoint',
-	    value: function appendPoint(point) {
-	      this._points.push(point);
-	    }
-	  }]);
+	  UserStroke.prototype.getPoints = function getPoints() {
+	    return this._points;
+	  };
+
+	  UserStroke.prototype.getBounds = function getBounds() {
+	    return _Point2.default.getBounds(this._points);
+	  };
+
+	  UserStroke.prototype.appendPoint = function appendPoint(point) {
+	    this._points.push(point);
+	  };
 
 	  return UserStroke;
 	})();
@@ -3127,13 +2749,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	var _get = function get(object, property, receiver) { if (object === null) object = Function.prototype; var desc = Object.getOwnPropertyDescriptor(object, property); if (desc === undefined) { var parent = Object.getPrototypeOf(object); if (parent === null) { return undefined; } else { return get(parent, property, receiver); } } else if ("value" in desc) { return desc.value; } else { var getter = desc.get; if (getter === undefined) { return undefined; } return getter.call(receiver); } };
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _PathRenderer2 = __webpack_require__(5);
 
@@ -3155,52 +2771,45 @@ module.exports =
 
 	    _classCallCheck(this, UserStrokeRenderer);
 
-	    var _this = _possibleConstructorReturn(this, Object.getPrototypeOf(UserStrokeRenderer).call(this));
+	    var _this = _possibleConstructorReturn(this, _PathRenderer.call(this));
 
 	    _this.options = options;
 	    _this.userStroke = userStroke;
 	    return _this;
 	  }
 
-	  _createClass(UserStrokeRenderer, [{
-	    key: 'getPoints',
-	    value: function getPoints() {
-	      return this.userStroke.getPoints();
-	    }
-	  }, {
-	    key: 'updatePath',
-	    value: function updatePath() {
-	      this.path.plot(this.getPathString());
-	    }
-	  }, {
-	    key: 'draw',
-	    value: function draw() {
-	      _get(Object.getPrototypeOf(UserStrokeRenderer.prototype), 'draw', this).call(this);
-	      this.path.attr(this.getStrokeAttrs());
-	      return this;
-	    }
-	  }, {
-	    key: 'fadeAndRemove',
-	    value: function fadeAndRemove(animation) {
-	      var _this2 = this;
+	  UserStrokeRenderer.prototype.getPoints = function getPoints() {
+	    return this.userStroke.getPoints();
+	  };
 
-	      return new Promise(function (resolve, reject) {
-	        var svgAnimation = _this2.path.animate(_this2.options.fadeDuration).attr({ opacity: 0 }).after(resolve);
-	        animation.registerSvgAnimation(svgAnimation);
-	      }).then(function () {
-	        return _this2.destroy();
-	      });
-	    }
-	  }, {
-	    key: 'getStrokeAttrs',
-	    value: function getStrokeAttrs() {
-	      return {
-	        fill: 'none',
-	        stroke: this.options.strokeColor,
-	        'stroke-width': this.options.strokeWidth
-	      };
-	    }
-	  }]);
+	  UserStrokeRenderer.prototype.updatePath = function updatePath() {
+	    this.path.plot(this.getPathString());
+	  };
+
+	  UserStrokeRenderer.prototype.draw = function draw() {
+	    _PathRenderer.prototype.draw.call(this);
+	    this.path.attr(this.getStrokeAttrs());
+	    return this;
+	  };
+
+	  UserStrokeRenderer.prototype.fadeAndRemove = function fadeAndRemove(animation) {
+	    var _this2 = this;
+
+	    return new Promise(function (resolve, reject) {
+	      var svgAnimation = _this2.path.animate(_this2.options.fadeDuration).attr({ opacity: 0 }).after(resolve);
+	      animation.registerSvgAnimation(svgAnimation);
+	    }).then(function () {
+	      return _this2.destroy();
+	    });
+	  };
+
+	  UserStrokeRenderer.prototype.getStrokeAttrs = function getStrokeAttrs() {
+	    return {
+	      fill: 'none',
+	      stroke: this.options.strokeColor,
+	      'stroke-width': this.options.strokeWidth
+	    };
+	  };
 
 	  return UserStrokeRenderer;
 	})(_PathRenderer3.default);
@@ -3213,9 +2822,7 @@ module.exports =
 
 	'use strict';
 
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	exports.default = function (char, onLoad) {
 	  // load char data from hanziwriter.org cdn (currently hosted on github pages)
@@ -3247,11 +2854,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _Animation = __webpack_require__(24);
 
@@ -3266,29 +2869,24 @@ module.exports =
 	    _classCallCheck(this, Animator);
 	  }
 
-	  _createClass(Animator, [{
-	    key: 'construct',
-	    value: function construct() {
-	      this._lastAnimation = null;
-	    }
-	  }, {
-	    key: 'animate',
-	    value: function animate(func) {
-	      var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+	  Animator.prototype.construct = function construct() {
+	    this._lastAnimation = null;
+	  };
 
-	      var animation = this._setupAnimation(options);
-	      func(animation).then(function () {
-	        return animation.finish();
-	      });
-	    }
-	  }, {
-	    key: '_setupAnimation',
-	    value: function _setupAnimation(options) {
-	      if (this._lastAnimation) this._lastAnimation.cancel();
-	      this._lastAnimation = new _Animation2.default(options);
-	      return this._lastAnimation;
-	    }
-	  }]);
+	  Animator.prototype.animate = function animate(func) {
+	    var options = arguments.length <= 1 || arguments[1] === undefined ? {} : arguments[1];
+
+	    var animation = this._setupAnimation(options);
+	    func(animation).then(function () {
+	      return animation.finish();
+	    });
+	  };
+
+	  Animator.prototype._setupAnimation = function _setupAnimation(options) {
+	    if (this._lastAnimation) this._lastAnimation.cancel();
+	    this._lastAnimation = new _Animation2.default(options);
+	    return this._lastAnimation;
+	  };
 
 	  return Animator;
 	})();
@@ -3301,11 +2899,7 @@ module.exports =
 
 	'use strict';
 
-	var _createClass = (function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; })();
-
-	Object.defineProperty(exports, "__esModule", {
-	  value: true
-	});
+	exports.__esModule = true;
 
 	var _utils = __webpack_require__(6);
 
@@ -3322,56 +2916,42 @@ module.exports =
 	    this._callback = options.onComplete;
 	  }
 
-	  _createClass(Animation, [{
-	    key: 'cancel',
-	    value: function cancel() {
-	      if (!this.isActive()) return;
+	  Animation.prototype.cancel = function cancel() {
+	    if (!this.isActive()) return;
 
+	    this._isActive = false;
+	    for (var _iterator = this._svgAnimations, _isArray = Array.isArray(_iterator), _i = 0, _iterator = _isArray ? _iterator : _iterator[Symbol.iterator]();;) {
+	      var _ref;
+
+	      if (_isArray) {
+	        if (_i >= _iterator.length) break;
+	        _ref = _iterator[_i++];
+	      } else {
+	        _i = _iterator.next();
+	        if (_i.done) break;
+	        _ref = _i.value;
+	      }
+
+	      var svgAnimation = _ref;
+
+	      svgAnimation.stop(true);
+	    }
+	  };
+
+	  Animation.prototype.registerSvgAnimation = function registerSvgAnimation(svgAnimation) {
+	    this._svgAnimations.push(svgAnimation);
+	  };
+
+	  Animation.prototype.isActive = function isActive() {
+	    return this._isActive;
+	  };
+
+	  Animation.prototype.finish = function finish() {
+	    if (this.isActive()) {
 	      this._isActive = false;
-	      var _iteratorNormalCompletion = true;
-	      var _didIteratorError = false;
-	      var _iteratorError = undefined;
-
-	      try {
-	        for (var _iterator = this._svgAnimations[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-	          var svgAnimation = _step.value;
-
-	          svgAnimation.stop(true);
-	        }
-	      } catch (err) {
-	        _didIteratorError = true;
-	        _iteratorError = err;
-	      } finally {
-	        try {
-	          if (!_iteratorNormalCompletion && _iterator.return) {
-	            _iterator.return();
-	          }
-	        } finally {
-	          if (_didIteratorError) {
-	            throw _iteratorError;
-	          }
-	        }
-	      }
+	      (0, _utils.callIfExists)(this._callback);
 	    }
-	  }, {
-	    key: 'registerSvgAnimation',
-	    value: function registerSvgAnimation(svgAnimation) {
-	      this._svgAnimations.push(svgAnimation);
-	    }
-	  }, {
-	    key: 'isActive',
-	    value: function isActive() {
-	      return this._isActive;
-	    }
-	  }, {
-	    key: 'finish',
-	    value: function finish() {
-	      if (this.isActive()) {
-	        this._isActive = false;
-	        (0, _utils.callIfExists)(this._callback);
-	      }
-	    }
-	  }]);
+	  };
 
 	  return Animation;
 	})();

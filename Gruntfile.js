@@ -28,7 +28,7 @@ module.exports = function(grunt) {
               loader: 'babel',
               query: {
                 cacheDirectory: true,
-                presets: ['es2015', 'stage-2']
+                presets: ['es2015-loose', 'stage-2']
               }
             },
             {

@@ -168,23 +168,23 @@ class HanziWriter {
 
   _setupListeners() {
     this._svg.node.addEventListener('mousedown', (evt) => {
+      if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
-      if (this.isLoadingCharData) return;
       this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
     });
     this._svg.node.addEventListener('touchstart', (evt) => {
+      if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
-      if (this.isLoadingCharData) return;
       this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
     });
     this._svg.node.addEventListener('mousemove', (evt) => {
+      if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
-      if (this.isLoadingCharData) return;
       this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
     });
     this._svg.node.addEventListener('touchmove', (evt) => {
+      if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
-      if (this.isLoadingCharData) return;
       this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
     });
 

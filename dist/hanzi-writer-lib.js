@@ -293,23 +293,23 @@ module.exports =
 	    var _this9 = this;
 
 	    this._svg.node.addEventListener('mousedown', function (evt) {
+	      if (_this9.isLoadingCharData || !_this9._quiz) return;
 	      evt.preventDefault();
-	      if (_this9.isLoadingCharData) return;
 	      _this9._forwardToQuiz('startUserStroke', _this9._getMousePoint(evt));
 	    });
 	    this._svg.node.addEventListener('touchstart', function (evt) {
+	      if (_this9.isLoadingCharData || !_this9._quiz) return;
 	      evt.preventDefault();
-	      if (_this9.isLoadingCharData) return;
 	      _this9._forwardToQuiz('startUserStroke', _this9._getTouchPoint(evt));
 	    });
 	    this._svg.node.addEventListener('mousemove', function (evt) {
+	      if (_this9.isLoadingCharData || !_this9._quiz) return;
 	      evt.preventDefault();
-	      if (_this9.isLoadingCharData) return;
 	      _this9._forwardToQuiz('continueUserStroke', _this9._getMousePoint(evt));
 	    });
 	    this._svg.node.addEventListener('touchmove', function (evt) {
+	      if (_this9.isLoadingCharData || !_this9._quiz) return;
 	      evt.preventDefault();
-	      if (_this9.isLoadingCharData) return;
 	      _this9._forwardToQuiz('continueUserStroke', _this9._getTouchPoint(evt));
 	    });
 

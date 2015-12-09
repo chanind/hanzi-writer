@@ -199,7 +199,8 @@ class HanziWriter {
   }
 
   _getMousePoint(evt) {
-    return this._positioner.convertExternalPoint(new Point(evt.offsetX, evt.offsetY));
+    const box = this._svg.node.getBoundingClientRect();
+    return this._positioner.convertExternalPoint(new Point(evt.clientX - box.left, evt.clientY - box.top));
   }
 
   _getTouchPoint(evt) {

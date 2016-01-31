@@ -1996,6 +1996,10 @@ module.exports =
 	        strokeParts = [];
 	      }
 	    }
+	    // for some single-stroke chars such as '乙' it appears the ZDT data lacks 'P' at the end of the stroke
+	    if (strokeParts.length > 0) {
+	      strokes.push(new _Stroke2.default(strokeParts, strokeNum));
+	    }
 	    return strokes;
 	  };
 

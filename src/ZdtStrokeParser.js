@@ -23,6 +23,10 @@ class ZdtStrokeParser {
         strokeParts = [];
       }
     }
+    // for some single-stroke chars such as '乙' it appears the ZDT data lacks 'P' at the end of the stroke
+    if (strokeParts.length > 0) {
+      strokes.push(new Stroke(strokeParts, strokeNum));
+    }
     return strokes;
   }
 

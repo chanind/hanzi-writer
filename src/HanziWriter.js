@@ -204,8 +204,9 @@ class HanziWriter {
   }
 
   _getTouchPoint(evt) {
-    const x = evt.touches[0].pageX - this._svg.node.offsetLeft;
-    const y = evt.touches[0].pageY - this._svg.node.offsetTop;
+    const box = this._svg.node.getBoundingClientRect();
+    const x = evt.touches[0].pageX - box.left;
+    const y = evt.touches[0].pageY - box.top;
     return this._positioner.convertExternalPoint(new Point(x, y));
   }
 

@@ -339,8 +339,9 @@
 	  };
 
 	  HanziWriter.prototype._getTouchPoint = function _getTouchPoint(evt) {
-	    var x = evt.touches[0].pageX - this._svg.node.offsetLeft;
-	    var y = evt.touches[0].pageY - this._svg.node.offsetTop;
+	    var box = this._svg.node.getBoundingClientRect();
+	    var x = evt.touches[0].pageX - box.left;
+	    var y = evt.touches[0].pageY - box.top;
 	    return this._positioner.convertExternalPoint(new _Point2.default(x, y));
 	  };
 

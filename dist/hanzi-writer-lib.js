@@ -341,8 +341,8 @@ module.exports =
 
 	  HanziWriter.prototype._getTouchPoint = function _getTouchPoint(evt) {
 	    var box = this._svg.node.getBoundingClientRect();
-	    var x = evt.touches[0].pageX - box.left;
-	    var y = evt.touches[0].pageY - box.top;
+	    var x = evt.touches[0].clientX - box.left;
+	    var y = evt.touches[0].clientY - box.top;
 	    return this._positioner.convertExternalPoint(new _Point2.default(x, y));
 	  };
 

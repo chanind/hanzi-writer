@@ -2443,7 +2443,7 @@ module.exports =
 	      if (_this._isValidStroke(matchingStroke)) {
 	        _this._handleSuccess(matchingStroke, animation);
 	      } else {
-	        _this._handleFaiulure();
+	        _this._handleFailure();
 	        if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
 	          promises.push(_this._highlightCorrectStroke(animation));
 	        }
@@ -2483,10 +2483,10 @@ module.exports =
 	    return promise;
 	  };
 
-	  Quiz.prototype._handleFaiulure = function _handleFaiulure() {
+	  Quiz.prototype._handleFailure = function _handleFailure() {
 	    this._numRecentMistakes += 1;
 	    this._totalMistakes += 1;
-	    (0, _utils.callIfExists)(this._quizOptions.onCorrectStroke, {
+	    (0, _utils.callIfExists)(this._quizOptions.onMistake, {
 	      character: this._character.getSymbol(),
 	      strokeNum: this._currentStrokeIndex,
 	      mistakesOnStroke: this._numRecentMistakes,

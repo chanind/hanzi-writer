@@ -53,7 +53,7 @@ class Quiz {
       if (this._isValidStroke(matchingStroke)) {
         this._handleSuccess(matchingStroke, animation);
       } else {
-        this._handleFaiulure();
+        this._handleFailure();
         if (this._numRecentMistakes >= this._quizOptions.showHintAfterMisses) {
           promises.push(this._highlightCorrectStroke(animation));
         }
@@ -89,10 +89,10 @@ class Quiz {
     return promise;
   }
 
-  _handleFaiulure() {
+  _handleFailure() {
     this._numRecentMistakes += 1;
     this._totalMistakes += 1;
-    callIfExists(this._quizOptions.onCorrectStroke, {
+    callIfExists(this._quizOptions.onMistake, {
       character: this._character.getSymbol(),
       strokeNum: this._currentStrokeIndex,
       mistakesOnStroke: this._numRecentMistakes,

@@ -76,9 +76,10 @@ class StrokeMatcher {
   // returns a list of the direction of all segments in the line connecting the points
   _getEdgeVectors(points) {
     const vectors = [];
-    const lastPoint = points[0];
+    let lastPoint = points[0];
     for (const point of points.slice(1)) {
       vectors.push(point.subtract(lastPoint));
+      lastPoint = point;
     }
     return vectors;
   }

@@ -2170,15 +2170,22 @@ module.exports =
 	    return this.getEndingPoint().subtract(this.getStartingPoint());
 	  };
 
-	  // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
-
 	  StrokePart.prototype.getDistance = function getDistance(point) {
 	    var start = this.getStartingPoint();
 	    var end = this.getEndingPoint();
+	    var length = this.getLength();
+	    var distToStart = _Point2.default.getDistance(point, start);
+	    var distToEnd = _Point2.default.getDistance(point, end);
+	    // short circuit - if this point isn't vaguely between the start and end of this stroke
+	    // return the distance between this point and the closest point of the stroke
+	    if (distToStart > length || distToEnd > length) {
+	      return Math.min(distToStart, distToEnd);
+	    }
+	    // http://en.wikipedia.org/wiki/Distance_from_a_point_to_a_line#Line_defined_by_two_points
 	    var dx = end.getX() - start.getX();
 	    var dy = end.getY() - start.getY();
-	    var length = this.getLength();
-	    return Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
+	    var distToLine = Math.abs(dy * point.getX() - dx * point.getY() - start.getX() * end.getY() + start.getY() * end.getX()) / length;
+	    return distToLine;
 	  };
 
 	  StrokePart.prototype.getLength = function getLength() {
@@ -2700,6 +2707,7 @@ module.exports =
 	      var point = _ref5;
 
 	      vectors.push(point.subtract(lastPoint));
+	      lastPoint = point;
 	    }
 	    return vectors;
 	  };

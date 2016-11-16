@@ -40,6 +40,16 @@ export function callIfExists(callback, ...args) {
   if (callback) callback(...args);
 }
 
+export function getPathString(points) {
+  const start = points[0];
+  const remainingPoints = points.slice(1);
+  let pathString = `M ${start.getX()} ${start.getY()}`;
+  for (const point of remainingPoints) {
+    pathString += ` L ${point.getX()} ${point.getY()}`;
+  }
+  return pathString;
+}
+
 export function average(arr) {
   let sum = 0;
   for (const val of arr) {

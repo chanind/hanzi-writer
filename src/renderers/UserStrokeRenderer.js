@@ -1,15 +1,16 @@
-import PathRenderer from './PathRenderer';
+import Renderer from './Renderer';
+import { getPathString } from '../utils';
 
 
-class UserStrokeRenderer extends PathRenderer {
+class UserStrokeRenderer extends Renderer {
   constructor(userStroke, options = {}) {
     super();
     this.options = options;
     this.userStroke = userStroke;
   }
 
-  getPoints() {
-    return this.userStroke.getPoints();
+  getPathString() {
+    return getPathString(this.userStroke.getPoints());
   }
 
   updatePath() {
@@ -18,9 +19,11 @@ class UserStrokeRenderer extends PathRenderer {
 
   draw() {
     super.draw();
+    this.path = this.canvas.path(this.getPathString());
     this.path.attr(this.getStrokeAttrs());
     return this;
   }
+
 
   fadeAndRemove(animation) {
     return new Promise((resolve, reject) => {
@@ -37,6 +40,11 @@ class UserStrokeRenderer extends PathRenderer {
       stroke: this.options.strokeColor,
       'stroke-width': this.options.strokeWidth,
     };
+  }
+
+  destroy() {
+    super.destroy();
+    if (this.path) this.path.remove();
   }
 }
 

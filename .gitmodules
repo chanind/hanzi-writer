@@ -1,3 +1,6 @@
 [submodule "cdn/1"]
 	path = cdn/1
 	url = https://github.com/chanind/hanzi-writer.git
+[submodule "cdn/2"]
+	path = cdn/2
+	url = https://github.com/chanind/hanzi-writer.git

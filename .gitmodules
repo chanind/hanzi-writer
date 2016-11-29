@@ -3,4 +3,4 @@
 	url = https://github.com/chanind/hanzi-writer.git
 [submodule "cdn/2"]
 	path = cdn/2
-	url = git@github.com:chanind/hanzi-writer.git
+	url = https://github.com/chanind/hanzi-writer.git

@@ -1,61 +1,82 @@
 import Renderer from './Renderer';
-import StrokePartRenderer from './StrokePartRenderer';
-
+import { getPathString } from '../utils';
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {
   constructor(stroke, options = {}) {
     super();
     this.stroke = stroke;
-    this.strokePartRenderers = this.stroke.getStrokeParts().map((strokePart) => {
-      return this.registerChild(new StrokePartRenderer(strokePart, stroke, options));
-    });
     this.options = options;
   }
 
-  show(animation) {
-    const promises = this.strokePartRenderers.map(strokePartRenderer => strokePartRenderer.show(animation));
-    return Promise.all(promises);
+  draw() {
+    this.path = this.canvas.path(this.stroke.getPath());
+    this.path.attr(this.getStrokeAttrs()).attr({opacity: 0});
+    this.mask = this.canvas.path(getPathString(this.stroke.getPoints()));
+    this.mask.attr({
+      stroke: '#FFFFFF',
+      'stroke-width': 150,
+      fill: 'none',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'miter',
+      'stroke-dasharray': `${this.mask.length()},${this.mask.length()}`,
+      'stroke-dashoffset': 0,
+    });
+    this.path.maskWith(this.mask);
+    return this;
   }
 
-  showImmediate() {
-    this.strokePartRenderers.map(renderer => renderer.showImmediate());
+  show(animation) {
+    this.mask.attr({'stroke-dashoffset': 0});
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
+        .opacity(1)
+        .after(resolve);
+      animation.registerSvgAnimation(svgAnimation);
+    });
   }
 
   hide(animation) {
-    const promises = this.strokePartRenderers.map(strokePartRenderer => strokePartRenderer.hide(animation));
-    return Promise.all(promises);
-  }
-
-  hideImmediate() {
-    this.strokePartRenderers.map(renderer => renderer.hideImmediate());
-  }
-
-  draw() {
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.draw(this.canvas);
-    }
-    return this;
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
+        .opacity(0)
+        .after(resolve);
+      animation.registerSvgAnimation(svgAnimation);
+    });
   }
 
   animate(animation) {
     if (!animation.isActive()) return null;
-    let renderChain = Promise.resolve();
-    this.strokePartRenderers.forEach((strokePartRenderer) => {
-      renderChain = renderChain.then(() => strokePartRenderer.animate(animation));
+    this.mask.attr({'stroke-dashoffset': this.mask.length()});
+    this.showImmediate();
+    return new Promise((resolve, reject) => {
+      const svgAnimation = this.mask.animate(this.options.strokeAnimationDuration)
+        .attr({'stroke-dashoffset': 0})
+        .after(resolve);
+
+      animation.registerSvgAnimation(svgAnimation);
     });
-    return renderChain;
   }
+
+  hideImmediate() { this.path.opacity(0); }
+  showImmediate() { this.path.opacity(1); }
 
   highlight(animation) {
     return this.animate(animation).then(() => this.hide(animation));
   }
 
-  setCanvas(canvas) {
-    super.setCanvas(canvas);
-    for (const strokePartRenderer of this.strokePartRenderers) {
-      strokePartRenderer.setCanvas(canvas);
-    }
+  getStrokeAttrs() {
+    return {
+      fill: this.options.strokeColor,
+      stroke: this.options.strokeColor,
+      'stroke-width': this.options.strokeWidth,
+    };
+  }
+
+  destroy() {
+    super.destroy();
+    if (this.path) this.path.remove();
+    if (this.mask) this.mask.remove();
   }
 }
 

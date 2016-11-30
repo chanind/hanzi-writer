@@ -1,13 +1,12 @@
 require 'json'
 
 output_folder = File.join(File.dirname(__FILE__), 'data')
-input_file = File.join(File.dirname(__FILE__),'zdtStrokeData.txt')
+input_file = File.join(File.dirname(__FILE__),'vendor/makemeahanzi/graphics.txt')
 
 output = {}
 File.readlines(input_file).each do |line|
-  char = line[0]
-  pathsString = line[2..-1]
-  output[char] = pathsString.split("\t").map{|data| data.gsub("\n", '')}
+  data = JSON.parse(line)
+  output[data['character']] = data
 end
 
 output.each do |char, data|

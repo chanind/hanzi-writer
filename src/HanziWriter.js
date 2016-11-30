@@ -3,7 +3,7 @@ require('babel-polyfill'); // polyfill for old IE and whatnot
 import CharacterRenderer from './renderers/CharacterRenderer';
 import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';
-import ZdtStrokeParser from './ZdtStrokeParser';
+import CharDataParser from './CharDataParser';
 import Positioner from './Positioner';
 import Quiz from './Quiz';
 import {copyAndExtend} from './utils';
@@ -130,7 +130,7 @@ class HanziWriter {
     if (this._outlineRenderer) this._outlineRenderer.destroy();
     if (this._highlightRenderer) this._highlightRenderer.destroy();
     this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
-      const zdtStrokeParser = new ZdtStrokeParser();
+      const zdtStrokeParser = new CharDataParser();
       this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
       this._positioner = new Positioner(this._character, this._options);
 

@@ -16,8 +16,8 @@ class PositionerRenderer extends Renderer {
     super.setCanvas(canvas);
     this.positonedCanvas = this.canvas
       .group()
-      .move(this.positioner.getXOffset(), this.positioner.getYOffset())
-      .transform({scaleX: this.positioner.getScale(), scaleY: this.positioner.getScale()});
+      .move(this.positioner.getXOffset(), this.positioner.getHeight() - this.positioner.getYOffset())
+      .transform({scaleX: this.positioner.getScale(), scaleY: -1 * this.positioner.getScale()});
     return this;
   }
 

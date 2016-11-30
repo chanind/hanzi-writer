@@ -78,13 +78,23 @@ module.exports = function(grunt) {
         '!dist/hanzi-writer-lib.min.js',
         '!dist/data',
       ]
-    }
+    },
 
+    watch: {
+      scripts: {
+        files: ['src/**/*.js'],
+        tasks: ['copy:main', 'webpack:dist', 'clean:post'],
+        options: {
+          spawn: false,
+        },
+      },
+    }
   });
 
   grunt.loadNpmTasks('grunt-contrib-copy');
   grunt.loadNpmTasks('grunt-contrib-clean');
   grunt.loadNpmTasks('grunt-contrib-uglify');
+  grunt.loadNpmTasks('grunt-contrib-watch');
   grunt.loadNpmTasks('grunt-webpack');
 
   grunt.registerTask('default', ['clean:pre', 'copy:main', 'copy:data', 'webpack:dist', 'webpack:lib', 'uglify:dist', 'clean:post']);

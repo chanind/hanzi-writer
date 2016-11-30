@@ -1,46 +1,55 @@
 import Point from './Point';
 
 class Stroke {
-  constructor(strokeParts, strokeNum) {
-    this._strokeParts = strokeParts;
+  constructor(path, points, strokeNum) {
+    this._path = path;
+    this._points = points;
     this._strokeNum = strokeNum;
-  }
-
-  getStrokeParts() {
-    return this._strokeParts;
-  }
-
-  getNumStrokeParts() {
-    return this._strokeParts.length;
   }
 
   getStrokeNum() {
     return this._strokeNum;
   }
 
-  getBounds() {
-    return Point.getOverallBounds(this._strokeParts);
+  getPath() {
+    return this._path;
   }
 
-  getLength() {
-    return this._strokeParts.reduce((acc, part) => acc + part.getLength(), 0);
-  }
-
-  getVectors() {
-    return this._strokeParts.map(strokePart => strokePart.getVector());
+  getPoints() {
+    return this._points;
   }
 
   getStartingPoint() {
-    return this._strokeParts[0].getStartingPoint();
+    return this._points[0];
   }
 
   getEndingPoint() {
-    return this._strokeParts[this._strokeParts.length - 1].getEndingPoint();
+    return this._points[this._points.length - 1];
+  }
+
+  getLength() {
+    let lastPoint = this._points[0];
+    const pointsSansFirst = this._points.slice(1);
+    return pointsSansFirst.reduce((acc, point) => {
+      const dist = Point.getDistance(point, lastPoint);
+      lastPoint = point;
+      return acc + dist;
+    }, 0);
+  }
+
+  getVectors() {
+    let lastPoint = this._points[0];
+    const pointsSansFirst = this._points.slice(1);
+    return pointsSansFirst.map((point) => {
+      const vector = point.subtract(lastPoint);
+      lastPoint = point;
+      return vector;
+    });
   }
 
   getDistance(point) {
-    const distances = this._strokeParts.map((strokePart) => {
-      return strokePart.getDistance(point);
+    const distances = this._points.map((strokePoint) => {
+      return Point.getDistance(strokePoint, point);
     });
     return Math.min.apply(Math, distances);
   }

@@ -23,7 +23,7 @@ class Character {
   }
 
   getBounds() {
-    return Point.getOverallBounds(this.getStrokes());
+    return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
   }
 }
 

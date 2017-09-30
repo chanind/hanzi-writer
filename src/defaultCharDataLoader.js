@@ -2,7 +2,7 @@
 // make sure to check out a new version of the master branch in gh-pages when changing the data format
 // otherwise this may break any existing hanzi-writer deploys in the wild
 const DATA_VERSION = 2;
-const getCharDataUrl = (char) => `http://chanind.github.io/hanzi-writer/cdn/${DATA_VERSION}/data/${char}.json`;
+const getCharDataUrl = (char) => `https://chanind.github.io/hanzi-writer/cdn/${DATA_VERSION}/data/${char}.json`;
 
 export default function(char, onLoad) {
   // load char data from hanziwriter.org cdn (currently hosted on github pages)

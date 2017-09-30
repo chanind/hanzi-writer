@@ -6596,7 +6596,7 @@ exports.default = function (char, onLoad) {
 // otherwise this may break any existing hanzi-writer deploys in the wild
 var DATA_VERSION = 2;
 var getCharDataUrl = function getCharDataUrl(char) {
-  return 'http://chanind.github.io/hanzi-writer/cdn/' + DATA_VERSION + '/data/' + char + '.json';
+  return 'https://chanind.github.io/hanzi-writer/cdn/' + DATA_VERSION + '/data/' + char + '.json';
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(48)))
 

@@ -3,7 +3,7 @@ import {average} from './utils';
 
 const AVG_DIST_THRESHOLD = 200; // bigger = more lenient
 const LENGTH_RATIO_THRESHOLD = 0.5; // 0 to 1, bigger = more lenient
-const COSINE_SIMILARITY_THRESHOLD = 0;  // -1 to 1, smaller = more lenient
+const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 
 class StrokeMatcher {

@@ -9,7 +9,7 @@ class Positioner {
 
   convertExternalPoint(point) {
     const x = (point.getX() - this._xOffset) / this._scale;
-    const y = (this.getHeight() - this._yOffset - point.getY() ) / this._scale;
+    const y = (this.getHeight() - this._yOffset - point.getY()) / this._scale;
     return new Point(x, y);
   }
 

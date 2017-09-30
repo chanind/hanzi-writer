@@ -6,7 +6,7 @@ const getCharDataUrl = (char) => `http://chanind.github.io/hanzi-writer/cdn/${DA
 
 export default function(char, onLoad) {
   // load char data from hanziwriter.org cdn (currently hosted on github pages)
-  const xhr = new XMLHttpRequest();
+  const xhr = new global.XMLHttpRequest();
   if (xhr.overrideMimeType) { // IE 9 and 10 don't seem to support this...
     xhr.overrideMimeType('application/json');
   }

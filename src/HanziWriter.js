@@ -222,17 +222,17 @@ class HanziWriter {
 }
 
 // set up window.HanziWriter if we're in the browser
-if (typeof window !== 'undefined') {
+if (typeof global.window !== 'undefined') {
   // store whatever used to be called HanziWriter in case of a conflict
-  const previousHanziWriter = window.HanziWriter;
+  const previousHanziWriter = global.window.HanziWriter;
 
-  // add a jQuery-esque noConflict method to restore the previous window.HanziWriter if necessary
+  // add a jQuery-esque noConflict method to restore the previous global.window.HanziWriter if necessary
   HanziWriter.noConflict = () => {
-    window.HanziWriter = previousHanziWriter;
+    global.window.HanziWriter = previousHanziWriter;
     return HanziWriter;
   };
 
-  window.HanziWriter = HanziWriter;
+  global.window.HanziWriter = HanziWriter;
 }
 
 // set up module.exports if we're in node/webpack

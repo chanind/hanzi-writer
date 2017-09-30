@@ -25,21 +25,21 @@ module.exports = function(grunt) {
             {
               test: /\.js$/,
               exclude: /node_modules/,
-              loader: 'babel',
+              loader: 'babel-loader',
               query: {
-                cacheDirectory: true,
-                presets: ['es2015-loose', 'stage-2']
+                presets: ['env']
               }
             },
             {
               test: /\.js$/,
               loader: 'eslint-loader',
+              exclude: /node_modules/,
+              options: {
+                configFile: '.eslintrc'
+              }
             }
           ],
         },
-         eslint: {  
-          configFile: '.eslintrc'
-        }
       },
 
       dist: {
@@ -53,7 +53,7 @@ module.exports = function(grunt) {
         entry: './src/HanziWriter.js',
         output: {
           filename: 'dist/hanzi-writer-lib.js',
-          library: true,
+          library: 'hanzi-writer',
           libraryTarget: 'commonjs2'
         }
       }
@@ -77,6 +77,7 @@ module.exports = function(grunt) {
         '!dist/hanzi-writer-lib.js',
         '!dist/hanzi-writer-lib.min.js',
         '!dist/data',
+        'dist/data/APL',
       ]
     },
 

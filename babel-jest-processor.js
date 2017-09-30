@@ -8,7 +8,7 @@ module.exports = {
       return babel.transform(src, {
         filename: filename,
         retainLines: true,
-        presets: ['es2015-loose', 'stage-2']
+        presets: ['env']
       }).code;
     }
 

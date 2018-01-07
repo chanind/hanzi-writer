@@ -31,6 +31,7 @@
   },
   "scripts": {
     "test": "jest",
+    "build": "grunt",
     "prepublishOnly": "grunt"
   },
   "jest": {

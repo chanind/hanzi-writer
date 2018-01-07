@@ -43,13 +43,13 @@ class Quiz {
     if (!this._userStroke) return Promise.resolve();
 
     this._animator.animate((animation) => {
+      if (!this._isActive) return Promise.resolve();
       const promises = [];
       const nextStroke = this._getNextStroke();
       const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, nextStroke);
       promises.push(this._userStrokeRenderer.fadeAndRemove(animation));
       this._userStroke = null;
       this._userStrokeRenderer = null;
-      if (!this._isActive) return Promise.resolve();
 
       if (isMatch) {
         this._handleSuccess(nextStroke, animation);
@@ -79,6 +79,7 @@ class Quiz {
     this._numRecentMistakes = 0;
     let promise = this._drawMatchingStroke(stroke, animation);
     if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+      this._isActive = false;
       callIfExists(this._quizOptions.onComplete, {
         character: this._character.getSymbol(),
         totalMistakes: this._totalMistakes,

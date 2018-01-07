@@ -12,13 +12,6 @@ export function copyAndExtend(original, changes = {}) {
   return copy;
 }
 
-export function inArray(val, array) {
-  for (const arrayVal of array) {
-    if (val === arrayVal) return true;
-  }
-  return false;
-}
-
 export function emptyFunc() {}
 
 export function arrayMax(numArray) {

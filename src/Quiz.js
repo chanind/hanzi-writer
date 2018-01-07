@@ -1,7 +1,7 @@
 import StrokeMatcher from './StrokeMatcher';
 import UserStroke from './models/UserStroke';
 import UserStrokeRenderer from './renderers/UserStrokeRenderer';
-import {inArray, callIfExists} from './utils';
+import {callIfExists} from './utils';
 
 
 class Quiz {
@@ -44,14 +44,15 @@ class Quiz {
 
     this._animator.animate((animation) => {
       const promises = [];
-      const matchingStroke = this._strokeMatcher.getMatchingStroke(this._userStroke, this._character.getStrokes());
+      const nextStroke = this._getNextStroke();
+      const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, nextStroke);
       promises.push(this._userStrokeRenderer.fadeAndRemove(animation));
       this._userStroke = null;
       this._userStrokeRenderer = null;
       if (!this._isActive) return Promise.resolve();
 
-      if (this._isValidStroke(matchingStroke)) {
-        this._handleSuccess(matchingStroke, animation);
+      if (isMatch) {
+        this._handleSuccess(nextStroke, animation);
       } else {
         this._handleFailure();
         if (this._numRecentMistakes >= this._quizOptions.showHintAfterMisses) {
@@ -111,10 +112,8 @@ class Quiz {
     return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
   }
 
-  _isValidStroke(stroke) {
-    if (!stroke) return false;
-    if (inArray(stroke, this._drawnStrokes)) return false;
-    return stroke === this._character.getStroke(this._currentStrokeIndex);
+  _getNextStroke() {
+    return this._character.getStroke(this._currentStrokeIndex);
   }
 
   // hide the caracter

@@ -130,8 +130,8 @@ class HanziWriter {
     if (this._outlineRenderer) this._outlineRenderer.destroy();
     if (this._highlightRenderer) this._highlightRenderer.destroy();
     this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
-      const zdtStrokeParser = new CharDataParser();
-      this._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+      const charDataParser = new CharDataParser();
+      this._character = charDataParser.generateCharacter(char, pathStrings);
       this._positioner = new Positioner(this._character, this._options);
 
       this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);

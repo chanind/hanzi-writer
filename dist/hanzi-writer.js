@@ -6045,13 +6045,13 @@ var Quiz = function () {
       if (!this._userStroke) return Promise.resolve();
 
       this._animator.animate(function (animation) {
+        if (!_this._isActive) return Promise.resolve();
         var promises = [];
         var nextStroke = _this._getNextStroke();
         var isMatch = _this._strokeMatcher.strokeMatches(_this._userStroke, nextStroke);
         promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
         _this._userStroke = null;
         _this._userStrokeRenderer = null;
-        if (!_this._isActive) return Promise.resolve();
 
         if (isMatch) {
           _this._handleSuccess(nextStroke, animation);
@@ -6085,6 +6085,7 @@ var Quiz = function () {
       this._numRecentMistakes = 0;
       var promise = this._drawMatchingStroke(stroke, animation);
       if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+        this._isActive = false;
         (0, _utils.callIfExists)(this._quizOptions.onComplete, {
           character: this._character.getSymbol(),
           totalMistakes: this._totalMistakes

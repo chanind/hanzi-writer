@@ -1102,7 +1102,6 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 exports.copyAndExtend = copyAndExtend;
-exports.inArray = inArray;
 exports.emptyFunc = emptyFunc;
 exports.arrayMax = arrayMax;
 exports.arrayMin = arrayMin;
@@ -1125,35 +1124,6 @@ function copyAndExtend(original) {
   var copy = clone(original);
   (0, _util._extend)(copy, changes);
   return copy;
-}
-
-function inArray(val, array) {
-  var _iteratorNormalCompletion = true;
-  var _didIteratorError = false;
-  var _iteratorError = undefined;
-
-  try {
-    for (var _iterator = array[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-      var arrayVal = _step.value;
-
-      if (val === arrayVal) return true;
-    }
-  } catch (err) {
-    _didIteratorError = true;
-    _iteratorError = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion && _iterator.return) {
-        _iterator.return();
-      }
-    } finally {
-      if (_didIteratorError) {
-        throw _iteratorError;
-      }
-    }
-  }
-
-  return false;
 }
 
 function emptyFunc() {}
@@ -1185,15 +1155,45 @@ function getPathString(points) {
   var start = points[0];
   var remainingPoints = points.slice(1);
   var pathString = 'M ' + start.getX() + ' ' + start.getY();
+  var _iteratorNormalCompletion = true;
+  var _didIteratorError = false;
+  var _iteratorError = undefined;
+
+  try {
+    for (var _iterator = remainingPoints[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+      var point = _step.value;
+
+      pathString += ' L ' + point.getX() + ' ' + point.getY();
+    }
+  } catch (err) {
+    _didIteratorError = true;
+    _iteratorError = err;
+  } finally {
+    try {
+      if (!_iteratorNormalCompletion && _iterator.return) {
+        _iterator.return();
+      }
+    } finally {
+      if (_didIteratorError) {
+        throw _iteratorError;
+      }
+    }
+  }
+
+  return pathString;
+}
+
+function average(arr) {
+  var sum = 0;
   var _iteratorNormalCompletion2 = true;
   var _didIteratorError2 = false;
   var _iteratorError2 = undefined;
 
   try {
-    for (var _iterator2 = remainingPoints[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-      var point = _step2.value;
+    for (var _iterator2 = arr[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+      var val = _step2.value;
 
-      pathString += ' L ' + point.getX() + ' ' + point.getY();
+      sum += val;
     }
   } catch (err) {
     _didIteratorError2 = true;
@@ -1206,36 +1206,6 @@ function getPathString(points) {
     } finally {
       if (_didIteratorError2) {
         throw _iteratorError2;
-      }
-    }
-  }
-
-  return pathString;
-}
-
-function average(arr) {
-  var sum = 0;
-  var _iteratorNormalCompletion3 = true;
-  var _didIteratorError3 = false;
-  var _iteratorError3 = undefined;
-
-  try {
-    for (var _iterator3 = arr[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
-      var val = _step3.value;
-
-      sum += val;
-    }
-  } catch (err) {
-    _didIteratorError3 = true;
-    _iteratorError3 = err;
-  } finally {
-    try {
-      if (!_iteratorNormalCompletion3 && _iterator3.return) {
-        _iterator3.return();
-      }
-    } finally {
-      if (_didIteratorError3) {
-        throw _iteratorError3;
       }
     }
   }
@@ -4295,8 +4265,8 @@ var HanziWriter = function () {
       if (this._outlineRenderer) this._outlineRenderer.destroy();
       if (this._highlightRenderer) this._highlightRenderer.destroy();
       this._withDataPromise = this._loadCharacterData(char).then(function (pathStrings) {
-        var zdtStrokeParser = new _CharDataParser2.default();
-        _this7._character = zdtStrokeParser.generateCharacter(char, pathStrings);
+        var charDataParser = new _CharDataParser2.default();
+        _this7._character = charDataParser.generateCharacter(char, pathStrings);
         _this7._positioner = new _Positioner2.default(_this7._character, _this7._options);
 
         _this7._positionerRenderer = new _PositionerRenderer2.default(_this7._positioner).setCanvas(_this7._svg);
@@ -6077,14 +6047,15 @@ var Quiz = function () {
 
       this._animator.animate(function (animation) {
         var promises = [];
-        var matchingStroke = _this._strokeMatcher.getMatchingStroke(_this._userStroke, _this._character.getStrokes());
+        var nextStroke = _this._getNextStroke();
+        var isMatch = _this._strokeMatcher.strokeMatches(_this._userStroke, nextStroke);
         promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
         _this._userStroke = null;
         _this._userStrokeRenderer = null;
         if (!_this._isActive) return Promise.resolve();
 
-        if (_this._isValidStroke(matchingStroke)) {
-          _this._handleSuccess(matchingStroke, animation);
+        if (isMatch) {
+          _this._handleSuccess(nextStroke, animation);
         } else {
           _this._handleFailure();
           if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
@@ -6153,11 +6124,9 @@ var Quiz = function () {
       return this._characterRenderer.showStroke(stroke.getStrokeNum(), animation);
     }
   }, {
-    key: '_isValidStroke',
-    value: function _isValidStroke(stroke) {
-      if (!stroke) return false;
-      if ((0, _utils.inArray)(stroke, this._drawnStrokes)) return false;
-      return stroke === this._character.getStroke(this._currentStrokeIndex);
+    key: '_getNextStroke',
+    value: function _getNextStroke() {
+      return this._character.getStroke(this._currentStrokeIndex);
     }
 
     // hide the caracter
@@ -6201,8 +6170,7 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
-var AVG_DIST_THRESHOLD = 200; // bigger = more lenient
-var LENGTH_RATIO_THRESHOLD = 0.5; // 0 to 1, bigger = more lenient
+var AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 
@@ -6212,51 +6180,16 @@ var StrokeMatcher = function () {
   }
 
   _createClass(StrokeMatcher, [{
-    key: 'getMatchingStroke',
-    value: function getMatchingStroke(userStroke, strokes) {
+    key: 'strokeMatches',
+    value: function strokeMatches(userStroke, stroke) {
       var points = this._stripDuplicates(userStroke.getPoints());
       if (points.length < 2) return null;
 
-      var closestStroke = null;
-      var bestAvgDist = 0;
-      var _iteratorNormalCompletion = true;
-      var _didIteratorError = false;
-      var _iteratorError = undefined;
-
-      try {
-        for (var _iterator = strokes[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
-          var stroke = _step.value;
-
-          var avgDist = stroke.getAverageDistance(points);
-          if (avgDist < bestAvgDist || !closestStroke) {
-            closestStroke = stroke;
-            bestAvgDist = avgDist;
-          }
-        }
-      } catch (err) {
-        _didIteratorError = true;
-        _iteratorError = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion && _iterator.return) {
-            _iterator.return();
-          }
-        } finally {
-          if (_didIteratorError) {
-            throw _iteratorError;
-          }
-        }
-      }
-
-      var withinDistThresh = bestAvgDist < AVG_DIST_THRESHOLD;
-      var lengthRatio = this._getLength(points) / closestStroke.getLength();
-      var withinLengthThresh = lengthRatio > 1 - LENGTH_RATIO_THRESHOLD && lengthRatio < 1 + LENGTH_RATIO_THRESHOLD;
-      var startAndEndMatch = this._startAndEndMatches(points, closestStroke);
-      var directionMatches = this._directionMatches(points, closestStroke);
-      if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
-        return closestStroke;
-      }
-      return null;
+      var avgDist = stroke.getAverageDistance(points);
+      var withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
+      var startAndEndMatch = this._startAndEndMatches(points, stroke);
+      var directionMatches = this._directionMatches(points, stroke);
+      return withinDistThresh && startAndEndMatch && directionMatches;
     }
   }, {
     key: '_startAndEndMatches',
@@ -6280,15 +6213,50 @@ var StrokeMatcher = function () {
         similarities.push(maxSimilarity);
       };
 
+      var _iteratorNormalCompletion = true;
+      var _didIteratorError = false;
+      var _iteratorError = undefined;
+
+      try {
+        for (var _iterator = edgeVectors[Symbol.iterator](), _step; !(_iteratorNormalCompletion = (_step = _iterator.next()).done); _iteratorNormalCompletion = true) {
+          var edgeVector = _step.value;
+
+          _loop(edgeVector);
+        }
+      } catch (err) {
+        _didIteratorError = true;
+        _iteratorError = err;
+      } finally {
+        try {
+          if (!_iteratorNormalCompletion && _iterator.return) {
+            _iterator.return();
+          }
+        } finally {
+          if (_didIteratorError) {
+            throw _iteratorError;
+          }
+        }
+      }
+
+      var avgSimilarity = (0, _utils.average)(similarities);
+      return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+    }
+  }, {
+    key: '_stripDuplicates',
+    value: function _stripDuplicates(points) {
+      if (points.length < 2) return points;
+      var dedupedPoints = [points[0]];
       var _iteratorNormalCompletion2 = true;
       var _didIteratorError2 = false;
       var _iteratorError2 = undefined;
 
       try {
-        for (var _iterator2 = edgeVectors[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
-          var edgeVector = _step2.value;
+        for (var _iterator2 = points.slice(1)[Symbol.iterator](), _step2; !(_iteratorNormalCompletion2 = (_step2 = _iterator2.next()).done); _iteratorNormalCompletion2 = true) {
+          var point = _step2.value;
 
-          _loop(edgeVector);
+          if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
+            dedupedPoints.push(point);
+          }
         }
       } catch (err) {
         _didIteratorError2 = true;
@@ -6305,25 +6273,23 @@ var StrokeMatcher = function () {
         }
       }
 
-      var avgSimilarity = (0, _utils.average)(similarities);
-      return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+      return dedupedPoints;
     }
   }, {
-    key: '_stripDuplicates',
-    value: function _stripDuplicates(points) {
-      if (points.length < 2) return points;
-      var dedupedPoints = [points[0]];
+    key: '_getLength',
+    value: function _getLength(points) {
+      var length = 0;
+      var lastPoint = points[0];
       var _iteratorNormalCompletion3 = true;
       var _didIteratorError3 = false;
       var _iteratorError3 = undefined;
 
       try {
-        for (var _iterator3 = points.slice(1)[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
+        for (var _iterator3 = points[Symbol.iterator](), _step3; !(_iteratorNormalCompletion3 = (_step3 = _iterator3.next()).done); _iteratorNormalCompletion3 = true) {
           var point = _step3.value;
 
-          if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
-            dedupedPoints.push(point);
-          }
+          length += _Point2.default.getDistance(point, lastPoint);
+          lastPoint = point;
         }
       } catch (err) {
         _didIteratorError3 = true;
@@ -6340,22 +6306,25 @@ var StrokeMatcher = function () {
         }
       }
 
-      return dedupedPoints;
+      return length;
     }
+
+    // returns a list of the direction of all segments in the line connecting the points
+
   }, {
-    key: '_getLength',
-    value: function _getLength(points) {
-      var length = 0;
+    key: '_getEdgeVectors',
+    value: function _getEdgeVectors(points) {
+      var vectors = [];
       var lastPoint = points[0];
       var _iteratorNormalCompletion4 = true;
       var _didIteratorError4 = false;
       var _iteratorError4 = undefined;
 
       try {
-        for (var _iterator4 = points[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
+        for (var _iterator4 = points.slice(1)[Symbol.iterator](), _step4; !(_iteratorNormalCompletion4 = (_step4 = _iterator4.next()).done); _iteratorNormalCompletion4 = true) {
           var point = _step4.value;
 
-          length += _Point2.default.getDistance(point, lastPoint);
+          vectors.push(point.subtract(lastPoint));
           lastPoint = point;
         }
       } catch (err) {
@@ -6369,42 +6338,6 @@ var StrokeMatcher = function () {
         } finally {
           if (_didIteratorError4) {
             throw _iteratorError4;
-          }
-        }
-      }
-
-      return length;
-    }
-
-    // returns a list of the direction of all segments in the line connecting the points
-
-  }, {
-    key: '_getEdgeVectors',
-    value: function _getEdgeVectors(points) {
-      var vectors = [];
-      var lastPoint = points[0];
-      var _iteratorNormalCompletion5 = true;
-      var _didIteratorError5 = false;
-      var _iteratorError5 = undefined;
-
-      try {
-        for (var _iterator5 = points.slice(1)[Symbol.iterator](), _step5; !(_iteratorNormalCompletion5 = (_step5 = _iterator5.next()).done); _iteratorNormalCompletion5 = true) {
-          var point = _step5.value;
-
-          vectors.push(point.subtract(lastPoint));
-          lastPoint = point;
-        }
-      } catch (err) {
-        _didIteratorError5 = true;
-        _iteratorError5 = err;
-      } finally {
-        try {
-          if (!_iteratorNormalCompletion5 && _iterator5.return) {
-            _iterator5.return();
-          }
-        } finally {
-          if (_didIteratorError5) {
-            throw _iteratorError5;
           }
         }
       }

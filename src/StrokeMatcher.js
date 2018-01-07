@@ -1,36 +1,21 @@
 import Point from './models/Point';
 import {average} from './utils';
 
-const AVG_DIST_THRESHOLD = 200; // bigger = more lenient
-const LENGTH_RATIO_THRESHOLD = 0.5; // 0 to 1, bigger = more lenient
+const AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 
 class StrokeMatcher {
 
-  getMatchingStroke(userStroke, strokes) {
+  strokeMatches(userStroke, stroke) {
     const points = this._stripDuplicates(userStroke.getPoints());
     if (points.length < 2) return null;
 
-    let closestStroke = null;
-    let bestAvgDist = 0;
-    for (const stroke of strokes) {
-      const avgDist = stroke.getAverageDistance(points);
-      if (avgDist < bestAvgDist || !closestStroke) {
-        closestStroke = stroke;
-        bestAvgDist = avgDist;
-      }
-    }
-
-    const withinDistThresh = bestAvgDist < AVG_DIST_THRESHOLD;
-    const lengthRatio = this._getLength(points) / closestStroke.getLength();
-    const withinLengthThresh = lengthRatio > (1 - LENGTH_RATIO_THRESHOLD) && lengthRatio < (1 + LENGTH_RATIO_THRESHOLD);
-    const startAndEndMatch = this._startAndEndMatches(points, closestStroke);
-    const directionMatches = this._directionMatches(points, closestStroke);
-    if (withinDistThresh && withinLengthThresh && startAndEndMatch && directionMatches) {
-      return closestStroke;
-    }
-    return null;
+    const avgDist = stroke.getAverageDistance(points);
+    const withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
+    const startAndEndMatch = this._startAndEndMatches(points, stroke);
+    const directionMatches = this._directionMatches(points, stroke);
+    return withinDistThresh && startAndEndMatch && directionMatches;
   }
 
   _startAndEndMatches(points, closestStroke) {

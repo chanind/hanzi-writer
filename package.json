@@ -25,7 +25,7 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-webpack": "^3.0.2",
     "jest-cli": "^0.7.1",
-    "svg.js": "2.2.5",
+    "svg.js": "^2.6.3",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
   },

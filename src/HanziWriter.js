@@ -1,5 +1,3 @@
-require('babel-polyfill'); // polyfill for old IE and whatnot
-
 import CharacterRenderer from './renderers/CharacterRenderer';
 import PositionerRenderer from './renderers/PositionerRenderer';
 import Point from './models/Point';

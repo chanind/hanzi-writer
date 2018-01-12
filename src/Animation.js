@@ -1,5 +1,4 @@
 const {callIfExists} = require('./utils');
-const velocity = require('velocity-animate');
 
 class Animation {
 
@@ -14,7 +13,7 @@ class Animation {
 
     this._isActive = false;
     for (const svgAnimation of this._svgAnimations) {
-      velocity(svgAnimation, 'stop', true);
+      svgAnimation.finish();
     }
   }
 

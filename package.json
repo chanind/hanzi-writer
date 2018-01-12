@@ -49,8 +49,5 @@
       "util",
       "clone"
     ]
-  },
-  "dependencies": {
-    "velocity-animate": "^1.5.0"
   }
 }

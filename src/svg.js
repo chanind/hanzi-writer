@@ -1,3 +1,6 @@
+const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(callback, 1000 / 60));
+const cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
+
 function createElm(elmType) {
   return global.document.createElementNS('http://www.w3.org/2000/svg', elmType);
 }
@@ -9,6 +12,63 @@ function attr(elm, name, value) {
 function attrs(elm, attrsMap) {
   for (const attrName of Object.keys(attrsMap)) {
     attr(elm, attrName, attrsMap[attrName]);
+  }
+}
+
+// from https://github.com/maxwellito/vivus
+const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
+
+class StyleTween {
+  constructor(elm, style, endValue, options = {}) {
+    this._elm = elm;
+    this._style = style;
+    this._endValue = endValue;
+    this._duration = options.duration || 300;
+    this._isActive = false;
+  }
+
+  start() {
+    this._isActive = true;
+    this._startTime = Date.now();
+    this._startValue = parseFloat(this._elm.style[this._style], 10);
+    this._progress = 0;
+    this._nextTick();
+
+    return new Promise((resolve, reject) => {
+      this._resolve = resolve;
+    });
+  }
+
+  _nextTick() {
+    this._frameHandle = requestAnimFrame(() => this._tick());
+  }
+
+  _tick() {
+    if (!this._isActive) return;
+    const progress = Math.min(1, (Date.now() - this._startTime) / this._duration);
+    if (progress === this._progress) return this._nextTick();
+    this._progress = progress;
+    const easedProgress = ease(progress);
+    const nextStyleValue = (this._endValue - this._startValue) * easedProgress + this._startValue;
+    this._elm.style[this._style] = nextStyleValue;
+    if (progress === 1) {
+      this._frameHandle = null;
+      this.finish();
+    } else {
+      this._nextTick();
+    }
+  }
+
+  finish() {
+    if (!this._isActive) return;
+    this._isActive = false;
+    if (this._frameHandle) {
+      cancelAnimFrame(this._frameHandle);
+    }
+    if (this._resolve) {
+      this._resolve();
+      this._resolve = null;
+    }
   }
 }
 
@@ -44,4 +104,4 @@ Canvas.init = elmOrId => {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm, attrs, attr, Canvas };
+module.exports = { createElm, attrs, attr, Canvas, StyleTween };

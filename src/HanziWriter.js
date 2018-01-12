@@ -22,7 +22,7 @@ const defaultOptions = {
 
   // animation options
 
-  strokeAnimationDuration: 300,
+  strokeAnimationDuration: 400,
   strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
 

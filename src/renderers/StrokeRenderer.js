@@ -1,4 +1,3 @@
-const velocity = require('velocity-animate');
 const Renderer = require('./Renderer');
 const { getPathString, counter } = require('../utils');
 const svg = require('../svg');
@@ -43,27 +42,30 @@ class StrokeRenderer extends Renderer {
 
   show(animation) {
     this.maskPath.style['stroke-dashoffset'] = 0;
-    animation.registerSvgAnimation(this.path);
-    return velocity(this.path, {opacity: 1}, {
+    const tween = new svg.StyleTween(this.path, 'opacity', 1, {
       duration: this.options.strokeAnimationDuration,
     });
+    animation.registerSvgAnimation(tween);
+    return tween.start();
   }
 
   hide(animation) {
-    animation.registerSvgAnimation(this.path);
-    return velocity(this.path, {opacity: 0}, {
+    const tween = new svg.StyleTween(this.path, 'opacity', 0, {
       duration: this.options.strokeAnimationDuration,
     });
+    animation.registerSvgAnimation(tween);
+    return tween.start();
   }
 
   animate(animation) {
     if (!animation.isActive()) return null;
     this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength();
     this.showImmediate();
-    animation.registerSvgAnimation(this.maskPath);
-    return velocity(this.maskPath, {'stroke-dashoffset': 0}, {
+    const tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
       duration: this.options.strokeAnimationDuration,
     });
+    animation.registerSvgAnimation(tween);
+    return tween.start();
   }
 
   hideImmediate() { this.path.style.opacity = 0; }

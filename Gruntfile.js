@@ -73,9 +73,10 @@ module.exports = function(grunt) {
     uglify: {
       dist: {
         options: {
-          // passes: 3
-          // compress: {
-          //   unsafe: true
+          // mangle: {
+          //   properties: {
+          //     regex: /^_/
+          //   }
           // }
         },
         files: {

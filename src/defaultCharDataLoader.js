@@ -4,7 +4,7 @@
 const DATA_VERSION = 2;
 const getCharDataUrl = (char) => `https://chanind.github.io/hanzi-writer/cdn/${DATA_VERSION}/data/${char}.json`;
 
-export default function(char, onLoad) {
+module.exports = (char, onLoad) => {
   // load char data from hanziwriter.org cdn (currently hosted on github pages)
   const xhr = new global.XMLHttpRequest();
   if (xhr.overrideMimeType) { // IE 9 and 10 don't seem to support this...
@@ -18,4 +18,4 @@ export default function(char, onLoad) {
     }
   };
   xhr.send(null);
-}
+};

@@ -1,21 +1,15 @@
-import Point from './Point';
+const Point = require('./Point');
 
-class UserStroke {
-  constructor(startingPoint) {
-    this._points = [startingPoint];
-  }
-
-  getPoints() {
-    return this._points;
-  }
-
-  getBounds() {
-    return Point.getBounds(this._points);
-  }
-
-  appendPoint(point) {
-    this._points.push(point);
-  }
+function UserStroke(startingPoint) {
+  this.points = [startingPoint];
 }
 
-export default UserStroke;
+UserStroke.prototype.getBounds = function() {
+  return Point.getBounds(this.points);
+};
+
+UserStroke.prototype.appendPoint = function(point) {
+  this.points.push(point);
+};
+
+module.exports = UserStroke;

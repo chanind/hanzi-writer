@@ -8,7 +8,7 @@ function updateCharacter() {
 	var character = document.querySelector('.js-char').value
 	writer = new HanziWriter('target', character, {
 		width: 400,
-		height: 400
+		height: 400,
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;

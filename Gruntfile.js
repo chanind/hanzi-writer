@@ -27,13 +27,13 @@ module.exports = function(grunt) {
               exclude: /node_modules/,
               loader: 'babel-loader',
               query: {
-                presets: ['env']
+                presets: ['env'],
               }
             },
             {
               test: /\.js$/,
               loader: 'eslint-loader',
-              exclude: /node_modules/,
+              exclude: [/node_modules/],
               options: {
                 configFile: '.eslintrc'
               }
@@ -61,6 +61,13 @@ module.exports = function(grunt) {
 
     uglify: {
       dist: {
+        options: {
+          mangle: {
+            properties: {
+              regex: /^_/
+            }
+          }
+        },
         files: {
           'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js'],
           'dist/hanzi-writer-lib.min.js': ['dist/hanzi-writer-lib.js']

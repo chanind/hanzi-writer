@@ -1,51 +1,53 @@
-import Renderer from './Renderer';
-import { getPathString } from '../utils';
+const Renderer = require('./Renderer');
+const { getPathString, inherits } = require('../utils');
+const svg = require('../svg');
 
 
-class UserStrokeRenderer extends Renderer {
-  constructor(userStroke, options = {}) {
-    super();
-    this.options = options;
-    this.userStroke = userStroke;
-  }
-
-  getPathString() {
-    return getPathString(this.userStroke.getPoints());
-  }
-
-  updatePath() {
-    this.path.plot(this.getPathString());
-  }
-
-  draw() {
-    super.draw();
-    this.path = this.canvas.path(this.getPathString());
-    this.path.attr(this.getStrokeAttrs());
-    return this;
-  }
-
-
-  fadeAndRemove(animation) {
-    return new Promise((resolve, reject) => {
-      const svgAnimation = this.path.animate(this.options.fadeDuration)
-        .attr({opacity: 0})
-        .after(resolve);
-      animation.registerSvgAnimation(svgAnimation);
-    }).then(() => this.destroy());
-  }
-
-  getStrokeAttrs() {
-    return {
-      fill: 'none',
-      stroke: this.options.strokeColor,
-      'stroke-width': this.options.strokeWidth,
-    };
-  }
-
-  destroy() {
-    super.destroy();
-    if (this.path) this.path.remove();
-  }
+function UserStrokeRenderer(userStroke, options = {}) {
+  UserStrokeRenderer.super_.call(this);
+  this.options = options;
+  this.userStroke = userStroke;
 }
 
-export default UserStrokeRenderer;
+inherits(UserStrokeRenderer, Renderer);
+
+UserStrokeRenderer.prototype.getPathString = function() {
+  return getPathString(this.userStroke.points);
+};
+
+UserStrokeRenderer.prototype.updatePath = function() {
+  svg.attr(this.path, 'd', this.getPathString());
+};
+
+UserStrokeRenderer.prototype.draw = function() {
+  UserStrokeRenderer.super_.prototype.draw.call(this);
+  this.path = svg.createElm('path');
+  svg.attrs(this.path, this.getStrokeAttrs());
+  this.path.style.opacity = 1;
+  this.updatePath();
+  this.canvas.svg.appendChild(this.path);
+  return this;
+};
+
+UserStrokeRenderer.prototype.fadeAndRemove = function(animation) {
+  const tween = new svg.StyleTween(this.path, 'opacity', 0, {
+    duration: this.options.fadeDuration,
+  });
+  animation.registerSvgAnimation(tween);
+  return tween.start().then(() => this.destroy());
+};
+
+UserStrokeRenderer.prototype.getStrokeAttrs = function() {
+  return {
+    fill: 'none',
+    stroke: this.options.strokeColor,
+    'stroke-width': this.options.strokeWidth,
+  };
+};
+
+UserStrokeRenderer.prototype.destroy = function() {
+  UserStrokeRenderer.super_.prototype.destroy.call(this);
+  if (this.path) this.path.remove();
+};
+
+module.exports = UserStrokeRenderer;

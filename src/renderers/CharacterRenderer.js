@@ -1,77 +1,72 @@
-import Renderer from './Renderer';
-import StrokeRenderer from './StrokeRenderer';
-import {timeout} from '../utils';
+const Renderer = require('./Renderer');
+const StrokeRenderer = require('./StrokeRenderer');
+const {timeout, inherits} = require('../utils');
 
 
-class CharacterRenderer extends Renderer {
-
-  constructor(character, options = {}) {
-    super();
-    this.options = options;
-    this.character = character;
-    this.strokeRenderers = this.character.getStrokes().map((stroke) => {
-      return this.registerChild(new StrokeRenderer(stroke, options));
-    });
-  }
-
-  getBounds() {
-    return this.character.getBounds();
-  }
-
-  show(animation) {
-    const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.show(animation));
-    return Promise.all(promises);
-  }
-
-  showImmediate() {
-    this.strokeRenderers.map(renderer => renderer.showImmediate());
-  }
-
-  hide(animation) {
-    const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.hide(animation));
-    return Promise.all(promises);
-  }
-
-  hideImmediate() {
-    this.strokeRenderers.map(renderer => renderer.hideImmediate());
-  }
-
-  flash(animation) {
-    return this.show(animation).then(() => this.hide(animation));
-  }
-
-  showStroke(strokeNum, animation) {
-    return this.getStrokeRenderer(strokeNum).show(animation);
-  }
-
-  draw() {
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.draw();
-    }
-    return this;
-  }
-
-  getStrokeRenderer(strokeNum) {
-    return this.strokeRenderers[strokeNum];
-  }
-
-  animate(animation) {
-    if (!animation.isActive()) return null;
-    let renderChain = this.hide(animation);
-    this.strokeRenderers.forEach((strokeRenderer, index) => {
-      if (index > 0) renderChain = renderChain.then(() => timeout(this.options.delayBetweenStrokes));
-      renderChain = renderChain.then(() => strokeRenderer.animate(animation));
-    });
-    return renderChain;
-  }
-
-  setCanvas(canvas) {
-    super.setCanvas(canvas);
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.setCanvas(canvas);
-    }
-    return this;
-  }
+function CharacterRenderer(character, options = {}) {
+  CharacterRenderer.super_.call(this);
+  this.options = options;
+  this.character = character;
+  this.strokeRenderers = this.character.strokes.map((stroke) => {
+    return this.registerChild(new StrokeRenderer(stroke, options));
+  });
 }
 
-export default CharacterRenderer;
+inherits(CharacterRenderer, Renderer);
+
+CharacterRenderer.prototype.getBounds = function() {
+  return this.character.getBounds();
+};
+
+CharacterRenderer.prototype.show = function(animation) {
+  const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.show(animation));
+  return Promise.all(promises);
+};
+
+CharacterRenderer.prototype.showImmediate = function() {
+  this.strokeRenderers.map(renderer => renderer.showImmediate());
+};
+
+CharacterRenderer.prototype.hide = function(animation) {
+  const promises = this.strokeRenderers.map(strokeRenderer => strokeRenderer.hide(animation));
+  return Promise.all(promises);
+};
+
+CharacterRenderer.prototype.hideImmediate = function() {
+  this.strokeRenderers.map(renderer => renderer.hideImmediate());
+};
+
+CharacterRenderer.prototype.flash = function(animation) {
+  return this.show(animation).then(() => this.hide(animation));
+};
+
+CharacterRenderer.prototype.showStroke = function(strokeNum, animation) {
+  return this.getStrokeRenderer(strokeNum).show(animation);
+};
+
+CharacterRenderer.prototype.draw = function() {
+  this.strokeRenderers.forEach(renderer => renderer.draw());
+  return this;
+};
+
+CharacterRenderer.prototype.getStrokeRenderer = function(strokeNum) {
+  return this.strokeRenderers[strokeNum];
+};
+
+CharacterRenderer.prototype.animate = function(animation) {
+  if (!animation.isActive()) return null;
+  let renderChain = this.hide(animation);
+  this.strokeRenderers.forEach((strokeRenderer, index) => {
+    if (index > 0) renderChain = renderChain.then(() => timeout(this.options.delayBetweenStrokes));
+    renderChain = renderChain.then(() => strokeRenderer.animate(animation));
+  });
+  return renderChain;
+};
+
+CharacterRenderer.prototype.setCanvas = function(canvas) {
+  CharacterRenderer.super_.prototype.setCanvas.call(this, canvas);
+  this.strokeRenderers.forEach(renderer => renderer.setCanvas(canvas));
+  return this;
+};
+
+module.exports = CharacterRenderer;

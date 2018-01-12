@@ -1,30 +1,29 @@
-import Renderer from './Renderer';
+const Renderer = require('./Renderer');
+const svg = require('../svg');
+const {inherits} = require('../utils');
 
-class PositionerRenderer extends Renderer {
-
-  constructor(positioner, options = {}) {
-    super();
-    this.positioner = positioner;
-    this.positonedCanvas = null;
-  }
-
-  getPositionedCanvas() {
-    return this.positonedCanvas;
-  }
-
-  setCanvas(canvas) {
-    super.setCanvas(canvas);
-    this.positonedCanvas = this.canvas
-      .group()
-      .move(this.positioner.getXOffset(), this.positioner.getHeight() - this.positioner.getYOffset())
-      .transform({scaleX: this.positioner.getScale(), scaleY: -1 * this.positioner.getScale()});
-    return this;
-  }
-
-  destroy() {
-    super.destroy();
-    this.positonedCanvas.remove();
-  }
+function PositionerRenderer(positioner, options = {}) {
+  PositionerRenderer.super_.call(this);
+  this.positioner = positioner;
+  this.positionedCanvas = null;
 }
 
-export default PositionerRenderer;
+inherits(PositionerRenderer, Renderer);
+
+PositionerRenderer.prototype.setCanvas = function(canvas) {
+  PositionerRenderer.super_.prototype.setCanvas.call(this, canvas);
+  this.positionedCanvas = canvas.createSubCanvas();
+  const group = this.positionedCanvas.svg;
+  svg.attr(group, 'transform', `
+    translate(${this.positioner.getXOffset()}, ${this.positioner.getHeight() - this.positioner.getYOffset()})
+    scale(${this.positioner.getScale()}, ${-1 * this.positioner.getScale()})
+  `);
+  return this;
+};
+
+PositionerRenderer.prototype.destroy = function() {
+  PositionerRenderer.super_.prototype.destroy.call(this);
+  this.positionedCanvas.remove();
+};
+
+module.exports = PositionerRenderer;

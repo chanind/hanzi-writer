@@ -10,6 +10,7 @@
     "babel-eslint": "^8.0.1",
     "babel-jest": "^21.2.0",
     "babel-loader": "^7.1.2",
+    "babel-plugin-transform-helper": "^0.0.6",
     "babel-polyfill": "^6.26.0",
     "babel-preset-env": "^1.6.0",
     "eslint": "^4.8.0",
@@ -25,8 +26,8 @@
     "grunt-contrib-watch": "^1.0.0",
     "grunt-webpack": "^3.0.2",
     "jest-cli": "^0.7.1",
-    "svg.js": "^2.6.3",
     "webpack": "^3.6.0",
+    "webpack-bundle-size-analyzer": "^2.7.0",
     "webpack-dev-server": "^2.9.1"
   },
   "scripts": {
@@ -48,5 +49,8 @@
       "util",
       "clone"
     ]
+  },
+  "dependencies": {
+    "velocity-animate": "^1.5.0"
   }
 }

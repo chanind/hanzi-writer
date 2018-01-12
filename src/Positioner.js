@@ -1,4 +1,4 @@
-import Point from './models/Point';
+const Point = require('./models/Point');
 
 class Positioner {
   constructor(character, options) {
@@ -36,4 +36,4 @@ class Positioner {
   }
 }
 
-export default Positioner;
+module.exports = Positioner;

@@ -1,4 +1,5 @@
-import Renderer from './Renderer';
+const Renderer = require('./Renderer');
+const svg = require('../svg');
 
 class PositionerRenderer extends Renderer {
 
@@ -14,10 +15,12 @@ class PositionerRenderer extends Renderer {
 
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    this.positonedCanvas = this.canvas
-      .group()
-      .move(this.positioner.getXOffset(), this.positioner.getHeight() - this.positioner.getYOffset())
-      .transform({scaleX: this.positioner.getScale(), scaleY: -1 * this.positioner.getScale()});
+    this.positonedCanvas = canvas.createSubCanvas();
+    const group = this.positonedCanvas.svg;
+    svg.attr(group, 'transform', `
+      translate(${this.positioner.getXOffset()}, ${this.positioner.getHeight() - this.positioner.getYOffset()})
+      scale(${this.positioner.getScale()}, ${-1 * this.positioner.getScale()})
+    `);
     return this;
   }
 
@@ -27,4 +30,4 @@ class PositionerRenderer extends Renderer {
   }
 }
 
-export default PositionerRenderer;
+module.exports = PositionerRenderer;

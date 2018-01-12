@@ -1,4 +1,4 @@
-import Point from './Point';
+const Point = require('./Point');
 
 class Stroke {
   constructor(path, points, strokeNum) {
@@ -63,4 +63,4 @@ class Stroke {
   }
 }
 
-export default Stroke;
+module.exports = Stroke;

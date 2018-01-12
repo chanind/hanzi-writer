@@ -1,7 +1,7 @@
-import StrokeMatcher from './StrokeMatcher';
-import UserStroke from './models/UserStroke';
-import UserStrokeRenderer from './renderers/UserStrokeRenderer';
-import {callIfExists} from './utils';
+const StrokeMatcher = require('./StrokeMatcher');
+const UserStroke = require('./models/UserStroke');
+const UserStrokeRenderer = require('./renderers/UserStrokeRenderer');
+const {callIfExists} = require('./utils');
 
 
 class Quiz {
@@ -123,4 +123,4 @@ class Quiz {
   }
 }
 
-export default Quiz;
+module.exports = Quiz;

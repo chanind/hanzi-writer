@@ -36,4 +36,4 @@ class Renderer {
   }
 }
 
-export default Renderer;
+module.exports = Renderer;

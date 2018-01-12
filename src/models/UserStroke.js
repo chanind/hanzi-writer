@@ -1,4 +1,4 @@
-import Point from './Point';
+const Point = require('./Point');
 
 class UserStroke {
   constructor(startingPoint) {
@@ -18,4 +18,4 @@ class UserStroke {
   }
 }
 
-export default UserStroke;
+module.exports = UserStroke;

@@ -1,5 +1,5 @@
-import Point from './models/Point';
-import {average} from './utils';
+const Point = require('./models/Point');
+const {average} = require('./utils');
 
 const AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
@@ -70,4 +70,4 @@ class StrokeMatcher {
   }
 }
 
-export default StrokeMatcher;
+module.exports = StrokeMatcher;

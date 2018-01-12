@@ -1,6 +1,6 @@
-import Point from './models/Point';
-import Stroke from './models/Stroke';
-import Character from './models/Character';
+const Point = require('./models/Point');
+const Stroke = require('./models/Stroke');
+const Character = require('./models/Character');
 
 class CharDataParser {
   generateCharacter(symbol, charJson) {
@@ -19,4 +19,4 @@ class CharDataParser {
   }
 }
 
-export default CharDataParser;
+module.exports = CharDataParser;

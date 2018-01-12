@@ -1,4 +1,4 @@
-import {_extend as extend} from 'util';
+const extend = require('util')._extend;
 
 
 // TODO: recursive clone
@@ -6,34 +6,34 @@ const clone = (obj) => {
   return extend({}, obj);
 };
 
-export function copyAndExtend(original, changes = {}) {
+function copyAndExtend(original, changes = {}) {
   const copy = clone(original);
   extend(copy, changes);
   return copy;
 }
 
-export function emptyFunc() {}
+function emptyFunc() {}
 
-export function arrayMax(numArray) {
+function arrayMax(numArray) {
   return Math.max.apply(null, numArray);
 }
 
-export function arrayMin(numArray) {
+function arrayMin(numArray) {
   return Math.min.apply(null, numArray);
 }
 
-export function getExtremes(numArray) {
+function getExtremes(numArray) {
   const max = arrayMax(numArray);
   const min = arrayMin(numArray);
   const mid = (max + min) / 2;
   return [max, mid, min];
 }
 
-export function callIfExists(callback, ...args) {
+function callIfExists(callback, ...args) {
   if (callback) callback(...args);
 }
 
-export function getPathString(points) {
+function getPathString(points) {
   const start = points[0];
   const remainingPoints = points.slice(1);
   let pathString = `M ${start.getX()} ${start.getY()}`;
@@ -43,7 +43,13 @@ export function getPathString(points) {
   return pathString;
 }
 
-export function average(arr) {
+let count = 0;
+function counter() {
+  count += 1;
+  return count;
+}
+
+function average(arr) {
   let sum = 0;
   for (const val of arr) {
     sum += val;
@@ -51,8 +57,22 @@ export function average(arr) {
   return sum / arr.length;
 }
 
-export function timeout(duration = 0) {
+function timeout(duration = 0) {
   return new Promise((resolve, reject) => {
     setTimeout(resolve, duration);
   });
 }
+
+module.exports = {
+  arrayMax,
+  arrayMin,
+  average,
+  callIfExists,
+  clone,
+  copyAndExtend,
+  counter,
+  emptyFunc,
+  getExtremes,
+  getPathString,
+  timeout,
+};

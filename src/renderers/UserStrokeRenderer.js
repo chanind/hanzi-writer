@@ -1,5 +1,5 @@
-import Renderer from './Renderer';
-import { getPathString } from '../utils';
+const Renderer = require('./Renderer');
+const { getPathString } = require('../utils');
 
 
 class UserStrokeRenderer extends Renderer {
@@ -48,4 +48,4 @@ class UserStrokeRenderer extends Renderer {
   }
 }
 
-export default UserStrokeRenderer;
+module.exports = UserStrokeRenderer;

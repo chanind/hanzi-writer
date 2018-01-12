@@ -1,3 +1,5 @@
+var WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
+
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -27,19 +29,28 @@ module.exports = function(grunt) {
               exclude: /node_modules/,
               loader: 'babel-loader',
               query: {
-                presets: ['env']
+                presets: ['env'],
+                // plugins:[
+                //   ['babel-plugin-transform-helper', {
+                //       helperFilename: 'dist/tempHelper.js'
+                //     }
+                //   ]
+                // ]
               }
             },
             {
               test: /\.js$/,
               loader: 'eslint-loader',
-              exclude: /node_modules/,
+              exclude: [/node_modules/, /tempHelper/],
               options: {
                 configFile: '.eslintrc'
               }
             }
           ],
         },
+        plugins: [
+          new WebpackBundleSizeAnalyzerPlugin('./reports/plain-report.txt')
+        ]
       },
 
       dist: {
@@ -61,6 +72,12 @@ module.exports = function(grunt) {
 
     uglify: {
       dist: {
+        options: {
+          // passes: 3
+          // compress: {
+          //   unsafe: true
+          // }
+        },
         files: {
           'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js'],
           'dist/hanzi-writer-lib.min.js': ['dist/hanzi-writer-lib.js']

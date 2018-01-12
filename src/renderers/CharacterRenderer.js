@@ -1,6 +1,6 @@
-import Renderer from './Renderer';
-import StrokeRenderer from './StrokeRenderer';
-import {timeout} from '../utils';
+const Renderer = require('./Renderer');
+const StrokeRenderer = require('./StrokeRenderer');
+const {timeout} = require('../utils');
 
 
 class CharacterRenderer extends Renderer {
@@ -74,4 +74,4 @@ class CharacterRenderer extends Renderer {
   }
 }
 
-export default CharacterRenderer;
+module.exports = CharacterRenderer;

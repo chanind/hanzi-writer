@@ -1,4 +1,4 @@
-import Point from './Point';
+const Point = require('./Point');
 
 class Character {
   constructor(symbol, strokes) {
@@ -27,4 +27,4 @@ class Character {
   }
 }
 
-export default Character;
+module.exports = Character;

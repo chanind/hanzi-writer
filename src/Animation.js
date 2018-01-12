@@ -1,4 +1,5 @@
-import {callIfExists} from './utils';
+const {callIfExists} = require('./utils');
+const velocity = require('velocity-animate');
 
 class Animation {
 
@@ -13,12 +14,14 @@ class Animation {
 
     this._isActive = false;
     for (const svgAnimation of this._svgAnimations) {
-      svgAnimation.stop(true);
+      velocity(svgAnimation, 'stop', true);
     }
   }
 
   registerSvgAnimation(svgAnimation) {
-    this._svgAnimations.push(svgAnimation);
+    if (this._svgAnimations.indexOf(svgAnimation) === -1) {
+      this._svgAnimations.push(svgAnimation);
+    }
   }
 
   isActive() {
@@ -34,4 +37,4 @@ class Animation {
 
 }
 
-export default Animation;
+module.exports = Animation;

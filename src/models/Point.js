@@ -1,4 +1,4 @@
-import { arrayMin, arrayMax } from '../utils';
+const { arrayMin, arrayMax } = require('../utils');
 
 class Point {
   constructor(x, y) {
@@ -60,4 +60,4 @@ Point.cosineSimilarity = (point1, point2) => {
   return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
 };
 
-export default Point;
+module.exports = Point;

@@ -1,13 +1,13 @@
-import CharacterRenderer from './renderers/CharacterRenderer';
-import PositionerRenderer from './renderers/PositionerRenderer';
-import Point from './models/Point';
-import CharDataParser from './CharDataParser';
-import Positioner from './Positioner';
-import Quiz from './Quiz';
-import {copyAndExtend} from './utils';
-import defaultCharDataLoader from './defaultCharDataLoader';
-import Animator from './Animator';
-import svg from 'svg.js';
+const CharacterRenderer = require('./renderers/CharacterRenderer');
+const PositionerRenderer = require('./renderers/PositionerRenderer');
+const Point = require('./models/Point');
+const CharDataParser = require('./CharDataParser');
+const Positioner = require('./Positioner');
+const Quiz = require('./Quiz');
+const {copyAndExtend} = require('./utils');
+const svg = require('./svg');
+const defaultCharDataLoader = require('./defaultCharDataLoader');
+const Animator = require('./Animator');
 
 
 const defaultOptions = {
@@ -51,7 +51,7 @@ class HanziWriter {
 
   constructor(element, character, options = {}) {
     this._animator = new Animator();
-    this._svg = svg(element);
+    this._canvas = svg.Canvas.init(element, options);
     this.setOptions(options);
     this.setCharacter(character);
     this._setupListeners();
@@ -132,12 +132,12 @@ class HanziWriter {
       this._character = charDataParser.generateCharacter(char, pathStrings);
       this._positioner = new Positioner(this._character, this._options);
 
-      this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._svg);
-      this._canvas = this._positionerRenderer.getPositionedCanvas();
+      this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._canvas);
+      this._subCanvas = this._positionerRenderer.getPositionedCanvas();
 
-      this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._canvas).draw();
-      this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._canvas).draw();
-      this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._canvas).draw();
+      this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._subCanvas).draw();
+      this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._subCanvas).draw();
+      this._highlightRenderer = new CharacterRenderer(this._character, this._highlightCharOptions).setCanvas(this._subCanvas).draw();
 
       if (this._options.showCharacter) this._characterRenderer.showImmediate();
       if (this._options.showOutline) this._outlineRenderer.showImmediate();
@@ -165,22 +165,22 @@ class HanziWriter {
   }
 
   _setupListeners() {
-    this._svg.node.addEventListener('mousedown', (evt) => {
+    this._canvas.svg.addEventListener('mousedown', (evt) => {
       if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
       this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
     });
-    this._svg.node.addEventListener('touchstart', (evt) => {
+    this._canvas.svg.addEventListener('touchstart', (evt) => {
       if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
       this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
     });
-    this._svg.node.addEventListener('mousemove', (evt) => {
+    this._canvas.svg.addEventListener('mousemove', (evt) => {
       if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
       this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
     });
-    this._svg.node.addEventListener('touchmove', (evt) => {
+    this._canvas.svg.addEventListener('touchmove', (evt) => {
       if (this.isLoadingCharData || !this._quiz) return;
       evt.preventDefault();
       this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
@@ -197,12 +197,12 @@ class HanziWriter {
   }
 
   _getMousePoint(evt) {
-    const box = this._svg.node.getBoundingClientRect();
+    const box = this._canvas.svg.getBoundingClientRect();
     return this._positioner.convertExternalPoint(new Point(evt.clientX - box.left, evt.clientY - box.top));
   }
 
   _getTouchPoint(evt) {
-    const box = this._svg.node.getBoundingClientRect();
+    const box = this._canvas.svg.getBoundingClientRect();
     const x = evt.touches[0].clientX - box.left;
     const y = evt.touches[0].clientY - box.top;
     return this._positioner.convertExternalPoint(new Point(x, y));

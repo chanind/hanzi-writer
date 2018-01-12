@@ -1,5 +1,7 @@
-import Renderer from './Renderer';
-import { getPathString } from '../utils';
+const velocity = require('velocity-animate');
+const Renderer = require('./Renderer');
+const { getPathString, counter } = require('../utils');
+const svg = require('../svg');
 
 // this is a stroke composed of several stroke parts
 class StrokeRenderer extends Renderer {
@@ -10,56 +12,62 @@ class StrokeRenderer extends Renderer {
   }
 
   draw() {
-    this.path = this.canvas.path(this.stroke.getPath());
-    this.path.attr(this.getStrokeAttrs()).attr({opacity: 0});
-    this.mask = this.canvas.path(getPathString(this.stroke.getPoints()));
-    this.mask.attr({
+    this.path = svg.createElm('path');
+    this.mask = svg.createElm('mask');
+    this.maskPath = svg.createElm('path');
+    const maskId = `mask-${counter()}`;
+    svg.attr(this.mask, 'id', maskId);
+
+    svg.attr(this.path, 'd', this.stroke.getPath());
+    svg.attrs(this.path, this.getStrokeAttrs());
+    this.path.style.opacity = 0;
+    svg.attr(this.path, 'mask', `url(#${maskId})`);
+
+    this.mask.appendChild(this.maskPath);
+    svg.attr(this.maskPath, 'd', getPathString(this.stroke.getPoints()));
+    const maskLength = this.maskPath.getTotalLength();
+    svg.attrs(this.maskPath, {
       stroke: '#FFFFFF',
       'stroke-width': 150,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
-      'stroke-dasharray': `${this.mask.length()},${this.mask.length()}`,
-      'stroke-dashoffset': 0,
+      'stroke-dasharray': `${maskLength},${maskLength}`,
     });
-    this.path.maskWith(this.mask);
+    this.maskPath.style['stroke-dashoffset'] = 0;
+
+    this.canvas.defs.appendChild(this.mask);
+    this.canvas.svg.appendChild(this.path);
     return this;
   }
 
   show(animation) {
-    this.mask.attr({'stroke-dashoffset': 0});
-    return new Promise((resolve, reject) => {
-      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
-        .opacity(1)
-        .after(resolve);
-      animation.registerSvgAnimation(svgAnimation);
+    this.maskPath.style['stroke-dashoffset'] = 0;
+    animation.registerSvgAnimation(this.path);
+    return velocity(this.path, {opacity: 1}, {
+      duration: this.options.strokeAnimationDuration,
     });
   }
 
   hide(animation) {
-    return new Promise((resolve, reject) => {
-      const svgAnimation = this.path.animate(this.options.strokeAnimationDuration)
-        .opacity(0)
-        .after(resolve);
-      animation.registerSvgAnimation(svgAnimation);
+    animation.registerSvgAnimation(this.path);
+    return velocity(this.path, {opacity: 0}, {
+      duration: this.options.strokeAnimationDuration,
     });
   }
 
   animate(animation) {
     if (!animation.isActive()) return null;
-    this.mask.attr({'stroke-dashoffset': this.mask.length()});
+    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength();
     this.showImmediate();
-    return new Promise((resolve, reject) => {
-      const svgAnimation = this.mask.animate(this.options.strokeAnimationDuration)
-        .attr({'stroke-dashoffset': 0})
-        .after(resolve);
-
-      animation.registerSvgAnimation(svgAnimation);
+    animation.registerSvgAnimation(this.maskPath);
+    return velocity(this.maskPath, {'stroke-dashoffset': 0}, {
+      duration: this.options.strokeAnimationDuration,
     });
   }
 
-  hideImmediate() { this.path.opacity(0); }
-  showImmediate() { this.path.opacity(1); }
+  hideImmediate() { this.path.style.opacity = 0; }
+  showImmediate() { this.path.style.opacity = 1; }
 
   highlight(animation) {
     return this.animate(animation).then(() => this.hide(animation));
@@ -76,8 +84,9 @@ class StrokeRenderer extends Renderer {
   destroy() {
     super.destroy();
     if (this.path) this.path.remove();
+    if (this.maskPath) this.maskPath.remove();
     if (this.mask) this.mask.remove();
   }
 }
 
-export default StrokeRenderer;
+module.exports = StrokeRenderer;

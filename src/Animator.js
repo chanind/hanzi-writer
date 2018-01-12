@@ -1,4 +1,4 @@
-import Animation from './Animation';
+const Animation = require('./Animation');
 
 class Animator {
   construct() {
@@ -17,4 +17,4 @@ class Animator {
   }
 }
 
-export default Animator;
+module.exports = Animator;

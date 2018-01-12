@@ -1,17 +1,3 @@
-const extend = require('util')._extend;
-
-
-// TODO: recursive clone
-const clone = (obj) => {
-  return extend({}, obj);
-};
-
-function copyAndExtend(original, changes = {}) {
-  const copy = clone(original);
-  extend(copy, changes);
-  return copy;
-}
-
 function emptyFunc() {}
 
 function arrayMax(numArray) {
@@ -68,8 +54,6 @@ module.exports = {
   arrayMin,
   average,
   callIfExists,
-  clone,
-  copyAndExtend,
   counter,
   emptyFunc,
   getExtremes,

@@ -4,7 +4,6 @@ const Point = require('./models/Point');
 const CharDataParser = require('./CharDataParser');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
-const {copyAndExtend} = require('./utils');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
@@ -59,18 +58,18 @@ class HanziWriter {
   }
 
   setOptions(options) {
-    this._options = copyAndExtend(defaultOptions, options);
+    this._options = Object.assign({}, defaultOptions, options);
     this._mainCharOptions = {
       strokeColor: this._options.strokeColor,
       strokeWidth: this._options.strokeWidth,
       strokeAnimationDuration: this._options.strokeAnimationDuration,
       delayBetweenStrokes: this._options.delayBetweenStrokes,
     };
-    this._outlineCharOptions = copyAndExtend(this._mainCharOptions, {
+    this._outlineCharOptions = Object.assign({}, this._mainCharOptions, {
       strokeColor: this._options.outlineColor,
       strokeWidth: this._options.outlineWidth,
     });
-    this._highlightCharOptions = copyAndExtend(this._mainCharOptions, {
+    this._highlightCharOptions = Object.assign({}, this._mainCharOptions, {
       strokeColor: this._options.highlightColor,
       strokeAnimationDuration: this._options.strokeHighlightDuration,
     });
@@ -110,7 +109,7 @@ class HanziWriter {
         character: this._character,
         characterRenderer: this._characterRenderer,
         highlightRenderer: this._highlightRenderer,
-        quizOptions: copyAndExtend(this._options, quizOptions),
+        quizOptions: Object.assign({}, this._options, quizOptions),
         userStrokeOptions: this._userStrokeOptions,
       });
     });

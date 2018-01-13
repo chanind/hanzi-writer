@@ -1,5 +1,6 @@
 const Renderer = require('./Renderer');
 const { getPathString } = require('../utils');
+const svg = require('../svg');
 
 
 class UserStrokeRenderer extends Renderer {
@@ -14,24 +15,25 @@ class UserStrokeRenderer extends Renderer {
   }
 
   updatePath() {
-    this.path.plot(this.getPathString());
+    svg.attr(this.path, 'd', this.getPathString());
   }
 
   draw() {
     super.draw();
-    this.path = this.canvas.path(this.getPathString());
-    this.path.attr(this.getStrokeAttrs());
+    this.path = svg.createElm('path');
+    svg.attrs(this.path, this.getStrokeAttrs());
+    this.updatePath();
+    this.canvas.svg.appendChild(this.path);
     return this;
   }
 
 
   fadeAndRemove(animation) {
-    return new Promise((resolve, reject) => {
-      const svgAnimation = this.path.animate(this.options.fadeDuration)
-        .attr({opacity: 0})
-        .after(resolve);
-      animation.registerSvgAnimation(svgAnimation);
-    }).then(() => this.destroy());
+    const tween = new svg.StyleTween(this.path, 'opacity', 0, {
+      duration: this.options.fadeDuration,
+    });
+    animation.registerSvgAnimation(tween);
+    return tween.start().then(() => this.destroy());
   }
 
   getStrokeAttrs() {

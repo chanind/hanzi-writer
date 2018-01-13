@@ -104,7 +104,7 @@ class HanziWriter {
     this._withData(() => {
       this.cancelQuiz();
       this._quiz = new Quiz({
-        canvas: this._canvas,
+        canvas: this._subCanvas,
         animator: this._animator,
         character: this._character,
         characterRenderer: this._characterRenderer,

@@ -22,6 +22,7 @@ class UserStrokeRenderer extends Renderer {
     super.draw();
     this.path = svg.createElm('path');
     svg.attrs(this.path, this.getStrokeAttrs());
+    this.path.style.opacity = 1;
     this.updatePath();
     this.canvas.svg.appendChild(this.path);
     return this;

@@ -1,5 +1,20 @@
 function emptyFunc() {}
 
+// Object.assign polyfill, because IE :/
+function assign(target, ...overrides) {
+  const overrideTarget = Object(target);
+  for (const override of overrides) {
+    if (override != null) {
+      for (const key in override) {
+        if (Object.prototype.hasOwnProperty.call(override, key)) {
+          overrideTarget[key] = override[key];
+        }
+      }
+    }
+  }
+  return overrideTarget;
+}
+
 function arrayMax(numArray) {
   return Math.max.apply(null, numArray);
 }
@@ -50,6 +65,7 @@ function timeout(duration = 0) {
 }
 
 module.exports = {
+  assign,
   arrayMax,
   arrayMin,
   average,

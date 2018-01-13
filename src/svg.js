@@ -31,6 +31,9 @@ class StyleTween {
     this._isActive = true;
     this._startTime = Date.now();
     this._startValue = parseFloat(this._elm.style[this._style], 10);
+    if (this._startValue === this._endValue) {
+      return Promise.resolve();
+    }
     this._progress = 0;
     this._nextTick();
 

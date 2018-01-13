@@ -7,6 +7,7 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
+const { assign } = require('./utils');
 
 
 const defaultOptions = {
@@ -58,18 +59,18 @@ class HanziWriter {
   }
 
   setOptions(options) {
-    this._options = Object.assign({}, defaultOptions, options);
+    this._options = assign({}, defaultOptions, options);
     this._mainCharOptions = {
       strokeColor: this._options.strokeColor,
       strokeWidth: this._options.strokeWidth,
       strokeAnimationDuration: this._options.strokeAnimationDuration,
       delayBetweenStrokes: this._options.delayBetweenStrokes,
     };
-    this._outlineCharOptions = Object.assign({}, this._mainCharOptions, {
+    this._outlineCharOptions = assign({}, this._mainCharOptions, {
       strokeColor: this._options.outlineColor,
       strokeWidth: this._options.outlineWidth,
     });
-    this._highlightCharOptions = Object.assign({}, this._mainCharOptions, {
+    this._highlightCharOptions = assign({}, this._mainCharOptions, {
       strokeColor: this._options.highlightColor,
       strokeAnimationDuration: this._options.strokeHighlightDuration,
     });
@@ -109,7 +110,7 @@ class HanziWriter {
         character: this._character,
         characterRenderer: this._characterRenderer,
         highlightRenderer: this._highlightRenderer,
-        quizOptions: Object.assign({}, this._options, quizOptions),
+        quizOptions: assign({}, this._options, quizOptions),
         userStrokeOptions: this._userStrokeOptions,
       });
     });

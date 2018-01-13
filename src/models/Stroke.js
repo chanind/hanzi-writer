@@ -48,17 +48,12 @@ class Stroke {
   }
 
   getDistance(point) {
-    const distances = this._points.map((strokePoint) => {
-      return Point.getDistance(strokePoint, point);
-    });
+    const distances = this._points.map(strokePoint => Point.getDistance(strokePoint, point));
     return Math.min.apply(Math, distances);
   }
 
   getAverageDistance(points) {
-    let totalDist = 0;
-    for (const point of points) {
-      totalDist += this.getDistance(point);
-    }
+    const totalDist = points.reduce((acc, point) => acc + this.getDistance(point), 0);
     return totalDist / points.length;
   }
 }

@@ -1,6 +1,9 @@
 {
   "extends": "airbnb",
   "parser": "babel-eslint",
+  "plugins": [
+    "no-for-of-loops"
+  ],
   "rules": {
     "id-length": [2, {"exceptions": ["x", "y"]}],
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
@@ -20,6 +23,7 @@
     "import/no-extraneous-dependencies": [0],
     "import/first": [0],
     "space-before-function-paren": [0],
-    "consistent-return": [0]
+    "consistent-return": [0],
+    "no-for-of-loops/no-for-of-loops": 2,
   }
 }

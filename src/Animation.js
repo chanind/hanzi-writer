@@ -10,11 +10,8 @@ class Animation {
 
   cancel() {
     if (!this.isActive()) return;
-
     this._isActive = false;
-    for (const svgAnimation of this._svgAnimations) {
-      svgAnimation.finish();
-    }
+    this._svgAnimations.forEach(anim => anim.finish());
   }
 
   registerSvgAnimation(svgAnimation) {

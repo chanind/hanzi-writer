@@ -30,9 +30,7 @@ class Renderer {
   // extend this in children with extra behavior
   destroy() {
     this.isDestroyed = true;
-    for (const child of this.childRenderers) {
-      child.destroy();
-    }
+    this.childRenderers.forEach(child => child.destroy());
   }
 }
 

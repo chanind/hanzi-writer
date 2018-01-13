@@ -1,5 +1,3 @@
-var WebpackBundleSizeAnalyzerPlugin = require('webpack-bundle-size-analyzer').WebpackBundleSizeAnalyzerPlugin;
-
 module.exports = function(grunt) {
 
   grunt.initConfig({
@@ -30,27 +28,18 @@ module.exports = function(grunt) {
               loader: 'babel-loader',
               query: {
                 presets: ['env'],
-                // plugins:[
-                //   ['babel-plugin-transform-helper', {
-                //       helperFilename: 'dist/tempHelper.js'
-                //     }
-                //   ]
-                // ]
               }
             },
             {
               test: /\.js$/,
               loader: 'eslint-loader',
-              exclude: [/node_modules/, /tempHelper/],
+              exclude: [/node_modules/],
               options: {
                 configFile: '.eslintrc'
               }
             }
           ],
         },
-        plugins: [
-          new WebpackBundleSizeAnalyzerPlugin('./reports/plain-report.txt')
-        ]
       },
 
       dist: {

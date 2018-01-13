@@ -45,9 +45,7 @@ class CharacterRenderer extends Renderer {
   }
 
   draw() {
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.draw();
-    }
+    this.strokeRenderers.forEach(renderer => renderer.draw());
     return this;
   }
 
@@ -67,9 +65,7 @@ class CharacterRenderer extends Renderer {
 
   setCanvas(canvas) {
     super.setCanvas(canvas);
-    for (const strokeRenderer of this.strokeRenderers) {
-      strokeRenderer.setCanvas(canvas);
-    }
+    this.strokeRenderers.forEach(renderer => renderer.setCanvas(canvas));
     return this;
   }
 }

@@ -8,8 +8,8 @@ class Positioner {
   }
 
   convertExternalPoint(point) {
-    const x = (point.getX() - this._xOffset) / this._scale;
-    const y = (this.getHeight() - this._yOffset - point.getY()) / this._scale;
+    const x = (point.x - this._xOffset) / this._scale;
+    const y = (this.getHeight() - this._yOffset - point.y) / this._scale;
     return new Point(x, y);
   }
 
@@ -20,8 +20,8 @@ class Positioner {
 
   _calculateScaleAndOffset() {
     const bounds = this._character.getBounds();
-    const preScaledWidth = bounds[1].getX() - bounds[0].getX();
-    const preScaledHeight = bounds[1].getY() - bounds[0].getY();
+    const preScaledWidth = bounds[1].x - bounds[0].x;
+    const preScaledHeight = bounds[1].y - bounds[0].y;
     const effectiveWidth = this._options.width - 2 * this._options.padding;
     const effectiveHeight = this._options.height - 2 * this._options.padding;
     const scaleX = effectiveWidth / preScaledWidth;
@@ -31,8 +31,8 @@ class Positioner {
 
     const xCenteringBuffer = this._options.padding + (effectiveWidth - this._scale * preScaledWidth) / 2;
     const yCenteringBuffer = this._options.padding + (effectiveHeight - this._scale * preScaledHeight) / 2;
-    this._xOffset = -1 * bounds[0].getX() * this._scale + xCenteringBuffer;
-    this._yOffset = -1 * bounds[0].getY() * this._scale + yCenteringBuffer;
+    this._xOffset = -1 * bounds[0].x * this._scale + xCenteringBuffer;
+    this._yOffset = -1 * bounds[0].y * this._scale + yCenteringBuffer;
   }
 }
 

@@ -27,12 +27,10 @@ class StrokeMatcher {
   _directionMatches(points, stroke) {
     const edgeVectors = this._getEdgeVectors(points);
     const strokeVectors = stroke.getVectors();
-    const similarities = [];
-    for (const edgeVector of edgeVectors) {
+    const similarities = edgeVectors.map(edgeVector => {
       const strokeSimilarities = strokeVectors.map(strokeVector => Point.cosineSimilarity(strokeVector, edgeVector));
-      const maxSimilarity = Math.max.apply(Math, strokeSimilarities);
-      similarities.push(maxSimilarity);
-    }
+      return Math.max.apply(Math, strokeSimilarities);
+    });
     const avgSimilarity = average(similarities);
     return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
   }
@@ -40,21 +38,21 @@ class StrokeMatcher {
   _stripDuplicates(points) {
     if (points.length < 2) return points;
     const dedupedPoints = [points[0]];
-    for (const point of points.slice(1)) {
+    points.slice(1).forEach(point => {
       if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
         dedupedPoints.push(point);
       }
-    }
+    });
     return dedupedPoints;
   }
 
   _getLength(points) {
     let length = 0;
     let lastPoint = points[0];
-    for (const point of points) {
+    points.forEach(point => {
       length += Point.getDistance(point, lastPoint);
       lastPoint = point;
-    }
+    });
     return length;
   }
 
@@ -62,10 +60,10 @@ class StrokeMatcher {
   _getEdgeVectors(points) {
     const vectors = [];
     let lastPoint = points[0];
-    for (const point of points.slice(1)) {
+    points.slice(1).forEach(point => {
       vectors.push(point.subtract(lastPoint));
       lastPoint = point;
-    }
+    });
     return vectors;
   }
 }

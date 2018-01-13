@@ -3,7 +3,7 @@ function emptyFunc() {}
 // Object.assign polyfill, because IE :/
 function assign(target, ...overrides) {
   const overrideTarget = Object(target);
-  for (const override of overrides) {
+  overrides.forEach(override => {
     if (override != null) {
       for (const key in override) {
         if (Object.prototype.hasOwnProperty.call(override, key)) {
@@ -11,7 +11,7 @@ function assign(target, ...overrides) {
         }
       }
     }
-  }
+  });
   return overrideTarget;
 }
 
@@ -37,10 +37,10 @@ function callIfExists(callback, ...args) {
 function getPathString(points) {
   const start = points[0];
   const remainingPoints = points.slice(1);
-  let pathString = `M ${start.getX()} ${start.getY()}`;
-  for (const point of remainingPoints) {
-    pathString += ` L ${point.getX()} ${point.getY()}`;
-  }
+  let pathString = `M ${start.x} ${start.y}`;
+  remainingPoints.forEach(point => {
+    pathString += ` L ${point.x} ${point.y}`;
+  });
   return pathString;
 }
 
@@ -51,10 +51,7 @@ function counter() {
 }
 
 function average(arr) {
-  let sum = 0;
-  for (const val of arr) {
-    sum += val;
-  }
+  const sum = arr.reduce((acc, val) => val + acc, 0);
   return sum / arr.length;
 }
 

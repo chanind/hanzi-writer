@@ -10,9 +10,7 @@ function attr(elm, name, value) {
 }
 
 function attrs(elm, attrsMap) {
-  for (const attrName of Object.keys(attrsMap)) {
-    attr(elm, attrName, attrsMap[attrName]);
-  }
+  Object.keys(attrsMap).forEach(attrName => attr(elm, attrName, attrsMap[attrName]));
 }
 
 // from https://github.com/maxwellito/vivus

@@ -62,11 +62,11 @@ module.exports = function(grunt) {
     uglify: {
       dist: {
         options: {
-          // mangle: {
-          //   properties: {
-          //     regex: /^_/
-          //   }
-          // }
+          mangle: {
+            properties: {
+              regex: /^_/
+            }
+          }
         },
         files: {
           'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js'],

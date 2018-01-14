@@ -133,7 +133,7 @@ class HanziWriter {
       this._positioner = new Positioner(this._character, this._options);
 
       this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._canvas);
-      this._subCanvas = this._positionerRenderer.getPositionedCanvas();
+      this._subCanvas = this._positionerRenderer.positionedCanvas;
 
       this._outlineRenderer = new CharacterRenderer(this._character, this._outlineCharOptions).setCanvas(this._subCanvas).draw();
       this._characterRenderer = new CharacterRenderer(this._character, this._mainCharOptions).setCanvas(this._subCanvas).draw();

@@ -18,6 +18,7 @@
     "no-mixed-operators": [0],
     "arrow-parens": [0],
     "prefer-spread": [0],
+    "func-names": [0],
     "class-methods-use-this": [0],
     "no-restricted-properties": [0],
     "import/no-extraneous-dependencies": [0],

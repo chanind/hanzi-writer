@@ -15,6 +15,20 @@ function assign(target, ...overrides) {
   return overrideTarget;
 }
 
+// utils for classes without es6, sigh...
+// from: https://github.com/nodejs/node-v0.x-archive/blob/546ae2ee/lib/util.js#L552-L575
+function inherits(ctor, superCtor) {
+  ctor.super_ = superCtor; // eslint-disable-line no-param-reassign
+  ctor.prototype = Object.create(superCtor.prototype, { // eslint-disable-line no-param-reassign
+    constructor: {
+      value: ctor,
+      enumerable: false,
+      writable: true,
+      configurable: true,
+    },
+  });
+}
+
 function arrayMax(numArray) {
   return Math.max.apply(null, numArray);
 }
@@ -62,6 +76,7 @@ function timeout(duration = 0) {
 }
 
 module.exports = {
+  inherits,
   assign,
   arrayMax,
   arrayMin,

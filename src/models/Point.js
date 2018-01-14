@@ -1,25 +1,23 @@
 const { arrayMin, arrayMax } = require('../utils');
 
-class Point {
-  constructor(x, y) {
-    this.x = parseInt(x, 10);
-    this.y = parseInt(y, 10);
-  }
-
-  // return a new point subtracting point from this
-  subtract(point) {
-    return new Point(this.x - point.x, this.y - point.y);
-  }
-
-  getMagnitude() {
-    return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-  }
-
-  equals(point) {
-    if (!point) return false;
-    return point.x === this.x && point.y === this.y;
-  }
+function Point(x, y) {
+  this.x = parseInt(x, 10);
+  this.y = parseInt(y, 10);
 }
+
+// return a new point subtracting point from this
+Point.prototype.subtract = function(point) {
+  return new Point(this.x - point.x, this.y - point.y);
+};
+
+Point.prototype.getMagnitude = function() {
+  return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
+};
+
+Point.prototype.equals = function(point) {
+  if (!point) return false;
+  return point.x === this.x && point.y === this.y;
+};
 
 Point.getBounds = (points) => {
   const xs = points.map((point) => point.x);

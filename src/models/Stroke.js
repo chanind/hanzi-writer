@@ -1,61 +1,51 @@
 const Point = require('./Point');
 
-class Stroke {
-  constructor(path, points, strokeNum) {
-    this._path = path;
-    this._points = points;
-    this._strokeNum = strokeNum;
-  }
-
-  getStrokeNum() {
-    return this._strokeNum;
-  }
-
-  getPath() {
-    return this._path;
-  }
-
-  getPoints() {
-    return this._points;
-  }
-
-  getStartingPoint() {
-    return this._points[0];
-  }
-
-  getEndingPoint() {
-    return this._points[this._points.length - 1];
-  }
-
-  getLength() {
-    let lastPoint = this._points[0];
-    const pointsSansFirst = this._points.slice(1);
-    return pointsSansFirst.reduce((acc, point) => {
-      const dist = Point.getDistance(point, lastPoint);
-      lastPoint = point;
-      return acc + dist;
-    }, 0);
-  }
-
-  getVectors() {
-    let lastPoint = this._points[0];
-    const pointsSansFirst = this._points.slice(1);
-    return pointsSansFirst.map((point) => {
-      const vector = point.subtract(lastPoint);
-      lastPoint = point;
-      return vector;
-    });
-  }
-
-  getDistance(point) {
-    const distances = this._points.map(strokePoint => Point.getDistance(strokePoint, point));
-    return Math.min.apply(Math, distances);
-  }
-
-  getAverageDistance(points) {
-    const totalDist = points.reduce((acc, point) => acc + this.getDistance(point), 0);
-    return totalDist / points.length;
-  }
+function Stroke(path, points, strokeNum) {
+  this.path = path;
+  this.points = points;
+  this.strokeNum = strokeNum;
 }
+
+Stroke.prototype.getStrokeNum = function() {
+  return this.strokeNum;
+};
+
+Stroke.prototype.getStartingPoint = function() {
+  return this.points[0];
+};
+
+Stroke.prototype.getEndingPoint = function() {
+  return this.points[this.points.length - 1];
+};
+
+Stroke.prototype.getLength = function() {
+  let lastPoint = this.points[0];
+  const pointsSansFirst = this.points.slice(1);
+  return pointsSansFirst.reduce((acc, point) => {
+    const dist = Point.getDistance(point, lastPoint);
+    lastPoint = point;
+    return acc + dist;
+  }, 0);
+};
+
+Stroke.prototype.getVectors = function() {
+  let lastPoint = this.points[0];
+  const pointsSansFirst = this.points.slice(1);
+  return pointsSansFirst.map((point) => {
+    const vector = point.subtract(lastPoint);
+    lastPoint = point;
+    return vector;
+  });
+};
+
+Stroke.prototype.getDistance = function(point) {
+  const distances = this.points.map(strokePoint => Point.getDistance(strokePoint, point));
+  return Math.min.apply(Math, distances);
+};
+
+Stroke.prototype.getAverageDistance = function(points) {
+  const totalDist = points.reduce((acc, point) => acc + this.getDistance(point), 0);
+  return totalDist / points.length;
+};
 
 module.exports = Stroke;

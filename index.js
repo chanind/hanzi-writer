@@ -3,20 +3,16 @@ window.onload = function() {
 		width: 200,
 		height: 200,
 		padding: 0,
-		strokeColor: '#fff',
-		hintColor: '#000',
 		showCharacter: false,
-		showOutline: false
+		showOutline: true
 	});
 
 	window.hao = new HanziWriter('hao', '好', {
 		width: 200,
 		height: 200,
 		padding: 0,
-		strokeColor: '#fff',
-		hintColor: '#000',
 		showCharacter: false,
-		showOutline: false
+		showOutline: true
 	});
 
 	var lastAnimatedNi = false;

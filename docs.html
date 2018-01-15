@@ -1,0 +1,304 @@
+---
+layout: default
+---
+
+<div class="container docs">
+  <div class="row">
+    <div class="col-md-3 toc">
+      <ul class="nav">
+        <li>Installation</li>
+        <li>Basic Usage</li>
+        <li>Advanced Usage</li>
+      </ul>
+    </div>
+    <div class="col-md-9">
+      <h1>Installation</h1>
+      <h4>Loading Hanzi Writer in a script tag</h4>
+      <p>
+        The simplest option is to load the Hanzi Writer JS directly from the github CDN. Just put the following in the head of your webpage:
+        {% highlight html %}
+          <script src="https://chanind.github.io/hanzi-writer/cdn/2/dist/hanzi-writer.min.js"></script>
+        {% endhighlight %}
+      </p>
+      <p>
+        You can also download a copy of the Hanzi Writer here:<br />
+        <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (22 kb)<br />
+        <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (46 kb)<br />
+      </p>
+      <p>
+        The above scripts will make a global <code>HanziWriter</code> variable available after the script loads.
+      </p>
+      <h4>Loading Hanzi Writer via npm</h4>
+      <p>
+        If you want to include Hanzi Writer in webpack or node.js, you can install from NPM: <code>npm install hanzi-writer</code>
+        Then, you can include Hanzi Writer in your code via:
+        {% highlight javascript %}
+          const HanziWriter = require('hanzi-writer');
+        {% endhighlight %}
+      </p>
+      <br /><br />
+      <div class="panel panel-warning">
+        <div class="panel-heading">Note: working with old browsers</div>
+        <div class="panel-body">
+          If you want to use Hanzi Writer with old versions of internet explorer (10 and 11) you'll need to
+          provide a polyfill for the Promise api. An easy way to do that is by using polyfill.io.
+          Add the following to your webpage before loading Hanzi Writer:
+          {% highlight html %}
+            <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+          {% endhighlight %}
+        </div>
+      </div>
+
+      <h1>Basic usage</h1>
+      <h4>Rendering to the screen</h4>
+      <p>
+        Creating a new <code>HanziWriter</code> instance requires passing in a target div (either ID or DOM reference),
+        the character you'd like to render, and configuration options. A simple example is illustrated below.
+        Assuming in HTML you have:
+      </p>
+      {% highlight html %}
+<div id="character-target-div"></div>
+      {% endhighlight %}
+      <p>Then, in Javascript:</p>
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '我', {
+  width: 100,
+  height: 100,
+  padding: 5
+});
+      {% endhighlight %}
+
+      <p>You can see the result of this below:</p>
+      <div id="docs-target-1" class="inline-demo"></div>
+      <script>
+        (function() {
+          new HanziWriter('docs-target-1', '我', {
+            width: 100,
+            height: 100,
+            padding: 5
+          });
+        })();
+      </script>
+      <p>
+        In the above example width and height are the size of the box containing the character in pixels, and padding is the space between the character and the edge of the box, also in pixels. You can configure other options as well, like the color of the character. Below is an example drawn with different sizing and colors:
+      <p>
+
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '爽', {
+  width: 150,
+  height: 150,
+  padding: 20,
+  strokeColor: '#EE00FF' // pink
+});
+      {% endhighlight %}
+
+      <div id="docs-target-2" class="inline-demo medium-demo"></div>
+      <script>
+        (function() {
+          new HanziWriter('docs-target-2', '爽', {
+            width: 150,
+            height: 150,
+            padding: 20,
+            strokeColor: '#EE00FF' // pink
+          });
+        })();
+      </script>
+
+      <h4>Animation</h4>
+      <p>After you create a HanziWriter instance you can animate it by calling the
+      <code>animateCharacter()</code> method. In the example below, the character is animated when a button is pressed. the HTML looks like the following:</p>
+
+      {% highlight html %}
+<div id="character-target-div"></div>
+<button id="animate-button">Animate</button>
+      {% endhighlight %}
+
+      <p>Then, the corresponding javascript:</p>
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '国', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showOutline: true
+});
+document.getElementById('animate-button').addEventListener('click', function() {
+  writer.animateCharacter();
+});
+      {% endhighlight %}
+
+      <div id="docs-target-3" class="inline-demo"></div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-3-button" type="submit">Animate</button>
+      <script>
+          (function() {
+            var writer = new HanziWriter('docs-target-3', '国', {
+              width: 100,
+              height: 100,
+              padding: 5,
+              showOutline: true
+            });
+            document.getElementById('docs-target-3-button').addEventListener('click', function() {
+              writer.animateCharacter();
+            });
+          })();
+      </script>
+
+      <p>There are also a number of options you can configure with animations to control things like the speed of the animation and whether or not the character outline is visible. Below is another example of animating with different animation options:</p>
+
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '国', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showOutline: false,
+  strokeAnimationDuration: 50, // milliseconds
+  delayBetweenStrokes: 10, // milliseconds
+});
+document.getElementById('animate-button').addEventListener('click', function() {
+  writer.animateCharacter();
+});
+      {% endhighlight %}
+      <div id="docs-target-4" class="inline-demo"></div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-4-button" type="submit">Fast</button>
+      <script>
+        (function() {
+          var writer = new HanziWriter('docs-target-4', '国', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showOutline: false,
+            strokeAnimationDuration: 50, // milliseconds
+            delayBetweenStrokes: 10 // milliseconds
+          });
+          document.getElementById('docs-target-4-button').addEventListener('click', function() {
+            writer.animateCharacter();
+          });
+        })();
+      </script>
+
+      <h4>Looping Animations</h4>
+      <p>
+        It's common to repeat an animation over and over. You can pass an onComplete callback when running
+        <code>animateCharacter({ onComplete: function() { ... }})</code> that you can use to start another animation when an animation ends. In the example below, the character will wait 2 seconds and then redraw itself forever:
+      </p>
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '轮', {
+  width: 100,
+  height: 100,
+  padding: 5
+});
+
+function animateForever() {
+  writer.animateCharacter({
+    onComplete: function() {
+      var timeBetweenLoops = 2000; // in milliseconds
+      setTimeout(animateForever, 2000);
+    }
+  });
+}
+
+animateForever();
+      {% endhighlight %}
+      <div id="docs-target-5" class="inline-demo"></div>
+      <script>
+        (function() {
+          var writer = new HanziWriter('docs-target-5', '轮', {
+            width: 100,
+            height: 100,
+            padding: 5
+          });
+
+          function animateForever() {
+            writer.animateCharacter({
+              onComplete: function() {
+                var timeBetweenLoops = 2000; // in milliseconds
+                setTimeout(animateForever, 2000);
+              }
+            });
+          }
+          animateForever();
+        })();
+      </script>
+
+      <h4>Chaining character animations</h4>
+      <p>
+        You can also use the onComplete callback to cause one character to start animating after another finishes. Below is an example of 2 characters animating in order, one after another with 1 second between drawing each character. the HTML looks like:
+      </p>
+      {% highlight html %}
+<div id="character-target-1"></div>
+<div id="character-target-2"></div>
+<button id="animate-button">Start</button>
+      {% endhighlight %}
+      <p>And the javascript:</p>
+      {% highlight javascript %}
+var char1 = new HanziWriter('character-target-1', '很', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showCharacter: false
+});
+var char2 = new HanziWriter('character-target-2', '爽', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showCharacter: false
+});
+
+function chainAnimations() {
+  var delayBetweenAnimations = 1000; // milliseconds
+  char1.hideCharacter();
+  char2.hideCharacter();
+
+  char1.animateCharacter({
+    onComplete: function() {
+      setTimeout(function() {
+        char2.animateCharacter();
+      }, delayBetweenAnimations);
+    }
+  });
+}
+
+document.getElementById('animate-button').addEventListener('click', chainAnimations);
+      {% endhighlight %}
+      <div class="inline-demo-flex">
+        <div id="docs-target-6-1" class="inline-demo"></div>
+        <div id="docs-target-6-2" class="inline-demo"></div>
+      </div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-6-button" type="submit">Start</button>
+      <script>
+        (function() {
+          var char1 = new HanziWriter('docs-target-6-1', '很', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showCharacter: false
+          });
+          var char2 = new HanziWriter('docs-target-6-2', '爽', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showCharacter: false
+
+          });
+
+          function chainAnimations() {
+            var delayBetweenAnimations = 1000; // milliseconds
+            char1.hideCharacter();
+            char2.hideCharacter();
+
+            char1.animateCharacter({
+              onComplete: function() {
+                setTimeout(function() {
+                  char2.animateCharacter();
+                }, delayBetweenAnimations);
+              }
+            });
+          }
+
+          document.getElementById('docs-target-6-button').addEventListener('click', chainAnimations);
+        })();
+      </script>
+
+
+    </div>
+  </div>
+</div>

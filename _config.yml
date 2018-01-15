@@ -16,3 +16,7 @@ exclude:
   - cdn/*/demo
   - cdn/*/all.js
   - cdn/*/all.json
+  - vendor
+  - cdn/*/vendor
+  # REMOVE THIS BEFORE PUBLISHING OR EVERYING WILL BREAK!
+  - cdn/*/data

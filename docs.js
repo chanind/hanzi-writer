@@ -1,0 +1,1 @@
+$('body').scrollspy({ target: '#toc' })

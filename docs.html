@@ -6,7 +6,7 @@ js: docs.js
 <div class="container docs">
   <div class="row">
     <div class="col-md-3">
-      <div class="toc">
+      <div class="toc" id="toc" data-spy="affix" data-offset-top="95" data-offset-bottom="155">
         <ul class="nav">
           <li>
             <a href="#installation-link">
@@ -39,17 +39,25 @@ js: docs.js
               <li>
                 <a href="#quizzing-link">Quizzing</a>
               </li>
+              <li>
+                <a href="#integrating-quizzes-link">Integrating quizzes</a>
+              </li>
             </ul>
           </li>
           <li>
             <a href="#advanced-usage-link">Advanced usage</a>
+            <ul class="nav">
+              <li>
+                <a href="#loading-character-data-link">Loading character data</a>
+              </li>
+            </ul>
           </li>
         </ul>
       </div>
     </div>
     <div class="col-md-9 content">
       <h1 id="installation-link">Installation</h1>
-      <h4 id="script-loading-link">Loading Hanzi Writer in a script tag</h4>
+      <h2 id="script-loading-link">Loading Hanzi Writer in a script tag</h2>
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the github CDN. Just put the following in the head of your webpage:
         {% highlight html %}
@@ -64,7 +72,7 @@ js: docs.js
       <p>
         The above scripts will make a global <code>HanziWriter</code> variable available after the script loads.
       </p>
-      <h4 id="npm-loading-link">Loading Hanzi Writer via npm</h4>
+      <h2 id="npm-loading-link">Loading Hanzi Writer via npm</h2>
       <p>
         If you want to include Hanzi Writer in webpack or node.js, you can install from NPM: <code>npm install hanzi-writer</code>
         Then, you can include Hanzi Writer in your code via:
@@ -87,7 +95,7 @@ js: docs.js
       </div>
 
       <h1 id="basic-usage-link">Basic usage</h1>
-      <h4 id="rendering-link">Rendering to the screen</h4>
+      <h2 id="rendering-link">Rendering to the screen</h2>
       <p>
         Creating a new <code>HanziWriter</code> instance requires passing in a target div (either ID or DOM reference),
         the character you'd like to render, and configuration options. A simple example is illustrated below.
@@ -141,7 +149,7 @@ var writer = new HanziWriter('character-target-div', '爽', {
         })();
       </script>
 
-      <h4 id="animation-link">Animation</h4>
+      <h2 id="animation-link">Animation</h2>
       <p>After you create a HanziWriter instance you can animate it by calling the
       <code>animateCharacter()</code> method. In the example below, the character is animated when a button is pressed. the HTML looks like the following:</p>
 
@@ -212,7 +220,7 @@ document.getElementById('animate-button').addEventListener('click', function() {
         })();
       </script>
 
-      <h4 id="looping-animation-link">Looping Animations</h4>
+      <h2 id="looping-animation-link">Looping Animations</h2>
       <p>
         It's common to repeat an animation over and over. You can pass an onComplete callback when running
         <code>animateCharacter({ onComplete: function() { ... }})</code> that you can use to start another animation when an animation ends. In the example below, the character will wait 2 seconds and then redraw itself forever:
@@ -256,7 +264,7 @@ animateForever();
         })();
       </script>
 
-      <h4 id="chaining-animation-link">Chaining character animations</h4>
+      <h2 id="chaining-animation-link">Chaining character animations</h2>
       <p>
         You can also use the onComplete callback to cause one character to start animating after another finishes. Below is an example of 2 characters animating in order, one after another with 1 second between drawing each character. the HTML looks like:
       </p>
@@ -335,7 +343,7 @@ document.getElementById('animate-button').addEventListener('click', chainAnimati
         })();
       </script>
 
-      <h4 id="quizzing-link">Quizzing</h4>
+      <h2 id="quizzing-link">Quizzing</h2>
 
       <p>
         You can start a quiz by calling the <code>quiz()</code> method. We can set up a simple quiz with the code below:
@@ -402,7 +410,7 @@ writer.quiz();
         })();
       </script>
 
-      <h4 id="interacting-with-quizzes-link">Interacting with Quizzes</h4>
+      <h2 id="integrating-quizzes-link">Integrating Quizzes</h2>
       <p>
         Quizzes on their own are good practice, but they become really poweful when they interact with the rest of your code. The <code>quiz()</code> method can be passed callbacks that you can use to run code when events happen in the quiz, like getting a stroke right or wrong, or the quiz finishing. The callbacks are called <code>onCorrectStroke</code>, <code>onMistake</code> and <code>onComplete</code>. These callbacks get passed an object containing info about the current state of the quiz. Below is an example of how you can integrate these callbacks:
         {% highlight javascript %}
@@ -415,15 +423,15 @@ var writer = new HanziWriter('character-target-div', '码', {
 writer.quiz({
   onMistake: function(strokeData) {
     console.log('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
-    console.log("You've made " + strokeData.mistakesOnStroke + " on this stroke so far");
+    console.log("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
     console.log("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
-    console.log("There are " + strokeData.strokesRemaining + " stroke remaining in this character");
+    console.log("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
   },
   onCorrectStroke: function(strokeData) {
     console.log('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
-    console.log('You made ' + strokeData.mistakesOnStroke + ' on this stroke');
+    console.log('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
     console.log("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
-    console.log('There are ' + strokeData.strokesRemaining + ' stroke remaining in this character');
+    console.log('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
   },
   onComplete: function(summaryData) {
     console.log('You did it! You finished drawing ' + summaryData.character);
@@ -437,7 +445,6 @@ writer.quiz({
         <div id="docs-target-9-console" class="inline-demo-console"></div>
       </div>
       <button id="docs-target-9-button" class="btn btn-primary inline-demo-btn">Reset</button>
-      <p>Try drawing the character 码 above, and watch the output appear in the virtual console</p>
       <script>
         (function() {
           var writer = new HanziWriter('docs-target-9', '码', {
@@ -456,16 +463,16 @@ writer.quiz({
           var opts = {
             onMistake: function(strokeData) {
               consoleLog('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
-              consoleLog("You've made " + strokeData.mistakesOnStroke + " on this stroke so far");
+              consoleLog("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
               consoleLog("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
-              consoleLog("There are " + strokeData.strokesRemaining + " stroke remaining in this character");
+              consoleLog("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
               consoleLog("");
             },
             onCorrectStroke: function(strokeData) {
               consoleLog('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
-              consoleLog('You made ' + strokeData.mistakesOnStroke + ' on this stroke');
+              consoleLog('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
               consoleLog("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
-              consoleLog('There are ' + strokeData.strokesRemaining + ' stroke remaining in this character');
+              consoleLog('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
               consoleLog("");
             },
             onComplete: function(summaryData) {
@@ -480,7 +487,48 @@ writer.quiz({
           });
         })();
       </script>
+      <p>Try drawing the character 码 above, and watch the output appear in the virtual console.</p>
 
+      <h1 id="advanced-usage-link">Advanced usage</h1>
+      <h2 id="loading-character-data-link">Loading character data</h2>
+
+      <p>
+        Hanzi Writer needs to load stroke rendering data in order to draw characters. By default Hanzi Writer
+        will load this data from github's CDN using ajax. This is probably fine for embedding Hanzi Writer into a website, but depending on how you're using Hanzi Writer there may be better ways to load character data. For example, if you're buidling a mobile app and want to embed Hanzi Writer into the app it's best to load character data locally so that character data is loaded instantly and without needing an internet connection.
+      </p>
+      <p>
+        In the Hanzi Writer repo there is a <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder which contains the data for each individual character as a separate JSON file. You can use host these files from your server and load them via AJAX inside of Hanzi Writer however you see fit. Loading character data is way is accomplished via passing a custom closure to the <i>charDataLoader</i> option. An example is shown below using jQuery:
+      </p>
+
+      {% highlight javascript %}
+var writer = new HanziWriter('target', '我', {
+  charDataLoader: function(char, onComplete) {
+    $.getJSON("/my/server/" + char + ".json", function(charData) {
+      onComplete(charData);
+    });
+  }
+});
+      {% endhighlight %}
+
+      <p>
+        The data folder also contains all.json and all.js which contain all characters in 1 file, but these files are quite large (28mb) so they're probably not ideal for production use.
+      </p>
+
+      <p>
+        If you know in advance which character you'd like to render you can hardcode just the data for that
+        character into the <i>charDataLoader</i> closure. To do this, open up the JSON for the character you'd
+        like to render and copy the result into the <i>charDataLoader</i> closure. This technique ensures that
+        Hanzi Writer will be able to render the character instantly without needing to wait for an AJAX request to complete. For example, here's how you could embed the data for the character <b>人</b>:
+      </p>
+
+      {% highlight javascript %}
+var writer = new HanziWriter('target', '人', {
+  charDataLoader: function(char) {
+    if (char !== '人') throw "invalid character, only have data for 人";
+    return {"character":"人","strokes":["M 475 485 Q 547 653 563 683 Q 573 695 565 708 Q 558 721 519 742 Q 491 757 480 754 Q 462 750 465 730 Q 484 537 292 308 Q 280 296 269 284 Q 212 217 68 102 Q 58 92 66 89 Q 76 86 90 92 Q 190 138 274 210 Q 380 294 462 456 L 475 485 Z","M 462 456 Q 480 423 575 292 Q 666 171 733 101 Q 764 67 793 69 Q 881 75 958 79 Q 991 80 992 89 Q 993 98 956 112 Q 772 178 740 205 Q 617 304 490 466 Q 481 476 475 485 L 462 456 Z"],"medians":[[[483,736],[508,702],[511,678],[473,552],[408,416],[328,303],[271,244],[144,139],[72,95]],[[474,477],[477,459],[490,439],[571,333],[691,200],[753,145],[798,119],[986,90]]]};
+  }
+});
+      {% endhighlight %}
     </div>
   </div>
 </div>

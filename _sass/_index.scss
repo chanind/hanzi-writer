@@ -3,12 +3,28 @@
 -------------------------------------------------- */
 
 .intro-inner {
-  margin: 100px auto 0;
+  margin: 20px auto 0;
   max-width: 768px;
 }
 .intro {
   text-align: center;
 }
+.intro-actions {
+  margin-top: 60px;
+
+}
+.intro-btn {
+  width: 300px;
+  margin: 0 20px;
+}
+
+/* Bump up size of carousel content */
+.intro-inner p {
+  margin: 20px 0;
+  font-size: 21px;
+  line-height: 1.4;
+}
+
 
 
 
@@ -76,18 +92,6 @@
     border-radius: 4px;
   }
 
-  .intro {
-    margin-bottom: 20px;
-  }
-
-  /* Bump up size of carousel content */
-  .intro-inner p {
-    margin-bottom: 20px;
-    font-size: 21px;
-    line-height: 1.4;
-  }
-
-
   .featurette-heading {
     font-size: 50px;
   }
@@ -106,15 +110,6 @@
   height: 200px;
   width: 200px;
   margin: 0 20px;
-}
-
-.marketing {
-  padding-top: 30px;
-}
-
-.marketing h1 {
-  font-size: 48px;
-  margin-bottom: 30px;
 }
 
 .wo-quiz {

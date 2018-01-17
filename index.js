@@ -1,22 +1,20 @@
 window.onload = function() {
+	var size = $('#ni').width();
+
 	window.ni = new HanziWriter('ni', '你', {
-		width: 200,
-		height: 200,
+		width: size,
+		height: size,
 		padding: 0,
-		strokeColor: '#fff',
-		hintColor: '#000',
 		showCharacter: false,
-		showOutline: false
+		showOutline: true
 	});
 
 	window.hao = new HanziWriter('hao', '好', {
-		width: 200,
-		height: 200,
+		width: size,
+		height: size,
 		padding: 0,
-		strokeColor: '#fff',
-		hintColor: '#000',
 		showCharacter: false,
-		showOutline: false
+		showOutline: true
 	});
 
 	var lastAnimatedNi = false;
@@ -26,26 +24,4 @@ window.onload = function() {
 		char.animateCharacter({onComplete: animateNext});
 	};
 	animateNext();
-
-	window.woQuiz = new HanziWriter('wo-quiz', '我', {
-		width: 300,
-		height: 300,
-		padding: 20,
-		hintColor: '#EEE',
-		showCharacter: false,
-		showOutline: true,
-		showHintAfterMisses: 1
-	});
-	woQuiz.quiz();
-	var woToggleOutlineCheckbox = document.getElementById('wo-show-outline');
-	var woResetButton = document.getElementById('wo-reset');
-	woToggleOutlineCheckbox.addEventListener('click', function() {
-		woToggleOutlineCheckbox.checked ? woQuiz.showOutline() : woQuiz.hideOutline();
-	});
-	woResetButton.addEventListener('click', function(evt) {
-		evt.preventDefault();
-		woQuiz.quiz();
-	});
-
-
 };

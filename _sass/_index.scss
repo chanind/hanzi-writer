@@ -1,22 +1,82 @@
 
+/* Featurettes
+------------------------- */
+
+.featurette-divider {
+  margin: 80px 0; /* Space out the Bootstrap <hr> more */
+}
+
 /* CUSTOMIZE THE CAROUSEL
 -------------------------------------------------- */
 
 .intro-inner {
-  color: #fff;
-  margin: 100px auto 0;
+  margin: 20px auto 0;
   max-width: 768px;
-  text-shadow: 0 1px 2px rgba(0,0,0,.6);
 }
 .intro {
-  background-color: #777;
-  padding-bottom: 50px;
   text-align: center;
 }
+.intro-actions {
+  margin-top: 60px;
+
+  @media (max-width: 768px) {
+    display: flex;
+
+  }
+
+}
+.intro-btn {
+  width: 300px;
+  margin: 0 20px;
+
+  @media (max-width: 768px) {
+    margin: 0 10px;
+  }
+}
+
+/* Bump up size of carousel content */
+.intro-inner p {
+  margin: 20px 0;
+  font-size: 21px;
+  line-height: 1.4;
+}
+
+
 
 
 /* MARKETING CONTENT
 -------------------------------------------------- */
+
+.sub-features {
+  display: flex;
+  justify-content: space-around;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
+}
+
+.sub-feature {
+  width: 25%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .middle-subfeature {
+    margin: 20px 0;
+  }
+
+  .marketing-top-divider {
+    margin-bottom: 40px;
+  }
+
+  .marketing-bottom-divider {
+    margin-top: 40px;
+  }
+}
 
 /* Center align the text within the three columns below the carousel */
 .marketing .col-lg-4 {
@@ -29,21 +89,6 @@
 .marketing .col-lg-4 p {
   margin-right: 10px;
   margin-left: 10px;
-}
-
-
-/* Featurettes
-------------------------- */
-
-.featurette-divider {
-  margin: 80px 0; /* Space out the Bootstrap <hr> more */
-}
-
-/* Thin out the marketing headings */
-.featurette-heading {
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -1px;
 }
 
 
@@ -69,18 +114,6 @@
     border-radius: 4px;
   }
 
-  .intro {
-    margin-bottom: 20px;
-  }
-
-  /* Bump up size of carousel content */
-  .intro-inner p {
-    margin-bottom: 20px;
-    font-size: 21px;
-    line-height: 1.4;
-  }
-
-
   .featurette-heading {
     font-size: 50px;
   }
@@ -99,36 +132,12 @@
   height: 200px;
   width: 200px;
   margin: 0 20px;
+
+  @media (max-width: 568px) {
+    width: 100px;
+    height: 100px;
+    margin: 0 10px;
+  }
 }
 
-.marketing {
-  padding-top: 30px;
-}
-
-.marketing h1 {
-  font-size: 48px;
-  margin-bottom: 30px;
-}
-
-.wo-quiz {
-  border: 1px solid #AAA;
-  height: 300px;
-  width: 300px;
-  margin: 0 auto;
-}
-
-.subtext {
-  color: #777;
-  margin: 30px 0 40px;
-}
-
-.wo-quiz-controls {
-  border: 1px solid #AAA;
-  margin: 10px auto 30px;
-  padding: 10px;
-  width: 300px;
-}
-.wo-quiz-controls .btn {
-  margin-left: 20px
-}
 

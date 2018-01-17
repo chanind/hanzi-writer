@@ -16,3 +16,5 @@ exclude:
   - cdn/*/demo
   - cdn/*/all.js
   - cdn/*/all.json
+  - vendor
+  - cdn/*/vendor

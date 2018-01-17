@@ -2,8 +2,6 @@
 layout: default
 js: index.js
 ---
-<!-- Carousel
-================================================== -->
 <div class="intro">
   <div class="container">
     <div class="intro-inner">
@@ -12,12 +10,20 @@ js: index.js
       <h1>Character Animations and Stroke Quizzes</h1>
       <p>
         Hanzi Writer is a free and open-source javascript library
-        for both animating simplified Chinese characters and quizzing
+        for both animating Chinese characters and quizzing
         users on character stroke order.
       </p>
+      <div class="intro-actions">
+        <a class="intro-btn btn btn-lg btn-primary" href="docs.html">
+          Get started
+        </a>
+        <a class="intro-btn btn btn-lg btn-default" href="demos.html">
+          View demos
+        </a>
+      </div>
     </div>
   </div>
-</div><!-- /.carousel -->
+</div>
 
 
 <!-- Marketing messaging and featurettes
@@ -25,156 +31,30 @@ js: index.js
 <!-- Wrap the rest of the page in another container to center all the content. -->
 
 <div class="container marketing">
-
-  <div class="text-center">
-    <h1>Try it out</h1>
-    <p class="subtext">Test yourself by drawing the character <strong>我</strong> with your mouse or finger</p>
-    <div id="wo-quiz" class="wo-quiz"></div>
-
-    <div class="wo-quiz-controls">
-      <form class="form-inline">
-        <div class="checkbox">
-          <label>
-            <input type="checkbox" checked="checked" id="wo-show-outline" /> Show Outline
-          </label>
-          <button class="btn btn-default" id="wo-reset">Reset</button>
-        </div>
-      </form>
+  <hr class="featurette-divider marketing-top-divider" />
+  <div class="sub-features">
+    <div class="sub-feature">
+      <h4>9000+ characters</h4>
+      <p>
+        Hanzi Writer uses character data from the <a target="_blank" href="https://github.com/skishore/makemeahanzi">Make Me a Hanzi</a> project, providing over 9000 of the most common
+        simplified and traditional characters.
+      </p>
     </div>
-
-    <a href="demo.html">See more demos</a>
+    <div class="sub-feature middle-subfeature">
+      <h4>Tiny library size</h4>
+      <p>
+        The Hanzi Writer library is only 22 kb (just 6kb gzipped!), so it won't add bloat to web pages.
+      </p>
+    </div>
+    <div class="sub-feature">
+      <h4>Works everywhere</h4>
+      <p>
+        Hanzi Writer uses javascript, HTML5 and SVG, so it can be embedded into almost any application,
+        whether an iOS or Android app, a desktop application, or a webpage.
+      </p>
+    </div>
   </div>
-
-  <hr class="featurette-divider" />
-
-  <h1>Getting Started</h1>
-
-  <p>
-    Download a copy of the Hanzi Writer javascript:<br />
-    <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (22 kb)<br />
-    <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (46 kb)<br />
-  </p>
-
-  <p>
-    You can also install Hanzi Writer from NPM: <code>npm install hanzi-writer</code>
-  </p>
-
-  <h2>Basic Usage</h2>
-
-  <p>
-    Creating a new <code>HanziWriter</code> instance requires passing in a target div (either ID or DOM reference),
-    the character you'd like to render, and an options object. All options are optional, but they are
-    illustrated below to give a sense of what options are available.
-  </p>
-  {% highlight javascript %}
-var writer = new HanziWriter('target-div', '我', {
-  charDataLoader: // character loading closure - see section below for more info,
-  showOutline: true, // show a faded outline of the character
-  showCharacter: true, // whether or not to draw the completed character
-
-  // positioning options
-
-  width: 200, // width of the character, in px
-  height: 200, // height of the character, in px
-  padding: 20, // padding between edges of character and edges of the target div, in px
-
-  // animation options
-
-  strokeAnimationDuration: 300, // duration of each stroke in ms
-  delayBetweenStrokes: 1000, // delay between drawing subsequent strokes in ms
-
-  // colors
-
-  strokeColor: '#555',
-  highlightColor: '#AAF', // color used to highlight strokes as a hint during quizzing
-  outlineColor: '#DDD', 
-  drawingColor: '#333', // color of the line drawn by the user during quizzing
-
-  // quiz options
-
-  showHintAfterMisses: 3, // give a hint after this many subsequent mistakes during quizzing
-  highlightOnComplete: true, // flash the character when the quiz is successfully completed
-});
-
-// animate the strokes in the character
-writer.animateCharacter({
-  onComplete: function() { console.log('finished animating!'); }
-});
-
-// quiz the user on this character
-writer.quiz({
-  onCorrectStroke: function(status) { console.log('got a stroke correct! :)', status); },
-  onMistake: function(status) { console.log('Oh no, you made a mistake drawing the stroke :(', status); },
-  onComplete: function(status) { console.log('Yay you finished the whole character! :D', status); }
-});
-
-// other misc methods
-writer.showCharacter();
-writer.hideCharacter();
-writer.showOutline();
-writer.hideOutline();
-writer.cancelQuiz();
-writer.setCharacter('你'); // change which character is being displayed
-  {% endhighlight %}
-
-  <h2>Loading Character Data</h2>
-
-  <p>
-    Hanzi Writer needs to load stroke rendering data in order to draw characters. By default Hanzi Writer
-    will load this data from github's CDN using ajax. This is probably fine for embedding Hanzi Writer into
-    a website, but depending on how you're using Hanzi Writer there may be better ways to load character data.
-    For example, if you're buidling a mobile app and want to embed Hanzi Writer into the app it's best to
-    load character data locally so that character data is loaded instantly and without needing an internet
-    connection. In the Hanzi Writer repo there is a <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder which contains all the character data for each character in several different formats.
-  </p>
-  <p>
-    If you wish to use Hanzi Writer from within a webview in a mobile app the easiest method is to simply include the <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.js">all.js</a> file in your webpage which includes all the data for every character in a giant javascript object and puts it in a global variable named <code>hanziData</code>. The all.js file is about 4.5MB. There is also an <a href="https://github.com/chanind/hanzi-writer/blob/master/dist/data/all.json">all.json</a> version if you would prefer to load this data via JSON. An example of how to use the all.js file is shown below:
-  </p>
-
-  {% highlight javascript %}
-var writer = new HanziWriter('target', '我', {
-  charDataLoader: function(char) {
-    // assuming the all.js file is included in the source of the webview
-    return hanziData[char];
-  }
-});
-  {% endhighlight %}
-
-  <p>
-    The <a href="https://github.com/chanind/hanzi-writer/tree/master/dist/data">data</a> folder also includes the data for each individual character as a separate JSON file. You can use host these files from your server and load them via AJAX inside of Hanzi Writer however you see fit. Loading character data is way is accomplished via passing a custom closure to the <i>charDataLoader</i> option. An example is shown below using jQuery:
-  </p>
-
-  {% highlight javascript %}
-var writer = new HanziWriter('target', '我', {
-  charDataLoader: function(char, onComplete) {
-    $.getJSON("/my/server/" + char + ".json", onComplete);
-  }
-});
-  {% endhighlight %}
-
-  <p>
-    If you know in advance which character you'd like to render you can hardcode just the data for that
-    character into the <i>charDataLoader</i> closure. To do this, open up the JSON for the character you'd
-    like to render and copy the result into the <i>charDataLoader</i> closure. This technique ensures that
-    Hanzi Writer will be able to render the character instantly without needing to wait for an AJAX request
-    to complete. For example, here's how you could embed the data for the character <b>人</b>:
-  </p>
-
-  {% highlight javascript %}
-var writer = new HanziWriter('target', '人', {
-  charDataLoader: function(char) {
-    if (char !== '人') throw "invalid character, only have data for 人";
-    return {"character":"人","strokes":["M 475 485 Q 547 653 563 683 Q 573 695 565 708 Q 558 721 519 742 Q 491 757 480 754 Q 462 750 465 730 Q 484 537 292 308 Q 280 296 269 284 Q 212 217 68 102 Q 58 92 66 89 Q 76 86 90 92 Q 190 138 274 210 Q 380 294 462 456 L 475 485 Z","M 462 456 Q 480 423 575 292 Q 666 171 733 101 Q 764 67 793 69 Q 881 75 958 79 Q 991 80 992 89 Q 993 98 956 112 Q 772 178 740 205 Q 617 304 490 466 Q 481 476 475 485 L 462 456 Z"],"medians":[[[483,736],[508,702],[511,678],[473,552],[408,416],[328,303],[271,244],[144,139],[72,95]],[[474,477],[477,459],[490,439],[571,333],[691,200],[753,145],[798,119],[986,90]]]};
-  }
-});
-  {% endhighlight %}
-
-  <h2>Compatibility</h2>
-
-  <p>
-    Hanzi Writer uses SVG to draw characters, so it should work with any browser which supports SVG. It should
-    work with IE 10+ out of the box. It can work with IE 9 as well if a custom <code>charDataLoader</code> option is used as IE9 can't load character data from the Hanzi Writer CDN due to CORS issues.
-  </p>
+  <hr class="featurette-divider marketing-bottom-divider" />
 
   <h2>Data Source</h2>
 

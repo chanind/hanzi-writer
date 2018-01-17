@@ -65,7 +65,7 @@ js: docs.js
         {% endhighlight %}
       </p>
       <p>
-        You can also download a copy of the Hanzi Writer here:<br />
+        You can also download a copy of the Hanzi Writer javascript here:<br />
         <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (22 kb)<br />
         <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (46 kb)<br />
       </p>
@@ -74,8 +74,7 @@ js: docs.js
       </p>
       <h2 id="npm-loading-link">Loading Hanzi Writer via npm</h2>
       <p>
-        If you want to include Hanzi Writer in webpack or node.js, you can install from NPM: <code>npm install hanzi-writer</code>
-        Then, you can include Hanzi Writer in your code via:
+        If you want to include Hanzi Writer in webpack or node.js, you can install from npm: <code>npm install hanzi-writer</code>. Then, you can include Hanzi Writer in your code via:
         {% highlight javascript %}
           const HanziWriter = require('hanzi-writer');
         {% endhighlight %}
@@ -236,7 +235,7 @@ function animateForever() {
   writer.animateCharacter({
     onComplete: function() {
       var timeBetweenLoops = 2000; // in milliseconds
-      setTimeout(animateForever, 2000);
+      setTimeout(animateForever, timeBetweenLoops);
     }
   });
 }
@@ -256,7 +255,7 @@ animateForever();
             writer.animateCharacter({
               onComplete: function() {
                 var timeBetweenLoops = 2000; // in milliseconds
-                setTimeout(animateForever, 2000);
+                setTimeout(animateForever, timeBetweenLoops);
               }
             });
           }

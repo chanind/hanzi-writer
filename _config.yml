@@ -18,5 +18,3 @@ exclude:
   - cdn/*/all.json
   - vendor
   - cdn/*/vendor
-  # REMOVE THIS BEFORE PUBLISHING OR EVERYING WILL BREAK!
-  - cdn/*/data

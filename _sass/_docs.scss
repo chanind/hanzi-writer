@@ -1,0 +1,98 @@
+.docs {
+    h1 {
+        margin-top: 0;
+        padding-top: 50px;
+    }
+
+    h1:first-child {
+        padding-top: 0;
+    }
+
+    h4, h2 {
+        margin-top: 0;
+        padding-top: 30px;
+    }
+
+    p {
+        margin-top: 10px;
+    }
+
+    .affix {
+        position: fixed !important;
+    }
+
+    .toc {
+        width: 263px;
+        top: 5px;
+
+        @media (max-width: 1200px) {
+            width: 200px;
+        }
+
+        @media (max-width: 992px) {
+            width: 165px;
+        }
+
+        @media (max-width: 768px) {
+            display: none;
+        }
+
+        .nav a {
+            padding: 3px 10px;
+            font-weight: bold;
+        }
+
+        .nav li.active > a {
+            border-left: 2px solid #337ab7;
+            padding-left: 8px;
+            font-weight: bold;
+        }
+
+        .nav .nav a {
+            font-size: 12px;
+            font-weight: normal;
+            padding-left: 20px;
+        }
+
+        .nav .nav li.active > a {
+            padding-left: 18px;
+        }
+    }
+
+    .content {
+        border-left: 1px solid #eee
+    }
+}
+
+
+.inline-demo {
+    border: 1px solid #CCC;
+    width: 100px;
+    height: 100px;
+    margin-right: 5px;
+}
+
+.medium-demo {
+    width: 150px;
+    height: 150px;
+}
+
+.inline-demo-console {
+    font-family: monospace;
+    font-size: 10px;
+    border: 1px solid #CCC;
+    width: 400px;
+    height: 150px;
+    padding-left: 5px;
+    overflow-y: scroll;
+}
+
+
+.inline-demo-btn {
+    width: 100px;
+    margin-top: 3px;
+}
+
+.inline-demo-flex {
+    display: flex;
+}

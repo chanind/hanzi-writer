@@ -1,4 +1,11 @@
 
+/* Featurettes
+------------------------- */
+
+.featurette-divider {
+  margin: 80px 0; /* Space out the Bootstrap <hr> more */
+}
+
 /* CUSTOMIZE THE CAROUSEL
 -------------------------------------------------- */
 
@@ -12,10 +19,19 @@
 .intro-actions {
   margin-top: 60px;
 
+  @media (max-width: 768px) {
+    display: flex;
+
+  }
+
 }
 .intro-btn {
   width: 300px;
   margin: 0 20px;
+
+  @media (max-width: 768px) {
+    margin: 0 10px;
+  }
 }
 
 /* Bump up size of carousel content */
@@ -33,12 +49,33 @@
 
 .sub-features {
   display: flex;
-  flex-direction: row;
   justify-content: space-around;
+
+  @media (max-width: 768px) {
+    flex-direction: column;
+  }
 }
 
 .sub-feature {
   width: 25%;
+
+  @media (max-width: 768px) {
+    width: 100%;
+  }
+}
+
+@media (max-width: 768px) {
+  .middle-subfeature {
+    margin: 20px 0;
+  }
+
+  .marketing-top-divider {
+    margin-bottom: 40px;
+  }
+
+  .marketing-bottom-divider {
+    margin-top: 40px;
+  }
 }
 
 /* Center align the text within the three columns below the carousel */
@@ -52,21 +89,6 @@
 .marketing .col-lg-4 p {
   margin-right: 10px;
   margin-left: 10px;
-}
-
-
-/* Featurettes
-------------------------- */
-
-.featurette-divider {
-  margin: 80px 0; /* Space out the Bootstrap <hr> more */
-}
-
-/* Thin out the marketing headings */
-.featurette-heading {
-  font-weight: 300;
-  line-height: 1;
-  letter-spacing: -1px;
 }
 
 
@@ -110,27 +132,12 @@
   height: 200px;
   width: 200px;
   margin: 0 20px;
+
+  @media (max-width: 568px) {
+    width: 100px;
+    height: 100px;
+    margin: 0 10px;
+  }
 }
 
-.wo-quiz {
-  border: 1px solid #AAA;
-  height: 300px;
-  width: 300px;
-  margin: 0 auto;
-}
-
-.subtext {
-  color: #777;
-  margin: 30px 0 40px;
-}
-
-.wo-quiz-controls {
-  border: 1px solid #AAA;
-  margin: 10px auto 30px;
-  padding: 10px;
-  width: 300px;
-}
-.wo-quiz-controls .btn {
-  margin-left: 20px
-}
 

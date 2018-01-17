@@ -2,3 +2,10 @@ body {
     position: relative;
     padding-top: 100px;
 }
+
+// hacky fix for github pages adding an extra linebreak into every code block
+code {
+    br:last-child {
+        display: none;
+    }
+}

@@ -59,7 +59,8 @@ StrokeRenderer.prototype.hide = function(animation) {
 
 StrokeRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
-  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength();
+  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
   this.showImmediate();
   const tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
     duration: this.options.strokeAnimationDuration,

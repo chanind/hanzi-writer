@@ -1,4 +1,5 @@
-const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(callback, 1000 / 60));
+const performanceNow = (global.performance && (() => global.performance.now())) || (() => Date.now());
+const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(() => callback(performanceNow()), 1000 / 60));
 const cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
 
 function createElm(elmType) {
@@ -28,7 +29,7 @@ function StyleTween(elm, style, endValue, options = {}) {
 
 StyleTween.prototype.start = function() {
   this._isActive = true;
-  this._startTime = Date.now();
+  this._startTime = performanceNow();
   this._startValue = parseFloat(this._elm.style[this._style], 10);
   if (this._startValue === this._endValue) {
     return Promise.resolve();
@@ -42,12 +43,12 @@ StyleTween.prototype.start = function() {
 };
 
 StyleTween.prototype._nextTick = function() {
-  this._frameHandle = requestAnimFrame(() => this._tick());
+  this._frameHandle = requestAnimFrame((timing) => this._tick(timing));
 };
 
-StyleTween.prototype._tick = function() {
+StyleTween.prototype._tick = function(timing) {
   if (!this._isActive) return;
-  const progress = Math.min(1, (Date.now() - this._startTime) / this._duration);
+  const progress = Math.min(1, (timing - this._startTime) / this._duration);
   if (progress === this._progress) return this._nextTick();
   this._progress = progress;
   const easedProgress = ease(progress);

@@ -298,8 +298,15 @@ module.exports = Renderer;
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
+var performanceNow = global.performance && function () {
+  return global.performance.now();
+} || function () {
+  return Date.now();
+};
 var requestAnimFrame = global.requestAnimationFrame || function (callback) {
-  return setTimeout(callback, 1000 / 60);
+  return setTimeout(function () {
+    return callback(performanceNow());
+  }, 1000 / 60);
 };
 var cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
 
@@ -338,7 +345,7 @@ StyleTween.prototype.start = function () {
   var _this = this;
 
   this._isActive = true;
-  this._startTime = Date.now();
+  this._startTime = performanceNow();
   this._startValue = parseFloat(this._elm.style[this._style], 10);
   if (this._startValue === this._endValue) {
     return Promise.resolve();
@@ -354,14 +361,14 @@ StyleTween.prototype.start = function () {
 StyleTween.prototype._nextTick = function () {
   var _this2 = this;
 
-  this._frameHandle = requestAnimFrame(function () {
-    return _this2._tick();
+  this._frameHandle = requestAnimFrame(function (timing) {
+    return _this2._tick(timing);
   });
 };
 
-StyleTween.prototype._tick = function () {
+StyleTween.prototype._tick = function (timing) {
   if (!this._isActive) return;
-  var progress = Math.min(1, (Date.now() - this._startTime) / this._duration);
+  var progress = Math.min(1, (timing - this._startTime) / this._duration);
   if (progress === this._progress) return this._nextTick();
   this._progress = progress;
   var easedProgress = ease(progress);
@@ -937,7 +944,8 @@ StrokeRenderer.prototype.hide = function (animation) {
 
 StrokeRenderer.prototype.animate = function (animation) {
   if (!animation.isActive()) return null;
-  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength();
+  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
   this.showImmediate();
   var tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
     duration: this.options.strokeAnimationDuration

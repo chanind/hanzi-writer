@@ -42,6 +42,9 @@ js: docs.js
               <li>
                 <a href="#integrating-quizzes-link">Integrating quizzes</a>
               </li>
+              <li>
+                <a href="#other-methods-link">Other methods</a>
+              </li>
             </ul>
           </li>
           <li>
@@ -487,6 +490,38 @@ writer.quiz({
         })();
       </script>
       <p>Try drawing the character 码 above, and watch the output appear in the virtual console.</p>
+
+      <h2 id="other-methods-link">Other methods</h2>
+
+      <p>
+        Aside from the core capability of animating and quizzing, there are several other methods available to control the rendering of a character.
+      </p>
+      <ul>
+        <li>
+          <code>writer.setCharacter(newCharacter)</code>
+          Load a new character and rerender.
+        </li>
+        <li>
+          <code>writer.showCharacter()</code>
+          Show the character if it is currently hidden
+        </li>
+        <li>
+          <code>writer.hideCharacter()</code>
+          Hide the character if it is currently shown
+        </li>
+        <li>
+          <code>writer.showOutline()</code>
+          Show the character outline if it's currently hidden
+        </li>
+        <li>
+          <code>writer.hideOutline()</code>
+          Hide the character outline if it's currently shown
+        </li>
+        <li>
+          <code>writer.cancelQuiz()</code>
+          Immediately cancel the currently running quiz
+        </li>
+      </ul>
 
       <h1 id="advanced-usage-link">Advanced usage</h1>
       <h2 id="loading-character-data-link">Loading character data</h2>

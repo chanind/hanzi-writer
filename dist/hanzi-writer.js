@@ -877,6 +877,7 @@ module.exports = CharacterRenderer;
 
 
 var Renderer = __webpack_require__(2);
+var Point = __webpack_require__(1);
 
 var _require = __webpack_require__(0),
     getPathString = _require.getPathString,
@@ -884,6 +885,28 @@ var _require = __webpack_require__(0),
     inherits = _require.inherits;
 
 var svg = __webpack_require__(3);
+
+var extendStart = function extendStart(points, distance) {
+  if (points.length < 2) return points;
+  var p1 = points[0];
+  var p2 = points[1];
+  var newStart = void 0;
+  if (p1.x === p2.x) {
+    var sign = p1.y > p2.y ? 1 : -1;
+    newStart = new Point(p1.x, p1.y + distance * sign);
+  } else {
+    var _sign = p1.x > p2.x ? 1 : -1;
+    var slope = (p1.y - p2.y) / (p1.x - p2.x);
+    var intercept = p1.y - slope * p1.x;
+    var distX = Math.sqrt(Math.pow(distance, 2) / (Math.pow(slope, 2) + 1));
+    var newX = p1.x + _sign * distX;
+    var newY = slope * newX + intercept;
+    newStart = new Point(newX, newY);
+  }
+  var extendedPoints = points.slice(1);
+  extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
@@ -908,7 +931,8 @@ StrokeRenderer.prototype.draw = function () {
   svg.attr(this.path, 'mask', 'url(#' + maskId + ')');
 
   this.mask.appendChild(this.maskPath);
-  svg.attr(this.maskPath, 'd', getPathString(this.stroke.points));
+  var extendedMaskPath = extendStart(this.stroke.points, 85);
+  svg.attr(this.maskPath, 'd', getPathString(extendedMaskPath));
   var maskLength = this.maskPath.getTotalLength();
   svg.attrs(this.maskPath, {
     stroke: '#FFFFFF',

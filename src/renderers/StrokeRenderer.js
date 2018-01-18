@@ -1,6 +1,30 @@
 const Renderer = require('./Renderer');
+const Point = require('../models/Point');
 const { getPathString, counter, inherits } = require('../utils');
 const svg = require('../svg');
+
+// take points on a path and move their start point backwards by distance
+const extendStart = (points, distance) => {
+  if (points.length < 2) return points;
+  const p1 = points[0];
+  const p2 = points[1];
+  let newStart;
+  if (p1.x === p2.x) {
+    const sign = p1.y > p2.y ? 1 : -1;
+    newStart = new Point(p1.x, p1.y + (distance * sign));
+  } else {
+    const sign = p1.x > p2.x ? 1 : -1;
+    const slope = (p1.y - p2.y) / (p1.x - p2.x);
+    const intercept = p1.y - (slope * p1.x);
+    const distX = Math.sqrt(Math.pow(distance, 2) / (Math.pow(slope, 2) + 1));
+    const newX = p1.x + (sign * distX);
+    const newY = slope * newX + intercept;
+    newStart = new Point(newX, newY);
+  }
+  const extendedPoints = points.slice(1);
+  extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke, options = {}) {
@@ -23,7 +47,8 @@ StrokeRenderer.prototype.draw = function() {
   svg.attr(this.path, 'mask', `url(#${maskId})`);
 
   this.mask.appendChild(this.maskPath);
-  svg.attr(this.maskPath, 'd', getPathString(this.stroke.points));
+  const extendedMaskPath = extendStart(this.stroke.points, 85);
+  svg.attr(this.maskPath, 'd', getPathString(extendedMaskPath));
   const maskLength = this.maskPath.getTotalLength();
   svg.attrs(this.maskPath, {
     stroke: '#FFFFFF',

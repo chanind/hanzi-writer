@@ -9,6 +9,7 @@ function updateCharacter() {
 	writer = new HanziWriter('target', character, {
 		width: 400,
 		height: 400,
+		showCharacter: false,
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;

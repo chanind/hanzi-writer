@@ -886,6 +886,7 @@ var _require = __webpack_require__(0),
 
 var svg = __webpack_require__(3);
 
+// take points on a path and move their start point backwards by distance
 var extendStart = function extendStart(points, distance) {
   if (points.length < 2) return points;
   var p1 = points[0];

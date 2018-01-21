@@ -5,7 +5,7 @@
     "no-for-of-loops"
   ],
   "rules": {
-    "id-length": [2, {"exceptions": ["x", "y"]}],
+    "id-length": [2, {"exceptions": ["x", "y", "i"]}],
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
     "max-len":[0],
     "no-loop-func": [0],

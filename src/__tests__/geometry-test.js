@@ -82,4 +82,46 @@ describe('geometry', () => {
       expect(intersection).toEqual(new Point(3, 4));
     });
   });
+
+  describe('linesToPolygon', () => {
+    it("returns the outline of the polygon that's the stroked path of the points passed in", () => {
+      const points = [
+        new Point(0, 0),
+        new Point(5, 0),
+        new Point(5, 2),
+      ];
+      expect(geometry.linesToPolygon(points, 2)).toEqual([
+        new Point(0, 1),
+        new Point(4, 1),
+        new Point(4, 2),
+        new Point(6, 2),
+        new Point(6, -1),
+        new Point(0, -1),
+      ]);
+    });
+  });
+
+  describe('getLineSegmentsPortion', () => {
+    it('retuns a new series of points that is portion of the passed in segment', () => {
+      // total length 10
+      const points = [
+        new Point(0, 0),
+        new Point(5, 0),
+        new Point(9, 3),
+      ];
+      expect(geometry.getLineSegmentsPortion(points, 0)).toEqual([
+        new Point(0, 0)
+      ]);
+      expect(geometry.getLineSegmentsPortion(points, 0.2)).toEqual([
+        new Point(0, 0),
+        new Point(2, 0),
+      ]);
+      expect(geometry.getLineSegmentsPortion(points, 0.75)).toEqual([
+        new Point(0, 0),
+        new Point(5, 0),
+        new Point(7, 1.5),
+      ]);
+      expect(geometry.getLineSegmentsPortion(points, 1)).toEqual(points);
+    });
+  });
 });

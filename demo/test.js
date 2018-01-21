@@ -10,6 +10,7 @@ function updateCharacter() {
 		width: 400,
 		height: 400,
 		showCharacter: false,
+		usePolygonMasks: true,
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;

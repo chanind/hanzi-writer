@@ -1,17 +1,27 @@
 const Renderer = require('./Renderer');
-const Point = require('../models/Point');
-const { getPathString, counter, inherits } = require('../utils');
+const {counter, inherits } = require('../utils');
 const svg = require('../svg');
-const geometry = require('../geometry');
+const { extendPointOnLine, linesToPolygon, getLineSegmentsPortion } = require('../geometry');
 
 // take points on a path and move their start point backwards by distance
 const extendStart = (points, distance) => {
   if (points.length < 2) return points;
-  const p1 = points[0];
-  const p2 = points[1];
-  const newStart = geometry.extendPointOnLine(p1, p2, distance);
+  const p1 = points[1];
+  const p2 = points[0];
+  const newStart = extendPointOnLine(p1, p2, distance);
   const extendedPoints = points.slice(1);
   extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
+
+// take points on a path and move their end point backwards by distance
+const extendEnd = (points, distance) => {
+  if (points.length < 2) return points;
+  const p1 = points[points.length - 2];
+  const p2 = points[points.length - 1];
+  const newEnd = extendPointOnLine(p1, p2, distance);
+  const extendedPoints = points.slice(0, points.length - 1);
+  extendedPoints.push(newEnd);
   return extendedPoints;
 };
 
@@ -35,27 +45,43 @@ StrokeRenderer.prototype.draw = function() {
   this.path.style.opacity = 0;
   svg.attr(this.path, 'mask', `url(#${maskId})`);
 
+  this.extendedMaskPoints = extendStart(this.stroke.points, 85);
   this.mask.appendChild(this.maskPath);
-  const extendedMaskPath = extendStart(this.stroke.points, 85);
-  svg.attr(this.maskPath, 'd', getPathString(extendedMaskPath));
-  const maskLength = this.maskPath.getTotalLength();
-  svg.attrs(this.maskPath, {
-    stroke: '#FFFFFF',
-    'stroke-width': 150,
-    fill: 'none',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'miter',
-    'stroke-dasharray': `${maskLength},${maskLength}`,
-  });
-  this.maskPath.style['stroke-dashoffset'] = 0;
+  if (this.options.usePolygonMasks) {
+    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
+    this._setPolyMaskPortion(1);
+    svg.attrs(this.maskPath, { fill: '#FFFFFF' });
+  } else {
+    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
+    const maskLength = this.maskPath.getTotalLength();
+    svg.attrs(this.maskPath, {
+      stroke: '#FFFFFF',
+      'stroke-width': 150,
+      fill: 'none',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'miter',
+      'stroke-dasharray': `${maskLength},${maskLength}`,
+    });
+    this.maskPath.style['stroke-dashoffset'] = 0;
+  }
 
   this.canvas.defs.appendChild(this.mask);
   this.canvas.svg.appendChild(this.path);
   return this;
 };
 
+StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
+  const strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
+  const polygonPoints = linesToPolygon(strokePointsPortion, 150);
+  svg.attr(this.maskPath, 'd', svg.getPathString(polygonPoints, true));
+};
+
 StrokeRenderer.prototype.show = function(animation) {
-  this.maskPath.style['stroke-dashoffset'] = 0;
+  if (this.options.usePolygonMasks) {
+    this._setPolyMaskPortion(1);
+  } else {
+    this.maskPath.style['stroke-dashoffset'] = 0;
+  }
   const tween = new svg.StyleTween(this.path, 'opacity', 1, {
     duration: this.options.strokeAnimationDuration,
   });
@@ -73,12 +99,20 @@ StrokeRenderer.prototype.hide = function(animation) {
 
 StrokeRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
-  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
   this.showImmediate();
-  const tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-    duration: this.options.strokeAnimationDuration,
-  });
+  let tween;
+  if (this.options.usePolygonMasks) {
+    this._setPolyMaskPortion(0);
+    tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), {
+      duration: this.options.strokeAnimationDuration,
+    });
+  } else {
+    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
+    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
+      duration: this.options.strokeAnimationDuration,
+    });
+  }
   animation.registerSvgAnimation(tween);
   return tween.start();
 };

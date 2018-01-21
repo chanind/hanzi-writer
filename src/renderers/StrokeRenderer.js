@@ -2,25 +2,14 @@ const Renderer = require('./Renderer');
 const Point = require('../models/Point');
 const { getPathString, counter, inherits } = require('../utils');
 const svg = require('../svg');
+const geometry = require('../geometry');
 
 // take points on a path and move their start point backwards by distance
 const extendStart = (points, distance) => {
   if (points.length < 2) return points;
   const p1 = points[0];
   const p2 = points[1];
-  let newStart;
-  if (p1.x === p2.x) {
-    const sign = p1.y > p2.y ? 1 : -1;
-    newStart = new Point(p1.x, p1.y + (distance * sign));
-  } else {
-    const sign = p1.x > p2.x ? 1 : -1;
-    const slope = (p1.y - p2.y) / (p1.x - p2.x);
-    const intercept = p1.y - (slope * p1.x);
-    const distX = Math.sqrt(Math.pow(distance, 2) / (Math.pow(slope, 2) + 1));
-    const newX = p1.x + (sign * distX);
-    const newY = slope * newX + intercept;
-    newStart = new Point(newX, newY);
-  }
+  const newStart = geometry.extendPointOnLine(p1, p2, distance);
   const extendedPoints = points.slice(1);
   extendedPoints.unshift(newStart);
   return extendedPoints;

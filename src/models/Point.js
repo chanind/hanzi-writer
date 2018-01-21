@@ -1,13 +1,18 @@
 const { arrayMin, arrayMax } = require('../utils');
 
 function Point(x, y) {
-  this.x = parseInt(x, 10);
-  this.y = parseInt(y, 10);
+  this.x = parseFloat(x, 10);
+  this.y = parseFloat(y, 10);
 }
 
 // return a new point subtracting point from this
 Point.prototype.subtract = function(point) {
   return new Point(this.x - point.x, this.y - point.y);
+};
+
+// return a new point adding point from this
+Point.prototype.add = function(point) {
+  return new Point(this.x + point.x, this.y + point.y);
 };
 
 Point.prototype.getMagnitude = function() {

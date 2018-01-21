@@ -124,4 +124,35 @@ describe('geometry', () => {
       expect(geometry.getLineSegmentsPortion(points, 1)).toEqual(points);
     });
   });
+
+  describe('filterParallelPoints', () => {
+    it('removes internal points that are on the line connecting the points on either side', () => {
+      const points = [
+        new Point(0, 0),
+        new Point(5, 0),
+        new Point(6, 0),
+        new Point(7, 1),
+        new Point(8, 2),
+        new Point(9, 3),
+        new Point(10, 3),
+        new Point(11, 3),
+      ];
+      expect(geometry.filterParallelPoints(points)).toEqual([
+        new Point(0, 0),
+        new Point(6, 0),
+        new Point(9, 3),
+        new Point(11, 3),
+      ]);
+    });
+
+    it('returns the original points if there are no parallel points', () => {
+      const points = [
+        new Point(0, 0),
+        new Point(6, 0),
+        new Point(9, 3),
+        new Point(11, 3),
+      ];
+      expect(geometry.filterParallelPoints(points)).toEqual(points);
+    });
+  });
 });

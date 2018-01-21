@@ -63,6 +63,24 @@ const getLineSegmentsPortion = (points, portion) => {
   return portionedPoints;
 };
 
+// remove intermediate points that are on the same line as the points to either side
+const filterParallelPoints = (points) => {
+  if (points.length < 3) return points;
+  const filteredPoints = [points[0], points[1]];
+  points.slice(2).forEach((point, i) => {
+    const numFilteredPoints = filteredPoints.length;
+    const curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
+    const prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
+    // this is the z coord of the cross-product. If this is 0 then they're parallel
+    const isParallel = ((curVect.y * prevVect.x - curVect.x * prevVect.y) === 0);
+    if (isParallel) {
+      filteredPoints.pop();
+    }
+    filteredPoints.push(point);
+  });
+  return filteredPoints;
+};
+
 // given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
 const linesToPolygon = (points, thickness) => {
   if (points.length < 2) return points;
@@ -101,8 +119,9 @@ const linesToPolygon = (points, thickness) => {
 
 module.exports = {
   extendPointOnLine,
-  getPerpendicularPointsAtDist,
-  getLinesIntersectPoint,
+  filterParallelPoints,
   getLineSegmentsPortion,
+  getLinesIntersectPoint,
+  getPerpendicularPointsAtDist,
   linesToPolygon,
 };

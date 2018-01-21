@@ -1,7 +1,12 @@
 const Renderer = require('./Renderer');
 const {counter, inherits } = require('../utils');
 const svg = require('../svg');
-const { extendPointOnLine, linesToPolygon, getLineSegmentsPortion } = require('../geometry');
+const {
+  extendPointOnLine,
+  linesToPolygon,
+  getLineSegmentsPortion,
+  filterParallelPoints,
+} = require('../geometry');
 
 // take points on a path and move their start point backwards by distance
 const extendStart = (points, distance) => {
@@ -47,7 +52,7 @@ StrokeRenderer.prototype.draw = function() {
   const maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
   svg.attr(this.path, maskAttr, `url(#${maskId})`);
 
-  this.extendedMaskPoints = extendStart(this.stroke.points, 85);
+  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
   this.mask.appendChild(this.maskPath);
   if (this.options.usePolygonMasks) {
     this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);

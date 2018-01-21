@@ -35,7 +35,8 @@ inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.draw = function() {
   this.path = svg.createElm('path');
-  this.mask = svg.createElm('mask');
+  const maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
+  this.mask = svg.createElm(maskType);
   this.maskPath = svg.createElm('path');
   const maskId = `mask-${counter()}`;
   svg.attr(this.mask, 'id', maskId);
@@ -43,14 +44,14 @@ StrokeRenderer.prototype.draw = function() {
   svg.attr(this.path, 'd', this.stroke.path);
   svg.attrs(this.path, this.getStrokeAttrs());
   this.path.style.opacity = 0;
-  svg.attr(this.path, 'mask', `url(#${maskId})`);
+  const maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
+  svg.attr(this.path, maskAttr, `url(#${maskId})`);
 
   this.extendedMaskPoints = extendStart(this.stroke.points, 85);
   this.mask.appendChild(this.maskPath);
   if (this.options.usePolygonMasks) {
     this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
     this._setPolyMaskPortion(1);
-    svg.attrs(this.maskPath, { fill: '#FFFFFF' });
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
     const maskLength = this.maskPath.getTotalLength();

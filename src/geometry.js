@@ -81,41 +81,6 @@ const filterParallelPoints = (points) => {
   return filteredPoints;
 };
 
-// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
-const linesToPolygon = (points, thickness) => {
-  if (points.length < 2) return points;
-  const dist = thickness / 2;
-  const topSegments = [];
-  const bottomSegments = [];
-  for (let i = 1; i < points.length; i += 1) {
-    const startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
-    const endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
-    topSegments.push({ start: startPoints[0], end: endPoints[1] });
-    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
-  }
-  const topPoints = [topSegments[0].start];
-  const bottomPoints = [bottomSegments[0].start];
-  for (let i = 1; i < topSegments.length; i += 1) {
-    const topIntersect = getLinesIntersectPoint(
-      topSegments[i - 1].start,
-      topSegments[i - 1].end,
-      topSegments[i].start,
-      topSegments[i].end,
-    );
-    const bottomIntersect = getLinesIntersectPoint(
-      bottomSegments[i - 1].start,
-      bottomSegments[i - 1].end,
-      bottomSegments[i].start,
-      bottomSegments[i].end,
-    );
-    topPoints.push(topIntersect);
-    bottomPoints.push(bottomIntersect);
-  }
-  topPoints.push(topSegments[topSegments.length - 1].end);
-  bottomPoints.push(bottomSegments[bottomSegments.length - 1].end);
-  bottomPoints.reverse();
-  return topPoints.concat(bottomPoints);
-};
 
 module.exports = {
   extendPointOnLine,
@@ -123,5 +88,4 @@ module.exports = {
   getLineSegmentsPortion,
   getLinesIntersectPoint,
   getPerpendicularPointsAtDist,
-  linesToPolygon,
 };

@@ -47,6 +47,7 @@
       "models",
       "util",
       "geometry",
+      "svg",
       "clone"
     ]
   }

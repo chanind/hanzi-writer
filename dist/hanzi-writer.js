@@ -60,7 +60,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -68,7 +68,7 @@
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
+/* WEBPACK VAR INJECTION */(function(global) {
 
 function emptyFunc() {}
 
@@ -129,16 +129,6 @@ function callIfExists(callback) {
   if (callback) callback.apply(undefined, args);
 }
 
-function getPathString(points) {
-  var start = points[0];
-  var remainingPoints = points.slice(1);
-  var pathString = "M " + start.x + " " + start.y;
-  remainingPoints.forEach(function (point) {
-    pathString += " L " + point.x + " " + point.y;
-  });
-  return pathString;
-}
-
 var count = 0;
 function counter() {
   count += 1;
@@ -160,6 +150,10 @@ function timeout() {
   });
 }
 
+function isMSBrowser() {
+  return global.navigator && global.navigator.userAgent && (global.navigator.userAgent.indexOf('Edge') >= 0 || global.navigator.userAgent.indexOf('MSIE') >= 0);
+}
+
 module.exports = {
   inherits: inherits,
   assign: assign,
@@ -170,9 +164,10 @@ module.exports = {
   counter: counter,
   emptyFunc: emptyFunc,
   getExtremes: getExtremes,
-  getPathString: getPathString,
+  isMSBrowser: isMSBrowser,
   timeout: timeout
 };
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
 /* 1 */
@@ -188,13 +183,18 @@ var _require = __webpack_require__(0),
     arrayMax = _require.arrayMax;
 
 function Point(x, y) {
-  this.x = parseInt(x, 10);
-  this.y = parseInt(y, 10);
+  this.x = parseFloat(x, 10);
+  this.y = parseFloat(y, 10);
 }
 
 // return a new point subtracting point from this
 Point.prototype.subtract = function (point) {
   return new Point(this.x - point.x, this.y - point.y);
+};
+
+// return a new point adding point from this
+Point.prototype.add = function (point) {
+  return new Point(this.x + point.x, this.y + point.y);
 };
 
 Point.prototype.getMagnitude = function () {
@@ -249,6 +249,33 @@ module.exports = Point;
 
 /***/ }),
 /* 2 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -292,11 +319,19 @@ Renderer.prototype.destroy = function () {
 module.exports = Renderer;
 
 /***/ }),
-/* 3 */
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
+
+var _require = __webpack_require__(0),
+    inherits = _require.inherits;
+
+var _require2 = __webpack_require__(5),
+    getPerpendicularPointsAtDist = _require2.getPerpendicularPointsAtDist,
+    getLinesIntersectPoint = _require2.getLinesIntersectPoint,
+    extendPointOnLine = _require2.extendPointOnLine;
 
 var performanceNow = global.performance && function () {
   return global.performance.now();
@@ -324,6 +359,56 @@ function attrs(elm, attrsMap) {
   });
 }
 
+function getPathString(points) {
+  var start = points[0];
+  var remainingPoints = points.slice(1);
+  var pathString = 'M ' + start.x + ' ' + start.y;
+  remainingPoints.forEach(function (point) {
+    pathString += ' L ' + point.x + ' ' + point.y;
+  });
+  return pathString;
+}
+
+// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
+var linesToPolygonPathString = function linesToPolygonPathString(points, thickness) {
+  if (points.length < 2) return '';
+  var dist = thickness / 2;
+  var topSegments = [];
+  var bottomSegments = [];
+  for (var i = 1; i < points.length; i += 1) {
+    var startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
+    var endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
+    topSegments.push({ start: startPoints[0], end: endPoints[1] });
+    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
+  }
+  var topPoints = [topSegments[0].start];
+  var bottomPoints = [bottomSegments[0].start];
+  for (var _i = 1; _i < topSegments.length; _i += 1) {
+    var topIntersect = getLinesIntersectPoint(topSegments[_i - 1].start, topSegments[_i - 1].end, topSegments[_i].start, topSegments[_i].end);
+    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i - 1].start, bottomSegments[_i - 1].end, bottomSegments[_i].start, bottomSegments[_i].end);
+    topPoints.push(topIntersect);
+    bottomPoints.push(bottomIntersect);
+  }
+  topPoints.push(topSegments[topSegments.length - 1].end);
+  bottomPoints.push(bottomSegments[bottomSegments.length - 1].end);
+  bottomPoints.reverse();
+  var tipControlPoint = extendPointOnLine(points[points.length - 2], points[points.length - 1], dist);
+
+  var startPoint = topPoints.shift();
+  var pathString = 'M ' + startPoint.x + ' ' + startPoint.y;
+  topPoints.forEach(function (point) {
+    pathString += ' L ' + point.x + ' ' + point.y;
+  });
+  var bottomStartPoint = bottomPoints.shift();
+  pathString += ' Q ' + tipControlPoint.x + ',' + tipControlPoint.y + ' ' + bottomStartPoint.x + ',' + bottomStartPoint.y;
+  bottomPoints.forEach(function (point) {
+    pathString += ' L ' + point.x + ' ' + point.y;
+  });
+  pathString += 'Z';
+
+  return pathString;
+};
+
 // ------- STYLETWEEN CLASS ---------
 
 // from https://github.com/maxwellito/vivus
@@ -331,25 +416,19 @@ var ease = function ease(x) {
   return -Math.cos(x * Math.PI) / 2 + 0.5;
 };
 
-function StyleTween(elm, style, endValue) {
-  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+function Tween(onTick) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
-  this._elm = elm;
-  this._style = style;
-  this._endValue = endValue;
+  this._onTick = onTick;
   this._duration = options.duration || 300;
   this._isActive = false;
 }
 
-StyleTween.prototype.start = function () {
+Tween.prototype.start = function () {
   var _this = this;
 
   this._isActive = true;
   this._startTime = performanceNow();
-  this._startValue = parseFloat(this._elm.style[this._style], 10);
-  if (this._startValue === this._endValue) {
-    return Promise.resolve();
-  }
   this._progress = 0;
   this._nextTick();
 
@@ -358,7 +437,7 @@ StyleTween.prototype.start = function () {
   });
 };
 
-StyleTween.prototype._nextTick = function () {
+Tween.prototype._nextTick = function () {
   var _this2 = this;
 
   this._frameHandle = requestAnimFrame(function (timing) {
@@ -366,14 +445,13 @@ StyleTween.prototype._nextTick = function () {
   });
 };
 
-StyleTween.prototype._tick = function (timing) {
+Tween.prototype._tick = function (timing) {
   if (!this._isActive) return;
   var progress = Math.min(1, (timing - this._startTime) / this._duration);
   if (progress === this._progress) return this._nextTick();
   this._progress = progress;
   var easedProgress = ease(progress);
-  var nextStyleValue = (this._endValue - this._startValue) * easedProgress + this._startValue;
-  this._elm.style[this._style] = nextStyleValue;
+  this._onTick(easedProgress);
   if (progress === 1) {
     this._frameHandle = null;
     this.finish();
@@ -382,7 +460,7 @@ StyleTween.prototype._tick = function (timing) {
   }
 };
 
-StyleTween.prototype.finish = function () {
+Tween.prototype.finish = function () {
   if (!this._isActive) return;
   this._isActive = false;
   if (this._frameHandle) {
@@ -392,6 +470,29 @@ StyleTween.prototype.finish = function () {
     this._resolve();
     this._resolve = null;
   }
+};
+
+function StyleTween(elm, style, endValue) {
+  var _this3 = this;
+
+  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+  StyleTween.super_.call(this, function (easedProgress) {
+    var nextStyleValue = (_this3._endValue - _this3._startValue) * easedProgress + _this3._startValue;
+    _this3._elm.style[_this3._style] = nextStyleValue;
+  }, options);
+  this._elm = elm;
+  this._style = style;
+  this._endValue = endValue;
+}
+inherits(StyleTween, Tween);
+
+StyleTween.prototype.start = function () {
+  this._startValue = parseFloat(this._elm.style[this._style], 10);
+  if (this._startValue === this._endValue) {
+    return Promise.resolve();
+  }
+  return StyleTween.super_.prototype.start.call(this);
 };
 
 // -------- CANVAS CLASS --------
@@ -426,55 +527,124 @@ Canvas.init = function (elmOrId) {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, StyleTween: StyleTween };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
+module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString, linesToPolygonPathString: linesToPolygonPathString };
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+var Point = __webpack_require__(1);
+
+// return a new point, p3, which is on the same line as p1 and p2, but distance away
+// from p2. p1, p2, p3 will always lie on the line in that order
+var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
+  var vect = p2.subtract(p1);
+  var norm = distance / vect.getMagnitude();
+  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
+};
+
+// return 2 points distance from targetPoint on line perpendicular to the line between
+// targetPoint and refPoint
+var getPerpendicularPointsAtDist = function getPerpendicularPointsAtDist(targetPoint, refPoint, distance) {
+  var vect = targetPoint.subtract(refPoint);
+  var norm = distance / vect.getMagnitude();
+  // simulate taking a cross-product with the vector (0, 0, 1) to get the new perpendicular vect
+  var perpVect = new Point(norm * vect.y, -1 * norm * vect.x);
+  return [targetPoint.add(perpVect), targetPoint.subtract(perpVect)];
+};
+
+// get the intersection point of 2 lines defined by 2 points each
+// from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l2p2) {
+  var x1 = l1p1.x;
+  var x2 = l1p2.x;
+  var x3 = l2p1.x;
+  var x4 = l2p2.x;
+  var y1 = l1p1.y;
+  var y2 = l1p2.y;
+  var y3 = l2p1.y;
+  var y4 = l2p2.y;
+  var xNumerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+  var yNumerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+  var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+  return new Point(xNumerator / denominator, yNumerator / denominator);
+};
+
+var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
+  if (points.length < 2 || portion >= 1) return points;
+  if (portion === 0) return [points[0]];
+  var totalDist = 0;
+  for (var i = 1; i < points.length; i += 1) {
+    totalDist += Point.getDistance(points[i], points[i - 1]);
+  }
+  var portionedPoints = [points[0]];
+  var portionedDist = totalDist * portion;
+  var cumuativeDist = 0;
+  for (var _i = 1; _i < points.length; _i += 1) {
+    var lastPoint = points[_i - 1];
+    var segmentLength = Point.getDistance(points[_i], lastPoint);
+    if (cumuativeDist + segmentLength >= portionedDist) {
+      var vect = points[_i].subtract(lastPoint);
+      var norm = (portionedDist - cumuativeDist) / segmentLength;
+      portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
+      return portionedPoints;
+    }
+    cumuativeDist += segmentLength;
+    portionedPoints.push(points[_i]);
+  }
+  return portionedPoints;
+};
+
+// remove intermediate points that are on the same line as the points to either side
+var filterParallelPoints = function filterParallelPoints(points) {
+  if (points.length < 3) return points;
+  var filteredPoints = [points[0], points[1]];
+  points.slice(2).forEach(function (point, i) {
+    var numFilteredPoints = filteredPoints.length;
+    var curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
+    var prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
+    // this is the z coord of the cross-product. If this is 0 then they're parallel
+    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
+    if (isParallel) {
+      filteredPoints.pop();
+    }
+    filteredPoints.push(point);
+  });
+  return filteredPoints;
+};
+
+module.exports = {
+  extendPointOnLine: extendPointOnLine,
+  filterParallelPoints: filterParallelPoints,
+  getLineSegmentsPortion: getLineSegmentsPortion,
+  getLinesIntersectPoint: getLinesIntersectPoint,
+  getPerpendicularPointsAtDist: getPerpendicularPointsAtDist
+};
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var CharacterRenderer = __webpack_require__(6);
-var PositionerRenderer = __webpack_require__(8);
+var CharacterRenderer = __webpack_require__(7);
+var PositionerRenderer = __webpack_require__(9);
 var Point = __webpack_require__(1);
-var CharDataParser = __webpack_require__(9);
-var Positioner = __webpack_require__(12);
-var Quiz = __webpack_require__(13);
-var svg = __webpack_require__(3);
-var defaultCharDataLoader = __webpack_require__(17);
-var Animator = __webpack_require__(18);
+var CharDataParser = __webpack_require__(10);
+var Positioner = __webpack_require__(13);
+var Quiz = __webpack_require__(14);
+var svg = __webpack_require__(4);
+var defaultCharDataLoader = __webpack_require__(18);
+var Animator = __webpack_require__(19);
 
 var _require = __webpack_require__(0),
-    assign = _require.assign;
+    assign = _require.assign,
+    isMSBrowser = _require.isMSBrowser;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -510,7 +680,9 @@ var defaultOptions = {
   drawingFadeDuration: 300,
   drawingWidth: 4,
   strokeWidth: 2,
-  outlineWidth: 2
+  outlineWidth: 2,
+  // MS browsers are terrible and can't handle masks using paths with stroke
+  usePolygonMasks: isMSBrowser()
 };
 
 function HanziWriter(element, character) {
@@ -530,15 +702,18 @@ HanziWriter.prototype.setOptions = function (options) {
     strokeColor: this._options.strokeColor,
     strokeWidth: this._options.strokeWidth,
     strokeAnimationDuration: this._options.strokeAnimationDuration,
-    delayBetweenStrokes: this._options.delayBetweenStrokes
+    delayBetweenStrokes: this._options.delayBetweenStrokes,
+    usePolygonMasks: this._options.usePolygonMasks
   };
   this._outlineCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.outlineColor,
-    strokeWidth: this._options.outlineWidth
+    strokeWidth: this._options.outlineWidth,
+    usePolygonMasks: this._options.usePolygonMasks
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
-    strokeAnimationDuration: this._options.strokeHighlightDuration
+    strokeAnimationDuration: this._options.strokeHighlightDuration,
+    usePolygonMasks: this._options.usePolygonMasks
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,
@@ -759,17 +934,17 @@ if (typeof global.window !== 'undefined') {
 if (true) {
   module.exports = HanziWriter;
 }
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(2);
-var StrokeRenderer = __webpack_require__(7);
+var Renderer = __webpack_require__(3);
+var StrokeRenderer = __webpack_require__(8);
 
 var _require = __webpack_require__(0),
     timeout = _require.timeout,
@@ -870,42 +1045,46 @@ CharacterRenderer.prototype.setCanvas = function (canvas) {
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(2);
-var Point = __webpack_require__(1);
+var Renderer = __webpack_require__(3);
 
 var _require = __webpack_require__(0),
-    getPathString = _require.getPathString,
     counter = _require.counter,
     inherits = _require.inherits;
 
-var svg = __webpack_require__(3);
+var svg = __webpack_require__(4);
+
+var _require2 = __webpack_require__(5),
+    extendPointOnLine = _require2.extendPointOnLine,
+    getLineSegmentsPortion = _require2.getLineSegmentsPortion,
+    filterParallelPoints = _require2.filterParallelPoints;
 
 // take points on a path and move their start point backwards by distance
+
+
 var extendStart = function extendStart(points, distance) {
   if (points.length < 2) return points;
-  var p1 = points[0];
-  var p2 = points[1];
-  var newStart = void 0;
-  if (p1.x === p2.x) {
-    var sign = p1.y > p2.y ? 1 : -1;
-    newStart = new Point(p1.x, p1.y + distance * sign);
-  } else {
-    var _sign = p1.x > p2.x ? 1 : -1;
-    var slope = (p1.y - p2.y) / (p1.x - p2.x);
-    var intercept = p1.y - slope * p1.x;
-    var distX = Math.sqrt(Math.pow(distance, 2) / (Math.pow(slope, 2) + 1));
-    var newX = p1.x + _sign * distX;
-    var newY = slope * newX + intercept;
-    newStart = new Point(newX, newY);
-  }
+  var p1 = points[1];
+  var p2 = points[0];
+  var newStart = extendPointOnLine(p1, p2, distance);
   var extendedPoints = points.slice(1);
   extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
+
+// take points on a path and move their end point backwards by distance
+var extendEnd = function extendEnd(points, distance) {
+  if (points.length < 2) return points;
+  var p1 = points[points.length - 2];
+  var p2 = points[points.length - 1];
+  var newEnd = extendPointOnLine(p1, p2, distance);
+  var extendedPoints = points.slice(0, points.length - 1);
+  extendedPoints.push(newEnd);
   return extendedPoints;
 };
 
@@ -921,7 +1100,8 @@ inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.draw = function () {
   this.path = svg.createElm('path');
-  this.mask = svg.createElm('mask');
+  var maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
+  this.mask = svg.createElm(maskType);
   this.maskPath = svg.createElm('path');
   var maskId = 'mask-' + counter();
   svg.attr(this.mask, 'id', maskId);
@@ -929,29 +1109,45 @@ StrokeRenderer.prototype.draw = function () {
   svg.attr(this.path, 'd', this.stroke.path);
   svg.attrs(this.path, this.getStrokeAttrs());
   this.path.style.opacity = 0;
-  svg.attr(this.path, 'mask', 'url(#' + maskId + ')');
+  var maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
+  svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
 
+  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
   this.mask.appendChild(this.maskPath);
-  var extendedMaskPath = extendStart(this.stroke.points, 85);
-  svg.attr(this.maskPath, 'd', getPathString(extendedMaskPath));
-  var maskLength = this.maskPath.getTotalLength();
-  svg.attrs(this.maskPath, {
-    stroke: '#FFFFFF',
-    'stroke-width': 150,
-    fill: 'none',
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'miter',
-    'stroke-dasharray': maskLength + ',' + maskLength
-  });
-  this.maskPath.style['stroke-dashoffset'] = 0;
+  if (this.options.usePolygonMasks) {
+    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
+    this._setPolyMaskPortion(1);
+  } else {
+    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
+    var maskLength = this.maskPath.getTotalLength();
+    svg.attrs(this.maskPath, {
+      stroke: '#FFFFFF',
+      'stroke-width': 150,
+      fill: 'none',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'miter',
+      'stroke-dasharray': maskLength + ',' + maskLength
+    });
+    this.maskPath.style['stroke-dashoffset'] = 0;
+  }
 
   this.canvas.defs.appendChild(this.mask);
   this.canvas.svg.appendChild(this.path);
   return this;
 };
 
+StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
+  var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
+  var pathString = svg.linesToPolygonPathString(strokePointsPortion, 150);
+  svg.attr(this.maskPath, 'd', pathString);
+};
+
 StrokeRenderer.prototype.show = function (animation) {
-  this.maskPath.style['stroke-dashoffset'] = 0;
+  if (this.options.usePolygonMasks) {
+    this._setPolyMaskPortion(1);
+  } else {
+    this.maskPath.style['stroke-dashoffset'] = 0;
+  }
   var tween = new svg.StyleTween(this.path, 'opacity', 1, {
     duration: this.options.strokeAnimationDuration
   });
@@ -968,13 +1164,25 @@ StrokeRenderer.prototype.hide = function (animation) {
 };
 
 StrokeRenderer.prototype.animate = function (animation) {
+  var _this = this;
+
   if (!animation.isActive()) return null;
-  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-  this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
   this.showImmediate();
-  var tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-    duration: this.options.strokeAnimationDuration
-  });
+  var tween = void 0;
+  if (this.options.usePolygonMasks) {
+    this._setPolyMaskPortion(0);
+    tween = new svg.Tween(function (portion) {
+      return _this._setPolyMaskPortion(portion);
+    }, {
+      duration: this.options.strokeAnimationDuration
+    });
+  } else {
+    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
+    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
+      duration: this.options.strokeAnimationDuration
+    });
+  }
   animation.registerSvgAnimation(tween);
   return tween.start();
 };
@@ -987,10 +1195,10 @@ StrokeRenderer.prototype.showImmediate = function () {
 };
 
 StrokeRenderer.prototype.highlight = function (animation) {
-  var _this = this;
+  var _this2 = this;
 
   return this.animate(animation).then(function () {
-    return _this.hide(animation);
+    return _this2.hide(animation);
   });
 };
 
@@ -1012,14 +1220,14 @@ StrokeRenderer.prototype.destroy = function () {
 module.exports = StrokeRenderer;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(2);
-var svg = __webpack_require__(3);
+var Renderer = __webpack_require__(3);
+var svg = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
     inherits = _require.inherits;
@@ -1050,7 +1258,7 @@ PositionerRenderer.prototype.destroy = function () {
 module.exports = PositionerRenderer;
 
 /***/ }),
-/* 9 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1059,8 +1267,8 @@ module.exports = PositionerRenderer;
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var Point = __webpack_require__(1);
-var Stroke = __webpack_require__(10);
-var Character = __webpack_require__(11);
+var Stroke = __webpack_require__(11);
+var Character = __webpack_require__(12);
 
 function CharDataParser() {}
 
@@ -1085,7 +1293,7 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
 module.exports = CharDataParser;
 
 /***/ }),
-/* 10 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1150,7 +1358,7 @@ Stroke.prototype.getAverageDistance = function (points) {
 module.exports = Stroke;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1178,7 +1386,7 @@ Character.prototype.getBounds = function () {
 module.exports = Character;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1231,15 +1439,15 @@ Positioner.prototype._calculateScaleAndOffset = function () {
 module.exports = Positioner;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeMatcher = __webpack_require__(14);
-var UserStroke = __webpack_require__(15);
-var UserStrokeRenderer = __webpack_require__(16);
+var StrokeMatcher = __webpack_require__(15);
+var UserStroke = __webpack_require__(16);
+var UserStrokeRenderer = __webpack_require__(17);
 
 var _require = __webpack_require__(0),
     callIfExists = _require.callIfExists;
@@ -1384,7 +1592,7 @@ Quiz.prototype._setupCharacter = function () {
 module.exports = Quiz;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1466,7 +1674,7 @@ StrokeMatcher.prototype._getEdgeVectors = function (points) {
 module.exports = StrokeMatcher;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1489,19 +1697,18 @@ UserStroke.prototype.appendPoint = function (point) {
 module.exports = UserStroke;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(2);
+var Renderer = __webpack_require__(3);
 
 var _require = __webpack_require__(0),
-    getPathString = _require.getPathString,
     inherits = _require.inherits;
 
-var svg = __webpack_require__(3);
+var svg = __webpack_require__(4);
 
 function UserStrokeRenderer(userStroke) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
@@ -1514,7 +1721,7 @@ function UserStrokeRenderer(userStroke) {
 inherits(UserStrokeRenderer, Renderer);
 
 UserStrokeRenderer.prototype.getPathString = function () {
-  return getPathString(this.userStroke.points);
+  return svg.getPathString(this.userStroke.points);
 };
 
 UserStrokeRenderer.prototype.updatePath = function () {
@@ -1559,7 +1766,7 @@ UserStrokeRenderer.prototype.destroy = function () {
 module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1589,16 +1796,16 @@ module.exports = function (char, onLoad) {
   };
   xhr.send(null);
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(4)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Animation = __webpack_require__(19);
+var Animation = __webpack_require__(20);
 
 function Animator() {
   this._lastAnimation = null;
@@ -1622,7 +1829,7 @@ Animator.prototype._setupAnimation = function (options) {
 module.exports = Animator;
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

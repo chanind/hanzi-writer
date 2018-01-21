@@ -3,7 +3,6 @@ const {counter, inherits } = require('../utils');
 const svg = require('../svg');
 const {
   extendPointOnLine,
-  linesToPolygon,
   getLineSegmentsPortion,
   filterParallelPoints,
 } = require('../geometry');
@@ -78,8 +77,8 @@ StrokeRenderer.prototype.draw = function() {
 
 StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
   const strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  const polygonPoints = linesToPolygon(strokePointsPortion, 150);
-  svg.attr(this.maskPath, 'd', svg.getPathString(polygonPoints, true));
+  const pathString = svg.linesToPolygonPathString(strokePointsPortion, 150);
+  svg.attr(this.maskPath, 'd', pathString);
 };
 
 StrokeRenderer.prototype.show = function(animation) {

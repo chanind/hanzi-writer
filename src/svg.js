@@ -1,4 +1,5 @@
 const { inherits } = require('./utils');
+const { getPerpendicularPointsAtDist, getLinesIntersectPoint, extendPointOnLine } = require('./geometry');
 
 const performanceNow = (global.performance && (() => global.performance.now())) || (() => Date.now());
 const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(() => callback(performanceNow()), 1000 / 60));
@@ -16,16 +17,66 @@ function attrs(elm, attrsMap) {
   Object.keys(attrsMap).forEach(attrName => attr(elm, attrName, attrsMap[attrName]));
 }
 
-function getPathString(points, close = false) {
+function getPathString(points) {
   const start = points[0];
   const remainingPoints = points.slice(1);
   let pathString = `M ${start.x} ${start.y}`;
   remainingPoints.forEach(point => {
     pathString += ` L ${point.x} ${point.y}`;
   });
-  if (close) pathString += ' Z';
   return pathString;
 }
+
+// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
+const linesToPolygonPathString = (points, thickness) => {
+  if (points.length < 2) return '';
+  const dist = thickness / 2;
+  const topSegments = [];
+  const bottomSegments = [];
+  for (let i = 1; i < points.length; i += 1) {
+    const startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
+    const endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
+    topSegments.push({ start: startPoints[0], end: endPoints[1] });
+    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
+  }
+  const topPoints = [topSegments[0].start];
+  const bottomPoints = [bottomSegments[0].start];
+  for (let i = 1; i < topSegments.length; i += 1) {
+    const topIntersect = getLinesIntersectPoint(
+      topSegments[i - 1].start,
+      topSegments[i - 1].end,
+      topSegments[i].start,
+      topSegments[i].end,
+    );
+    const bottomIntersect = getLinesIntersectPoint(
+      bottomSegments[i - 1].start,
+      bottomSegments[i - 1].end,
+      bottomSegments[i].start,
+      bottomSegments[i].end,
+    );
+    topPoints.push(topIntersect);
+    bottomPoints.push(bottomIntersect);
+  }
+  topPoints.push(topSegments[topSegments.length - 1].end);
+  bottomPoints.push(bottomSegments[bottomSegments.length - 1].end);
+  bottomPoints.reverse();
+  const tipControlPoint = extendPointOnLine(points[points.length - 2], points[points.length - 1], dist);
+
+  const startPoint = topPoints.shift();
+  let pathString = `M ${startPoint.x} ${startPoint.y}`;
+  topPoints.forEach(point => {
+    pathString += ` L ${point.x} ${point.y}`;
+  });
+  const bottomStartPoint = bottomPoints.shift();
+  pathString += ` Q ${tipControlPoint.x},${tipControlPoint.y} ${bottomStartPoint.x},${bottomStartPoint.y}`;
+  bottomPoints.forEach(point => {
+    pathString += ` L ${point.x} ${point.y}`;
+  });
+  pathString += 'Z';
+
+  return pathString;
+};
+
 
 // ------- STYLETWEEN CLASS ---------
 
@@ -135,4 +186,4 @@ Canvas.init = elmOrId => {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm, attrs, attr, Canvas, Tween, StyleTween, getPathString };
+module.exports = { createElm, attrs, attr, Canvas, Tween, StyleTween, getPathString, linesToPolygonPathString };

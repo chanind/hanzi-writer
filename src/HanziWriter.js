@@ -7,7 +7,7 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
-const { assign } = require('./utils');
+const { assign, isMSBrowser } = require('./utils');
 
 
 const defaultOptions = {
@@ -45,6 +45,8 @@ const defaultOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
+  // MS browsers are terrible and can't handle masks using paths with stroke
+  usePolygonMasks: isMSBrowser(),
 };
 
 function HanziWriter(element, character, options = {}) {
@@ -63,14 +65,17 @@ HanziWriter.prototype.setOptions = function(options) {
     strokeWidth: this._options.strokeWidth,
     strokeAnimationDuration: this._options.strokeAnimationDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
+    usePolygonMasks: this._options.usePolygonMasks,
   };
   this._outlineCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.outlineColor,
     strokeWidth: this._options.outlineWidth,
+    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
     strokeAnimationDuration: this._options.strokeHighlightDuration,
+    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

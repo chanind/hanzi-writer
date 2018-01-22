@@ -48,16 +48,6 @@ function callIfExists(callback, ...args) {
   if (callback) callback(...args);
 }
 
-function getPathString(points) {
-  const start = points[0];
-  const remainingPoints = points.slice(1);
-  let pathString = `M ${start.x} ${start.y}`;
-  remainingPoints.forEach(point => {
-    pathString += ` L ${point.x} ${point.y}`;
-  });
-  return pathString;
-}
-
 let count = 0;
 function counter() {
   count += 1;
@@ -75,6 +65,13 @@ function timeout(duration = 0) {
   });
 }
 
+function isMSBrowser() {
+  return global.navigator && global.navigator.userAgent && (
+    global.navigator.userAgent.indexOf('Edge') >= 0
+    || global.navigator.userAgent.indexOf('MSIE') >= 0
+  );
+}
+
 module.exports = {
   inherits,
   assign,
@@ -85,6 +82,6 @@ module.exports = {
   counter,
   emptyFunc,
   getExtremes,
-  getPathString,
+  isMSBrowser,
   timeout,
 };

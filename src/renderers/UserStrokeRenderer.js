@@ -1,5 +1,5 @@
 const Renderer = require('./Renderer');
-const { getPathString, inherits } = require('../utils');
+const { inherits } = require('../utils');
 const svg = require('../svg');
 
 
@@ -12,7 +12,7 @@ function UserStrokeRenderer(userStroke, options = {}) {
 inherits(UserStrokeRenderer, Renderer);
 
 UserStrokeRenderer.prototype.getPathString = function() {
-  return getPathString(this.userStroke.points);
+  return svg.getPathString(this.userStroke.points);
 };
 
 UserStrokeRenderer.prototype.updatePath = function() {

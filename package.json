@@ -34,7 +34,7 @@
     "prepublishOnly": "grunt"
   },
   "jest": {
-    "scriptPreprocessor": "<rootDir>/babel-jest-processor.js",
+    "scriptPreprocessor": "<rootDir>/../babel-jest-processor.js",
     "preprocessCachingDisabled": true,
     "testFileExtensions": [
       "js"
@@ -42,9 +42,12 @@
     "moduleFileExtensions": [
       "js"
     ],
+    "rootDir": "src",
     "unmockedModulePathPatterns": [
       "models",
       "util",
+      "geometry",
+      "svg",
       "clone"
     ]
   }

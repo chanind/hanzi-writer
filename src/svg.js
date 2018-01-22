@@ -1,3 +1,5 @@
+const { inherits } = require('./utils');
+
 const performanceNow = (global.performance && (() => global.performance.now())) || (() => Date.now());
 const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(() => callback(performanceNow()), 1000 / 60));
 const cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
@@ -14,26 +16,32 @@ function attrs(elm, attrsMap) {
   Object.keys(attrsMap).forEach(attrName => attr(elm, attrName, attrsMap[attrName]));
 }
 
+function getPathString(points, close = false) {
+  const start = points[0];
+  const remainingPoints = points.slice(1);
+  let pathString = `M ${start.x} ${start.y}`;
+  remainingPoints.forEach(point => {
+    pathString += ` L ${point.x} ${point.y}`;
+  });
+  if (close) pathString += 'Z';
+  return pathString;
+}
+
+
 // ------- STYLETWEEN CLASS ---------
 
 // from https://github.com/maxwellito/vivus
 const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
-function StyleTween(elm, style, endValue, options = {}) {
-  this._elm = elm;
-  this._style = style;
-  this._endValue = endValue;
+function Tween(onTick, options = {}) {
+  this._onTick = onTick;
   this._duration = options.duration || 300;
   this._isActive = false;
 }
 
-StyleTween.prototype.start = function() {
+Tween.prototype.start = function() {
   this._isActive = true;
   this._startTime = performanceNow();
-  this._startValue = parseFloat(this._elm.style[this._style], 10);
-  if (this._startValue === this._endValue) {
-    return Promise.resolve();
-  }
   this._progress = 0;
   this._nextTick();
 
@@ -42,18 +50,17 @@ StyleTween.prototype.start = function() {
   });
 };
 
-StyleTween.prototype._nextTick = function() {
+Tween.prototype._nextTick = function() {
   this._frameHandle = requestAnimFrame((timing) => this._tick(timing));
 };
 
-StyleTween.prototype._tick = function(timing) {
+Tween.prototype._tick = function(timing) {
   if (!this._isActive) return;
   const progress = Math.min(1, (timing - this._startTime) / this._duration);
   if (progress === this._progress) return this._nextTick();
   this._progress = progress;
   const easedProgress = ease(progress);
-  const nextStyleValue = (this._endValue - this._startValue) * easedProgress + this._startValue;
-  this._elm.style[this._style] = nextStyleValue;
+  this._onTick(easedProgress);
   if (progress === 1) {
     this._frameHandle = null;
     this.finish();
@@ -62,7 +69,7 @@ StyleTween.prototype._tick = function(timing) {
   }
 };
 
-StyleTween.prototype.finish = function() {
+Tween.prototype.finish = function() {
   if (!this._isActive) return;
   this._isActive = false;
   if (this._frameHandle) {
@@ -72,6 +79,29 @@ StyleTween.prototype.finish = function() {
     this._resolve();
     this._resolve = null;
   }
+};
+
+function StyleTween(elm, style, endValue, options = {}) {
+  StyleTween.super_.call(
+    this,
+    (easedProgress => {
+      const nextStyleValue = (this._endValue - this._startValue) * easedProgress + this._startValue;
+      this._elm.style[this._style] = nextStyleValue;
+    }),
+    options,
+  );
+  this._elm = elm;
+  this._style = style;
+  this._endValue = endValue;
+}
+inherits(StyleTween, Tween);
+
+StyleTween.prototype.start = function() {
+  this._startValue = parseFloat(this._elm.style[this._style], 10);
+  if (this._startValue === this._endValue) {
+    return Promise.resolve();
+  }
+  return StyleTween.super_.prototype.start.call(this);
 };
 
 // -------- CANVAS CLASS --------
@@ -106,4 +136,4 @@ Canvas.init = elmOrId => {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm, attrs, attr, Canvas, StyleTween };
+module.exports = { createElm, attrs, attr, Canvas, Tween, StyleTween, getPathString };

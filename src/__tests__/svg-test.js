@@ -2,21 +2,23 @@ const svg = require('../svg');
 const Point = require('../models/Point');
 
 describe('svg', () => {
-  describe('linesToPolygonPathString', () => {
-    it("returns d path of the polygon that's the stroked path of the points passed in", () => {
+  describe('getPathString', () => {
+    it("returns d path based on the points passed in", () => {
       const points = [
         new Point(0, 0),
         new Point(5, 0),
         new Point(5, 2),
       ];
-      expect(svg.linesToPolygonPathString(points, 2)).toEqual(
-        'M 0 1 ' +
-        'L 4 1 ' +
-        'L 4 2 ' +
-        'Q 5,3 6,2 ' +
-        'L 6 -1 ' +
-        'L 0 -1Z'
-      );
+      expect(svg.getPathString(points)).toEqual('M 0 0 L 5 0 L 5 2');
     });
+
+    it('closes the path if close = true', () => {
+      const points = [
+        new Point(0, 0),
+        new Point(5, 0),
+        new Point(5, 2),
+      ];
+      expect(svg.getPathString(points, true)).toEqual('M 0 0 L 5 0 L 5 2Z');
+    })
   });
 });

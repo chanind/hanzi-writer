@@ -5,6 +5,7 @@ const {
   extendPointOnLine,
   getLineSegmentsPortion,
   filterParallelPoints,
+  linesToPolygon,
 } = require('../geometry');
 
 // take points on a path and move their start point backwards by distance
@@ -52,9 +53,12 @@ StrokeRenderer.prototype.draw = function() {
   svg.attr(this.path, maskAttr, `url(#${maskId})`);
 
   this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
-  this.mask.appendChild(this.maskPath);
   if (this.options.usePolygonMasks) {
     this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
+    this.polyMaskTip = svg.createElm('circle');
+    // need to add this to the mask before the maskPath or else weird things happen. Not sure why
+    this.mask.appendChild(this.polyMaskTip);
+    svg.attr(this.polyMaskTip, 'r', 75);
     this._setPolyMaskPortion(1);
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
@@ -70,6 +74,7 @@ StrokeRenderer.prototype.draw = function() {
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
 
+  this.mask.appendChild(this.maskPath);
   this.canvas.defs.appendChild(this.mask);
   this.canvas.svg.appendChild(this.path);
   return this;
@@ -77,8 +82,11 @@ StrokeRenderer.prototype.draw = function() {
 
 StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
   const strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  const pathString = svg.linesToPolygonPathString(strokePointsPortion, 150);
+  const pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 150), true);
+  const endPoint = strokePointsPortion[strokePointsPortion.length - 1];
   svg.attr(this.maskPath, 'd', pathString);
+  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
+  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
 };
 
 StrokeRenderer.prototype.show = function(animation) {

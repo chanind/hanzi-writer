@@ -81,6 +81,65 @@ const filterParallelPoints = (points) => {
   return filteredPoints;
 };
 
+// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
+const linesToPolygon = (points, thickness) => {
+  if (points.length < 2) return points;
+  const dist = thickness / 2;
+  const topSegments = [];
+  const bottomSegments = [];
+  for (let i = 1; i < points.length; i += 1) {
+    const startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
+    const endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
+    topSegments.push({ start: startPoints[0], end: endPoints[1] });
+    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
+  }
+  const topPoints = [topSegments[0].start];
+  const bottomPoints = [bottomSegments[0].start];
+  for (let i = 1; i < topSegments.length; i += 1) {
+    const topIntersect = getLinesIntersectPoint(
+      topSegments[i - 1].start,
+      topSegments[i - 1].end,
+      topSegments[i].start,
+      topSegments[i].end,
+    );
+    const bottomIntersect = getLinesIntersectPoint(
+      bottomSegments[i - 1].start,
+      bottomSegments[i - 1].end,
+      bottomSegments[i].start,
+      bottomSegments[i].end,
+    );
+    topPoints.push(topIntersect);
+    bottomPoints.push(bottomIntersect);
+  }
+
+  let topEndPoint = topSegments[topSegments.length - 1].end;
+  let bottomEndPoint = bottomSegments[bottomSegments.length - 1].end;
+
+  const endOverlapIntersect = getLinesIntersectPoint(
+    topPoints[topPoints.length - 1],
+    bottomPoints[bottomPoints.length - 1],
+    topEndPoint,
+    bottomEndPoint,
+  );
+
+  // correct for case where there's a hard corner and we're overlapping an area we already drew
+  if (Point.getDistance(endOverlapIntersect, points[points.length - 1]) < dist) {
+    const topVect = topEndPoint.subtract(points[points.length - 1]);
+    const overlapVect = endOverlapIntersect.subtract(points[points.length - 1]);
+    // figure out if the top point is overlapping of the bottom point is overlapping by using dot-product
+    const isTopOverlapping = ((topVect.x * overlapVect.x + topVect.y * overlapVect.y) > 0);
+    if (isTopOverlapping) {
+      topEndPoint = endOverlapIntersect;
+    } else {
+      bottomEndPoint = endOverlapIntersect;
+    }
+  }
+
+  topPoints.push(topEndPoint);
+  bottomPoints.push(bottomEndPoint);
+  bottomPoints.reverse();
+  return topPoints.concat(bottomPoints);
+};
 
 module.exports = {
   extendPointOnLine,
@@ -88,4 +147,5 @@ module.exports = {
   getLineSegmentsPortion,
   getLinesIntersectPoint,
   getPerpendicularPointsAtDist,
+  linesToPolygon,
 };

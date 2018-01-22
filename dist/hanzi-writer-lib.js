@@ -61,7 +61,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 6);
+/******/ 	return __webpack_require__(__webpack_require__.s = 5);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -329,11 +329,6 @@ module.exports = Renderer;
 var _require = __webpack_require__(0),
     inherits = _require.inherits;
 
-var _require2 = __webpack_require__(5),
-    getPerpendicularPointsAtDist = _require2.getPerpendicularPointsAtDist,
-    getLinesIntersectPoint = _require2.getLinesIntersectPoint,
-    extendPointOnLine = _require2.extendPointOnLine;
-
 var performanceNow = global.performance && function () {
   return global.performance.now();
 } || function () {
@@ -361,54 +356,17 @@ function attrs(elm, attrsMap) {
 }
 
 function getPathString(points) {
+  var close = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
+
   var start = points[0];
   var remainingPoints = points.slice(1);
   var pathString = 'M ' + start.x + ' ' + start.y;
   remainingPoints.forEach(function (point) {
     pathString += ' L ' + point.x + ' ' + point.y;
   });
+  if (close) pathString += 'Z';
   return pathString;
 }
-
-// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
-var linesToPolygonPathString = function linesToPolygonPathString(points, thickness) {
-  if (points.length < 2) return '';
-  var dist = thickness / 2;
-  var topSegments = [];
-  var bottomSegments = [];
-  for (var i = 1; i < points.length; i += 1) {
-    var startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
-    var endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
-    topSegments.push({ start: startPoints[0], end: endPoints[1] });
-    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
-  }
-  var topPoints = [topSegments[0].start];
-  var bottomPoints = [bottomSegments[0].start];
-  for (var _i = 1; _i < topSegments.length; _i += 1) {
-    var topIntersect = getLinesIntersectPoint(topSegments[_i - 1].start, topSegments[_i - 1].end, topSegments[_i].start, topSegments[_i].end);
-    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i - 1].start, bottomSegments[_i - 1].end, bottomSegments[_i].start, bottomSegments[_i].end);
-    topPoints.push(topIntersect);
-    bottomPoints.push(bottomIntersect);
-  }
-  topPoints.push(topSegments[topSegments.length - 1].end);
-  bottomPoints.push(bottomSegments[bottomSegments.length - 1].end);
-  bottomPoints.reverse();
-  var tipControlPoint = extendPointOnLine(points[points.length - 2], points[points.length - 1], dist);
-
-  var startPoint = topPoints.shift();
-  var pathString = 'M ' + startPoint.x + ' ' + startPoint.y;
-  topPoints.forEach(function (point) {
-    pathString += ' L ' + point.x + ' ' + point.y;
-  });
-  var bottomStartPoint = bottomPoints.shift();
-  pathString += ' Q ' + tipControlPoint.x + ',' + tipControlPoint.y + ' ' + bottomStartPoint.x + ',' + bottomStartPoint.y;
-  bottomPoints.forEach(function (point) {
-    pathString += ' L ' + point.x + ' ' + point.y;
-  });
-  pathString += 'Z';
-
-  return pathString;
-};
 
 // ------- STYLETWEEN CLASS ---------
 
@@ -528,7 +486,7 @@ Canvas.init = function (elmOrId) {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString, linesToPolygonPathString: linesToPolygonPathString };
+module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
@@ -536,104 +494,9 @@ module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canva
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-var Point = __webpack_require__(1);
-
-// return a new point, p3, which is on the same line as p1 and p2, but distance away
-// from p2. p1, p2, p3 will always lie on the line in that order
-var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
-  var vect = p2.subtract(p1);
-  var norm = distance / vect.getMagnitude();
-  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
-};
-
-// return 2 points distance from targetPoint on line perpendicular to the line between
-// targetPoint and refPoint
-var getPerpendicularPointsAtDist = function getPerpendicularPointsAtDist(targetPoint, refPoint, distance) {
-  var vect = targetPoint.subtract(refPoint);
-  var norm = distance / vect.getMagnitude();
-  // simulate taking a cross-product with the vector (0, 0, 1) to get the new perpendicular vect
-  var perpVect = new Point(norm * vect.y, -1 * norm * vect.x);
-  return [targetPoint.add(perpVect), targetPoint.subtract(perpVect)];
-};
-
-// get the intersection point of 2 lines defined by 2 points each
-// from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l2p2) {
-  var x1 = l1p1.x;
-  var x2 = l1p2.x;
-  var x3 = l2p1.x;
-  var x4 = l2p2.x;
-  var y1 = l1p1.y;
-  var y2 = l1p2.y;
-  var y3 = l2p1.y;
-  var y4 = l2p2.y;
-  var xNumerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
-  var yNumerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
-  var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  return new Point(xNumerator / denominator, yNumerator / denominator);
-};
-
-var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
-  if (points.length < 2 || portion >= 1) return points;
-  if (portion === 0) return [points[0]];
-  var totalDist = 0;
-  for (var i = 1; i < points.length; i += 1) {
-    totalDist += Point.getDistance(points[i], points[i - 1]);
-  }
-  var portionedPoints = [points[0]];
-  var portionedDist = totalDist * portion;
-  var cumuativeDist = 0;
-  for (var _i = 1; _i < points.length; _i += 1) {
-    var lastPoint = points[_i - 1];
-    var segmentLength = Point.getDistance(points[_i], lastPoint);
-    if (cumuativeDist + segmentLength >= portionedDist) {
-      var vect = points[_i].subtract(lastPoint);
-      var norm = (portionedDist - cumuativeDist) / segmentLength;
-      portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
-      return portionedPoints;
-    }
-    cumuativeDist += segmentLength;
-    portionedPoints.push(points[_i]);
-  }
-  return portionedPoints;
-};
-
-// remove intermediate points that are on the same line as the points to either side
-var filterParallelPoints = function filterParallelPoints(points) {
-  if (points.length < 3) return points;
-  var filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach(function (point, i) {
-    var numFilteredPoints = filteredPoints.length;
-    var curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
-    var prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
-    // this is the z coord of the cross-product. If this is 0 then they're parallel
-    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
-    if (isParallel) {
-      filteredPoints.pop();
-    }
-    filteredPoints.push(point);
-  });
-  return filteredPoints;
-};
-
-module.exports = {
-  extendPointOnLine: extendPointOnLine,
-  filterParallelPoints: filterParallelPoints,
-  getLineSegmentsPortion: getLineSegmentsPortion,
-  getLinesIntersectPoint: getLinesIntersectPoint,
-  getPerpendicularPointsAtDist: getPerpendicularPointsAtDist
-};
-
-/***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var CharacterRenderer = __webpack_require__(7);
+var CharacterRenderer = __webpack_require__(6);
 var PositionerRenderer = __webpack_require__(9);
 var Point = __webpack_require__(1);
 var CharDataParser = __webpack_require__(10);
@@ -938,14 +801,14 @@ if (true) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 7 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Renderer = __webpack_require__(3);
-var StrokeRenderer = __webpack_require__(8);
+var StrokeRenderer = __webpack_require__(7);
 
 var _require = __webpack_require__(0),
     timeout = _require.timeout,
@@ -1046,7 +909,7 @@ CharacterRenderer.prototype.setCanvas = function (canvas) {
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 8 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1060,10 +923,11 @@ var _require = __webpack_require__(0),
 
 var svg = __webpack_require__(4);
 
-var _require2 = __webpack_require__(5),
+var _require2 = __webpack_require__(8),
     extendPointOnLine = _require2.extendPointOnLine,
     getLineSegmentsPortion = _require2.getLineSegmentsPortion,
-    filterParallelPoints = _require2.filterParallelPoints;
+    filterParallelPoints = _require2.filterParallelPoints,
+    linesToPolygon = _require2.linesToPolygon;
 
 // take points on a path and move their start point backwards by distance
 
@@ -1114,9 +978,12 @@ StrokeRenderer.prototype.draw = function () {
   svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
 
   this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
-  this.mask.appendChild(this.maskPath);
   if (this.options.usePolygonMasks) {
     this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
+    this.polyMaskTip = svg.createElm('circle');
+    // need to add this to the mask before the maskPath or else weird things happen. Not sure why
+    this.mask.appendChild(this.polyMaskTip);
+    svg.attr(this.polyMaskTip, 'r', 75);
     this._setPolyMaskPortion(1);
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
@@ -1132,6 +999,7 @@ StrokeRenderer.prototype.draw = function () {
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
 
+  this.mask.appendChild(this.maskPath);
   this.canvas.defs.appendChild(this.mask);
   this.canvas.svg.appendChild(this.path);
   return this;
@@ -1139,8 +1007,11 @@ StrokeRenderer.prototype.draw = function () {
 
 StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
   var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  var pathString = svg.linesToPolygonPathString(strokePointsPortion, 150);
+  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 150), true);
+  var endPoint = strokePointsPortion[strokePointsPortion.length - 1];
   svg.attr(this.maskPath, 'd', pathString);
+  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
+  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
 };
 
 StrokeRenderer.prototype.show = function (animation) {
@@ -1219,6 +1090,147 @@ StrokeRenderer.prototype.destroy = function () {
 };
 
 module.exports = StrokeRenderer;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Point = __webpack_require__(1);
+
+// return a new point, p3, which is on the same line as p1 and p2, but distance away
+// from p2. p1, p2, p3 will always lie on the line in that order
+var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
+  var vect = p2.subtract(p1);
+  var norm = distance / vect.getMagnitude();
+  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
+};
+
+// return 2 points distance from targetPoint on line perpendicular to the line between
+// targetPoint and refPoint
+var getPerpendicularPointsAtDist = function getPerpendicularPointsAtDist(targetPoint, refPoint, distance) {
+  var vect = targetPoint.subtract(refPoint);
+  var norm = distance / vect.getMagnitude();
+  // simulate taking a cross-product with the vector (0, 0, 1) to get the new perpendicular vect
+  var perpVect = new Point(norm * vect.y, -1 * norm * vect.x);
+  return [targetPoint.add(perpVect), targetPoint.subtract(perpVect)];
+};
+
+// get the intersection point of 2 lines defined by 2 points each
+// from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
+var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l2p2) {
+  var x1 = l1p1.x;
+  var x2 = l1p2.x;
+  var x3 = l2p1.x;
+  var x4 = l2p2.x;
+  var y1 = l1p1.y;
+  var y2 = l1p2.y;
+  var y3 = l2p1.y;
+  var y4 = l2p2.y;
+  var xNumerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
+  var yNumerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
+  var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
+  return new Point(xNumerator / denominator, yNumerator / denominator);
+};
+
+var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
+  if (points.length < 2 || portion >= 1) return points;
+  if (portion === 0) return [points[0]];
+  var totalDist = 0;
+  for (var i = 1; i < points.length; i += 1) {
+    totalDist += Point.getDistance(points[i], points[i - 1]);
+  }
+  var portionedPoints = [points[0]];
+  var portionedDist = totalDist * portion;
+  var cumuativeDist = 0;
+  for (var _i = 1; _i < points.length; _i += 1) {
+    var lastPoint = points[_i - 1];
+    var segmentLength = Point.getDistance(points[_i], lastPoint);
+    if (cumuativeDist + segmentLength >= portionedDist) {
+      var vect = points[_i].subtract(lastPoint);
+      var norm = (portionedDist - cumuativeDist) / segmentLength;
+      portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
+      return portionedPoints;
+    }
+    cumuativeDist += segmentLength;
+    portionedPoints.push(points[_i]);
+  }
+  return portionedPoints;
+};
+
+// remove intermediate points that are on the same line as the points to either side
+var filterParallelPoints = function filterParallelPoints(points) {
+  if (points.length < 3) return points;
+  var filteredPoints = [points[0], points[1]];
+  points.slice(2).forEach(function (point, i) {
+    var numFilteredPoints = filteredPoints.length;
+    var curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
+    var prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
+    // this is the z coord of the cross-product. If this is 0 then they're parallel
+    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
+    if (isParallel) {
+      filteredPoints.pop();
+    }
+    filteredPoints.push(point);
+  });
+  return filteredPoints;
+};
+
+// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
+var linesToPolygon = function linesToPolygon(points, thickness) {
+  if (points.length < 2) return points;
+  var dist = thickness / 2;
+  var topSegments = [];
+  var bottomSegments = [];
+  for (var i = 1; i < points.length; i += 1) {
+    var startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
+    var endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
+    topSegments.push({ start: startPoints[0], end: endPoints[1] });
+    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
+  }
+  var topPoints = [topSegments[0].start];
+  var bottomPoints = [bottomSegments[0].start];
+  for (var _i2 = 1; _i2 < topSegments.length; _i2 += 1) {
+    var topIntersect = getLinesIntersectPoint(topSegments[_i2 - 1].start, topSegments[_i2 - 1].end, topSegments[_i2].start, topSegments[_i2].end);
+    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i2 - 1].start, bottomSegments[_i2 - 1].end, bottomSegments[_i2].start, bottomSegments[_i2].end);
+    topPoints.push(topIntersect);
+    bottomPoints.push(bottomIntersect);
+  }
+
+  var topEndPoint = topSegments[topSegments.length - 1].end;
+  var bottomEndPoint = bottomSegments[bottomSegments.length - 1].end;
+
+  var endOverlapIntersect = getLinesIntersectPoint(topPoints[topPoints.length - 1], bottomPoints[bottomPoints.length - 1], topEndPoint, bottomEndPoint);
+
+  // correct for case where there's a hard corner and we're overlapping an area we already drew
+  if (Point.getDistance(endOverlapIntersect, points[points.length - 1]) < dist) {
+    var topVect = topEndPoint.subtract(points[points.length - 1]);
+    var overlapVect = endOverlapIntersect.subtract(points[points.length - 1]);
+    // figure out if the top point is overlapping of the bottom point is overlapping by using dot-product
+    var isTopOverlapping = topVect.x * overlapVect.x + topVect.y * overlapVect.y > 0;
+    if (isTopOverlapping) {
+      topEndPoint = endOverlapIntersect;
+    } else {
+      bottomEndPoint = endOverlapIntersect;
+    }
+  }
+
+  topPoints.push(topEndPoint);
+  bottomPoints.push(bottomEndPoint);
+  bottomPoints.reverse();
+  return topPoints.concat(bottomPoints);
+};
+
+module.exports = {
+  extendPointOnLine: extendPointOnLine,
+  filterParallelPoints: filterParallelPoints,
+  getLineSegmentsPortion: getLineSegmentsPortion,
+  getLinesIntersectPoint: getLinesIntersectPoint,
+  getPerpendicularPointsAtDist: getPerpendicularPointsAtDist,
+  linesToPolygon: linesToPolygon
+};
 
 /***/ }),
 /* 9 */

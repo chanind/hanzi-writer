@@ -4,4 +4,5 @@ cdn/
 data/
 _site/
 dist/data/
+!dist/hanzi-writer.min.js
 vendor/

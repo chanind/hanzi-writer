@@ -83,7 +83,6 @@ module.exports = function(grunt) {
         '!dist/hanzi-writer.min.js',
         '!dist/hanzi-writer-lib.js',
         '!dist/hanzi-writer-lib.min.js',
-        '!dist/data',
         'dist/data/APL',
       ]
     },

@@ -1,3 +1,6 @@
+[![CircleCI](https://circleci.com/gh/chanind/hanzi-writer/tree/master.svg?style=svg)](https://circleci.com/gh/chanind/hanzi-writer/tree/master)
+
+
 Hanzi Writer
 =====================
 

@@ -55,6 +55,9 @@ js: docs.js
               </li>
             </ul>
           </li>
+          <li>
+            <a href="#api-link">API</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -563,6 +566,76 @@ var writer = new HanziWriter('target', '人', {
   }
 });
       {% endhighlight %}
+
+      <h1 id="api-link">API</h1>
+
+      <h2>HanziWriter</h2>
+      <p>This is the core class you will interact with.</p>
+
+      <h4>new HanziWriter(element, character, options)</h4>
+      <p>Set up a new HanziWriter instance the specified DOM element</p>
+      <p>
+        <code>element</code> DOM node or ID of the element to render into.
+      </p>
+      <p>
+        <code>character</code> The character to draw, ex '你'.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options available include:
+        <ul>
+          <li><code>showOutline:</code> boolean, default true. Controls whether the outline is shown or hidden on the first render.</li>
+          <li><code>showCharacter:</code> boolean, default true. Controls whether the character is shown or hidden on the first render.</li>
+          <li><code>width:</code> number. Width of the canvas in px.</li>
+          <li><code>height:</code> number. height of the canvas in px.</li>
+          <li><code>padding:</code> number, default 20. padding between the character and edge of the canvas in px.</li>
+          <li><code>strokeAnimationDuration:</code> number, default 400. Time in milliseconds to animate each stroke.</li>
+          <li><code>strokeHighlightDuration:</code> number, default 200. Time in milliseconds to highlight each stroke when givings hints in a quiz.</li>
+          <li><code>delayBetweenStrokes:</code> number, default 1000. Time in milliseconds between each stroke when animating.</li>
+          <li><code>strokeColor:</code> hex string, default '#555'. The color to draw each stroke.</li>
+          <li><code>highlightColor:</code> hex string, default '#AAF'. The color to use for highlighting in quizzes.</li>
+          <li><code>outlineColor:</code> hex string, default '#DDD'. The color of the character outline.</li>
+          <li><code>drawingColor:</code> hex string, default '#333'. The color of the lines drawn by users during quizzing.</li>
+          <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable.</li>
+          <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character.</li>
+          <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
+        </ul>
+      </p>
+      <h3>Instance methods</h3>
+      <h4>writer.showCharacter(options = {})</h4>
+      <p>Show the character if it's currently hidden.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>strokeAnimationDuration:</code> number. Time in milliseconds for the animation to complete. By default this will use the value of strokeAnimationDuration passed to the HanziWriter constructor.</li>
+        </ul>
+      </p>
+
+      <h4>writer.hideCharacter(options = {})</h4>
+      <p>Hide the character if it's currently shown.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>strokeAnimationDuration:</code> number. Time in milliseconds for the animation to complete. By default this will use the value of strokeAnimationDuration passed to the HanziWriter constructor.</li>
+        </ul>
+      </p>
+
+      <h4>writer.showOutline(options = {})</h4>
+      <p>Show the outline if it's currently hidden.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>strokeAnimationDuration:</code> number. Time in milliseconds for the animation to complete. By default this will use the value of strokeAnimationDuration passed to the HanziWriter constructor.</li>
+        </ul>
+      </p>
+
+      <h4>writer.hideOutline(options = {})</h4>
+      <p>Hide the outline if it's currently shown.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>strokeAnimationDuration:</code> number. Time in milliseconds for the animation to complete. By default this will use the value of strokeAnimationDuration passed to the HanziWriter constructor.</li>
+        </ul>
+      </p>
     </div>
   </div>
 </div>

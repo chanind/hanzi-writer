@@ -55,6 +55,9 @@ js: docs.js
               </li>
             </ul>
           </li>
+          <li>
+            <a href="#api-link">API</a>
+          </li>
         </ul>
       </div>
     </div>
@@ -62,15 +65,15 @@ js: docs.js
       <h1 id="installation-link">Installation</h1>
       <h2 id="script-loading-link">Loading Hanzi Writer in a script tag</h2>
       <p>
-        The simplest option is to load the Hanzi Writer JS directly from the github CDN. Just put the following in the head of your webpage:
+        The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://chanind.github.io/hanzi-writer/cdn/2/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
         You can also download a copy of the Hanzi Writer javascript here:<br />
-        <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (25 kb)<br />
-        <strong><a href="https://raw.githubusercontent.com/chanind/hanzi-writer/master/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (56 kb)<br />
+        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (25 kb)<br />
+        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (56 kb)<br />
       </p>
       <p>
         The above scripts will make a global <code>HanziWriter</code> variable available after the script loads.
@@ -563,6 +566,108 @@ var writer = new HanziWriter('target', '人', {
   }
 });
       {% endhighlight %}
+
+      <h1 id="api-link">API</h1>
+
+      <h2>HanziWriter</h2>
+      <p>This is the core class you will interact with.</p>
+
+      <h4>new HanziWriter(element, character, options)</h4>
+      <p>Set up a new HanziWriter instance the specified DOM element</p>
+      <p>
+        <code>element</code> DOM node or ID of the element to render into.
+      </p>
+      <p>
+        <code>character</code> The character to draw, ex '你'.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options available include:
+        <ul>
+          <li><code>showOutline:</code> boolean, default true. Controls whether the outline is shown or hidden on the first render.</li>
+          <li><code>showCharacter:</code> boolean, default true. Controls whether the character is shown or hidden on the first render.</li>
+          <li><code>width:</code> number. Width of the canvas in px.</li>
+          <li><code>height:</code> number. height of the canvas in px.</li>
+          <li><code>padding:</code> number, default 20. padding between the character and edge of the canvas in px.</li>
+          <li><code>strokeAnimationDuration:</code> number, default 400. Time in milliseconds to animate each stroke.</li>
+          <li><code>strokeHighlightDuration:</code> number, default 200. Time in milliseconds to highlight each stroke when givings hints in a quiz.</li>
+          <li><code>delayBetweenStrokes:</code> number, default 1000. Time in milliseconds between each stroke when animating.</li>
+          <li><code>strokeColor:</code> hex string, default '#555'. The color to draw each stroke.</li>
+          <li><code>highlightColor:</code> hex string, default '#AAF'. The color to use for highlighting in quizzes.</li>
+          <li><code>outlineColor:</code> hex string, default '#DDD'. The color of the character outline.</li>
+          <li><code>drawingColor:</code> hex string, default '#333'. The color of the lines drawn by users during quizzing.</li>
+          <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
+          <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
+          <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
+        </ul>
+      </p>
+      <h3>Instance methods</h3>
+      <h4>writer.showCharacter(options = {})</h4>
+      <p>Show the character if it's currently hidden.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.hideCharacter(options = {})</h4>
+      <p>Hide the character if it's currently shown.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the showing animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.showOutline(options = {})</h4>
+      <p>Show the outline if it's currently hidden.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the showing animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.hideOutline(options = {})</h4>
+      <p>Hide the outline if it's currently shown.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.animateCharacter(options = {})</h4>
+      <p>Animate the strokes of the character in order</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.setCharacter(character)</h4>
+      <p>Replace the currently drawn character with a new one. This will reset any quizzes or animations in progress.</p>
+      <p>
+        <code>character</code> The character to draw, ex '你'.
+      </p>
+
+      <h4>writer.quiz(options)</h4>
+      <p>Start a quiz.</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function(data). Called when the quiz is complete. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz.</li>
+          <li><code>onCorrectStroke:</code> function(data). Called when the user draws a stroke correctly. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz so far, <code>strokeNum</code> the current stroke number, <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke, and <code>strokesRemaining</code> the number of strokes left until the quiz is complete.</li>
+          <li><code>onMistake:</code> function(data). Called when the user makes a mistake drawing a stroke. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz so far, <code>strokeNum</code> the current stroke number, <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke so far, and <code>strokesRemaining</code> the number of strokes left until the quiz is complete.</li>
+          <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating the writer instance.</li>
+          <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating the writer instance.</li>
+        </ul>
+      </p>
+
+      <h4>writer.cancelQuiz()</h4>
+      <p>Cancel the quiz currently in progress</p>
+
     </div>
   </div>
 </div>

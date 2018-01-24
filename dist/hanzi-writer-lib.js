@@ -61,7 +61,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -69,7 +69,7 @@ module.exports =
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(global) {
+
 
 function emptyFunc() {}
 
@@ -151,10 +151,6 @@ function timeout() {
   });
 }
 
-function isMSBrowser() {
-  return global.navigator && global.navigator.userAgent && (global.navigator.userAgent.indexOf('Edge') >= 0 || global.navigator.userAgent.indexOf('MSIE') >= 0);
-}
-
 module.exports = {
   inherits: inherits,
   assign: assign,
@@ -165,10 +161,8 @@ module.exports = {
   counter: counter,
   emptyFunc: emptyFunc,
   getExtremes: getExtremes,
-  isMSBrowser: isMSBrowser,
   timeout: timeout
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
 /* 1 */
@@ -179,9 +173,75 @@ module.exports = {
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
+var Point = __webpack_require__(2);
+
 var _require = __webpack_require__(0),
     arrayMin = _require.arrayMin,
     arrayMax = _require.arrayMax;
+
+// return a new point, p3, which is on the same line as p1 and p2, but distance away
+// from p2. p1, p2, p3 will always lie on the line in that order
+
+
+var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
+  var vect = p2.subtract(p1);
+  var norm = distance / vect.getMagnitude();
+  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
+};
+
+var getBounds = function getBounds(points) {
+  var xs = points.map(function (point) {
+    return point.x;
+  });
+  var ys = points.map(function (point) {
+    return point.y;
+  });
+  var maxX = arrayMax(xs);
+  var maxY = arrayMax(ys);
+  var minX = arrayMin(xs);
+  var minY = arrayMin(ys);
+  return [new Point(minX, minY), new Point(maxX, maxY)];
+};
+
+// boundable here refers to any object with a getBounds() method
+var getOverallBounds = function getOverallBounds(boundables) {
+  var bounds = [];
+  boundables.forEach(function (boundable) {
+    var _boundable$getBounds = boundable.getBounds(),
+        _boundable$getBounds2 = _slicedToArray(_boundable$getBounds, 2),
+        lowerBound = _boundable$getBounds2[0],
+        upperBound = _boundable$getBounds2[1];
+
+    bounds.push(lowerBound);
+    bounds.push(upperBound);
+  });
+  return getBounds(bounds);
+};
+
+var getDistance = function getDistance(point1, point2) {
+  var difference = point1.subtract(point2);
+  return difference.getMagnitude();
+};
+
+var cosineSimilarity = function cosineSimilarity(point1, point2) {
+  var rawDotProduct = point1.x * point2.x + point1.y * point2.y;
+  return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
+};
+
+module.exports = {
+  extendPointOnLine: extendPointOnLine,
+  getBounds: getBounds,
+  getOverallBounds: getOverallBounds,
+  getDistance: getDistance,
+  cosineSimilarity: cosineSimilarity
+};
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
 
 function Point(x, y) {
   this.x = parseFloat(x, 10);
@@ -207,73 +267,7 @@ Point.prototype.equals = function (point) {
   return point.x === this.x && point.y === this.y;
 };
 
-Point.getBounds = function (points) {
-  var xs = points.map(function (point) {
-    return point.x;
-  });
-  var ys = points.map(function (point) {
-    return point.y;
-  });
-  var maxX = arrayMax(xs);
-  var maxY = arrayMax(ys);
-  var minX = arrayMin(xs);
-  var minY = arrayMin(ys);
-  return [new Point(minX, minY), new Point(maxX, maxY)];
-};
-
-// boundable here refers to any object with a getBounds() method
-Point.getOverallBounds = function (boundables) {
-  var bounds = [];
-  boundables.forEach(function (boundable) {
-    var _boundable$getBounds = boundable.getBounds(),
-        _boundable$getBounds2 = _slicedToArray(_boundable$getBounds, 2),
-        lowerBound = _boundable$getBounds2[0],
-        upperBound = _boundable$getBounds2[1];
-
-    bounds.push(lowerBound);
-    bounds.push(upperBound);
-  });
-  return Point.getBounds(bounds);
-};
-
-Point.getDistance = function (point1, point2) {
-  var difference = point1.subtract(point2);
-  return difference.getMagnitude();
-};
-
-Point.cosineSimilarity = function (point1, point2) {
-  var rawDotProduct = point1.x * point2.x + point1.y * point2.y;
-  return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
-};
-
 module.exports = Point;
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
 
 /***/ }),
 /* 3 */
@@ -487,18 +481,45 @@ Canvas.init = function (elmOrId) {
 };
 
 module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ }),
 /* 5 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var CharacterRenderer = __webpack_require__(6);
+var CharacterRenderer = __webpack_require__(7);
 var PositionerRenderer = __webpack_require__(9);
-var Point = __webpack_require__(1);
+var Point = __webpack_require__(2);
 var CharDataParser = __webpack_require__(10);
 var Positioner = __webpack_require__(13);
 var Quiz = __webpack_require__(14);
@@ -507,8 +528,7 @@ var defaultCharDataLoader = __webpack_require__(18);
 var Animator = __webpack_require__(19);
 
 var _require = __webpack_require__(0),
-    assign = _require.assign,
-    isMSBrowser = _require.isMSBrowser;
+    assign = _require.assign;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -544,9 +564,7 @@ var defaultOptions = {
   drawingFadeDuration: 300,
   drawingWidth: 4,
   strokeWidth: 2,
-  outlineWidth: 2,
-  // MS browsers are terrible and can't handle masks using paths with stroke
-  usePolygonMasks: isMSBrowser()
+  outlineWidth: 2
 };
 
 function HanziWriter(element, character) {
@@ -798,17 +816,17 @@ if (typeof global.window !== 'undefined') {
 if (true) {
   module.exports = HanziWriter;
 }
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ }),
-/* 6 */
+/* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
 var Renderer = __webpack_require__(3);
-var StrokeRenderer = __webpack_require__(7);
+var StrokeRenderer = __webpack_require__(8);
 
 var _require = __webpack_require__(0),
     timeout = _require.timeout,
@@ -909,7 +927,7 @@ CharacterRenderer.prototype.setCanvas = function (canvas) {
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -923,11 +941,8 @@ var _require = __webpack_require__(0),
 
 var svg = __webpack_require__(4);
 
-var _require2 = __webpack_require__(8),
-    extendPointOnLine = _require2.extendPointOnLine,
-    getLineSegmentsPortion = _require2.getLineSegmentsPortion,
-    filterParallelPoints = _require2.filterParallelPoints,
-    linesToPolygon = _require2.linesToPolygon;
+var _require2 = __webpack_require__(1),
+    extendPointOnLine = _require2.extendPointOnLine;
 
 // take points on a path and move their start point backwards by distance
 
@@ -939,17 +954,6 @@ var extendStart = function extendStart(points, distance) {
   var newStart = extendPointOnLine(p1, p2, distance);
   var extendedPoints = points.slice(1);
   extendedPoints.unshift(newStart);
-  return extendedPoints;
-};
-
-// take points on a path and move their end point backwards by distance
-var extendEnd = function extendEnd(points, distance) {
-  if (points.length < 2) return points;
-  var p1 = points[points.length - 2];
-  var p2 = points[points.length - 1];
-  var newEnd = extendPointOnLine(p1, p2, distance);
-  var extendedPoints = points.slice(0, points.length - 1);
-  extendedPoints.push(newEnd);
   return extendedPoints;
 };
 
@@ -965,61 +969,36 @@ inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.draw = function () {
   this.path = svg.createElm('path');
-  var maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
-  this.mask = svg.createElm(maskType);
-  this.maskPath = svg.createElm('path');
-  var maskId = 'mask-' + counter();
-  svg.attr(this.mask, 'id', maskId);
+  this.clip = svg.createElm('clipPath');
+  this.strokeClip = svg.createElm('path');
+  var clipId = 'hzw-clip-' + counter();
+  svg.attr(this.clip, 'id', clipId);
 
-  svg.attr(this.path, 'd', this.stroke.path);
-  svg.attrs(this.path, this.getStrokeAttrs());
+  var extendedPathPoints = extendStart(this.stroke.points, 85);
+  svg.attr(this.path, 'd', svg.getPathString(extendedPathPoints));
   this.path.style.opacity = 0;
-  var maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
-  svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
+  svg.attr(this.path, 'clip-path', 'url(#' + clipId + ')');
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
-  if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
-    this.polyMaskTip = svg.createElm('circle');
-    // need to add this to the mask before the maskPath or else weird things happen. Not sure why
-    this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 75);
-    this._setPolyMaskPortion(1);
-  } else {
-    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    var maskLength = this.maskPath.getTotalLength();
-    svg.attrs(this.maskPath, {
-      stroke: '#FFFFFF',
-      'stroke-width': 150,
-      fill: 'none',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'miter',
-      'stroke-dasharray': maskLength + ',' + maskLength
-    });
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
+  svg.attr(this.strokeClip, 'd', this.stroke.path);
+  var maskLength = this.strokeClip.getTotalLength();
+  svg.attrs(this.path, {
+    fill: 'none',
+    stroke: this.options.strokeColor,
+    'stroke-width': 150,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'miter',
+    'stroke-dasharray': maskLength + ',' + maskLength
+  });
+  this.path.style['stroke-dashoffset'] = 0;
 
-  this.mask.appendChild(this.maskPath);
-  this.canvas.defs.appendChild(this.mask);
+  this.clip.appendChild(this.strokeClip);
+  this.canvas.defs.appendChild(this.clip);
   this.canvas.svg.appendChild(this.path);
   return this;
 };
 
-StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
-  var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 150), true);
-  var endPoint = strokePointsPortion[strokePointsPortion.length - 1];
-  svg.attr(this.maskPath, 'd', pathString);
-  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
-  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
-};
-
 StrokeRenderer.prototype.show = function (animation) {
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(1);
-  } else {
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
+  this.path.style['stroke-dashoffset'] = 0;
   var tween = new svg.StyleTween(this.path, 'opacity', 1, {
     duration: this.options.strokeAnimationDuration
   });
@@ -1036,25 +1015,13 @@ StrokeRenderer.prototype.hide = function (animation) {
 };
 
 StrokeRenderer.prototype.animate = function (animation) {
-  var _this = this;
-
   if (!animation.isActive()) return null;
   this.showImmediate();
-  var tween = void 0;
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(0);
-    tween = new svg.Tween(function (portion) {
-      return _this._setPolyMaskPortion(portion);
-    }, {
-      duration: this.options.strokeAnimationDuration
-    });
-  } else {
-    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-      duration: this.options.strokeAnimationDuration
-    });
-  }
+  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+  this.path.style['stroke-dashoffset'] = this.strokeClip.getTotalLength() * 0.999;
+  var tween = new svg.StyleTween(this.path, 'stroke-dashoffset', 0, {
+    duration: this.options.strokeAnimationDuration
+  });
   animation.registerSvgAnimation(tween);
   return tween.start();
 };
@@ -1067,170 +1034,21 @@ StrokeRenderer.prototype.showImmediate = function () {
 };
 
 StrokeRenderer.prototype.highlight = function (animation) {
-  var _this2 = this;
+  var _this = this;
 
   return this.animate(animation).then(function () {
-    return _this2.hide(animation);
+    return _this.hide(animation);
   });
-};
-
-StrokeRenderer.prototype.getStrokeAttrs = function () {
-  return {
-    fill: this.options.strokeColor,
-    stroke: this.options.strokeColor,
-    'stroke-width': this.options.strokeWidth
-  };
 };
 
 StrokeRenderer.prototype.destroy = function () {
   StrokeRenderer.super_.prototype.destroy.call(this);
   if (this.path) this.path.remove();
-  if (this.maskPath) this.maskPath.remove();
-  if (this.mask) this.mask.remove();
+  if (this.strokeClip) this.strokeClip.remove();
+  if (this.clip) this.clip.remove();
 };
 
 module.exports = StrokeRenderer;
-
-/***/ }),
-/* 8 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Point = __webpack_require__(1);
-
-// return a new point, p3, which is on the same line as p1 and p2, but distance away
-// from p2. p1, p2, p3 will always lie on the line in that order
-var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
-  var vect = p2.subtract(p1);
-  var norm = distance / vect.getMagnitude();
-  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
-};
-
-// return 2 points distance from targetPoint on line perpendicular to the line between
-// targetPoint and refPoint
-var getPerpendicularPointsAtDist = function getPerpendicularPointsAtDist(targetPoint, refPoint, distance) {
-  var vect = targetPoint.subtract(refPoint);
-  var norm = distance / vect.getMagnitude();
-  // simulate taking a cross-product with the vector (0, 0, 1) to get the new perpendicular vect
-  var perpVect = new Point(norm * vect.y, -1 * norm * vect.x);
-  return [targetPoint.add(perpVect), targetPoint.subtract(perpVect)];
-};
-
-// get the intersection point of 2 lines defined by 2 points each
-// from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l2p2) {
-  var x1 = l1p1.x;
-  var x2 = l1p2.x;
-  var x3 = l2p1.x;
-  var x4 = l2p2.x;
-  var y1 = l1p1.y;
-  var y2 = l1p2.y;
-  var y3 = l2p1.y;
-  var y4 = l2p2.y;
-  var xNumerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
-  var yNumerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
-  var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  return new Point(xNumerator / denominator, yNumerator / denominator);
-};
-
-var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
-  if (points.length < 2 || portion >= 1) return points;
-  if (portion === 0) return [points[0]];
-  var totalDist = 0;
-  for (var i = 1; i < points.length; i += 1) {
-    totalDist += Point.getDistance(points[i], points[i - 1]);
-  }
-  var portionedPoints = [points[0]];
-  var portionedDist = totalDist * portion;
-  var cumuativeDist = 0;
-  for (var _i = 1; _i < points.length; _i += 1) {
-    var lastPoint = points[_i - 1];
-    var segmentLength = Point.getDistance(points[_i], lastPoint);
-    if (cumuativeDist + segmentLength >= portionedDist) {
-      var vect = points[_i].subtract(lastPoint);
-      var norm = (portionedDist - cumuativeDist) / segmentLength;
-      portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
-      return portionedPoints;
-    }
-    cumuativeDist += segmentLength;
-    portionedPoints.push(points[_i]);
-  }
-  return portionedPoints;
-};
-
-// remove intermediate points that are on the same line as the points to either side
-var filterParallelPoints = function filterParallelPoints(points) {
-  if (points.length < 3) return points;
-  var filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach(function (point, i) {
-    var numFilteredPoints = filteredPoints.length;
-    var curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
-    var prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
-    // this is the z coord of the cross-product. If this is 0 then they're parallel
-    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
-    if (isParallel) {
-      filteredPoints.pop();
-    }
-    filteredPoints.push(point);
-  });
-  return filteredPoints;
-};
-
-// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
-var linesToPolygon = function linesToPolygon(points, thickness) {
-  if (points.length < 2) return points;
-  var dist = thickness / 2;
-  var topSegments = [];
-  var bottomSegments = [];
-  for (var i = 1; i < points.length; i += 1) {
-    var startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
-    var endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
-    topSegments.push({ start: startPoints[0], end: endPoints[1] });
-    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
-  }
-  var topPoints = [topSegments[0].start];
-  var bottomPoints = [bottomSegments[0].start];
-  for (var _i2 = 1; _i2 < topSegments.length; _i2 += 1) {
-    var topIntersect = getLinesIntersectPoint(topSegments[_i2 - 1].start, topSegments[_i2 - 1].end, topSegments[_i2].start, topSegments[_i2].end);
-    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i2 - 1].start, bottomSegments[_i2 - 1].end, bottomSegments[_i2].start, bottomSegments[_i2].end);
-    topPoints.push(topIntersect);
-    bottomPoints.push(bottomIntersect);
-  }
-
-  var topEndPoint = topSegments[topSegments.length - 1].end;
-  var bottomEndPoint = bottomSegments[bottomSegments.length - 1].end;
-
-  var endOverlapIntersect = getLinesIntersectPoint(topPoints[topPoints.length - 1], bottomPoints[bottomPoints.length - 1], topEndPoint, bottomEndPoint);
-
-  // correct for case where there's a hard corner and we're overlapping an area we already drew
-  if (Point.getDistance(endOverlapIntersect, points[points.length - 1]) < dist) {
-    var topVect = topEndPoint.subtract(points[points.length - 1]);
-    var overlapVect = endOverlapIntersect.subtract(points[points.length - 1]);
-    // figure out if the top point is overlapping of the bottom point is overlapping by using dot-product
-    var isTopOverlapping = topVect.x * overlapVect.x + topVect.y * overlapVect.y > 0;
-    if (isTopOverlapping) {
-      topEndPoint = endOverlapIntersect;
-    } else {
-      bottomEndPoint = endOverlapIntersect;
-    }
-  }
-
-  topPoints.push(topEndPoint);
-  bottomPoints.push(bottomEndPoint);
-  bottomPoints.reverse();
-  return topPoints.concat(bottomPoints);
-};
-
-module.exports = {
-  extendPointOnLine: extendPointOnLine,
-  filterParallelPoints: filterParallelPoints,
-  getLineSegmentsPortion: getLineSegmentsPortion,
-  getLinesIntersectPoint: getLinesIntersectPoint,
-  getPerpendicularPointsAtDist: getPerpendicularPointsAtDist,
-  linesToPolygon: linesToPolygon
-};
 
 /***/ }),
 /* 9 */
@@ -1279,7 +1097,7 @@ module.exports = PositionerRenderer;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var Point = __webpack_require__(1);
+var Point = __webpack_require__(2);
 var Stroke = __webpack_require__(11);
 var Character = __webpack_require__(12);
 
@@ -1312,7 +1130,8 @@ module.exports = CharDataParser;
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var _require = __webpack_require__(1),
+    getDistance = _require.getDistance;
 
 function Stroke(path, points, strokeNum) {
   this.path = path;
@@ -1336,7 +1155,7 @@ Stroke.prototype.getLength = function () {
   var lastPoint = this.points[0];
   var pointsSansFirst = this.points.slice(1);
   return pointsSansFirst.reduce(function (acc, point) {
-    var dist = Point.getDistance(point, lastPoint);
+    var dist = getDistance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
   }, 0);
@@ -1354,7 +1173,7 @@ Stroke.prototype.getVectors = function () {
 
 Stroke.prototype.getDistance = function (point) {
   var distances = this.points.map(function (strokePoint) {
-    return Point.getDistance(strokePoint, point);
+    return getDistance(strokePoint, point);
   });
   return Math.min.apply(Math, distances);
 };
@@ -1377,7 +1196,10 @@ module.exports = Stroke;
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var Point = __webpack_require__(2);
+
+var _require = __webpack_require__(1),
+    getBounds = _require.getBounds;
 
 function Character(symbol, strokes) {
   this.symbol = symbol;
@@ -1393,7 +1215,7 @@ Character.prototype.getNumStrokes = function () {
 };
 
 Character.prototype.getBounds = function () {
-  return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
+  return getBounds([new Point(0, 900), new Point(1024, -124)]);
 };
 
 module.exports = Character;
@@ -1405,7 +1227,7 @@ module.exports = Character;
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var Point = __webpack_require__(2);
 
 function Positioner(character, options) {
   this._character = character;
@@ -1611,10 +1433,12 @@ module.exports = Quiz;
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var _require = __webpack_require__(1),
+    getDistance = _require.getDistance,
+    cosineSimilarity = _require.cosineSimilarity;
 
-var _require = __webpack_require__(0),
-    average = _require.average;
+var _require2 = __webpack_require__(0),
+    average = _require2.average;
 
 var AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
@@ -1634,8 +1458,8 @@ StrokeMatcher.prototype.strokeMatches = function (userStroke, stroke) {
 };
 
 StrokeMatcher.prototype._startAndEndMatches = function (points, closestStroke) {
-  var startingDist = Point.getDistance(closestStroke.getStartingPoint(), points[0]);
-  var endingDist = Point.getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
+  var startingDist = getDistance(closestStroke.getStartingPoint(), points[0]);
+  var endingDist = getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
   return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
 };
 
@@ -1644,7 +1468,7 @@ StrokeMatcher.prototype._directionMatches = function (points, stroke) {
   var strokeVectors = stroke.getVectors();
   var similarities = edgeVectors.map(function (edgeVector) {
     var strokeSimilarities = strokeVectors.map(function (strokeVector) {
-      return Point.cosineSimilarity(strokeVector, edgeVector);
+      return cosineSimilarity(strokeVector, edgeVector);
     });
     return Math.max.apply(Math, strokeSimilarities);
   });
@@ -1667,7 +1491,7 @@ StrokeMatcher.prototype._getLength = function (points) {
   var length = 0;
   var lastPoint = points[0];
   points.forEach(function (point) {
-    length += Point.getDistance(point, lastPoint);
+    length += getDistance(point, lastPoint);
     lastPoint = point;
   });
   return length;
@@ -1693,14 +1517,15 @@ module.exports = StrokeMatcher;
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var _require = __webpack_require__(1),
+    getBounds = _require.getBounds;
 
 function UserStroke(startingPoint) {
   this.points = [startingPoint];
 }
 
 UserStroke.prototype.getBounds = function () {
-  return Point.getBounds(this.points);
+  return getBounds(this.points);
 };
 
 UserStroke.prototype.appendPoint = function (point) {
@@ -1809,7 +1634,7 @@ module.exports = function (char, onLoad) {
   };
   xhr.send(null);
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(5)))
 
 /***/ }),
 /* 19 */

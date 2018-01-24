@@ -65,13 +65,6 @@ function timeout(duration = 0) {
   });
 }
 
-function isMSBrowser() {
-  return global.navigator && global.navigator.userAgent && (
-    global.navigator.userAgent.indexOf('Edge') >= 0
-    || global.navigator.userAgent.indexOf('MSIE') >= 0
-  );
-}
-
 module.exports = {
   inherits,
   assign,
@@ -82,6 +75,5 @@ module.exports = {
   counter,
   emptyFunc,
   getExtremes,
-  isMSBrowser,
   timeout,
 };

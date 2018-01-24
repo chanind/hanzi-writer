@@ -1,4 +1,4 @@
-const Point = require('./models/Point');
+const { getDistance, cosineSimilarity } = require('./geometry');
 const {average} = require('./utils');
 
 const AVG_DIST_THRESHOLD = 300; // bigger = more lenient
@@ -19,8 +19,8 @@ StrokeMatcher.prototype.strokeMatches = function(userStroke, stroke) {
 };
 
 StrokeMatcher.prototype._startAndEndMatches = function(points, closestStroke) {
-  const startingDist = Point.getDistance(closestStroke.getStartingPoint(), points[0]);
-  const endingDist = Point.getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
+  const startingDist = getDistance(closestStroke.getStartingPoint(), points[0]);
+  const endingDist = getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
   return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
 };
 
@@ -28,7 +28,7 @@ StrokeMatcher.prototype._directionMatches = function(points, stroke) {
   const edgeVectors = this._getEdgeVectors(points);
   const strokeVectors = stroke.getVectors();
   const similarities = edgeVectors.map(edgeVector => {
-    const strokeSimilarities = strokeVectors.map(strokeVector => Point.cosineSimilarity(strokeVector, edgeVector));
+    const strokeSimilarities = strokeVectors.map(strokeVector => cosineSimilarity(strokeVector, edgeVector));
     return Math.max.apply(Math, strokeSimilarities);
   });
   const avgSimilarity = average(similarities);
@@ -50,7 +50,7 @@ StrokeMatcher.prototype._getLength = function(points) {
   let length = 0;
   let lastPoint = points[0];
   points.forEach(point => {
-    length += Point.getDistance(point, lastPoint);
+    length += getDistance(point, lastPoint);
     lastPoint = point;
   });
   return length;

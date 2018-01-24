@@ -1,4 +1,5 @@
 const Point = require('./Point');
+const { getBounds } = require('../geometry');
 
 function Character(symbol, strokes) {
   this.symbol = symbol;
@@ -14,7 +15,7 @@ Character.prototype.getNumStrokes = function() {
 };
 
 Character.prototype.getBounds = function() {
-  return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
+  return getBounds([new Point(0, 900), new Point(1024, -124)]);
 };
 
 module.exports = Character;

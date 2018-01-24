@@ -1,12 +1,7 @@
 const Renderer = require('./Renderer');
 const {counter, inherits } = require('../utils');
 const svg = require('../svg');
-const {
-  extendPointOnLine,
-  getLineSegmentsPortion,
-  filterParallelPoints,
-  linesToPolygon,
-} = require('../geometry');
+const { extendPointOnLine } = require('../geometry');
 
 // take points on a path and move their start point backwards by distance
 const extendStart = (points, distance) => {
@@ -16,17 +11,6 @@ const extendStart = (points, distance) => {
   const newStart = extendPointOnLine(p1, p2, distance);
   const extendedPoints = points.slice(1);
   extendedPoints.unshift(newStart);
-  return extendedPoints;
-};
-
-// take points on a path and move their end point backwards by distance
-const extendEnd = (points, distance) => {
-  if (points.length < 2) return points;
-  const p1 = points[points.length - 2];
-  const p2 = points[points.length - 1];
-  const newEnd = extendPointOnLine(p1, p2, distance);
-  const extendedPoints = points.slice(0, points.length - 1);
-  extendedPoints.push(newEnd);
   return extendedPoints;
 };
 
@@ -40,61 +24,36 @@ inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.draw = function() {
   this.path = svg.createElm('path');
-  const maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
-  this.mask = svg.createElm(maskType);
-  this.maskPath = svg.createElm('path');
-  const maskId = `mask-${counter()}`;
-  svg.attr(this.mask, 'id', maskId);
+  this.clip = svg.createElm('clipPath');
+  this.strokeClip = svg.createElm('path');
+  const clipId = `hzw-clip-${counter()}`;
+  svg.attr(this.clip, 'id', clipId);
 
-  svg.attr(this.path, 'd', this.stroke.path);
-  svg.attrs(this.path, this.getStrokeAttrs());
+  const extendedPathPoints = extendStart(this.stroke.points, 85);
+  svg.attr(this.path, 'd', svg.getPathString(extendedPathPoints));
   this.path.style.opacity = 0;
-  const maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
-  svg.attr(this.path, maskAttr, `url(#${maskId})`);
+  svg.attr(this.path, 'clip-path', `url(#${clipId})`);
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
-  if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
-    this.polyMaskTip = svg.createElm('circle');
-    // need to add this to the mask before the maskPath or else weird things happen. Not sure why
-    this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 75);
-    this._setPolyMaskPortion(1);
-  } else {
-    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    const maskLength = this.maskPath.getTotalLength();
-    svg.attrs(this.maskPath, {
-      stroke: '#FFFFFF',
-      'stroke-width': 150,
-      fill: 'none',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'miter',
-      'stroke-dasharray': `${maskLength},${maskLength}`,
-    });
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
+  svg.attr(this.strokeClip, 'd', this.stroke.path);
+  const maskLength = this.strokeClip.getTotalLength();
+  svg.attrs(this.path, {
+    fill: 'none',
+    stroke: this.options.strokeColor,
+    'stroke-width': 150,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'miter',
+    'stroke-dasharray': `${maskLength},${maskLength}`,
+  });
+  this.path.style['stroke-dashoffset'] = 0;
 
-  this.mask.appendChild(this.maskPath);
-  this.canvas.defs.appendChild(this.mask);
+  this.clip.appendChild(this.strokeClip);
+  this.canvas.defs.appendChild(this.clip);
   this.canvas.svg.appendChild(this.path);
   return this;
 };
 
-StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
-  const strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  const pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 150), true);
-  const endPoint = strokePointsPortion[strokePointsPortion.length - 1];
-  svg.attr(this.maskPath, 'd', pathString);
-  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
-  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
-};
-
 StrokeRenderer.prototype.show = function(animation) {
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(1);
-  } else {
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
+  this.path.style['stroke-dashoffset'] = 0;
   const tween = new svg.StyleTween(this.path, 'opacity', 1, {
     duration: this.options.strokeAnimationDuration,
   });
@@ -113,19 +72,11 @@ StrokeRenderer.prototype.hide = function(animation) {
 StrokeRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
   this.showImmediate();
-  let tween;
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(0);
-    tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), {
-      duration: this.options.strokeAnimationDuration,
-    });
-  } else {
-    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-      duration: this.options.strokeAnimationDuration,
-    });
-  }
+  // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+  this.path.style['stroke-dashoffset'] = this.strokeClip.getTotalLength() * 0.999;
+  const tween = new svg.StyleTween(this.path, 'stroke-dashoffset', 0, {
+    duration: this.options.strokeAnimationDuration,
+  });
   animation.registerSvgAnimation(tween);
   return tween.start();
 };
@@ -137,19 +88,11 @@ StrokeRenderer.prototype.highlight = function(animation) {
   return this.animate(animation).then(() => this.hide(animation));
 };
 
-StrokeRenderer.prototype.getStrokeAttrs = function() {
-  return {
-    fill: this.options.strokeColor,
-    stroke: this.options.strokeColor,
-    'stroke-width': this.options.strokeWidth,
-  };
-};
-
 StrokeRenderer.prototype.destroy = function() {
   StrokeRenderer.super_.prototype.destroy.call(this);
   if (this.path) this.path.remove();
-  if (this.maskPath) this.maskPath.remove();
-  if (this.mask) this.mask.remove();
+  if (this.strokeClip) this.strokeClip.remove();
+  if (this.clip) this.clip.remove();
 };
 
 module.exports = StrokeRenderer;

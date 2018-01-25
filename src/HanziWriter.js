@@ -7,7 +7,7 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
-const { assign, isMSBrowser } = require('./utils');
+const { assign, isMSBrowser, timeout } = require('./utils');
 
 
 const defaultOptions = {
@@ -26,6 +26,7 @@ const defaultOptions = {
   strokeAnimationDuration: 400,
   strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
+  delayBetweenLoops: 2000,
 
   // colors
 
@@ -95,6 +96,20 @@ HanziWriter.prototype.hideCharacter = function(options = {}) {
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
   this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+};
+HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
+  const animateForever = (animation) => {
+    const cascadedOpts = assign({}, this._options, options);
+    const delayBetweenLoops = cascadedOpts.delayBetweenLoops;
+    const animatePromise = this._characterRenderer.animate(animation);
+    if (!animatePromise) return null;
+    return animatePromise
+      .then(() => timeout(delayBetweenLoops))
+      .then(() => animateForever(animation));
+  };
+
+  this.cancelQuiz();
+  this._animateWithData(animateForever, options);
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {

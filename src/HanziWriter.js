@@ -88,14 +88,14 @@ HanziWriter.prototype.setOptions = function(options) {
 // ------ public API ------ //
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
-  this._animateWithData(animation => this._characterRenderer.show(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.show(animation), options);
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
-  this._animateWithData(animation => this._characterRenderer.hide(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.hide(animation), options);
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
-  this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.animate(animation), options);
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   const animateForever = (animation) => {
@@ -109,14 +109,14 @@ HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   };
 
   this.cancelQuiz();
-  this._animateWithData(animateForever, options);
+  return this._animateWithData(animateForever, options);
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
-  this._animateWithData(animation => this._outlineRenderer.show(animation), options);
+  return this._animateWithData(animation => this._outlineRenderer.show(animation), options);
 };
 HanziWriter.prototype.hideOutline = function(options = {}) {
-  this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
+  return this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
 };
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
@@ -231,9 +231,7 @@ HanziWriter.prototype._animate = function(func, options = {}) {
 };
 
 HanziWriter.prototype._animateWithData = function(func, options = {}) {
-  return this._withData(() => {
-    return this._animate(func, options);
-  });
+  return this._withData(() => this._animate(func, options));
 };
 
 // set up window.HanziWriter if we're in the browser

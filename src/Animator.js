@@ -6,7 +6,7 @@ function Animator() {
 
 Animator.prototype.animate = function(func, options = {}) {
   const animation = this._setupAnimation(options);
-  func(animation).then(() => animation.finish());
+  return func(animation).then(() => animation.finish());
 };
 
 Animator.prototype._setupAnimation = function(options) {

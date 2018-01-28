@@ -42,6 +42,8 @@ UserStrokeRenderer.prototype.getStrokeAttrs = function() {
     fill: 'none',
     stroke: this.options.strokeColor,
     'stroke-width': this.options.strokeWidth,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round',
   };
 };
 

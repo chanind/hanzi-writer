@@ -52,7 +52,7 @@ const defaultOptions = {
 
 function HanziWriter(element, character, options = {}) {
   this._animator = new Animator();
-  this._canvas = svg.Canvas.init(element, options);
+  this._canvas = svg.Canvas.init(element);
   this.setOptions(options);
   this.setCharacter(character);
   this._setupListeners();
@@ -148,7 +148,7 @@ HanziWriter.prototype.setCharacter = function(char) {
   this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
-    this._positioner = new Positioner(this._character, this._options);
+    this._positioner = new Positioner(this._character, this._fillWidthAndHeight(this._options));
 
     this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._canvas);
     this._subCanvas = this._positionerRenderer.positionedCanvas;
@@ -163,6 +163,22 @@ HanziWriter.prototype.setCharacter = function(char) {
 };
 
 // ------------- //
+
+// returns a new options object with width and height filled in if missing
+HanziWriter.prototype._fillWidthAndHeight = function(options) {
+  const filledOpts = assign({}, options);
+  if (filledOpts.width && !filledOpts.height) {
+    filledOpts.height = filledOpts.width;
+  } else if (filledOpts.height && !filledOpts.width) {
+    filledOpts.width = filledOpts.height;
+  } else if (!filledOpts.width && !filledOpts.height) {
+    const { width, height } = this._canvas.svg.getBoundingClientRect();
+    const minDim = Math.min(width, height);
+    filledOpts.width = minDim;
+    filledOpts.height = minDim;
+  }
+  return filledOpts;
+};
 
 HanziWriter.prototype._loadCharacterData = function(char) {
   if (this.isLoadingCharData) this.cancelLoadingCharData();

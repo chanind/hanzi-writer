@@ -7,7 +7,7 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
-const { assign, isMSBrowser } = require('./utils');
+const { assign, isMSBrowser, timeout } = require('./utils');
 
 
 const defaultOptions = {
@@ -26,6 +26,7 @@ const defaultOptions = {
   strokeAnimationDuration: 400,
   strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
+  delayBetweenLoops: 2000,
 
   // colors
 
@@ -51,7 +52,7 @@ const defaultOptions = {
 
 function HanziWriter(element, character, options = {}) {
   this._animator = new Animator();
-  this._canvas = svg.Canvas.init(element, options);
+  this._canvas = svg.Canvas.init(element);
   this.setOptions(options);
   this.setCharacter(character);
   this._setupListeners();
@@ -87,21 +88,35 @@ HanziWriter.prototype.setOptions = function(options) {
 // ------ public API ------ //
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
-  this._animateWithData(animation => this._characterRenderer.show(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.show(animation), options);
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
-  this._animateWithData(animation => this._characterRenderer.hide(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.hide(animation), options);
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
-  this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+  return this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+};
+HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
+  const animateForever = (animation) => {
+    const cascadedOpts = assign({}, this._options, options);
+    const delayBetweenLoops = cascadedOpts.delayBetweenLoops;
+    const animatePromise = this._characterRenderer.animate(animation);
+    if (!animatePromise) return null;
+    return animatePromise
+      .then(() => timeout(delayBetweenLoops))
+      .then(() => animateForever(animation));
+  };
+
+  this.cancelQuiz();
+  return this._animateWithData(animateForever, options);
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
-  this._animateWithData(animation => this._outlineRenderer.show(animation), options);
+  return this._animateWithData(animation => this._outlineRenderer.show(animation), options);
 };
 HanziWriter.prototype.hideOutline = function(options = {}) {
-  this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
+  return this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
 };
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
@@ -133,7 +148,7 @@ HanziWriter.prototype.setCharacter = function(char) {
   this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
-    this._positioner = new Positioner(this._character, this._options);
+    this._positioner = new Positioner(this._character, this._fillWidthAndHeight(this._options));
 
     this._positionerRenderer = new PositionerRenderer(this._positioner).setCanvas(this._canvas);
     this._subCanvas = this._positionerRenderer.positionedCanvas;
@@ -148,6 +163,22 @@ HanziWriter.prototype.setCharacter = function(char) {
 };
 
 // ------------- //
+
+// returns a new options object with width and height filled in if missing
+HanziWriter.prototype._fillWidthAndHeight = function(options) {
+  const filledOpts = assign({}, options);
+  if (filledOpts.width && !filledOpts.height) {
+    filledOpts.height = filledOpts.width;
+  } else if (filledOpts.height && !filledOpts.width) {
+    filledOpts.width = filledOpts.height;
+  } else if (!filledOpts.width && !filledOpts.height) {
+    const { width, height } = this._canvas.svg.getBoundingClientRect();
+    const minDim = Math.min(width, height);
+    filledOpts.width = minDim;
+    filledOpts.height = minDim;
+  }
+  return filledOpts;
+};
 
 HanziWriter.prototype._loadCharacterData = function(char) {
   if (this.isLoadingCharData) this.cancelLoadingCharData();
@@ -216,9 +247,7 @@ HanziWriter.prototype._animate = function(func, options = {}) {
 };
 
 HanziWriter.prototype._animateWithData = function(func, options = {}) {
-  return this._withData(() => {
-    return this._animate(func, options);
-  });
+  return this._withData(() => this._animate(func, options));
 };
 
 // set up window.HanziWriter if we're in the browser

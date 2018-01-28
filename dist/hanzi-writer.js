@@ -507,7 +507,8 @@ var Animator = __webpack_require__(19);
 
 var _require = __webpack_require__(0),
     assign = _require.assign,
-    isMSBrowser = _require.isMSBrowser;
+    isMSBrowser = _require.isMSBrowser,
+    timeout = _require.timeout;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -525,6 +526,7 @@ var defaultOptions = {
   strokeAnimationDuration: 400,
   strokeHighlightDuration: 200,
   delayBetweenStrokes: 1000,
+  delayBetweenLoops: 2000,
 
   // colors
 
@@ -552,7 +554,7 @@ function HanziWriter(element, character) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   this._animator = new Animator();
-  this._canvas = svg.Canvas.init(element, options);
+  this._canvas = svg.Canvas.init(element);
   this.setOptions(options);
   this.setCharacter(character);
   this._setupListeners();
@@ -592,7 +594,7 @@ HanziWriter.prototype.showCharacter = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  this._animateWithData(function (animation) {
+  return this._animateWithData(function (animation) {
     return _this._characterRenderer.show(animation);
   }, options);
 };
@@ -601,7 +603,7 @@ HanziWriter.prototype.hideCharacter = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  this._animateWithData(function (animation) {
+  return this._animateWithData(function (animation) {
     return _this2._characterRenderer.hide(animation);
   }, options);
 };
@@ -611,45 +613,65 @@ HanziWriter.prototype.animateCharacter = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   this.cancelQuiz();
-  this._animateWithData(function (animation) {
+  return this._animateWithData(function (animation) {
     return _this3._characterRenderer.animate(animation);
   }, options);
 };
-
-HanziWriter.prototype.showOutline = function () {
+HanziWriter.prototype.loopCharacterAnimation = function () {
   var _this4 = this;
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  this._animateWithData(function (animation) {
-    return _this4._outlineRenderer.show(animation);
-  }, options);
+  var animateForever = function animateForever(animation) {
+    var cascadedOpts = assign({}, _this4._options, options);
+    var delayBetweenLoops = cascadedOpts.delayBetweenLoops;
+    var animatePromise = _this4._characterRenderer.animate(animation);
+    if (!animatePromise) return null;
+    return animatePromise.then(function () {
+      return timeout(delayBetweenLoops);
+    }).then(function () {
+      return animateForever(animation);
+    });
+  };
+
+  this.cancelQuiz();
+  return this._animateWithData(animateForever, options);
 };
-HanziWriter.prototype.hideOutline = function () {
+
+HanziWriter.prototype.showOutline = function () {
   var _this5 = this;
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
-  this._animateWithData(function (animation) {
-    return _this5._outlineRenderer.hide(animation);
+  return this._animateWithData(function (animation) {
+    return _this5._outlineRenderer.show(animation);
+  }, options);
+};
+HanziWriter.prototype.hideOutline = function () {
+  var _this6 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return this._animateWithData(function (animation) {
+    return _this6._outlineRenderer.hide(animation);
   }, options);
 };
 
 HanziWriter.prototype.quiz = function () {
-  var _this6 = this;
+  var _this7 = this;
 
   var quizOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   this._withData(function () {
-    _this6.cancelQuiz();
-    _this6._quiz = new Quiz({
-      canvas: _this6._subCanvas,
-      animator: _this6._animator,
-      character: _this6._character,
-      characterRenderer: _this6._characterRenderer,
-      highlightRenderer: _this6._highlightRenderer,
-      quizOptions: assign({}, _this6._options, quizOptions),
-      userStrokeOptions: _this6._userStrokeOptions
+    _this7.cancelQuiz();
+    _this7._quiz = new Quiz({
+      canvas: _this7._subCanvas,
+      animator: _this7._animator,
+      character: _this7._character,
+      characterRenderer: _this7._characterRenderer,
+      highlightRenderer: _this7._highlightRenderer,
+      quizOptions: assign({}, _this7._options, quizOptions),
+      userStrokeOptions: _this7._userStrokeOptions
     });
   });
 };
@@ -660,7 +682,7 @@ HanziWriter.prototype.cancelQuiz = function () {
 };
 
 HanziWriter.prototype.setCharacter = function (char) {
-  var _this7 = this;
+  var _this8 = this;
 
   this.cancelQuiz();
   if (this._positionerRenderer) this._positionerRenderer.destroy();
@@ -669,34 +691,53 @@ HanziWriter.prototype.setCharacter = function (char) {
   if (this._highlightRenderer) this._highlightRenderer.destroy();
   this._withDataPromise = this._loadCharacterData(char).then(function (pathStrings) {
     var charDataParser = new CharDataParser();
-    _this7._character = charDataParser.generateCharacter(char, pathStrings);
-    _this7._positioner = new Positioner(_this7._character, _this7._options);
+    _this8._character = charDataParser.generateCharacter(char, pathStrings);
+    _this8._positioner = new Positioner(_this8._character, _this8._fillWidthAndHeight(_this8._options));
 
-    _this7._positionerRenderer = new PositionerRenderer(_this7._positioner).setCanvas(_this7._canvas);
-    _this7._subCanvas = _this7._positionerRenderer.positionedCanvas;
+    _this8._positionerRenderer = new PositionerRenderer(_this8._positioner).setCanvas(_this8._canvas);
+    _this8._subCanvas = _this8._positionerRenderer.positionedCanvas;
 
-    _this7._outlineRenderer = new CharacterRenderer(_this7._character, _this7._outlineCharOptions).setCanvas(_this7._subCanvas).draw();
-    _this7._characterRenderer = new CharacterRenderer(_this7._character, _this7._mainCharOptions).setCanvas(_this7._subCanvas).draw();
-    _this7._highlightRenderer = new CharacterRenderer(_this7._character, _this7._highlightCharOptions).setCanvas(_this7._subCanvas).draw();
+    _this8._outlineRenderer = new CharacterRenderer(_this8._character, _this8._outlineCharOptions).setCanvas(_this8._subCanvas).draw();
+    _this8._characterRenderer = new CharacterRenderer(_this8._character, _this8._mainCharOptions).setCanvas(_this8._subCanvas).draw();
+    _this8._highlightRenderer = new CharacterRenderer(_this8._character, _this8._highlightCharOptions).setCanvas(_this8._subCanvas).draw();
 
-    if (_this7._options.showCharacter) _this7._characterRenderer.showImmediate();
-    if (_this7._options.showOutline) _this7._outlineRenderer.showImmediate();
+    if (_this8._options.showCharacter) _this8._characterRenderer.showImmediate();
+    if (_this8._options.showOutline) _this8._outlineRenderer.showImmediate();
   });
 };
 
 // ------------- //
 
+// returns a new options object with width and height filled in if missing
+HanziWriter.prototype._fillWidthAndHeight = function (options) {
+  var filledOpts = assign({}, options);
+  if (filledOpts.width && !filledOpts.height) {
+    filledOpts.height = filledOpts.width;
+  } else if (filledOpts.height && !filledOpts.width) {
+    filledOpts.width = filledOpts.height;
+  } else if (!filledOpts.width && !filledOpts.height) {
+    var _canvas$svg$getBoundi = this._canvas.svg.getBoundingClientRect(),
+        width = _canvas$svg$getBoundi.width,
+        height = _canvas$svg$getBoundi.height;
+
+    var minDim = Math.min(width, height);
+    filledOpts.width = minDim;
+    filledOpts.height = minDim;
+  }
+  return filledOpts;
+};
+
 HanziWriter.prototype._loadCharacterData = function (char) {
-  var _this8 = this;
+  var _this9 = this;
 
   if (this.isLoadingCharData) this.cancelLoadingCharData();
   this.isLoadingCharData = true;
   return new Promise(function (resolve, reject) {
-    _this8.cancelLoadingCharData = reject;
-    var returnedData = _this8._options.charDataLoader(char, resolve);
+    _this9.cancelLoadingCharData = reject;
+    var returnedData = _this9._options.charDataLoader(char, resolve);
     if (returnedData) resolve(returnedData);
   }).then(function (data) {
-    _this8.isLoadingCharData = false;
+    _this9.isLoadingCharData = false;
     return data;
   });
 };
@@ -707,35 +748,35 @@ HanziWriter.prototype._withData = function (func) {
 };
 
 HanziWriter.prototype._setupListeners = function () {
-  var _this9 = this;
+  var _this10 = this;
 
   this._canvas.svg.addEventListener('mousedown', function (evt) {
-    if (_this9.isLoadingCharData || !_this9._quiz) return;
+    if (_this10.isLoadingCharData || !_this10._quiz) return;
     evt.preventDefault();
-    _this9._forwardToQuiz('startUserStroke', _this9._getMousePoint(evt));
+    _this10._forwardToQuiz('startUserStroke', _this10._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchstart', function (evt) {
-    if (_this9.isLoadingCharData || !_this9._quiz) return;
+    if (_this10.isLoadingCharData || !_this10._quiz) return;
     evt.preventDefault();
-    _this9._forwardToQuiz('startUserStroke', _this9._getTouchPoint(evt));
+    _this10._forwardToQuiz('startUserStroke', _this10._getTouchPoint(evt));
   });
   this._canvas.svg.addEventListener('mousemove', function (evt) {
-    if (_this9.isLoadingCharData || !_this9._quiz) return;
+    if (_this10.isLoadingCharData || !_this10._quiz) return;
     evt.preventDefault();
-    _this9._forwardToQuiz('continueUserStroke', _this9._getMousePoint(evt));
+    _this10._forwardToQuiz('continueUserStroke', _this10._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchmove', function (evt) {
-    if (_this9.isLoadingCharData || !_this9._quiz) return;
+    if (_this10.isLoadingCharData || !_this10._quiz) return;
     evt.preventDefault();
-    _this9._forwardToQuiz('continueUserStroke', _this9._getTouchPoint(evt));
+    _this10._forwardToQuiz('continueUserStroke', _this10._getTouchPoint(evt));
   });
 
   // TODO: fix
   global.document.addEventListener('mouseup', function () {
-    return _this9._forwardToQuiz('endUserStroke');
+    return _this10._forwardToQuiz('endUserStroke');
   });
   global.document.addEventListener('touchend', function () {
-    return _this9._forwardToQuiz('endUserStroke');
+    return _this10._forwardToQuiz('endUserStroke');
   });
 };
 
@@ -770,12 +811,12 @@ HanziWriter.prototype._animate = function (func) {
 };
 
 HanziWriter.prototype._animateWithData = function (func) {
-  var _this10 = this;
+  var _this11 = this;
 
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
   return this._withData(function () {
-    return _this10._animate(func, options);
+    return _this11._animate(func, options);
   });
 };
 
@@ -1766,7 +1807,9 @@ UserStrokeRenderer.prototype.getStrokeAttrs = function () {
   return {
     fill: 'none',
     stroke: this.options.strokeColor,
-    'stroke-width': this.options.strokeWidth
+    'stroke-width': this.options.strokeWidth,
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'round'
   };
 };
 
@@ -1827,7 +1870,7 @@ Animator.prototype.animate = function (func) {
   var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
 
   var animation = this._setupAnimation(options);
-  func(animation).then(function () {
+  return func(animation).then(function () {
     return animation.finish();
   });
 };

@@ -1,6 +1,6 @@
 /*!
- * Hanzi Writer v0.3.3
- * https://chanind.github.io/hanzi-writer/
+ * Hanzi Writer v0.4.0
+ * https://chanind.github.io/hanzi-writer
  */
 module.exports =
 /******/ (function(modules) { // webpackBootstrap

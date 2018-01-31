@@ -45,7 +45,7 @@ module.exports = function(grunt) {
         },
         plugins: [
           new webpack.BannerPlugin(
-            `Hanzi Writer v${pkg.version}\nhttps://chanind.github.io/hanzi-writer/`
+            `Hanzi Writer v${pkg.version}\nhttps://chanind.github.io/hanzi-writer`
           )
         ]
       },
@@ -76,7 +76,7 @@ module.exports = function(grunt) {
             }
           },
           output: {
-            preamble: `/*! Hanzi Writer v${pkg.version} | https://chanind.github.io/hanzi-writer/ */`
+            preamble: `/*! Hanzi Writer v${pkg.version} | https://chanind.github.io/hanzi-writer */`
           }
         },
         files: {

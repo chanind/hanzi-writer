@@ -1,7 +1,10 @@
+const webpack = require('webpack');
+
 module.exports = function(grunt) {
+  const pkg = grunt.file.readJSON('package.json');
 
   grunt.initConfig({
-    pkg: grunt.file.readJSON('package.json'),
+    pkg: pkg,
 
     copy: {
       main: {
@@ -40,6 +43,11 @@ module.exports = function(grunt) {
             }
           ],
         },
+        plugins: [
+          new webpack.BannerPlugin(
+            `Hanzi Writer v${pkg.version}\nhttps://chanind.github.io/hanzi-writer/`
+          )
+        ]
       },
 
       dist: {
@@ -66,6 +74,9 @@ module.exports = function(grunt) {
             properties: {
               regex: /^_/
             }
+          },
+          output: {
+            preamble: `/*! Hanzi Writer v${pkg.version} | https://chanind.github.io/hanzi-writer/ */`
           }
         },
         files: {

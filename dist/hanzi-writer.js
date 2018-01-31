@@ -1,3 +1,7 @@
+/*!
+ * Hanzi Writer v0.3.3
+ * https://chanind.github.io/hanzi-writer/
+ */
 /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};

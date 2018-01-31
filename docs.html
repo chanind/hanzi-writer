@@ -67,7 +67,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.3/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.4/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -227,26 +227,18 @@ document.getElementById('animate-button').addEventListener('click', function() {
 
       <h2 id="looping-animation-link">Looping Animations</h2>
       <p>
-        It's common to repeat an animation over and over. You can pass an onComplete callback when running
-        <code>animateCharacter({ onComplete: function() { ... }})</code> that you can use to start another animation when an animation ends. In the example below, the character will wait 2 seconds and then redraw itself forever:
+        It's common to repeat an animation over and over. You can call 
+        <code>loopCharacterAnimation()</code> to start and animation that will keep looping. There's a configuration option <code>delayBetweenLoops</code> you can use to control how much time there is between each animation loop (default 2000 ms). In the example below, the character will wait 3 seconds and then redraw itself forever:
       </p>
       {% highlight javascript %}
 var writer = new HanziWriter('character-target-div', '轮', {
   width: 100,
   height: 100,
-  padding: 5
+  padding: 5,
+  delayBetweenLoops: 3000
 });
 
-function animateForever() {
-  writer.animateCharacter({
-    onComplete: function() {
-      var timeBetweenLoops = 2000; // in milliseconds
-      setTimeout(animateForever, timeBetweenLoops);
-    }
-  });
-}
-
-animateForever();
+writer.loopCharacterAnimation();
       {% endhighlight %}
       <div id="docs-target-5" class="inline-demo"></div>
       <script>
@@ -254,24 +246,18 @@ animateForever();
           var writer = new HanziWriter('docs-target-5', '轮', {
             width: 100,
             height: 100,
-            padding: 5
+            padding: 5,
+            delayBetweenLoops: 3000
           });
 
-          function animateForever() {
-            writer.animateCharacter({
-              onComplete: function() {
-                var timeBetweenLoops = 2000; // in milliseconds
-                setTimeout(animateForever, timeBetweenLoops);
-              }
-            });
-          }
-          animateForever();
+          writer.loopCharacterAnimation();
         })();
       </script>
 
       <h2 id="chaining-animation-link">Chaining character animations</h2>
       <p>
-        You can also use the onComplete callback to cause one character to start animating after another finishes. Below is an example of 2 characters animating in order, one after another with 1 second between drawing each character. the HTML looks like:
+        You can pass an onComplete callback when running
+        <code>animateCharacter({ onComplete: function() { ... }})</code> that you can use to cause one character to start animating after another finishes. If you prefer to use promises instead, the <code>animateCharacter()</code> method will also return a promise which resolves when the animation is complete. Below is an example of 2 characters animating in order, one after another with 1 second between drawing each character. The example uses <code>onComplete</code> to trigger the next character to start after the first finishes. the HTML looks like:
       </p>
       {% highlight html %}
 <div id="character-target-1"></div>
@@ -591,6 +577,7 @@ var writer = new HanziWriter('target', '人', {
           <li><code>strokeAnimationDuration:</code> number, default 400. Time in milliseconds to animate each stroke.</li>
           <li><code>strokeHighlightDuration:</code> number, default 200. Time in milliseconds to highlight each stroke when givings hints in a quiz.</li>
           <li><code>delayBetweenStrokes:</code> number, default 1000. Time in milliseconds between each stroke when animating.</li>
+          <li><code>delayBetweenLoops:</code> number, default 2000. Time in milliseconds between each animation loop when looping animations.</li>
           <li><code>strokeColor:</code> hex string, default '#555'. The color to draw each stroke.</li>
           <li><code>highlightColor:</code> hex string, default '#AAF'. The color to use for highlighting in quizzes.</li>
           <li><code>outlineColor:</code> hex string, default '#DDD'. The color of the character outline.</li>
@@ -646,6 +633,9 @@ var writer = new HanziWriter('target', '人', {
           <li><code>onComplete:</code> function. Called when the animation is complete.</li>
         </ul>
       </p>
+
+      <h4>writer.loopCharacterAnimation()</h4>
+      <p>Animate the strokes of the character in order, and then restart the animation after it finishes forever.</p>
 
       <h4>writer.setCharacter(character)</h4>
       <p>Replace the currently drawn character with a new one. This will reset any quizzes or animations in progress.</p>

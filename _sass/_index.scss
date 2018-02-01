@@ -1,11 +1,4 @@
 
-/* Featurettes
-------------------------- */
-
-.featurette-divider {
-  margin: 80px 0; /* Space out the Bootstrap <hr> more */
-}
-
 /* CUSTOMIZE THE CAROUSEL
 -------------------------------------------------- */
 
@@ -76,6 +69,10 @@
   .marketing-bottom-divider {
     margin-top: 40px;
   }
+}
+
+.marketing {
+  padding-bottom: 20px;
 }
 
 /* Center align the text within the three columns below the carousel */

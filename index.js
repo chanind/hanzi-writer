@@ -21,7 +21,7 @@ window.onload = function() {
 	var animateNext = function() {
 		var char = lastAnimatedNi ? hao : ni;
 		lastAnimatedNi = !lastAnimatedNi;
-		char.animateCharacter({onComplete: animateNext});
+		char.animateCharacter().then(function() { setTimeout(animateNext, 700) });
 	};
 	animateNext();
 };

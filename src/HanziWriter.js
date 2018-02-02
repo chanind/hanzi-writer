@@ -23,8 +23,10 @@ const defaultOptions = {
 
   // animation options
 
-  strokeAnimationDuration: 400,
+  strokeAnimationVelocity: 1,
+  strokeFadeDuration: 400,
   strokeHighlightDuration: 200,
+  strokeHighlightVelocity: 2,
   delayBetweenStrokes: 1000,
   delayBetweenLoops: 2000,
 
@@ -64,7 +66,8 @@ HanziWriter.prototype.setOptions = function(options) {
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
     strokeWidth: this._options.strokeWidth,
-    strokeAnimationDuration: this._options.strokeAnimationDuration,
+    strokeAnimationVelocity: this._options.strokeAnimationVelocity,
+    strokeFadeDuration: this._options.strokeFadeDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
     usePolygonMasks: this._options.usePolygonMasks,
   };
@@ -75,7 +78,8 @@ HanziWriter.prototype.setOptions = function(options) {
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
-    strokeAnimationDuration: this._options.strokeHighlightDuration,
+    strokeAnimationVelocity: this._options.strokeHighlightVelocity,
+    strokeFadeDuration: this._options.strokeHighlightDuration,
     usePolygonMasks: this._options.usePolygonMasks,
   });
   this._userStrokeOptions = {

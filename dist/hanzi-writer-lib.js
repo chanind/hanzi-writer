@@ -1022,20 +1022,20 @@ StrokeRenderer.prototype.draw = function () {
   var maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
   svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 85);
+  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 100);
   if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 85);
+    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 100);
     this.polyMaskTip = svg.createElm('circle');
     // need to add this to the mask before the maskPath or else weird things happen. Not sure why
     this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 75);
+    svg.attr(this.polyMaskTip, 'r', 100);
     this._setPolyMaskPortion(1);
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
     var maskLength = this.maskPath.getTotalLength();
     svg.attrs(this.maskPath, {
       stroke: '#FFFFFF',
-      'stroke-width': 150,
+      'stroke-width': 200,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
@@ -1052,7 +1052,7 @@ StrokeRenderer.prototype.draw = function () {
 
 StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
   var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 150), true);
+  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 200), true);
   var endPoint = strokePointsPortion[strokePointsPortion.length - 1];
   svg.attr(this.maskPath, 'd', pathString);
   svg.attr(this.polyMaskTip, 'cx', endPoint.x);

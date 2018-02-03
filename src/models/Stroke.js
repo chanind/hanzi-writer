@@ -1,9 +1,10 @@
 const Point = require('./Point');
 
-function Stroke(path, points, strokeNum) {
+function Stroke(path, points, strokeNum, isInRadical = false) {
   this.path = path;
   this.points = points;
   this.strokeNum = strokeNum;
+  this.isInRadical = isInRadical;
 }
 
 Stroke.prototype.getStrokeNum = function() {

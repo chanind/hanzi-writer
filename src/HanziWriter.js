@@ -33,6 +33,7 @@ const defaultOptions = {
   // colors
 
   strokeColor: '#555',
+  radicalColor: null,
   highlightColor: '#AAF',
   outlineColor: '#DDD',
   drawingColor: '#333',
@@ -52,6 +53,20 @@ const defaultOptions = {
   usePolygonMasks: isMSBrowser(),
 };
 
+const assignOptions = (options) => {
+  const options = assign({}, defaultOptions, options);
+
+  // backfill strokeAnimationVelocity if deprecated strokeAnimationDuration is provided instead
+  if (options.strokeAnimationDuration && !options.strokeAnimationVelocity) {
+    options.strokeAnimationVelocity = 500 / options.strokeAnimationDuration;
+  }
+  if (options.strokeHighlightDuration && !options.strokeHighlightVelocity) {
+    options.strokeHighlightVelocity = 500 / options.strokeHighlightDuration;
+  }
+
+  return options;
+};
+
 function HanziWriter(element, character, options = {}) {
   this._animator = new Animator();
   this._canvas = svg.Canvas.init(element);
@@ -62,9 +77,10 @@ function HanziWriter(element, character, options = {}) {
 }
 
 HanziWriter.prototype.setOptions = function(options) {
-  this._options = assign({}, defaultOptions, options);
+  this._options = assignOptions(options);
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
+    radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
     strokeAnimationVelocity: this._options.strokeAnimationVelocity,
     strokeFadeDuration: this._options.strokeFadeDuration,
@@ -73,14 +89,13 @@ HanziWriter.prototype.setOptions = function(options) {
   };
   this._outlineCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.outlineColor,
+    radicalColor: null,
     strokeWidth: this._options.outlineWidth,
-    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
+    radicalColor: null,
     strokeAnimationVelocity: this._options.strokeHighlightVelocity,
-    strokeFadeDuration: this._options.strokeHighlightDuration,
-    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

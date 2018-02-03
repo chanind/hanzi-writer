@@ -135,10 +135,18 @@ StrokeRenderer.prototype.highlight = function(animation) {
   return this.animate(animation).then(() => this.hide(animation));
 };
 
+StrokeRenderer.prototype.getColor = function() {
+  let color = this.options.strokeColor;
+  if (this.options.radicalColor && this.stroke.isInRadical) {
+    color = this.options.radicalColor;
+  }
+  return color;
+};
+
 StrokeRenderer.prototype.getStrokeAttrs = function() {
   return {
-    fill: this.options.strokeColor,
-    stroke: this.options.strokeColor,
+    fill: this.getColor(),
+    stroke: this.getColor(),
     'stroke-width': this.options.strokeWidth,
   };
 };

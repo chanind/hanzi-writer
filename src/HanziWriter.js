@@ -31,6 +31,7 @@ const defaultOptions = {
   // colors
 
   strokeColor: '#555',
+  radicalColor: null,
   highlightColor: '#AAF',
   outlineColor: '#DDD',
   drawingColor: '#333',
@@ -63,6 +64,7 @@ HanziWriter.prototype.setOptions = function(options) {
   this._options = assign({}, defaultOptions, options);
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
+    radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
     strokeAnimationDuration: this._options.strokeAnimationDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
@@ -70,13 +72,13 @@ HanziWriter.prototype.setOptions = function(options) {
   };
   this._outlineCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.outlineColor,
+    radicalColor: null,
     strokeWidth: this._options.outlineWidth,
-    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
+    radicalColor: null,
     strokeAnimationDuration: this._options.strokeHighlightDuration,
-    usePolygonMasks: this._options.usePolygonMasks,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

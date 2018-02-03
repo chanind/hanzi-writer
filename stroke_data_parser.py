@@ -1,12 +1,26 @@
 import json
 import os
+from copy import copy
 
 root = os.path.dirname(__file__)
 dictionary_file = os.path.join(root, 'vendor/makemeahanzi/dictionary.txt')
 graphics_file = os.path.join(root, 'vendor/makemeahanzi/graphics.txt')
 output_dir = os.path.join(root, 'data')
 
-positioners = {'⿰','⿱','⿲','⿳','⿴','⿵','⿶','⿷','⿸','⿹','⿺','⿻'}
+positioners = {
+  '⿰': 2,
+  '⿱': 2,
+  '⿲': 3,
+  '⿳': 3,
+  '⿴': 2,
+  '⿵': 2,
+  '⿶': 2,
+  '⿷': 2,
+  '⿸': 2,
+  '⿹': 2,
+  '⿺': 2,
+  '⿻': 2,
+}
 missing_marker = '？'
 
 graphics_data = {}
@@ -25,42 +39,51 @@ with open(graphics_file) as f:
     char = decoded_line.pop('character')
     graphics_data[char] = decoded_line
 
-def num_strokes(char):
-  return len(graphics_data[char]['strokes'])
 
-def radical_strokes_forward(char):
-  radical = dict_data[char]['radical']
-  offset = 0
+def get_decomp_index(char, subchar):
+  "Parse the decomposition tree to figure out what the index of the subchar is within the char"
+  stack = []
   for piece in dict_data[char]['decomposition']:
-    if piece == radical:
-      return [offset, offset + num_strokes(radical)]
+    last_node = None
+    path = []
+    if len(stack) > 0:
+      last_node = stack.pop()
+      path = copy(last_node['path'])
+      path.append(last_node['children'])
+      last_node['children'] += 1
+      if last_node['children'] < last_node['size']:
+        stack.append(last_node)
     if piece in positioners:
-      continue
-    if piece == missing_marker:
-      return None
-    offset += num_strokes(piece)
+      node = {
+        'size': positioners[piece],
+        'children': 0,
+        'path': path, 
+      }
+      stack.append(node)
+    elif piece == subchar:
+      return path
   return None
 
-def radical_strokes_backwards(char):
+def get_radical_strokes(char):
   radical = dict_data[char]['radical']
-  offset = num_strokes(char)
-  for piece in reversed(dict_data[char]['decomposition']):
-    if piece == radical:
-      return [offset - num_strokes(radical), offset]
-    if piece in positioners:
-      continue
-    if piece == missing_marker:
-      return None
-    offset -= num_strokes(piece)
-  return None
+  if char == radical:
+    return None
+  decomp_index = get_decomp_index(char, radical)
+  if not decomp_index:
+    return None
+  rad_strokes = []
+  for stroke_num, match_index in enumerate(dict_data[char]['matches']):
+    if match_index == decomp_index:
+      rad_strokes.append(stroke_num)
+  return rad_strokes
 
-def radical_strokes(char):
-  return radical_strokes_forward(char) or radical_strokes_backwards(char)
+
+# write out data
 
 for char in graphics_data:
-  radical = radical_strokes(char)
+  radical = get_radical_strokes(char)
   if radical:
-    graphics_data[char]['rad_strokes'] = radical
+    graphics_data[char]['radStrokes'] = radical
 
 for char, data in graphics_data.items():
   out_file = os.path.join(output_dir, f'{char}.json')

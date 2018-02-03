@@ -535,6 +535,7 @@ var defaultOptions = {
   // colors
 
   strokeColor: '#555',
+  radicalColor: null,
   highlightColor: '#AAF',
   outlineColor: '#DDD',
   drawingColor: '#333',
@@ -569,6 +570,7 @@ HanziWriter.prototype.setOptions = function (options) {
   this._options = assign({}, defaultOptions, options);
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
+    radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
     strokeAnimationDuration: this._options.strokeAnimationDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
@@ -576,13 +578,13 @@ HanziWriter.prototype.setOptions = function (options) {
   };
   this._outlineCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.outlineColor,
-    strokeWidth: this._options.outlineWidth,
-    usePolygonMasks: this._options.usePolygonMasks
+    radicalColor: null,
+    strokeWidth: this._options.outlineWidth
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
-    strokeAnimationDuration: this._options.strokeHighlightDuration,
-    usePolygonMasks: this._options.usePolygonMasks
+    radicalColor: null,
+    strokeAnimationDuration: this._options.strokeHighlightDuration
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,
@@ -1118,10 +1120,18 @@ StrokeRenderer.prototype.highlight = function (animation) {
   });
 };
 
+StrokeRenderer.prototype.getColor = function () {
+  var color = this.options.strokeColor;
+  if (this.options.radicalColor && this.stroke.isInRadical) {
+    color = this.options.radicalColor;
+  }
+  return color;
+};
+
 StrokeRenderer.prototype.getStrokeAttrs = function () {
   return {
-    fill: this.options.strokeColor,
-    stroke: this.options.strokeColor,
+    fill: this.getColor(),
+    stroke: this.getColor(),
     'stroke-width': this.options.strokeWidth
   };
 };
@@ -1335,6 +1345,10 @@ CharDataParser.prototype.generateCharacter = function (symbol, charJson) {
 };
 
 CharDataParser.prototype.generateStrokes = function (charJson) {
+  var isInRadical = function isInRadical(strokeNum) {
+    return charJson.radStrokes && charJson.radStrokes.indexOf(strokeNum) >= 0;
+  };
+
   return charJson.strokes.map(function (path, index) {
     var points = charJson.medians[index].map(function (pointData) {
       var _pointData = _slicedToArray(pointData, 2),
@@ -1343,7 +1357,7 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
 
       return new Point(x, y);
     });
-    return new Stroke(path, points, index);
+    return new Stroke(path, points, index, isInRadical(index));
   });
 };
 
@@ -1359,9 +1373,12 @@ module.exports = CharDataParser;
 var Point = __webpack_require__(1);
 
 function Stroke(path, points, strokeNum) {
+  var isInRadical = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
+
   this.path = path;
   this.points = points;
   this.strokeNum = strokeNum;
+  this.isInRadical = isInRadical;
 }
 
 Stroke.prototype.getStrokeNum = function () {

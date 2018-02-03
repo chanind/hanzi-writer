@@ -2,5 +2,6 @@ npm-debug.log
 scratchpad.txt
 node_modules
 .DS_Store
+.sass-cache
 cdn
 _site

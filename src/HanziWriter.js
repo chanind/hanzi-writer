@@ -26,7 +26,7 @@ const defaultOptions = {
   strokeAnimationSpeed: 1,
   strokeFadeDuration: 400,
   strokeHighlightDuration: 200,
-  strokeHighlightVelocity: 2,
+  strokeHighlightSpeed: 2,
   delayBetweenStrokes: 1000,
   delayBetweenLoops: 2000,
 
@@ -60,8 +60,8 @@ const assignOptions = (options) => {
   if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
     mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
   }
-  if (options.strokeHighlightDuration && !options.strokeHighlightVelocity) {
-    mergedOptions.strokeHighlightVelocity = 500 / mergedOptions.strokeHighlightDuration;
+  if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
+    mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
   }
 
   return mergedOptions;
@@ -95,7 +95,7 @@ HanziWriter.prototype.setOptions = function(options) {
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
     radicalColor: null,
-    strokeAnimationSpeed: this._options.strokeHighlightVelocity,
+    strokeAnimationSpeed: this._options.strokeHighlightSpeed,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

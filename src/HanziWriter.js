@@ -54,17 +54,17 @@ const defaultOptions = {
 };
 
 const assignOptions = (options) => {
-  const options = assign({}, defaultOptions, options);
+  const mergedOptions = assign({}, defaultOptions, options);
 
   // backfill strokeAnimationVelocity if deprecated strokeAnimationDuration is provided instead
   if (options.strokeAnimationDuration && !options.strokeAnimationVelocity) {
-    options.strokeAnimationVelocity = 500 / options.strokeAnimationDuration;
+    mergedOptions.strokeAnimationVelocity = 500 / mergedOptions.strokeAnimationDuration;
   }
   if (options.strokeHighlightDuration && !options.strokeHighlightVelocity) {
-    options.strokeHighlightVelocity = 500 / options.strokeHighlightDuration;
+    mergedOptions.strokeHighlightVelocity = 500 / mergedOptions.strokeHighlightDuration;
   }
 
-  return options;
+  return mergedOptions;
 };
 
 function HanziWriter(element, character, options = {}) {

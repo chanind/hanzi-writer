@@ -114,7 +114,7 @@ StrokeRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
   this.showImmediate();
   const strokeLength = this.stroke.getLength();
-  const duration = (strokeLength + 500) / (2 * this.options.strokeAnimationVelocity);
+  const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationVelocity);
   let tween;
   if (this.options.usePolygonMasks) {
     this._setPolyMaskPortion(0);

@@ -9,7 +9,6 @@ function updateCharacter() {
 	writer = new HanziWriter('target', character, {
 		width: 400,
 		height: 400,
-		strokeAnimationVelocity: 0.2,
 		radicalColor: '#166E16',
 	});
 	isCharVisible = true;

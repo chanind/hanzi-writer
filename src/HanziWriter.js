@@ -23,7 +23,7 @@ const defaultOptions = {
 
   // animation options
 
-  strokeAnimationVelocity: 1,
+  strokeAnimationSpeed: 1,
   strokeFadeDuration: 400,
   strokeHighlightDuration: 200,
   strokeHighlightVelocity: 2,
@@ -56,9 +56,9 @@ const defaultOptions = {
 const assignOptions = (options) => {
   const mergedOptions = assign({}, defaultOptions, options);
 
-  // backfill strokeAnimationVelocity if deprecated strokeAnimationDuration is provided instead
-  if (options.strokeAnimationDuration && !options.strokeAnimationVelocity) {
-    mergedOptions.strokeAnimationVelocity = 500 / mergedOptions.strokeAnimationDuration;
+  // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
+  if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
+    mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
   }
   if (options.strokeHighlightDuration && !options.strokeHighlightVelocity) {
     mergedOptions.strokeHighlightVelocity = 500 / mergedOptions.strokeHighlightDuration;
@@ -82,7 +82,7 @@ HanziWriter.prototype.setOptions = function(options) {
     strokeColor: this._options.strokeColor,
     radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
-    strokeAnimationVelocity: this._options.strokeAnimationVelocity,
+    strokeAnimationSpeed: this._options.strokeAnimationSpeed,
     strokeFadeDuration: this._options.strokeFadeDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
     usePolygonMasks: this._options.usePolygonMasks,
@@ -95,7 +95,7 @@ HanziWriter.prototype.setOptions = function(options) {
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
     radicalColor: null,
-    strokeAnimationVelocity: this._options.strokeHighlightVelocity,
+    strokeAnimationSpeed: this._options.strokeHighlightVelocity,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

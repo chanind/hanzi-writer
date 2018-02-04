@@ -217,16 +217,17 @@ document.getElementById('animate-button').addEventListener('click', function() {
           })();
       </script>
 
-      <p>There are also a number of options you can configure with animations to control things like the speed of the animation and whether or not the character outline is visible. Below is another example of animating with different animation options:</p>
+      <p>There are also a number of options you can configure with animations to control things like the speed of the animation and whether or not the character outline is visible. You can also set a radical color if you'd like to show the character radical while animating. Below is another example of animating with different animation options:</p>
 
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '国', {
+var writer = new HanziWriter('character-target-div', '激', {
   width: 100,
   height: 100,
   padding: 5,
   showOutline: false,
-  strokeAnimationDuration: 50, // milliseconds
+  strokeAnimationSpeed: 5, // 5x normal speed
   delayBetweenStrokes: 10, // milliseconds
+  radicalColor: '#337ab7' // blue
 });
 document.getElementById('animate-button').addEventListener('click', function() {
   writer.animateCharacter();
@@ -236,13 +237,14 @@ document.getElementById('animate-button').addEventListener('click', function() {
       <button class="btn btn-primary inline-demo-btn" id="docs-target-4-button" type="submit">Fast</button>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-4', '国', {
+          var writer = new HanziWriter('docs-target-4', '激', {
             width: 100,
             height: 100,
             padding: 5,
             showOutline: false,
-            strokeAnimationDuration: 50, // milliseconds
-            delayBetweenStrokes: 10 // milliseconds
+            strokeAnimationSpeed: 5, // 5x normal speed
+            delayBetweenStrokes: 10, // milliseconds
+            radicalColor: '#337ab7' // blue
           });
           document.getElementById('docs-target-4-button').addEventListener('click', function() {
             writer.animateCharacter();

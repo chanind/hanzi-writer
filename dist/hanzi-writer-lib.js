@@ -1867,9 +1867,9 @@ module.exports = UserStrokeRenderer;
 // corresponds to the integer in the gh-pages branch under the cdn folder
 // make sure to check out a new version of the master branch in gh-pages when changing the data format
 // otherwise this may break any existing hanzi-writer deploys in the wild
-var DATA_VERSION = 2;
+var VERSION = '1';
 var getCharDataUrl = function getCharDataUrl(char) {
-  return 'https://chanind.github.io/hanzi-writer/cdn/' + DATA_VERSION + '/data/' + char + '.json';
+  return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
 };
 
 module.exports = function (char, onLoad) {

@@ -527,8 +527,10 @@ var defaultOptions = {
 
   // animation options
 
-  strokeAnimationDuration: 400,
+  strokeAnimationSpeed: 1,
+  strokeFadeDuration: 400,
   strokeHighlightDuration: 200,
+  strokeHighlightSpeed: 2,
   delayBetweenStrokes: 1000,
   delayBetweenLoops: 2000,
 
@@ -555,6 +557,20 @@ var defaultOptions = {
   usePolygonMasks: isMSBrowser()
 };
 
+var assignOptions = function assignOptions(options) {
+  var mergedOptions = assign({}, defaultOptions, options);
+
+  // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
+  if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
+    mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
+  }
+  if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
+    mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
+  }
+
+  return mergedOptions;
+};
+
 function HanziWriter(element, character) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
@@ -567,12 +583,13 @@ function HanziWriter(element, character) {
 }
 
 HanziWriter.prototype.setOptions = function (options) {
-  this._options = assign({}, defaultOptions, options);
+  this._options = assignOptions(options);
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
     radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
-    strokeAnimationDuration: this._options.strokeAnimationDuration,
+    strokeAnimationSpeed: this._options.strokeAnimationSpeed,
+    strokeFadeDuration: this._options.strokeFadeDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
     usePolygonMasks: this._options.usePolygonMasks
   };
@@ -584,7 +601,7 @@ HanziWriter.prototype.setOptions = function (options) {
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
     radicalColor: null,
-    strokeAnimationDuration: this._options.strokeHighlightDuration
+    strokeAnimationSpeed: this._options.strokeHighlightSpeed
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,
@@ -1033,14 +1050,14 @@ StrokeRenderer.prototype.draw = function () {
     this._setPolyMaskPortion(1);
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    var maskLength = this.maskPath.getTotalLength();
+    this._maskPathLength = this.maskPath.getTotalLength();
     svg.attrs(this.maskPath, {
       stroke: '#FFFFFF',
       'stroke-width': 200,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
-      'stroke-dasharray': maskLength + ',' + maskLength
+      'stroke-dasharray': this._maskPathLength + ',' + this._maskPathLength
     });
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
@@ -1067,7 +1084,7 @@ StrokeRenderer.prototype.show = function (animation) {
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
   var tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeAnimationDuration
+    duration: this.options.strokeFadeDuration
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -1075,7 +1092,7 @@ StrokeRenderer.prototype.show = function (animation) {
 
 StrokeRenderer.prototype.hide = function (animation) {
   var tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeAnimationDuration
+    duration: this.options.strokeFadeDuration
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -1086,20 +1103,18 @@ StrokeRenderer.prototype.animate = function (animation) {
 
   if (!animation.isActive()) return null;
   this.showImmediate();
+  var strokeLength = this.stroke.getLength();
+  var duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
   var tween = void 0;
   if (this.options.usePolygonMasks) {
     this._setPolyMaskPortion(0);
     tween = new svg.Tween(function (portion) {
       return _this._setPolyMaskPortion(portion);
-    }, {
-      duration: this.options.strokeAnimationDuration
-    });
+    }, { duration: duration });
   } else {
     // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-      duration: this.options.strokeAnimationDuration
-    });
+    this.maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
+    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, { duration: duration });
   }
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -1851,7 +1866,7 @@ module.exports = UserStrokeRenderer;
 // corresponds to the integer in the gh-pages branch under the cdn folder
 // make sure to check out a new version of the master branch in gh-pages when changing the data format
 // otherwise this may break any existing hanzi-writer deploys in the wild
-var VERSION = '0.0.1';
+var VERSION = '1';
 var getCharDataUrl = function getCharDataUrl(char) {
   return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
 };

@@ -62,14 +62,14 @@ StrokeRenderer.prototype.draw = function() {
     this._setPolyMaskPortion(1);
   } else {
     svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    const maskLength = this.maskPath.getTotalLength();
+    this._maskPathLength = this.maskPath.getTotalLength();
     svg.attrs(this.maskPath, {
       stroke: '#FFFFFF',
       'stroke-width': 200,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
-      'stroke-dasharray': `${maskLength},${maskLength}`,
+      'stroke-dasharray': `${this._maskPathLength},${this._maskPathLength}`,
     });
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
@@ -96,7 +96,7 @@ StrokeRenderer.prototype.show = function(animation) {
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
   const tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeAnimationDuration,
+    duration: this.options.strokeFadeDuration,
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -104,7 +104,7 @@ StrokeRenderer.prototype.show = function(animation) {
 
 StrokeRenderer.prototype.hide = function(animation) {
   const tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeAnimationDuration,
+    duration: this.options.strokeFadeDuration,
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -113,18 +113,16 @@ StrokeRenderer.prototype.hide = function(animation) {
 StrokeRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
   this.showImmediate();
+  const strokeLength = this.stroke.getLength();
+  const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
   let tween;
   if (this.options.usePolygonMasks) {
     this._setPolyMaskPortion(0);
-    tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), {
-      duration: this.options.strokeAnimationDuration,
-    });
+    tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), { duration });
   } else {
     // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this.maskPath.getTotalLength() * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, {
-      duration: this.options.strokeAnimationDuration,
-    });
+    this.maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
+    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, { duration });
   }
   animation.registerSvgAnimation(tween);
   return tween.start();

@@ -23,8 +23,10 @@ const defaultOptions = {
 
   // animation options
 
-  strokeAnimationDuration: 400,
+  strokeAnimationSpeed: 1,
+  strokeFadeDuration: 400,
   strokeHighlightDuration: 200,
+  strokeHighlightSpeed: 2,
   delayBetweenStrokes: 1000,
   delayBetweenLoops: 2000,
 
@@ -51,6 +53,20 @@ const defaultOptions = {
   usePolygonMasks: isMSBrowser(),
 };
 
+const assignOptions = (options) => {
+  const mergedOptions = assign({}, defaultOptions, options);
+
+  // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
+  if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
+    mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
+  }
+  if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
+    mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
+  }
+
+  return mergedOptions;
+};
+
 function HanziWriter(element, character, options = {}) {
   this._animator = new Animator();
   this._canvas = svg.Canvas.init(element);
@@ -61,12 +77,13 @@ function HanziWriter(element, character, options = {}) {
 }
 
 HanziWriter.prototype.setOptions = function(options) {
-  this._options = assign({}, defaultOptions, options);
+  this._options = assignOptions(options);
   this._mainCharOptions = {
     strokeColor: this._options.strokeColor,
     radicalColor: this._options.radicalColor,
     strokeWidth: this._options.strokeWidth,
-    strokeAnimationDuration: this._options.strokeAnimationDuration,
+    strokeAnimationSpeed: this._options.strokeAnimationSpeed,
+    strokeFadeDuration: this._options.strokeFadeDuration,
     delayBetweenStrokes: this._options.delayBetweenStrokes,
     usePolygonMasks: this._options.usePolygonMasks,
   };
@@ -78,7 +95,7 @@ HanziWriter.prototype.setOptions = function(options) {
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
     radicalColor: null,
-    strokeAnimationDuration: this._options.strokeHighlightDuration,
+    strokeAnimationSpeed: this._options.strokeHighlightSpeed,
   });
   this._userStrokeOptions = {
     strokeColor: this._options.drawingColor,

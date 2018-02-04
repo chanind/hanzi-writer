@@ -154,6 +154,31 @@ var writer = new HanziWriter('character-target-div', '爽', {
         })();
       </script>
 
+      <p>
+        Hanzi Writer also supports coloring the radical of a character differently. You set the color to display the radical with the <code>radicalColor</code> option. Below is an example of the word 草 with the radical colored green.
+      </p>
+
+      {% highlight javascript %}
+var writer = new HanziWriter('character-target-div', '草', {
+  width: 150,
+  height: 150,
+  padding: 5,
+  radicalColor: '#168F16' // green
+});
+      {% endhighlight %}
+
+      <div id="docs-target-2-1" class="inline-demo medium-demo"></div>
+      <script>
+        (function() {
+          new HanziWriter('docs-target-2-1', '草', {
+            width: 150,
+            height: 150,
+            padding: 5,
+            radicalColor: '#168F16' // green
+          });
+        })();
+      </script>
+
       <h2 id="animation-link">Animation</h2>
       <p>After you create a HanziWriter instance you can animate it by calling the
       <code>animateCharacter()</code> method. In the example below, the character is animated when a button is pressed. the HTML looks like the following:</p>

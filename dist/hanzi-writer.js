@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.4.0
+ * Hanzi Writer v0.5.0
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap

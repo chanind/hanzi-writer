@@ -59,10 +59,23 @@ function average(arr) {
   return sum / arr.length;
 }
 
-function timeout(duration = 0) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, duration);
+function timeout(duration = 0, ...predicates) {
+  const startTime = new Date().getTime();
+  const timeoutPromise = new Promise((resolve, reject) => {
+    const timeoutCounter = () => {
+      if (predicates.find((pred) => pred())) {
+        // canceling timeout because of predicate
+        return resolve();
+      }
+      const now = new Date().getTime();
+      if (now - startTime > duration) {
+        return resolve();
+      }
+      setTimeout(timeoutCounter, 5);
+    };
+    timeoutCounter();
   });
+  return timeoutPromise;
 }
 
 function isMSBrowser() {

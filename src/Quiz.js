@@ -118,7 +118,12 @@ Quiz.prototype._getNextStroke = function() {
 
 // hide the caracter
 Quiz.prototype._setupCharacter = function() {
-  this._animator.animate(animation => this._characterRenderer.hide(animation));
+  this._animator.animate(animation => {
+    if (this._characterRenderer) {
+      return this._characterRenderer.hide(animation);
+    }
+    return Promise.reject();
+  });
 };
 
 module.exports = Quiz;

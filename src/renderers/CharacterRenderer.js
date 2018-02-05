@@ -57,7 +57,8 @@ CharacterRenderer.prototype.animate = function(animation) {
   if (!animation.isActive()) return null;
   let renderChain = this.hide(animation);
   this.strokeRenderers.forEach((strokeRenderer, index) => {
-    if (index > 0) renderChain = renderChain.then(() => timeout(this.options.delayBetweenStrokes));
+    if (index > 0) renderChain = renderChain.then(() => timeout(
+      this.options.delayBetweenStrokes, () => (!animation.isActive())));
     renderChain = renderChain.then(() => strokeRenderer.animate(animation));
   });
   return renderChain;

@@ -93,6 +93,8 @@ function StyleTween(elm, style, endValue, options = {}) {
   this._elm = elm;
   this._style = style;
   this._endValue = endValue;
+  // ensureEndStyle is if the tween is canceled early, should elm style be set immediately to endValue?
+  this._ensureEndStyle = options.ensureEndStyle;
 }
 inherits(StyleTween, Tween);
 
@@ -102,6 +104,13 @@ StyleTween.prototype.start = function() {
     return Promise.resolve();
   }
   return StyleTween.super_.prototype.start.call(this);
+};
+
+StyleTween.prototype.finish = function() {
+  if (this._isActive && this._ensureEndStyle) {
+    this._elm.style[this._style] = this._endValue;
+  }
+  return StyleTween.super_.prototype.finish.call(this);
 };
 
 // -------- CANVAS CLASS --------

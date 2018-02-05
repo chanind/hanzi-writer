@@ -213,8 +213,7 @@ HanziWriter.prototype._loadCharacterData = function(char) {
 };
 
 HanziWriter.prototype._withData = function(func) {
-  this._withDataPromise = this._withDataPromise.then(func);
-  return this._withDataPromise;
+  return this._withDataPromise.then(func);
 };
 
 HanziWriter.prototype._setupListeners = function() {

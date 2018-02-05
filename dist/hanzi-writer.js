@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.5.0
+ * Hanzi Writer v0.5.1
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -446,6 +446,8 @@ function StyleTween(elm, style, endValue) {
   this._elm = elm;
   this._style = style;
   this._endValue = endValue;
+  // ensureEndStyle is if the tween is canceled early, should elm style be set immediately to endValue?
+  this._ensureEndStyle = options.ensureEndStyle;
 }
 inherits(StyleTween, Tween);
 
@@ -455,6 +457,13 @@ StyleTween.prototype.start = function () {
     return Promise.resolve();
   }
   return StyleTween.super_.prototype.start.call(this);
+};
+
+StyleTween.prototype.finish = function () {
+  if (this._isActive && this._ensureEndStyle) {
+    this._elm.style[this._style] = this._endValue;
+  }
+  return StyleTween.super_.prototype.finish.call(this);
 };
 
 // -------- CANVAS CLASS --------
@@ -487,6 +496,10 @@ Canvas.init = function (elmOrId) {
   var defs = createElm('defs');
   svg.appendChild(defs);
   return new Canvas(svg, defs);
+};
+
+Canvas.prototype.remove = function () {
+  this.svg.parentNode.removeChild(this.svg);
 };
 
 module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString };
@@ -766,8 +779,7 @@ HanziWriter.prototype._loadCharacterData = function (char) {
 };
 
 HanziWriter.prototype._withData = function (func) {
-  this._withDataPromise = this._withDataPromise.then(func);
-  return this._withDataPromise;
+  return this._withDataPromise.then(func);
 };
 
 HanziWriter.prototype._setupListeners = function () {
@@ -1084,7 +1096,8 @@ StrokeRenderer.prototype.show = function (animation) {
     this.maskPath.style['stroke-dashoffset'] = 0;
   }
   var tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeFadeDuration
+    duration: this.options.strokeFadeDuration,
+    ensureEndStyle: true
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -1092,7 +1105,8 @@ StrokeRenderer.prototype.show = function (animation) {
 
 StrokeRenderer.prototype.hide = function (animation) {
   var tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeFadeDuration
+    duration: this.options.strokeFadeDuration,
+    ensureEndStyle: true
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -1600,7 +1614,7 @@ Quiz.prototype.endUserStroke = function () {
     _this._userStrokeRenderer = null;
 
     if (isMatch) {
-      _this._handleSuccess(nextStroke, animation);
+      promises.push(_this._handleSuccess(nextStroke, animation));
     } else {
       _this._handleFailure();
       if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {

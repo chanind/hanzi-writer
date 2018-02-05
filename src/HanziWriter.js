@@ -7,11 +7,13 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
-const { assign, isMSBrowser, timeout } = require('./utils');
+const { assign, isMSBrowser, timeout, callIfExists } = require('./utils');
 
 
 const defaultOptions = {
   charDataLoader: defaultCharDataLoader,
+  onLoadCharDataError: null,
+  onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
 
@@ -165,6 +167,7 @@ HanziWriter.prototype.setCharacter = function(char) {
   if (this._outlineRenderer) this._outlineRenderer.destroy();
   if (this._highlightRenderer) this._highlightRenderer.destroy();
   this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
+    if (!pathStrings) return;
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
     this._positioner = new Positioner(this._character, this._fillWidthAndHeight(this._options));
@@ -179,6 +182,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     if (this._options.showCharacter) this._characterRenderer.showImmediate();
     if (this._options.showOutline) this._outlineRenderer.showImmediate();
   });
+  return this._withDataPromise;
 };
 
 // ------------- //
@@ -200,15 +204,23 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
 };
 
 HanziWriter.prototype._loadCharacterData = function(char) {
-  if (this.isLoadingCharData) this.cancelLoadingCharData();
-  this.isLoadingCharData = true;
+  var my_token = {};   // use object instance as token
+  this.isLoadingCharData = my_token;
   return new Promise((resolve, reject) => {
     this.cancelLoadingCharData = reject;
-    const returnedData = this._options.charDataLoader(char, resolve);
+    const returnedData = this._options.charDataLoader(char, resolve, reject);
     if (returnedData) resolve(returnedData);
   }).then((data) => {
+    if (this.isLoadingCharData != my_token) {
+      debugger;
+      return;  // another request was made
+    }
     this.isLoadingCharData = false;
+    callIfExists(this._options.onCharDataLoaderSuccess, data);
     return data;
+  }, (...args) => {
+    this.isLoadingCharData = false;
+    callIfExists(this._options.onCharDataLoaderError, ...args);
   });
 };
 

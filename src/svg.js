@@ -136,4 +136,8 @@ Canvas.init = elmOrId => {
   return new Canvas(svg, defs);
 };
 
+Canvas.prototype.remove = function () {
+  this.svg.parentNode.removeChild(this.svg);
+};
+
 module.exports = { createElm, attrs, attr, Canvas, Tween, StyleTween, getPathString };

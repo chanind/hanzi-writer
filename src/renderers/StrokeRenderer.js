@@ -97,6 +97,7 @@ StrokeRenderer.prototype.show = function(animation) {
   }
   const tween = new svg.StyleTween(this.path, 'opacity', 1, {
     duration: this.options.strokeFadeDuration,
+    ensureEndStyle: true,
   });
   animation.registerSvgAnimation(tween);
   return tween.start();
@@ -105,6 +106,7 @@ StrokeRenderer.prototype.show = function(animation) {
 StrokeRenderer.prototype.hide = function(animation) {
   const tween = new svg.StyleTween(this.path, 'opacity', 0, {
     duration: this.options.strokeFadeDuration,
+    ensureEndStyle: true,
   });
   animation.registerSvgAnimation(tween);
   return tween.start();

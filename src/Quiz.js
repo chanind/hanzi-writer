@@ -51,7 +51,7 @@ Quiz.prototype.endUserStroke = function() {
     this._userStrokeRenderer = null;
 
     if (isMatch) {
-      this._handleSuccess(nextStroke, animation);
+      promises.push(this._handleSuccess(nextStroke, animation));
     } else {
       this._handleFailure();
       if (this._numRecentMistakes >= this._quizOptions.showHintAfterMisses) {

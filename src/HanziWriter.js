@@ -7,11 +7,14 @@ const Quiz = require('./Quiz');
 const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
+const LoadingManager = require('./LoadingManager');
 const { assign, isMSBrowser, timeout } = require('./utils');
 
 
 const defaultOptions = {
   charDataLoader: defaultCharDataLoader,
+  onLoadCharDataError: null,
+  onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
 
@@ -71,6 +74,7 @@ function HanziWriter(element, character, options = {}) {
   this._animator = new Animator();
   this._canvas = svg.Canvas.init(element);
   this.setOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
   this._setupListeners();
   this._quiz = null;
@@ -160,11 +164,18 @@ HanziWriter.prototype.cancelQuiz = function() {
 
 HanziWriter.prototype.setCharacter = function(char) {
   this.cancelQuiz();
+  this._char = char;
   if (this._positionerRenderer) this._positionerRenderer.destroy();
   if (this._characterRenderer) this._characterRenderer.destroy();
   if (this._outlineRenderer) this._outlineRenderer.destroy();
   if (this._highlightRenderer) this._highlightRenderer.destroy();
-  this._withDataPromise = this._loadCharacterData(char).then(pathStrings => {
+  this._positionerRenderer = null;
+  this._characterRenderer = null;
+  this._outlineRenderer = null;
+  this._highlightRenderer = null;
+  this._withDataPromise = this._loadingManager.loadCharData(char).then(pathStrings => {
+    if (this._loadingManager.loadingFailed) return;
+
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
     this._positioner = new Positioner(this._character, this._fillWidthAndHeight(this._options));
@@ -179,6 +190,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     if (this._options.showCharacter) this._characterRenderer.showImmediate();
     if (this._options.showOutline) this._outlineRenderer.showImmediate();
   });
+  return this._withDataPromise;
 };
 
 // ------------- //
@@ -199,21 +211,18 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   return filledOpts;
 };
 
-HanziWriter.prototype._loadCharacterData = function(char) {
-  if (this.isLoadingCharData) this.cancelLoadingCharData();
-  this.isLoadingCharData = true;
-  return new Promise((resolve, reject) => {
-    this.cancelLoadingCharData = reject;
-    const returnedData = this._options.charDataLoader(char, resolve);
-    if (returnedData) resolve(returnedData);
-  }).then((data) => {
-    this.isLoadingCharData = false;
-    return data;
-  });
-};
-
 HanziWriter.prototype._withData = function(func) {
-  return this._withDataPromise.then(func);
+  // if this._loadingManager.loadingFailed, then loading failed before this method was called
+  // Try reloading again and see if it helps
+  if (this._loadingManager.loadingFailed) {
+    this.setCharacter(this._char);
+    return this._withData(func);
+  }
+  return this._withDataPromise.then(() => {
+    if (!this._loadingManager.loadingFailed) {
+      return func();
+    }
+  });
 };
 
 HanziWriter.prototype._setupListeners = function() {

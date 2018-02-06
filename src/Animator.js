@@ -10,9 +10,13 @@ Animator.prototype.animate = function(func, options = {}) {
 };
 
 Animator.prototype._setupAnimation = function(options) {
-  if (this._lastAnimation) this._lastAnimation.cancel();
+  this.cancel();
   this._lastAnimation = new Animation(options);
   return this._lastAnimation;
+};
+
+Animator.prototype.cancel = function() {
+  if (this._lastAnimation) this._lastAnimation.cancel();
 };
 
 module.exports = Animator;

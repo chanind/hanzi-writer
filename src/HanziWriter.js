@@ -122,6 +122,7 @@ HanziWriter.prototype.animateCharacter = function(options = {}) {
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   const animateForever = (animation) => {
+    if (!animation.isActive()) return null;
     const cascadedOpts = assign({}, this._options, options);
     const delayBetweenLoops = cascadedOpts.delayBetweenLoops;
     const animatePromise = this._characterRenderer.animate(animation);
@@ -165,6 +166,7 @@ HanziWriter.prototype.cancelQuiz = function() {
 HanziWriter.prototype.setCharacter = function(char) {
   this.cancelQuiz();
   this._char = char;
+  this._animator.cancel();
   if (this._positionerRenderer) this._positionerRenderer.destroy();
   if (this._characterRenderer) this._characterRenderer.destroy();
   if (this._outlineRenderer) this._outlineRenderer.destroy();

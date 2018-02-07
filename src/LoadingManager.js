@@ -7,7 +7,7 @@ function LoadingManager(options) {
   this._isLoading = false;
   this._loadingPromise = null;
 
-  // use this to attribute to determine if there was a problem with loading 
+  // use this to attribute to determine if there was a problem with loading
   this.loadingFailed = false;
 }
 
@@ -16,8 +16,8 @@ LoadingManager.prototype._debouncedLoad = function(char, count) {
   const wrappedResolve = (data) => {
     if (count === this._loadCounter) this._resolve(data);
   };
-  const wrappedReject = (...args) => {
-    if (count === this._loadCounter) this._reject(...args);
+  const wrappedReject = (reason) => {
+    if (count === this._loadCounter) this._reject(reason);
   };
 
   const returnedData = this._options.charDataLoader(char, wrappedResolve, wrappedReject);
@@ -32,14 +32,22 @@ LoadingManager.prototype._setupLoadingPromise = function() {
     this._isLoading = false;
     callIfExists(this._options.onLoadCharDataSuccess, data);
     return data;
-  }, (...args) => {
+  }, (reason) => {
     this._isLoading = false;
     this.loadingFailed = true;
-    callIfExists(this._options.onLoadCharDataError, ...args);
+    callIfExists(this._options.onLoadCharDataError, reason);
+    // If now callback was pass, throw an error so the developer will be aware something went wrong
+    if (!this._options.onLoadCharDataError) {
+      if (reason instanceof Error) throw reason;
+      const err = new Error(`Failed to load char data for ${this._loadingChar}`);
+      err.reason = reason;
+      throw err;
+    }
   });
 };
 
 LoadingManager.prototype.loadCharData = function(char) {
+  this._loadingChar = char;
   if (!this._isLoading) {
     this._setupLoadingPromise();
   }

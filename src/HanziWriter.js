@@ -218,7 +218,12 @@ HanziWriter.prototype._withData = function(func) {
   // Try reloading again and see if it helps
   if (this._loadingManager.loadingFailed) {
     this.setCharacter(this._char);
-    return this._withData(func);
+    return Promise.resolve().then(() => {
+      // check loadingFailed again just in case setCharacter fails synchronously
+      if (!this._loadingManager.loadingFailed) {
+        return this._withData(func);
+      }
+    });
   }
   return this._withDataPromise.then(() => {
     if (!this._loadingManager.loadingFailed) {

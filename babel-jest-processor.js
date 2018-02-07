@@ -8,7 +8,17 @@ module.exports = {
       return babel.transform(src, {
         filename: filename,
         retainLines: true,
-        presets: ['env']
+        presets: ['env'],
+        plugins: [
+          [
+            "transform-runtime",
+            {
+              "helpers": false,
+              "polyfill": false,
+              "regenerator": true
+            }
+          ]
+        ]
       }).code;
     }
 

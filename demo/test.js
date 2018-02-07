@@ -10,6 +10,8 @@ function updateCharacter() {
 		width: 400,
 		height: 400,
 		radicalColor: '#166E16',
+		onLoadCharDataError: (reason) => console.log(reason),
+		charDataLoader: (char, onComplete, onErr) => { onErr('omg'); },
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;

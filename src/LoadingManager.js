@@ -36,7 +36,7 @@ LoadingManager.prototype._setupLoadingPromise = function() {
     this._isLoading = false;
     this.loadingFailed = true;
     callIfExists(this._options.onLoadCharDataError, reason);
-    // If now callback was pass, throw an error so the developer will be aware something went wrong
+    // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
     if (!this._options.onLoadCharDataError) {
       if (reason instanceof Error) throw reason;
       const err = new Error(`Failed to load char data for ${this._loadingChar}`);

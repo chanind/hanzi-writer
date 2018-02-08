@@ -67,7 +67,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.5/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.6/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -580,6 +580,23 @@ var writer = new HanziWriter('target', '人', {
       {% endhighlight %}
       </p>
 
+      <p>
+        If you would like to be notified when character data is loaded successfully or when it fails (for example to implement a loading spinner or show an error message), you can pass <code>onLoadCharDataSuccess</code> and <code>onLoadCharDataError</code> callbacks when creating a HanziWriter instance. For example:
+      </p>
+
+      {% highlight javascript %}
+var ren = require('hanzi-writer-data/人');
+
+var writer = new HanziWriter('target', '人', {
+  onLoadCharDataSuccess: function(data) {
+    console.log('Success!');
+  },
+  onLoadCharDataError: function(reason) {
+    console.log('Oh No! Something went wrong :(');
+  }
+});
+      {% endhighlight %}
+
       <h1 id="api-link">API</h1>
 
       <h2>HanziWriter</h2>
@@ -615,6 +632,8 @@ var writer = new HanziWriter('target', '人', {
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
           <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
+          <li><code>onLoadCharDataSuccess:</code> function. Callback for when character data is loaded successfully. This function is called with the data that was loaded. This can be used to implement a loading spinner.</li>
+          <li><code>onLoadCharDataError:</code> function. Callback for when character data loading fails. This function is passed whatever the failure reason is from <i>charDataLoader</i>.</li>
         </ul>
       </p>
       <h3>Instance methods</h3>

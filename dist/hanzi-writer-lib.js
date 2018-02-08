@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.5.1
+ * Hanzi Writer v0.6.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -522,6 +522,7 @@ var Quiz = __webpack_require__(14);
 var svg = __webpack_require__(4);
 var defaultCharDataLoader = __webpack_require__(18);
 var Animator = __webpack_require__(19);
+var LoadingManager = __webpack_require__(21);
 
 var _require = __webpack_require__(0),
     assign = _require.assign,
@@ -530,6 +531,8 @@ var _require = __webpack_require__(0),
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
+  onLoadCharDataError: null,
+  onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
 
@@ -591,6 +594,7 @@ function HanziWriter(element, character) {
   this._animator = new Animator();
   this._canvas = svg.Canvas.init(element);
   this.setOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
   this._setupListeners();
   this._quiz = null;
@@ -660,6 +664,7 @@ HanziWriter.prototype.loopCharacterAnimation = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   var animateForever = function animateForever(animation) {
+    if (!animation.isActive()) return null;
     var cascadedOpts = assign({}, _this4._options, options);
     var delayBetweenLoops = cascadedOpts.delayBetweenLoops;
     var animatePromise = _this4._characterRenderer.animate(animation);
@@ -722,11 +727,19 @@ HanziWriter.prototype.setCharacter = function (char) {
   var _this8 = this;
 
   this.cancelQuiz();
+  this._char = char;
+  this._animator.cancel();
   if (this._positionerRenderer) this._positionerRenderer.destroy();
   if (this._characterRenderer) this._characterRenderer.destroy();
   if (this._outlineRenderer) this._outlineRenderer.destroy();
   if (this._highlightRenderer) this._highlightRenderer.destroy();
-  this._withDataPromise = this._loadCharacterData(char).then(function (pathStrings) {
+  this._positionerRenderer = null;
+  this._characterRenderer = null;
+  this._outlineRenderer = null;
+  this._highlightRenderer = null;
+  this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
+    if (_this8._loadingManager.loadingFailed) return;
+
     var charDataParser = new CharDataParser();
     _this8._character = charDataParser.generateCharacter(char, pathStrings);
     _this8._positioner = new Positioner(_this8._character, _this8._fillWidthAndHeight(_this8._options));
@@ -741,6 +754,7 @@ HanziWriter.prototype.setCharacter = function (char) {
     if (_this8._options.showCharacter) _this8._characterRenderer.showImmediate();
     if (_this8._options.showOutline) _this8._outlineRenderer.showImmediate();
   });
+  return this._withDataPromise;
 };
 
 // ------------- //
@@ -764,23 +778,25 @@ HanziWriter.prototype._fillWidthAndHeight = function (options) {
   return filledOpts;
 };
 
-HanziWriter.prototype._loadCharacterData = function (char) {
+HanziWriter.prototype._withData = function (func) {
   var _this9 = this;
 
-  if (this.isLoadingCharData) this.cancelLoadingCharData();
-  this.isLoadingCharData = true;
-  return new Promise(function (resolve, reject) {
-    _this9.cancelLoadingCharData = reject;
-    var returnedData = _this9._options.charDataLoader(char, resolve);
-    if (returnedData) resolve(returnedData);
-  }).then(function (data) {
-    _this9.isLoadingCharData = false;
-    return data;
+  // if this._loadingManager.loadingFailed, then loading failed before this method was called
+  // Try reloading again and see if it helps
+  if (this._loadingManager.loadingFailed) {
+    this.setCharacter(this._char);
+    return Promise.resolve().then(function () {
+      // check loadingFailed again just in case setCharacter fails synchronously
+      if (!_this9._loadingManager.loadingFailed) {
+        return _this9._withData(func);
+      }
+    });
+  }
+  return this._withDataPromise.then(function () {
+    if (!_this9._loadingManager.loadingFailed) {
+      return func();
+    }
   });
-};
-
-HanziWriter.prototype._withData = function (func) {
-  return this._withDataPromise.then(func);
 };
 
 HanziWriter.prototype._setupListeners = function () {
@@ -1886,7 +1902,7 @@ var getCharDataUrl = function getCharDataUrl(char) {
   return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
 };
 
-module.exports = function (char, onLoad) {
+module.exports = function (char, onLoad, onError) {
   // load char data from hanziwriter.org cdn (currently hosted on github pages)
   var xhr = new global.XMLHttpRequest();
   if (xhr.overrideMimeType) {
@@ -1894,10 +1910,17 @@ module.exports = function (char, onLoad) {
     xhr.overrideMimeType('application/json');
   }
   xhr.open('GET', getCharDataUrl(char), true);
+  xhr.onerror = function (event) {
+    onError(xhr, event);
+  };
   xhr.onreadystatechange = function () {
     // TODO: error handling
-    if (xhr.readyState === 4 && xhr.status === 200) {
+    if (xhr.readyState !== 4) return;
+
+    if (xhr.status === 200) {
       onLoad(JSON.parse(xhr.responseText));
+    } else if (onError) {
+      onError(xhr);
     }
   };
   xhr.send(null);
@@ -1927,9 +1950,13 @@ Animator.prototype.animate = function (func) {
 };
 
 Animator.prototype._setupAnimation = function (options) {
-  if (this._lastAnimation) this._lastAnimation.cancel();
+  this.cancel();
   this._lastAnimation = new Animation(options);
   return this._lastAnimation;
+};
+
+Animator.prototype.cancel = function () {
+  if (this._lastAnimation) this._lastAnimation.cancel();
 };
 
 module.exports = Animator;
@@ -1978,6 +2005,79 @@ Animation.prototype.finish = function () {
 };
 
 module.exports = Animation;
+
+/***/ }),
+/* 21 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(0),
+    callIfExists = _require.callIfExists;
+
+function LoadingManager(options) {
+  this._loadCounter = 0;
+  this._options = options;
+  this._isLoading = false;
+  this._loadingPromise = null;
+
+  // use this to attribute to determine if there was a problem with loading
+  this.loadingFailed = false;
+}
+
+LoadingManager.prototype._debouncedLoad = function (char, count) {
+  var _this = this;
+
+  // these wrappers ignore all responses except the most recent.
+  var wrappedResolve = function wrappedResolve(data) {
+    if (count === _this._loadCounter) _this._resolve(data);
+  };
+  var wrappedReject = function wrappedReject(reason) {
+    if (count === _this._loadCounter) _this._reject(reason);
+  };
+
+  var returnedData = this._options.charDataLoader(char, wrappedResolve, wrappedReject);
+  if (returnedData) wrappedResolve(returnedData);
+};
+
+LoadingManager.prototype._setupLoadingPromise = function () {
+  var _this2 = this;
+
+  this._loadingPromise = new Promise(function (resolve, reject) {
+    _this2._resolve = resolve;
+    _this2._reject = reject;
+  }).then(function (data) {
+    _this2._isLoading = false;
+    callIfExists(_this2._options.onLoadCharDataSuccess, data);
+    return data;
+  }, function (reason) {
+    _this2._isLoading = false;
+    _this2.loadingFailed = true;
+    callIfExists(_this2._options.onLoadCharDataError, reason);
+    // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
+    if (!_this2._options.onLoadCharDataError) {
+      if (reason instanceof Error) throw reason;
+      var err = new Error('Failed to load char data for ' + _this2._loadingChar);
+      err.reason = reason;
+      throw err;
+    }
+  });
+};
+
+LoadingManager.prototype.loadCharData = function (char) {
+  this._loadingChar = char;
+  if (!this._isLoading) {
+    this._setupLoadingPromise();
+  }
+  this.loadingFailed = false;
+  this._isLoading = true;
+  this._loadCounter += 1;
+  this._debouncedLoad(char, this._loadCounter);
+  return this._loadingPromise;
+};
+
+module.exports = LoadingManager;
 
 /***/ })
 /******/ ]);

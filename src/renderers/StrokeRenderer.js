@@ -4,9 +4,12 @@ const svg = require('../svg');
 const {
   extendPointOnLine,
   getLineSegmentsPortion,
+  getLineSegmentsLength,
   filterParallelPoints,
   linesToPolygon,
 } = require('../geometry');
+
+const STROKE_WIDTH = 200;
 
 // take points on a path and move their start point backwards by distance
 const extendStart = (points, distance) => {
@@ -31,133 +34,146 @@ const extendEnd = (points, distance) => {
 };
 
 // this is a stroke composed of several stroke parts
-function StrokeRenderer(stroke, options = {}) {
+function StrokeRenderer(stroke) {
   StrokeRenderer.super_.call(this);
-  this.stroke = stroke;
-  this.options = options;
+  this._oldProps = {};
+  this._stroke = stroke;
+  this._maskPathLength = getLineSegmentsLength(stroke.points) + (STROKE_WIDTH / 2);
 }
 inherits(StrokeRenderer, Renderer);
 
-StrokeRenderer.prototype.draw = function() {
-  this.path = svg.createElm('path');
-  const maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
-  this.mask = svg.createElm(maskType);
-  this.maskPath = svg.createElm('path');
+StrokeRenderer.prototype.mount = function(canvas, props) {
+  const { usePolygonMasks } = props;
+  this._path = svg.createElm('path');
+  const maskType = usePolygonMasks ? 'clipPath' : 'mask';
+  this._mask = svg.createElm(maskType);
+  this._maskPath = svg.createElm('path');
   const maskId = `mask-${counter()}`;
-  svg.attr(this.mask, 'id', maskId);
+  svg.attr(this._mask, 'id', maskId);
 
-  svg.attr(this.path, 'd', this.stroke.path);
-  svg.attrs(this.path, this.getStrokeAttrs());
-  this.path.style.opacity = 0;
-  const maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
-  svg.attr(this.path, maskAttr, `url(#${maskId})`);
+  svg.attr(this._path, 'd', this._stroke.path);
+  this._path.style.opacity = 0;
+  const maskAttr = usePolygonMasks ? 'clip-path' : 'mask';
+  svg.attr(this._path, maskAttr, `url(#${maskId})`);
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 100);
-  if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 100);
-    this.polyMaskTip = svg.createElm('circle');
+  this.extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
+  if (usePolygonMasks) {
+    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, STROKE_WIDTH / 2);
+    this._polyMaskTip = svg.createElm('circle');
     // need to add this to the mask before the maskPath or else weird things happen. Not sure why
-    this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 100);
+    this._mask.appendChild(this._polyMaskTip);
+    svg.attr(this._polyMaskTip, 'r', STROKE_WIDTH / 2);
     this._setPolyMaskPortion(1);
   } else {
-    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    this._maskPathLength = this.maskPath.getTotalLength();
-    svg.attrs(this.maskPath, {
+    svg.attr(this._maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
+    svg.attrs(this._maskPath, {
       stroke: '#FFFFFF',
-      'stroke-width': 200,
+      'stroke-width': STROKE_WIDTH,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
       'stroke-dasharray': `${this._maskPathLength},${this._maskPathLength}`,
     });
-    this.maskPath.style['stroke-dashoffset'] = 0;
   }
 
-  this.mask.appendChild(this.maskPath);
-  this.canvas.defs.appendChild(this.mask);
-  this.canvas.svg.appendChild(this.path);
+  this._mask.appendChild(this._maskPath);
+  canvas.defs.appendChild(this._mask);
+  canvas.svg.appendChild(this._path);
   return this;
+};
+
+StrokeRenderer.prototype.render = function(props) {
+  if (this._isDestroyed) return;
+
+  const { usePolygonMasks } = props;
+  if (props.displayPortion !== this._oldProps.displayPortion) {
+    if (usePolygonMasks) {
+      this._setPolyMaskPortion(props.displayPortion);
+    } else {
+      this._maskPath.style['stroke-dashoffset'] = this._getStrokeDashoffset(props.displayPortion);
+    }
+  }
+
+  const color = this._getColor(props);
+  if (color !== this._getColor(this._oldProps)) {
+    svg.attrs(this._path, {
+      fill: color,
+      stroke: color,
+    });
+  }
+
+  if (props.strokeWidth !== this._oldProps.strokeWidth) {
+    svg.attrs(this._path, { strokeWidth: props.strokeWidth });
+  }
+
+  if (props.opacity !== this._oldProps.opacity) {
+    this._path.style.opacity = props.opacity;
+  }
+  this._oldProps = props;
 };
 
 StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
   const strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  const pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 200), true);
+  const pathString = svg.getPathString(linesToPolygon(strokePointsPortion, STROKE_WIDTH), true);
   const endPoint = strokePointsPortion[strokePointsPortion.length - 1];
-  svg.attr(this.maskPath, 'd', pathString);
-  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
-  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
+  svg.attr(this._maskPath, 'd', pathString);
+  svg.attr(this._polyMaskTip, 'cx', endPoint.x);
+  svg.attr(this._polyMaskTip, 'cy', endPoint.y);
 };
 
-StrokeRenderer.prototype.show = function(animation) {
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(1);
-  } else {
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
-  const tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true,
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
+// StrokeRenderer.prototype.show = function(animation) {
+//   if (this.options.usePolygonMasks) {
+//     this._setPolyMaskPortion(1);
+//   } else {
+//     this._maskPath.style['stroke-dashoffset'] = 0;
+//   }
+//   const tween = new svg.StyleTween(this._path, 'opacity', 1, {
+//     duration: this.options.strokeFadeDuration,
+//     ensureEndStyle: true,
+//   });
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+
+// StrokeRenderer.prototype.hide = function(animation) {
+//   const tween = new svg.StyleTween(this._path, 'opacity', 0, {
+//     duration: this.options.strokeFadeDuration,
+//     ensureEndStyle: true,
+//   });
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+
+// StrokeRenderer.prototype.animate = function(animation) {
+//   if (!animation.isActive()) return null;
+//   this.showImmediate();
+//   const strokeLength = this._stroke.getLength();
+//   const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
+//   let tween;
+//   if (this.options.usePolygonMasks) {
+//     this._setPolyMaskPortion(0);
+//     tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), { duration });
+//   } else {
+//     // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+//     this._maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
+//     tween = new svg.StyleTween(this._maskPath, 'stroke-dashoffset', 0, { duration });
+//   }
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+// StrokeRenderer.prototype.hideImmediate = function() { this._path.style.opacity = 0; };
+// StrokeRenderer.prototype.showImmediate = function() { this._path.style.opacity = 1; };
+
+// StrokeRenderer.prototype.highlight = function(animation) {
+//   return this.animate(animation).then(() => this.hide(animation));
+// };
+
+StrokeRenderer.prototype._getStrokeDashoffset = function(displayPortion) {
+  return this._maskPathLength * 0.999 * (1 - displayPortion);
 };
 
-StrokeRenderer.prototype.hide = function(animation) {
-  const tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true,
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
-
-StrokeRenderer.prototype.animate = function(animation) {
-  if (!animation.isActive()) return null;
-  this.showImmediate();
-  const strokeLength = this.stroke.getLength();
-  const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
-  let tween;
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(0);
-    tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), { duration });
-  } else {
-    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, { duration });
-  }
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
-
-StrokeRenderer.prototype.hideImmediate = function() { this.path.style.opacity = 0; };
-StrokeRenderer.prototype.showImmediate = function() { this.path.style.opacity = 1; };
-
-StrokeRenderer.prototype.highlight = function(animation) {
-  return this.animate(animation).then(() => this.hide(animation));
-};
-
-StrokeRenderer.prototype.getColor = function() {
-  let color = this.options.strokeColor;
-  if (this.options.radicalColor && this.stroke.isInRadical) {
-    color = this.options.radicalColor;
-  }
-  return color;
-};
-
-StrokeRenderer.prototype.getStrokeAttrs = function() {
-  return {
-    fill: this.getColor(),
-    stroke: this.getColor(),
-    'stroke-width': this.options.strokeWidth,
-  };
-};
-
-StrokeRenderer.prototype.destroy = function() {
-  StrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-  if (this.maskPath) this.maskPath.remove();
-  if (this.mask) this.mask.remove();
+StrokeRenderer.prototype._getColor = function({ strokeColor, radicalColor }) {
+  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
 module.exports = StrokeRenderer;

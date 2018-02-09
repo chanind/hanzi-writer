@@ -15,6 +15,20 @@ function assign(target, ...overrides) {
   return overrideTarget;
 }
 
+function copyAndMergeDeep(base, override) {
+  const output = assign({}, base);
+  for (const key in override) {
+    if (Object.prototype.hasOwnProperty.call(override, key)) {
+      if (base[key] && override[key] && typeof base[key] === 'object' && typeof override[key] === 'object') {
+        output[key] = copyAndMergeDeep(base[key], override[key]);
+      } else {
+        output[key] = override[key];
+      }
+    }
+  }
+  return output;
+}
+
 // utils for classes without es6, sigh...
 // from: https://github.com/nodejs/node-v0.x-archive/blob/546ae2ee/lib/util.js#L552-L575
 function inherits(ctor, superCtor) {
@@ -79,6 +93,7 @@ module.exports = {
   arrayMin,
   average,
   callIfExists,
+  copyAndMergeDeep,
   counter,
   emptyFunc,
   getExtremes,

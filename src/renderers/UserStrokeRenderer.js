@@ -47,9 +47,4 @@ UserStrokeRenderer.prototype.getStrokeAttrs = function() {
   };
 };
 
-UserStrokeRenderer.prototype.destroy = function() {
-  UserStrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-};
-
 module.exports = UserStrokeRenderer;

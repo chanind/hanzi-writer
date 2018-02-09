@@ -38,13 +38,18 @@ const getLinesIntersectPoint = (l1p1, l1p2, l2p1, l2p2) => {
   return new Point(xNumerator / denominator, yNumerator / denominator);
 };
 
-const getLineSegmentsPortion = (points, portion) => {
-  if (points.length < 2 || portion >= 1) return points;
-  if (portion === 0) return [points[0]];
+const getLineSegmentsLength = (points) => {
   let totalDist = 0;
   for (let i = 1; i < points.length; i += 1) {
     totalDist += Point.getDistance(points[i], points[i - 1]);
   }
+  return totalDist;
+};
+
+const getLineSegmentsPortion = (points, portion) => {
+  if (points.length < 2 || portion >= 1) return points;
+  if (portion === 0) return [points[0]];
+  const totalDist = getLineSegmentsLength(points);
   const portionedPoints = [points[0]];
   const portionedDist = totalDist * portion;
   let cumuativeDist = 0;
@@ -144,6 +149,7 @@ const linesToPolygon = (points, thickness) => {
 module.exports = {
   extendPointOnLine,
   filterParallelPoints,
+  getLineSegmentsLength,
   getLineSegmentsPortion,
   getLinesIntersectPoint,
   getPerpendicularPointsAtDist,

@@ -83,8 +83,6 @@ StrokeRenderer.prototype.mount = function(canvas, props) {
 };
 
 StrokeRenderer.prototype.render = function(props) {
-  if (this._isDestroyed) return;
-
   const { usePolygonMasks } = props;
   if (props.displayPortion !== this._oldProps.displayPortion) {
     if (usePolygonMasks) {

@@ -15,6 +15,22 @@ function assign(target, ...overrides) {
   return overrideTarget;
 }
 
+function getKeyPaths(obj) {
+  const paths = [];
+  const findPaths = (path, subObj) => {
+    Object.keys(subObj).forEach(key => {
+      const value = subObj[key];
+      const curPath = path ? `${path}.${key}` : key;
+      if (value && typeof value === 'object') {
+        findPaths(curPath, value);
+      }
+      paths.push(curPath);
+    });
+  };
+  findPaths(null, obj);
+  return paths;
+}
+
 function copyAndMergeDeep(base, override) {
   const output = assign({}, base);
   for (const key in override) {
@@ -96,6 +112,7 @@ module.exports = {
   copyAndMergeDeep,
   counter,
   emptyFunc,
+  getKeyPaths,
   getExtremes,
   isMSBrowser,
   timeout,

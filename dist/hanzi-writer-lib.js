@@ -75,6 +75,8 @@ module.exports =
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 function emptyFunc() {}
 
 // Object.assign polyfill, because IE :/
@@ -95,6 +97,20 @@ function assign(target) {
     }
   });
   return overrideTarget;
+}
+
+function copyAndMergeDeep(base, override) {
+  var output = assign({}, base);
+  for (var key in override) {
+    if (Object.prototype.hasOwnProperty.call(override, key)) {
+      if (base[key] && override[key] && _typeof(base[key]) === 'object' && _typeof(override[key]) === 'object') {
+        output[key] = copyAndMergeDeep(base[key], override[key]);
+      } else {
+        output[key] = override[key];
+      }
+    }
+  }
+  return output;
 }
 
 // utils for classes without es6, sigh...
@@ -166,6 +182,7 @@ module.exports = {
   arrayMin: arrayMin,
   average: average,
   callIfExists: callIfExists,
+  copyAndMergeDeep: copyAndMergeDeep,
   counter: counter,
   emptyFunc: emptyFunc,
   getExtremes: getExtremes,
@@ -286,37 +303,33 @@ module.exports = g;
 "use strict";
 
 
-function Renderer() {
-  this.isDestroyed = false; // check this in children in animations, etc
-  this.childRenderers = [];
-  this.parentRenderer = null;
+function Renderer(canvas) {
+  this._canvas = canvas;
+  this._isDestroyed = false; // check this in children in animations, etc
+  this._childRenderers = [];
 }
 
 // implement in children
-Renderer.prototype.draw = function () {
+Renderer.prototype.mount = function (canvas, props) {
+  return this;
+};
+
+// implement in children
+Renderer.prototype.render = function (props) {
+  var oldProps = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
   return this;
 };
 
 Renderer.prototype.registerChild = function (child) {
-  this.childRenderers.push(child);
-  child.setParent(this);
+  this._childRenderers.push(child);
   return child;
-};
-
-Renderer.prototype.setParent = function (parent) {
-  this.parentRenderer = parent;
-  return this;
-};
-
-Renderer.prototype.setCanvas = function (canvas) {
-  this.canvas = canvas;
-  return this;
 };
 
 // extend this in children with extra behavior
 Renderer.prototype.destroy = function () {
-  this.isDestroyed = true;
-  this.childRenderers.forEach(function (child) {
+  this._isDestroyed = true;
+  this._childRenderers.forEach(function (child) {
     return child.destroy();
   });
 };
@@ -513,16 +526,16 @@ module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canva
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var CharacterRenderer = __webpack_require__(6);
-var PositionerRenderer = __webpack_require__(9);
+var HanziWriterRenderer = __webpack_require__(6);
+var StateManager = __webpack_require__(10);
 var Point = __webpack_require__(1);
-var CharDataParser = __webpack_require__(10);
-var Positioner = __webpack_require__(13);
-var Quiz = __webpack_require__(14);
+var CharDataParser = __webpack_require__(11);
+var Positioner = __webpack_require__(14);
+var Quiz = __webpack_require__(15);
 var svg = __webpack_require__(4);
-var defaultCharDataLoader = __webpack_require__(18);
-var Animator = __webpack_require__(19);
-var LoadingManager = __webpack_require__(21);
+var defaultCharDataLoader = __webpack_require__(19);
+var Animator = __webpack_require__(20);
+var LoadingManager = __webpack_require__(22);
 
 var _require = __webpack_require__(0),
     assign = _require.assign,
@@ -574,59 +587,17 @@ var defaultOptions = {
   usePolygonMasks: isMSBrowser()
 };
 
-var assignOptions = function assignOptions(options) {
-  var mergedOptions = assign({}, defaultOptions, options);
-
-  // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
-  if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
-    mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
-  }
-  if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
-    mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
-  }
-
-  return mergedOptions;
-};
-
 function HanziWriter(element, character) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   this._animator = new Animator();
   this._canvas = svg.Canvas.init(element);
-  this.setOptions(options);
+  this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
   this._setupListeners();
   this._quiz = null;
 }
-
-HanziWriter.prototype.setOptions = function (options) {
-  this._options = assignOptions(options);
-  this._mainCharOptions = {
-    strokeColor: this._options.strokeColor,
-    radicalColor: this._options.radicalColor,
-    strokeWidth: this._options.strokeWidth,
-    strokeAnimationSpeed: this._options.strokeAnimationSpeed,
-    strokeFadeDuration: this._options.strokeFadeDuration,
-    delayBetweenStrokes: this._options.delayBetweenStrokes,
-    usePolygonMasks: this._options.usePolygonMasks
-  };
-  this._outlineCharOptions = assign({}, this._mainCharOptions, {
-    strokeColor: this._options.outlineColor,
-    radicalColor: null,
-    strokeWidth: this._options.outlineWidth
-  });
-  this._highlightCharOptions = assign({}, this._mainCharOptions, {
-    strokeColor: this._options.highlightColor,
-    radicalColor: null,
-    strokeAnimationSpeed: this._options.strokeHighlightSpeed
-  });
-  this._userStrokeOptions = {
-    strokeColor: this._options.drawingColor,
-    strokeWidth: this._options.drawingWidth,
-    fadeDuration: this._options.drawingFadeDuration
-  };
-};
 
 // ------ public API ------ //
 
@@ -729,35 +700,37 @@ HanziWriter.prototype.setCharacter = function (char) {
   this.cancelQuiz();
   this._char = char;
   this._animator.cancel();
-  if (this._positionerRenderer) this._positionerRenderer.destroy();
-  if (this._characterRenderer) this._characterRenderer.destroy();
-  if (this._outlineRenderer) this._outlineRenderer.destroy();
-  if (this._highlightRenderer) this._highlightRenderer.destroy();
-  this._positionerRenderer = null;
-  this._characterRenderer = null;
-  this._outlineRenderer = null;
-  this._highlightRenderer = null;
+  if (this._hanziWriterRenderer) this._hanziWriterRenderer.destroy();
+  this._hanziWriterRenderer = null;
   this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
     if (_this8._loadingManager.loadingFailed) return;
 
     var charDataParser = new CharDataParser();
     _this8._character = charDataParser.generateCharacter(char, pathStrings);
-    _this8._positioner = new Positioner(_this8._character, _this8._fillWidthAndHeight(_this8._options));
-
-    _this8._positionerRenderer = new PositionerRenderer(_this8._positioner).setCanvas(_this8._canvas);
-    _this8._subCanvas = _this8._positionerRenderer.positionedCanvas;
-
-    _this8._outlineRenderer = new CharacterRenderer(_this8._character, _this8._outlineCharOptions).setCanvas(_this8._subCanvas).draw();
-    _this8._characterRenderer = new CharacterRenderer(_this8._character, _this8._mainCharOptions).setCanvas(_this8._subCanvas).draw();
-    _this8._highlightRenderer = new CharacterRenderer(_this8._character, _this8._highlightCharOptions).setCanvas(_this8._subCanvas).draw();
-
-    if (_this8._options.showCharacter) _this8._characterRenderer.showImmediate();
-    if (_this8._options.showOutline) _this8._outlineRenderer.showImmediate();
+    _this8._positioner = new Positioner(_this8._character, _this8._options);
+    _this8._hanziWriterRenderer = new HanziWriterRenderer(_this8._character, _this8._positioner);
+    _this8._stateManager = new StateManager(_this8._character, _this8._options);
+    _this8._hanziWriterRenderer.mount(_this8._canvas, _this8._stateManager.state);
+    _this8._hanziWriterRenderer.render(_this8._stateManager.state);
   });
   return this._withDataPromise;
 };
 
 // ------------- //
+
+HanziWriter.prototype._assignOptions = function (options) {
+  var mergedOptions = assign({}, defaultOptions, options);
+
+  // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
+  if (options.strokeAnimationDuration && !options.strokeAnimationSpeed) {
+    mergedOptions.strokeAnimationSpeed = 500 / mergedOptions.strokeAnimationDuration;
+  }
+  if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
+    mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
+  }
+
+  return this._fillWidthAndHeight(mergedOptions);
+};
 
 // returns a new options object with width and height filled in if missing
 HanziWriter.prototype._fillWidthAndHeight = function (options) {
@@ -900,108 +873,108 @@ if (true) {
 
 
 var Renderer = __webpack_require__(3);
-var StrokeRenderer = __webpack_require__(7);
+var CharacterRenderer = __webpack_require__(7);
 
 var _require = __webpack_require__(0),
-    timeout = _require.timeout,
+    inherits = _require.inherits,
+    assign = _require.assign;
+
+var svg = __webpack_require__(4);
+
+var extractCharProps = function extractCharProps(props, charName) {
+  if (!props.character) return props;
+  return assign({
+    usePolygonMasks: props.options.usePolygonMasks
+  }, props.character[charName]);
+};
+
+function HanziWriterRenderer(character, positioner) {
+  HanziWriterRenderer.super_.call(this);
+  this._character = character;
+  this._positioner = positioner;
+  this._mainCharRenderer = this.registerChild(new CharacterRenderer(character));
+  this._outlineCharRenderer = this.registerChild(new CharacterRenderer(character));
+  this._highlightCharRenderer = this.registerChild(new CharacterRenderer(character));
+}
+
+inherits(HanziWriterRenderer, Renderer);
+
+HanziWriterRenderer.prototype.mount = function (canvas, props) {
+  var positionedCanvas = canvas.createSubCanvas();
+  var group = positionedCanvas.svg;
+  svg.attr(group, 'transform', '\n    translate(' + this._positioner.getXOffset() + ', ' + (this._positioner.getHeight() - this._positioner.getYOffset()) + ')\n    scale(' + this._positioner.getScale() + ', ' + -1 * this._positioner.getScale() + ')\n  ');
+  this._outlineCharRenderer.mount(positionedCanvas, extractCharProps(props, 'outline'));
+  this._mainCharRenderer.mount(positionedCanvas, extractCharProps(props, 'main'));
+  this._highlightCharRenderer.mount(positionedCanvas, extractCharProps(props, 'highlight'));
+};
+
+HanziWriterRenderer.prototype.render = function (props) {
+  this._outlineCharRenderer.render(extractCharProps(props, 'outline'));
+  this._mainCharRenderer.render(extractCharProps(props, 'main'));
+  this._highlightCharRenderer.render(extractCharProps(props, 'highlight'));
+};
+
+module.exports = HanziWriterRenderer;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var Renderer = __webpack_require__(3);
+var StrokeRenderer = __webpack_require__(8);
+
+var _require = __webpack_require__(0),
+    assign = _require.assign,
     inherits = _require.inherits;
+
+var exractStrokeProps = function exractStrokeProps(strokeNum, props) {
+  if (!props.strokes) return props;
+  return assign({
+    usePolygonMasks: props.usePolygonMasks,
+    strokeColor: props.strokeColor,
+    radicalColor: props.radicalColor,
+    strokeWidth: props.strokeWidth
+  }, props.strokes[strokeNum]);
+};
 
 function CharacterRenderer(character) {
   var _this = this;
 
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   CharacterRenderer.super_.call(this);
-  this.options = options;
+  this._oldProps = {};
   this.character = character;
   this.strokeRenderers = this.character.strokes.map(function (stroke) {
-    return _this.registerChild(new StrokeRenderer(stroke, options));
+    return _this.registerChild(new StrokeRenderer(stroke));
   });
 }
 
 inherits(CharacterRenderer, Renderer);
 
-CharacterRenderer.prototype.getBounds = function () {
-  return this.character.getBounds();
-};
-
-CharacterRenderer.prototype.show = function (animation) {
-  var promises = this.strokeRenderers.map(function (strokeRenderer) {
-    return strokeRenderer.show(animation);
-  });
-  return Promise.all(promises);
-};
-
-CharacterRenderer.prototype.showImmediate = function () {
-  this.strokeRenderers.map(function (renderer) {
-    return renderer.showImmediate();
+CharacterRenderer.prototype.mount = function (canvas, props) {
+  var subCanvas = canvas.createSubCanvas();
+  this._group = subCanvas.svg;
+  this.strokeRenderers.forEach(function (strokeRenderer, i) {
+    strokeRenderer.mount(subCanvas, exractStrokeProps(i, props));
   });
 };
 
-CharacterRenderer.prototype.hide = function (animation) {
-  var promises = this.strokeRenderers.map(function (strokeRenderer) {
-    return strokeRenderer.hide(animation);
-  });
-  return Promise.all(promises);
-};
-
-CharacterRenderer.prototype.hideImmediate = function () {
-  this.strokeRenderers.map(function (renderer) {
-    return renderer.hideImmediate();
-  });
-};
-
-CharacterRenderer.prototype.flash = function (animation) {
-  var _this2 = this;
-
-  return this.show(animation).then(function () {
-    return _this2.hide(animation);
-  });
-};
-
-CharacterRenderer.prototype.showStroke = function (strokeNum, animation) {
-  return this.getStrokeRenderer(strokeNum).show(animation);
-};
-
-CharacterRenderer.prototype.draw = function () {
-  this.strokeRenderers.forEach(function (renderer) {
-    return renderer.draw();
-  });
-  return this;
-};
-
-CharacterRenderer.prototype.getStrokeRenderer = function (strokeNum) {
-  return this.strokeRenderers[strokeNum];
-};
-
-CharacterRenderer.prototype.animate = function (animation) {
-  var _this3 = this;
-
-  if (!animation.isActive()) return null;
-  var renderChain = this.hide(animation);
-  this.strokeRenderers.forEach(function (strokeRenderer, index) {
-    if (index > 0) renderChain = renderChain.then(function () {
-      return timeout(_this3.options.delayBetweenStrokes);
-    });
-    renderChain = renderChain.then(function () {
-      return strokeRenderer.animate(animation);
-    });
-  });
-  return renderChain;
-};
-
-CharacterRenderer.prototype.setCanvas = function (canvas) {
-  CharacterRenderer.super_.prototype.setCanvas.call(this, canvas);
-  this.strokeRenderers.forEach(function (renderer) {
-    return renderer.setCanvas(canvas);
-  });
-  return this;
+CharacterRenderer.prototype.render = function (props) {
+  if (props.opacity !== this._oldProps.opacity) {
+    this._group.style.opacity = props.opacity;
+  }
+  for (var i = 0; i < this.strokeRenderers.length; i += 1) {
+    this.strokeRenderers[i].render(exractStrokeProps(i, props));
+  }
+  this._oldProps = props;
 };
 
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 7 */
+/* 8 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1015,15 +988,16 @@ var _require = __webpack_require__(0),
 
 var svg = __webpack_require__(4);
 
-var _require2 = __webpack_require__(8),
+var _require2 = __webpack_require__(9),
     extendPointOnLine = _require2.extendPointOnLine,
     getLineSegmentsPortion = _require2.getLineSegmentsPortion,
+    getLineSegmentsLength = _require2.getLineSegmentsLength,
     filterParallelPoints = _require2.filterParallelPoints,
     linesToPolygon = _require2.linesToPolygon;
 
+var STROKE_WIDTH = 200;
+
 // take points on a path and move their start point backwards by distance
-
-
 var extendStart = function extendStart(points, distance) {
   if (points.length < 2) return points;
   var p1 = points[1];
@@ -1047,152 +1021,156 @@ var extendEnd = function extendEnd(points, distance) {
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
   StrokeRenderer.super_.call(this);
-  this.stroke = stroke;
-  this.options = options;
+  this._oldProps = {};
+  this._stroke = stroke;
+  this._maskPathLength = getLineSegmentsLength(stroke.points) + STROKE_WIDTH / 2;
 }
 inherits(StrokeRenderer, Renderer);
 
-StrokeRenderer.prototype.draw = function () {
-  this.path = svg.createElm('path');
-  var maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
-  this.mask = svg.createElm(maskType);
-  this.maskPath = svg.createElm('path');
+StrokeRenderer.prototype.mount = function (canvas, props) {
+  var usePolygonMasks = props.usePolygonMasks;
+
+  this._path = svg.createElm('path');
+  var maskType = usePolygonMasks ? 'clipPath' : 'mask';
+  this._mask = svg.createElm(maskType);
+  this._maskPath = svg.createElm('path');
   var maskId = 'mask-' + counter();
-  svg.attr(this.mask, 'id', maskId);
+  svg.attr(this._mask, 'id', maskId);
 
-  svg.attr(this.path, 'd', this.stroke.path);
-  svg.attrs(this.path, this.getStrokeAttrs());
-  this.path.style.opacity = 0;
-  var maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
-  svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
+  svg.attr(this._path, 'd', this._stroke.path);
+  this._path.style.opacity = 0;
+  var maskAttr = usePolygonMasks ? 'clip-path' : 'mask';
+  svg.attr(this._path, maskAttr, 'url(#' + maskId + ')');
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 100);
-  if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 100);
-    this.polyMaskTip = svg.createElm('circle');
+  this.extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
+  if (usePolygonMasks) {
+    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, STROKE_WIDTH / 2);
+    this._polyMaskTip = svg.createElm('circle');
     // need to add this to the mask before the maskPath or else weird things happen. Not sure why
-    this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 100);
+    this._mask.appendChild(this._polyMaskTip);
+    svg.attr(this._polyMaskTip, 'r', STROKE_WIDTH / 2);
     this._setPolyMaskPortion(1);
   } else {
-    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    this._maskPathLength = this.maskPath.getTotalLength();
-    svg.attrs(this.maskPath, {
+    svg.attr(this._maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
+    svg.attrs(this._maskPath, {
       stroke: '#FFFFFF',
-      'stroke-width': 200,
+      'stroke-width': STROKE_WIDTH,
       fill: 'none',
       'stroke-linecap': 'round',
       'stroke-linejoin': 'miter',
       'stroke-dasharray': this._maskPathLength + ',' + this._maskPathLength
     });
-    this.maskPath.style['stroke-dashoffset'] = 0;
   }
 
-  this.mask.appendChild(this.maskPath);
-  this.canvas.defs.appendChild(this.mask);
-  this.canvas.svg.appendChild(this.path);
+  this._mask.appendChild(this._maskPath);
+  canvas.defs.appendChild(this._mask);
+  canvas.svg.appendChild(this._path);
   return this;
+};
+
+StrokeRenderer.prototype.render = function (props) {
+  if (this._isDestroyed) return;
+
+  var usePolygonMasks = props.usePolygonMasks;
+
+  if (props.displayPortion !== this._oldProps.displayPortion) {
+    if (usePolygonMasks) {
+      this._setPolyMaskPortion(props.displayPortion);
+    } else {
+      this._maskPath.style['stroke-dashoffset'] = this._getStrokeDashoffset(props.displayPortion);
+    }
+  }
+
+  var color = this._getColor(props);
+  if (color !== this._getColor(this._oldProps)) {
+    svg.attrs(this._path, {
+      fill: color,
+      stroke: color
+    });
+  }
+
+  if (props.strokeWidth !== this._oldProps.strokeWidth) {
+    svg.attrs(this._path, { strokeWidth: props.strokeWidth });
+  }
+
+  if (props.opacity !== this._oldProps.opacity) {
+    this._path.style.opacity = props.opacity;
+  }
+  this._oldProps = props;
 };
 
 StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
   var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 200), true);
+  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, STROKE_WIDTH), true);
   var endPoint = strokePointsPortion[strokePointsPortion.length - 1];
-  svg.attr(this.maskPath, 'd', pathString);
-  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
-  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
+  svg.attr(this._maskPath, 'd', pathString);
+  svg.attr(this._polyMaskTip, 'cx', endPoint.x);
+  svg.attr(this._polyMaskTip, 'cy', endPoint.y);
 };
 
-StrokeRenderer.prototype.show = function (animation) {
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(1);
-  } else {
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
-  var tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
+// StrokeRenderer.prototype.show = function(animation) {
+//   if (this.options.usePolygonMasks) {
+//     this._setPolyMaskPortion(1);
+//   } else {
+//     this._maskPath.style['stroke-dashoffset'] = 0;
+//   }
+//   const tween = new svg.StyleTween(this._path, 'opacity', 1, {
+//     duration: this.options.strokeFadeDuration,
+//     ensureEndStyle: true,
+//   });
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+
+// StrokeRenderer.prototype.hide = function(animation) {
+//   const tween = new svg.StyleTween(this._path, 'opacity', 0, {
+//     duration: this.options.strokeFadeDuration,
+//     ensureEndStyle: true,
+//   });
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+
+// StrokeRenderer.prototype.animate = function(animation) {
+//   if (!animation.isActive()) return null;
+//   this.showImmediate();
+//   const strokeLength = this._stroke.getLength();
+//   const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
+//   let tween;
+//   if (this.options.usePolygonMasks) {
+//     this._setPolyMaskPortion(0);
+//     tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), { duration });
+//   } else {
+//     // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
+//     this._maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
+//     tween = new svg.StyleTween(this._maskPath, 'stroke-dashoffset', 0, { duration });
+//   }
+//   animation.registerSvgAnimation(tween);
+//   return tween.start();
+// };
+// StrokeRenderer.prototype.hideImmediate = function() { this._path.style.opacity = 0; };
+// StrokeRenderer.prototype.showImmediate = function() { this._path.style.opacity = 1; };
+
+// StrokeRenderer.prototype.highlight = function(animation) {
+//   return this.animate(animation).then(() => this.hide(animation));
+// };
+
+StrokeRenderer.prototype._getStrokeDashoffset = function (displayPortion) {
+  return this._maskPathLength * 0.999 * (1 - displayPortion);
 };
 
-StrokeRenderer.prototype.hide = function (animation) {
-  var tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
+StrokeRenderer.prototype._getColor = function (_ref) {
+  var strokeColor = _ref.strokeColor,
+      radicalColor = _ref.radicalColor;
 
-StrokeRenderer.prototype.animate = function (animation) {
-  var _this = this;
-
-  if (!animation.isActive()) return null;
-  this.showImmediate();
-  var strokeLength = this.stroke.getLength();
-  var duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
-  var tween = void 0;
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(0);
-    tween = new svg.Tween(function (portion) {
-      return _this._setPolyMaskPortion(portion);
-    }, { duration: duration });
-  } else {
-    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, { duration: duration });
-  }
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
-
-StrokeRenderer.prototype.hideImmediate = function () {
-  this.path.style.opacity = 0;
-};
-StrokeRenderer.prototype.showImmediate = function () {
-  this.path.style.opacity = 1;
-};
-
-StrokeRenderer.prototype.highlight = function (animation) {
-  var _this2 = this;
-
-  return this.animate(animation).then(function () {
-    return _this2.hide(animation);
-  });
-};
-
-StrokeRenderer.prototype.getColor = function () {
-  var color = this.options.strokeColor;
-  if (this.options.radicalColor && this.stroke.isInRadical) {
-    color = this.options.radicalColor;
-  }
-  return color;
-};
-
-StrokeRenderer.prototype.getStrokeAttrs = function () {
-  return {
-    fill: this.getColor(),
-    stroke: this.getColor(),
-    'stroke-width': this.options.strokeWidth
-  };
-};
-
-StrokeRenderer.prototype.destroy = function () {
-  StrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-  if (this.maskPath) this.maskPath.remove();
-  if (this.mask) this.mask.remove();
+  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
 module.exports = StrokeRenderer;
 
 /***/ }),
-/* 8 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1235,27 +1213,32 @@ var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l
   return new Point(xNumerator / denominator, yNumerator / denominator);
 };
 
-var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
-  if (points.length < 2 || portion >= 1) return points;
-  if (portion === 0) return [points[0]];
+var getLineSegmentsLength = function getLineSegmentsLength(points) {
   var totalDist = 0;
   for (var i = 1; i < points.length; i += 1) {
     totalDist += Point.getDistance(points[i], points[i - 1]);
   }
+  return totalDist;
+};
+
+var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
+  if (points.length < 2 || portion >= 1) return points;
+  if (portion === 0) return [points[0]];
+  var totalDist = getLineSegmentsLength(points);
   var portionedPoints = [points[0]];
   var portionedDist = totalDist * portion;
   var cumuativeDist = 0;
-  for (var _i = 1; _i < points.length; _i += 1) {
-    var lastPoint = points[_i - 1];
-    var segmentLength = Point.getDistance(points[_i], lastPoint);
+  for (var i = 1; i < points.length; i += 1) {
+    var lastPoint = points[i - 1];
+    var segmentLength = Point.getDistance(points[i], lastPoint);
     if (cumuativeDist + segmentLength >= portionedDist) {
-      var vect = points[_i].subtract(lastPoint);
+      var vect = points[i].subtract(lastPoint);
       var norm = (portionedDist - cumuativeDist) / segmentLength;
       portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
       return portionedPoints;
     }
     cumuativeDist += segmentLength;
-    portionedPoints.push(points[_i]);
+    portionedPoints.push(points[i]);
   }
   return portionedPoints;
 };
@@ -1292,9 +1275,9 @@ var linesToPolygon = function linesToPolygon(points, thickness) {
   }
   var topPoints = [topSegments[0].start];
   var bottomPoints = [bottomSegments[0].start];
-  for (var _i2 = 1; _i2 < topSegments.length; _i2 += 1) {
-    var topIntersect = getLinesIntersectPoint(topSegments[_i2 - 1].start, topSegments[_i2 - 1].end, topSegments[_i2].start, topSegments[_i2].end);
-    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i2 - 1].start, bottomSegments[_i2 - 1].end, bottomSegments[_i2].start, bottomSegments[_i2].end);
+  for (var _i = 1; _i < topSegments.length; _i += 1) {
+    var topIntersect = getLinesIntersectPoint(topSegments[_i - 1].start, topSegments[_i - 1].end, topSegments[_i].start, topSegments[_i].end);
+    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i - 1].start, bottomSegments[_i - 1].end, bottomSegments[_i].start, bottomSegments[_i].end);
     topPoints.push(topIntersect);
     bottomPoints.push(bottomIntersect);
   }
@@ -1326,49 +1309,12 @@ var linesToPolygon = function linesToPolygon(points, thickness) {
 module.exports = {
   extendPointOnLine: extendPointOnLine,
   filterParallelPoints: filterParallelPoints,
+  getLineSegmentsLength: getLineSegmentsLength,
   getLineSegmentsPortion: getLineSegmentsPortion,
   getLinesIntersectPoint: getLinesIntersectPoint,
   getPerpendicularPointsAtDist: getPerpendicularPointsAtDist,
   linesToPolygon: linesToPolygon
 };
-
-/***/ }),
-/* 9 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Renderer = __webpack_require__(3);
-var svg = __webpack_require__(4);
-
-var _require = __webpack_require__(0),
-    inherits = _require.inherits;
-
-function PositionerRenderer(positioner) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  PositionerRenderer.super_.call(this);
-  this.positioner = positioner;
-  this.positionedCanvas = null;
-}
-
-inherits(PositionerRenderer, Renderer);
-
-PositionerRenderer.prototype.setCanvas = function (canvas) {
-  PositionerRenderer.super_.prototype.setCanvas.call(this, canvas);
-  this.positionedCanvas = canvas.createSubCanvas();
-  var group = this.positionedCanvas.svg;
-  svg.attr(group, 'transform', '\n    translate(' + this.positioner.getXOffset() + ', ' + (this.positioner.getHeight() - this.positioner.getYOffset()) + ')\n    scale(' + this.positioner.getScale() + ', ' + -1 * this.positioner.getScale() + ')\n  ');
-  return this;
-};
-
-PositionerRenderer.prototype.destroy = function () {
-  PositionerRenderer.super_.prototype.destroy.call(this);
-  this.positionedCanvas.remove();
-};
-
-module.exports = PositionerRenderer;
 
 /***/ }),
 /* 10 */
@@ -1377,11 +1323,73 @@ module.exports = PositionerRenderer;
 "use strict";
 
 
+var _require = __webpack_require__(0),
+    copyAndMergeDeep = _require.copyAndMergeDeep;
+
+function StateManager(character, options, onStateChange) {
+  this._onStateChange = onStateChange;
+  this.state = {
+    options: {
+      usePolygonMasks: options.usePolygonMasks,
+      drawingFadeDuration: options.drawingFadeDuration,
+      drawingWidth: options.drawingWidth,
+      strokeWidth: options.strokeWidth
+    },
+    character: {
+      main: {
+        strokeColor: options.strokeColor,
+        radicalColor: options.radicalColor,
+        opacity: options.showCharacter ? 1 : 0,
+        strokes: {}
+      },
+      outline: {
+        strokeColor: options.outlineColor,
+        opacity: options.showOutline ? 1 : 0,
+        strokes: {}
+      },
+      highlight: {
+        strokeColor: options.highlightColor,
+        opacity: 1,
+        strokes: {}
+      }
+    }
+  };
+  for (var i = 0; i < character.strokes.length; i += 1) {
+    this.state.character.main.strokes[i] = {
+      opacity: 1,
+      displayPortion: 1
+    };
+    this.state.character.outline.strokes[i] = {
+      opacity: 1,
+      displayPortion: 1
+    };
+    this.state.character.highlight.strokes[i] = {
+      opacity: 1,
+      displayPortion: 1
+    };
+  }
+}
+
+StateManager.prototype.updateState = function (stateChanges) {
+  var nextState = copyAndMergeDeep(this.state, stateChanges);
+  this._onStateChange(nextState, this.state);
+  this.state = nextState;
+};
+
+module.exports = StateManager;
+
+/***/ }),
+/* 11 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var Point = __webpack_require__(1);
-var Stroke = __webpack_require__(11);
-var Character = __webpack_require__(12);
+var Stroke = __webpack_require__(12);
+var Character = __webpack_require__(13);
 
 function CharDataParser() {}
 
@@ -1410,7 +1418,7 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
 module.exports = CharDataParser;
 
 /***/ }),
-/* 11 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1478,7 +1486,7 @@ Stroke.prototype.getAverageDistance = function (points) {
 module.exports = Stroke;
 
 /***/ }),
-/* 12 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1506,7 +1514,7 @@ Character.prototype.getBounds = function () {
 module.exports = Character;
 
 /***/ }),
-/* 13 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1559,15 +1567,15 @@ Positioner.prototype._calculateScaleAndOffset = function () {
 module.exports = Positioner;
 
 /***/ }),
-/* 14 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeMatcher = __webpack_require__(15);
-var UserStroke = __webpack_require__(16);
-var UserStrokeRenderer = __webpack_require__(17);
+var StrokeMatcher = __webpack_require__(16);
+var UserStroke = __webpack_require__(17);
+var UserStrokeRenderer = __webpack_require__(18);
 
 var _require = __webpack_require__(0),
     callIfExists = _require.callIfExists;
@@ -1712,7 +1720,7 @@ Quiz.prototype._setupCharacter = function () {
 module.exports = Quiz;
 
 /***/ }),
-/* 15 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1794,7 +1802,7 @@ StrokeMatcher.prototype._getEdgeVectors = function (points) {
 module.exports = StrokeMatcher;
 
 /***/ }),
-/* 16 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1817,7 +1825,7 @@ UserStroke.prototype.appendPoint = function (point) {
 module.exports = UserStroke;
 
 /***/ }),
-/* 17 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1880,15 +1888,10 @@ UserStrokeRenderer.prototype.getStrokeAttrs = function () {
   };
 };
 
-UserStrokeRenderer.prototype.destroy = function () {
-  UserStrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-};
-
 module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 18 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1928,13 +1931,13 @@ module.exports = function (char, onLoad, onError) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 19 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Animation = __webpack_require__(20);
+var Animation = __webpack_require__(21);
 
 function Animator() {
   this._lastAnimation = null;
@@ -1962,7 +1965,7 @@ Animator.prototype.cancel = function () {
 module.exports = Animator;
 
 /***/ }),
-/* 20 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2007,7 +2010,7 @@ Animation.prototype.finish = function () {
 module.exports = Animation;
 
 /***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

@@ -1,84 +1,31 @@
-const { performanceNow, inherits, getKeyPaths, copyAndMergeDeep } = require('./utils');
+const {
+  performanceNow,
+  inherits,
+  copyAndMergeDeep,
+  requestAnimationFrame,
+  cancelAnimationFrame,
+} = require('./utils');
 
-let idCounter = 1;
+// ------ Mutation class --------
 
-function Mutation() { 
-  this.id = idCounter;
-  idCounter += 1;
-  this.reset();
-}
-Mutation.prototype.execute = function(state) { return {}; };
-Mutation.prototype.wait = function() { return false; };
-Mutation.prototype.cancel = function(state) {
-  this.isDone = true;
-  return {};
-};
-Mutation.prototype.reset = function() {
-  this.isDone = false;
-  this.isAnimating = false;
-};
-Mutation.prototype.getRelevantPaths = function() { return []; };
 
-// used to change state values immediately
-
-function InstantMutation(values) { 
-  InstantMutation.super_.call(this);
+function Mutation(values, options = {}) {
   this._values = values;
-}
-inherits(InstantMutation, Mutation);
-InstantMutation.prototype.execute = function(state) {
-  this.isDone = true;
-  return this._values;
-};
-InstantMutation.prototype.wait = function() {
-  return false;
-};
-InstantMutation.prototype.cancel = function(state) {
-  this.isDone = true;
-  return {};
-};
-InstantMutation.prototype.getRelevantPaths = function() {
-  return getKeyPaths(this._values);
-};
-
-// used to animate state changes
-
-function AnimatedMutation(values, options) {
-  AnimatedMutation.super_.call(this, values);
-  this._duration = options.duration;
   this._ensureComplete = options.ensureComplete;
-  this._onComplete = options.onComplete;
+  this.isDone = false;
 }
-inherits(AnimatedMutation, InstantMutation);
-
-AnimatedMutation.prototype.execute = function(state) {
-  this.isAnimating = true;
-  this._startTime = performanceNow();
-  this._startState = state;
-  return {};
+Mutation.prototype.run = function(stateManager) {
+  this.isDone = true;
+  stateManager.updateState(this._values);
 };
-
-AnimatedMutation.prototype.cancel = function(state) {
-  if (!this.isDone && this._onComplete) {
-    this._onComplete();
-  }
-  AnimatedMutation.super_.prototype.cancel.call(this, state);
+Mutation.prototype.cancel = function(stateManager) {
+  this.isDone = true;
   if (this._ensureComplete) {
-    return this._values;
+    stateManager.updateState(this._values);
   }
-  return {};
-}
-
-AnimatedMutation.prototype.tick = function(timing) {
-  const progress = Math.min(1, (timing - this._startTime) / this._duration);
-  this._progress = progress;
-  const easedProgress = ease(progress);
-  if (progress === 1) {
-    this.cancel();
-    return this._values;
-  }
-  return getPartialValues(this._startState, this._values, progress);
 };
+
+// ------ AnimatedMutation class --------
 
 const getPartialValues = function(startValues, endValues, progress) {
   const target = {};
@@ -93,70 +40,71 @@ const getPartialValues = function(startValues, endValues, progress) {
   return target;
 }
 
-// used to pause for some time
+// from https://github.com/maxwellito/vivus
+const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
-function DelayedMutation(duration) {
-  DelayedMutation.super_.call(this);
+function AnimatedMutation(values, options = {}) {
+  AnimatedMutation.super_.call(this, values, options);
+  this._duration = options.duration;
+}
+inherits(AnimatedMutation, Mutation);
+
+AnimatedMutation.prototype.run = function(stateManager) {
+  this._stateManager = stateManager;
+  this._startTime = performanceNow();
+  this._startState = state;
+  this._nextTick();
+  return new Promise((resolve) => {
+    this._resolve = resolve;
+  });
+};
+
+AnimatedMutation.prototype._nextTick = function() {
+  this._frameHandle = requestAnimationFrame((timing) => this._tick(timing));
+};
+
+AnimatedMutation.prototype._tick = function(timing) {
+  if (this.isDone) return;
+
+  const progress = Math.min(1, (timing - this._startTime) / this._duration);
+  const easedProgress = ease(progress);
+  this._stateManager.updateState(getPartialValues(this._startState, this._values, progress));
+  if (progress === 1) {
+    this._frameHandle = null;
+    this.cancel();
+  } else {
+    this._nextTick();
+  }
+};
+
+AnimatedMutation.prototype.cancel = function(stateManager) {
+  this.isDone = true;
+  if (this._resolve) this._resolve();
+  if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
+}
+
+// ------ PauseMutation Class --------
+
+function PauseMutation(duration) {
+  this.isDone = false;
   this._duration = duration;
 }
-inherits(DelayedMutation, Mutation);
 
-DelayedMutation.prototype.wait = function() {
+PauseMutation.prototype.run = function() {
+  const timeoutPromise = new Promise((resolve) => {
+    this._resolve = resolve;
+  });
+  this._timeout = setTimeout(() => this.cancel(), this._duration);
+  return timeoutPromise;
+};
+
+PauseMutation.prototype.cancel = function() {
   this.isDone = true;
-  return this._duration;
+  clearTimeout(this._timeout);
+  if (this._resolve) this._resolve();
 };
 
-
-// used to chain mutations one after another
-
-function ChainedMutation(mutations, options = {}) {
-  ChainedMutation.super_.call(this);
-  this._mutations = mutations;
-  this._loop = options.loop;
-  this._onComplete = options.onComplete;
-  this._activeIndex = 0;
-}
-inherits(ChainedMutation, Mutation);
-
-ChainedMutation.prototype._callOnActiveMutation = function(func) {
-  const curMutation = this._mutations[this._activeIndex];
-  const retVal = func(curMutation);
-
-  // contine on to the next mutation in the list if this one is done
-  if (curMutation.isDone) {
-    const isAtEnd = this._activeIndex === this._mutations.length - 1;
-    if (isAtEnd) {
-      if (this._loop) {
-        this._activeIndex = 0;
-        this._mutations.forEach(mutation => mutation.reset());
-        return this._mutations[0];
-      } else {
-        this.cancel();
-      }
-    }
-  }
-
-  return retVal;
-};
-
-ChainedMutation.prototype.cancel = function(state) {
-  if (!this.isDone && this._onComplete) {
-    this._onComplete();
-  }
-  ChainedMutation.super_.prototype.cancel.call(this, state);
-  let finalState = {};
-  this._mutations.forEach(mutation => {
-    if (!mutation.isDone) {
-      finalState = copyAndMergeDeep(finalState, mutation.cancel(state));
-    }
-  })
-  return finalState;
-};
-
-
-ChainedMutation.prototype.wait = function() {
-  return this._callOnActiveMutation().wait();
-};
+// -------------------------------------
 
 
 module.exports = {

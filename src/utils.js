@@ -1,5 +1,9 @@
 function emptyFunc() {}
 
+const performanceNow = (global.performance && (() => global.performance.now())) || (() => Date.now());
+const requestAnimationFrame = global.requestAnimationFrame || (callback => setTimeout(() => callback(performanceNow()), 1000 / 60));
+const cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
+
 // Object.assign polyfill, because IE :/
 function assign(target, ...overrides) {
   const overrideTarget = Object(target);
@@ -13,22 +17,6 @@ function assign(target, ...overrides) {
     }
   });
   return overrideTarget;
-}
-
-function getKeyPaths(obj) {
-  const paths = [];
-  const findPaths = (path, subObj) => {
-    Object.keys(subObj).forEach(key => {
-      const value = subObj[key];
-      const curPath = path ? `${path}.${key}` : key;
-      if (value && typeof value === 'object') {
-        findPaths(curPath, value);
-      }
-      paths.push(curPath);
-    });
-  };
-  findPaths(null, obj);
-  return paths;
 }
 
 function copyAndMergeDeep(base, override) {
@@ -103,17 +91,19 @@ function isMSBrowser() {
 }
 
 module.exports = {
-  inherits,
-  assign,
   arrayMax,
   arrayMin,
+  assign,
   average,
   callIfExists,
+  cancelAnimationFrame,
   copyAndMergeDeep,
   counter,
   emptyFunc,
-  getKeyPaths,
   getExtremes,
+  inherits,
   isMSBrowser,
+  performanceNow,
+  requestAnimationFrame,
   timeout,
 };

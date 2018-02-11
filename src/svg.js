@@ -1,9 +1,5 @@
 const { inherits } = require('./utils');
 
-const performanceNow = (global.performance && (() => global.performance.now())) || (() => Date.now());
-const requestAnimFrame = global.requestAnimationFrame || (callback => setTimeout(() => callback(performanceNow()), 1000 / 60));
-const cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
-
 function createElm(elmType) {
   return global.document.createElementNS('http://www.w3.org/2000/svg', elmType);
 }

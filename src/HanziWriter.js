@@ -77,6 +77,7 @@ function HanziWriter(element, character, options = {}) {
   this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
   this._setupListeners();
+  this._cancelAnimation = 0;
   this._quiz = null;
 }
 
@@ -118,17 +119,25 @@ HanziWriter.prototype.hideCharacter = function(options = {}) {
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
-  return this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+  return this._animateWithData(animation => {
+    if (this._characterRenderer) {
+      return this._characterRenderer.animate(animation);
+    }
+    return Promise.resolve();
+  }, options);
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   const animateForever = (animation) => {
     if (!animation.isActive()) return null;
     const cascadedOpts = assign({}, this._options, options);
     const delayBetweenLoops = cascadedOpts.delayBetweenLoops;
+    if (!this._characterRenderer || this._cancelAnimation > 0) {
+      return Promise.resolve(); // ending kindly but abruptly any new loop
+    }
     const animatePromise = this._characterRenderer.animate(animation);
-    if (!animatePromise) return null;
+    if (!animatePromise) return Promise.resolve();
     return animatePromise
-      .then(() => timeout(delayBetweenLoops))
+      .then(() => timeout(delayBetweenLoops, () => this._cancelAnimation > 0))
       .then(() => animateForever(animation));
   };
 
@@ -137,10 +146,18 @@ HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
-  return this._animateWithData(animation => this._outlineRenderer.show(animation), options);
+  return this._animateWithData(animation => {
+    if (this._outlineRenderer)
+      return this._outlineRenderer.show(animation);
+    return Promise.resolve();
+  }, options);
 };
 HanziWriter.prototype.hideOutline = function(options = {}) {
-  return this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
+  return this._animateWithData(animation => {
+    if (this._outlineRenderer)
+      return this._outlineRenderer.hide(animation);
+    return Promise.resolve();
+  }, options);
 };
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
@@ -166,7 +183,11 @@ HanziWriter.prototype.cancelQuiz = function() {
 HanziWriter.prototype.setCharacter = function(char) {
   this.cancelQuiz();
   this._char = char;
-  this._animator.cancel();
+  if (this._withDataPromise) {
+    // make sure all animations are terminated (asynchronously) before
+    // loosing the reference to this promise.
+    this.cancelAnimation();
+  }
   if (this._positionerRenderer) this._positionerRenderer.destroy();
   if (this._characterRenderer) this._characterRenderer.destroy();
   if (this._outlineRenderer) this._outlineRenderer.destroy();
@@ -214,22 +235,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
 };
 
 HanziWriter.prototype._withData = function(func) {
-  // if this._loadingManager.loadingFailed, then loading failed before this method was called
-  // Try reloading again and see if it helps
-  if (this._loadingManager.loadingFailed) {
-    this.setCharacter(this._char);
-    return Promise.resolve().then(() => {
-      // check loadingFailed again just in case setCharacter fails synchronously
-      if (!this._loadingManager.loadingFailed) {
-        return this._withData(func);
-      }
-    });
-  }
-  return this._withDataPromise.then(() => {
-    if (!this._loadingManager.loadingFailed) {
-      return func();
-    }
-  });
+  return this._withDataPromise.then(() => func());
 };
 
 HanziWriter.prototype._setupListeners = function() {
@@ -280,8 +286,25 @@ HanziWriter.prototype._animate = function(func, options = {}) {
   return this._animator.animate(func, options);
 };
 
+HanziWriter.prototype.cancelAnimation = function() {
+  // Using a counter because multiple ``.cancelAnimation()`` can
+  // be issued before having finished their job.
+  this._cancelAnimation += 1;
+  this._animator.cancel();
+  // Some animation where maybe queued on dataPromise
+  return this._withData(() => {
+    this._cancelAnimation -= 1;
+    return Promise.resolve();
+  });
+};
+
 HanziWriter.prototype._animateWithData = function(func, options = {}) {
-  return this._withData(() => this._animate(func, options));
+  if (this._cancelAnimation > 0)
+    return Promise.resolve(); // prevent animation
+
+  return this._withData(() => {
+    return this._animate(func, options);
+  });
 };
 
 // set up window.HanziWriter if we're in the browser

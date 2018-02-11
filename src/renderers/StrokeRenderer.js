@@ -103,6 +103,11 @@ StrokeRenderer.prototype.show = function(animation) {
   return tween.start();
 };
 
+StrokeRenderer.prototype.setColor = function(color) {
+  this.path.setAttribute('fill', color);
+  this.path.setAttribute('stroke', color);
+};
+
 StrokeRenderer.prototype.hide = function(animation) {
   const tween = new svg.StyleTween(this.path, 'opacity', 0, {
     duration: this.options.strokeFadeDuration,

@@ -40,6 +40,7 @@ const defaultOptions = {
   highlightColor: '#AAF',
   outlineColor: '#DDD',
   drawingColor: '#333',
+  highlightCompleteColor: '#0ff',
 
   // quiz options
 
@@ -98,6 +99,7 @@ HanziWriter.prototype.setOptions = function(options) {
   });
   this._highlightCharOptions = assign({}, this._mainCharOptions, {
     strokeColor: this._options.highlightColor,
+    highlightCompleteColor: this._options.highlightCompleteColor,
     radicalColor: null,
     strokeAnimationSpeed: this._options.strokeHighlightSpeed,
   });

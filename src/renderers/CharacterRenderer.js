@@ -23,6 +23,10 @@ CharacterRenderer.prototype.show = function(animation) {
   return Promise.all(promises);
 };
 
+CharacterRenderer.prototype.setColor = function(color) {
+  this.strokeRenderers.map(strokeRenderer => strokeRenderer.setColor(color));
+};
+
 CharacterRenderer.prototype.showImmediate = function() {
   this.strokeRenderers.map(renderer => renderer.showImmediate());
 };

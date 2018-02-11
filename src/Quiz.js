@@ -84,7 +84,17 @@ Quiz.prototype._handleSuccess = function(stroke, animation) {
       totalMistakes: this._totalMistakes,
     });
     if (this._quizOptions.highlightOnComplete) {
+      if (this._quizOptions.highlightCompleteColor) {
+        promise = promise.then(
+          () => this._highlightRenderer.setColor(
+            this._quizOptions.highlightCompleteColor));
+      }
       promise = promise.then(() => this._highlightRenderer.flash(animation));
+      if (this._quizOptions.highlightCompleteColor) {
+        promise = promise.then(
+          () => this._highlightRenderer.setColor(
+            this._quizOptions.highlightColor));
+      }
     }
   }
   return promise;

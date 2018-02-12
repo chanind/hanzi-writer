@@ -8,7 +8,8 @@ const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const Animator = require('./Animator');
 const LoadingManager = require('./LoadingManager');
-const { assign, isMSBrowser, timeout } = require('./utils');
+const actions = require('./actions');
+const { assign, isMSBrowser, callIfExists } = require('./utils');
 
 
 const defaultOptions = {
@@ -69,36 +70,67 @@ function HanziWriter(element, character, options = {}) {
 // ------ public API ------ //
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
-  return this._animateWithData(animation => this._characterRenderer.show(animation), options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.showCharacter(
+      'main',
+      this._character,
+      options.duration || this._options.strokeFadeDuration,
+    )).then(() => callIfExists(options.onComplete))
+  ), { scope: 'character.main' });
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
-  return this._animateWithData(animation => this._characterRenderer.hide(animation), options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.hideCharacter(
+      'main',
+      this._character,
+      options.duration || this._options.strokeFadeDuration,
+    ), { scope: 'character.main' }).then(() => callIfExists(options.onComplete))
+  ));
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
-  return this._animateWithData(animation => this._characterRenderer.animate(animation), options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.animateCharacter(
+      'main',
+      this._character,
+      this._options.strokeFadeDuration,
+      this._options.strokeAnimationSpeed,
+      this._options.delayBetweenStrokes,
+    ), { scope: 'character.main' }).then(() => callIfExists(options.onComplete))
+  ));
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
-  const animateForever = (animation) => {
-    if (!animation.isActive()) return null;
-    const cascadedOpts = assign({}, this._options, options);
-    const delayBetweenLoops = cascadedOpts.delayBetweenLoops;
-    const animatePromise = this._characterRenderer.animate(animation);
-    if (!animatePromise) return null;
-    return animatePromise
-      .then(() => timeout(delayBetweenLoops))
-      .then(() => animateForever(animation));
-  };
-
   this.cancelQuiz();
-  return this._animateWithData(animateForever, options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.animateCharacter(
+      'main',
+      this._character,
+      this._options.strokeFadeDuration,
+      this._options.strokeAnimationSpeed,
+      this._options.delayBetweenStrokes,
+      this._options.delayBetweenLoops,
+    ), { loop: true, scope: 'character.main' })
+  ));
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
-  return this._animateWithData(animation => this._outlineRenderer.show(animation), options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.showCharacter(
+      'outline',
+      this._character,
+      options.duration || this._options.strokeFadeDuration,
+    )).then(() => callIfExists(options.onComplete))
+  ), { scope: 'character.outline' });
 };
+
 HanziWriter.prototype.hideOutline = function(options = {}) {
-  return this._animateWithData(animation => this._outlineRenderer.hide(animation), options);
+  return this._withData(() => (
+    this._stateManager.runMutationChain(actions.hideCharacter(
+      'outline',
+      this._character,
+      options.duration || this._options.strokeFadeDuration,
+    ), { scope: 'character.outline' }).then(() => callIfExists(options.onComplete))
+  ));
 };
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
@@ -134,7 +166,9 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._character = charDataParser.generateCharacter(char, pathStrings);
     this._positioner = new Positioner(this._character, this._options);
     this._hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
-    this._stateManager = new StateManager(this._character, this._options);
+    this._stateManager = new StateManager(this._character, this._options, (nextState) => {
+      this._hanziWriterRenderer.render(nextState);
+    });
     this._hanziWriterRenderer.mount(this._canvas, this._stateManager.state);
     this._hanziWriterRenderer.render(this._stateManager.state);
   });
@@ -238,10 +272,6 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
 
 HanziWriter.prototype._animate = function(func, options = {}) {
   return this._animator.animate(func, options);
-};
-
-HanziWriter.prototype._animateWithData = function(func, options = {}) {
-  return this._withData(() => this._animate(func, options));
 };
 
 // set up window.HanziWriter if we're in the browser

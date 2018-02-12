@@ -149,7 +149,6 @@ const linesToPolygon = (points, thickness) => {
 module.exports = {
   extendPointOnLine,
   filterParallelPoints,
-  getLineSegmentsLength,
   getLineSegmentsPortion,
   getLinesIntersectPoint,
   getPerpendicularPointsAtDist,

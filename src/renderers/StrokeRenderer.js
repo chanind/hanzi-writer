@@ -4,7 +4,6 @@ const svg = require('../svg');
 const {
   extendPointOnLine,
   getLineSegmentsPortion,
-  getLineSegmentsLength,
   filterParallelPoints,
   linesToPolygon,
 } = require('../geometry');
@@ -38,7 +37,7 @@ function StrokeRenderer(stroke) {
   StrokeRenderer.super_.call(this);
   this._oldProps = {};
   this._stroke = stroke;
-  this._maskPathLength = getLineSegmentsLength(stroke.points) + (STROKE_WIDTH / 2);
+  this._maskPathLength = stroke.getLength() + (STROKE_WIDTH / 2);
 }
 inherits(StrokeRenderer, Renderer);
 
@@ -118,53 +117,6 @@ StrokeRenderer.prototype._setPolyMaskPortion = function(portion) {
   svg.attr(this._polyMaskTip, 'cx', endPoint.x);
   svg.attr(this._polyMaskTip, 'cy', endPoint.y);
 };
-
-// StrokeRenderer.prototype.show = function(animation) {
-//   if (this.options.usePolygonMasks) {
-//     this._setPolyMaskPortion(1);
-//   } else {
-//     this._maskPath.style['stroke-dashoffset'] = 0;
-//   }
-//   const tween = new svg.StyleTween(this._path, 'opacity', 1, {
-//     duration: this.options.strokeFadeDuration,
-//     ensureEndStyle: true,
-//   });
-//   animation.registerSvgAnimation(tween);
-//   return tween.start();
-// };
-
-// StrokeRenderer.prototype.hide = function(animation) {
-//   const tween = new svg.StyleTween(this._path, 'opacity', 0, {
-//     duration: this.options.strokeFadeDuration,
-//     ensureEndStyle: true,
-//   });
-//   animation.registerSvgAnimation(tween);
-//   return tween.start();
-// };
-
-// StrokeRenderer.prototype.animate = function(animation) {
-//   if (!animation.isActive()) return null;
-//   this.showImmediate();
-//   const strokeLength = this._stroke.getLength();
-//   const duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
-//   let tween;
-//   if (this.options.usePolygonMasks) {
-//     this._setPolyMaskPortion(0);
-//     tween = new svg.Tween((portion => this._setPolyMaskPortion(portion)), { duration });
-//   } else {
-//     // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-//     this._maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
-//     tween = new svg.StyleTween(this._maskPath, 'stroke-dashoffset', 0, { duration });
-//   }
-//   animation.registerSvgAnimation(tween);
-//   return tween.start();
-// };
-// StrokeRenderer.prototype.hideImmediate = function() { this._path.style.opacity = 0; };
-// StrokeRenderer.prototype.showImmediate = function() { this._path.style.opacity = 1; };
-
-// StrokeRenderer.prototype.highlight = function(animation) {
-//   return this.animate(animation).then(() => this.hide(animation));
-// };
 
 StrokeRenderer.prototype._getStrokeDashoffset = function(displayPortion) {
   return this._maskPathLength * 0.999 * (1 - displayPortion);

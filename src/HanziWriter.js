@@ -68,65 +68,65 @@ function HanziWriter(element, character, options = {}) {
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.showCharacter(
+    this._stateManager.run(characterActions.showCharacter(
       'main',
       this._character,
       options.duration || this._options.strokeFadeDuration,
     )).then(() => callIfExists(options.onComplete))
-  ), { scope: 'character.main' });
+  ));
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.hideCharacter(
+    this._stateManager.run(characterActions.hideCharacter(
       'main',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    ), { scope: 'character.main' }).then(() => callIfExists(options.onComplete))
+    )).then(() => callIfExists(options.onComplete))
   ));
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
   this.cancelQuiz();
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.animateCharacter(
+    this._stateManager.run(characterActions.animateCharacter(
       'main',
       this._character,
       this._options.strokeFadeDuration,
       this._options.strokeAnimationSpeed,
       this._options.delayBetweenStrokes,
-    ), { scope: 'character.main' }).then(() => callIfExists(options.onComplete))
+    )).then(() => callIfExists(options.onComplete))
   ));
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   this.cancelQuiz();
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.animateCharacter(
+    this._stateManager.run(characterActions.animateCharacter(
       'main',
       this._character,
       this._options.strokeFadeDuration,
       this._options.strokeAnimationSpeed,
       this._options.delayBetweenStrokes,
       this._options.delayBetweenLoops,
-    ), { loop: true, scope: 'character.main' })
+    ), { loop: true })
   ));
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.showCharacter(
+    this._stateManager.run(characterActions.showCharacter(
       'outline',
       this._character,
       options.duration || this._options.strokeFadeDuration,
     )).then(() => callIfExists(options.onComplete))
-  ), { scope: 'character.outline' });
+  ));
 };
 
 HanziWriter.prototype.hideOutline = function(options = {}) {
   return this._withData(() => (
-    this._stateManager.runMutationChain(characterActions.hideCharacter(
+    this._stateManager.run(characterActions.hideCharacter(
       'outline',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    ), { scope: 'character.outline' }).then(() => callIfExists(options.onComplete))
+    )).then(() => callIfExists(options.onComplete))
   ));
 };
 

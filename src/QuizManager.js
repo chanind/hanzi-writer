@@ -1,10 +1,7 @@
 const StrokeMatcher = require('./StrokeMatcher');
-const {callIfExists} = require('./utils');
+const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
 const characterActions = require('./characterActions');
-
-
-let userStrokeIdCounter = 1;
 
 
 function QuizManager(character, stateManager) {
@@ -16,73 +13,63 @@ function QuizManager(character, stateManager) {
 QuizManager.prototype.startQuiz = function(options) {
   this._options = options;
   this.cancelQuiz();
-  this._stateManager.runMutationChain(
-    quizActions.startQuiz(this._character, options.strokeFadeDuration),
-    { scope: 'quiz' },
-  );
+  this._stateManager.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
+};
+
+QuizManager.prototype._getState = function() {
+  return this._stateManager.state;
 };
 
 QuizManager.prototype.cancelQuiz = function() {
-  this._stateManager.cancelMutations('character.highlight');
-  this._stateManager.cancelMutations('character.main');
-  this._stateManager.runMutationChain(
-    quizActions.cancelQuiz(),
-    { scope: 'quiz' },
-  );
+  this._stateManager.cancelMutations(['character.highlight']);
+  this._stateManager.cancelMutations(['character.main']);
+  this._stateManager.run(quizActions.cancelQuiz());
 };
 
 QuizManager.prototype.startUserStroke = function(point) {
-  if (!this._stateManager.state.quiz.isActive) return null;
-  if (this._stateManager.state.quiz.activeUserStrokeId) return this.endUserStroke();
-  userStrokeIdCounter += 1;
-  const userStrokeId = userStrokeIdCounter;
-  this._stateManager.runMutationChain(
+  if (!this._getState().quiz.isActive) return null;
+  if (this._getState().quiz.activeUserStrokeId) return this.endUserStroke();
+  const userStrokeId = counter();
+  this._stateManager.run(
     quizActions.startUserStroke(userStrokeId, point),
-    { scope: `quiz.userStrokes.${userStrokeId}` },
   );
 };
 
 QuizManager.prototype.continueUserStroke = function(point) {
-  const activeUserStrokeId = this._stateManager.state.quiz.activeUserStrokeId;
+  const activeUserStrokeId = this._getState().quiz.activeUserStrokeId;
   if (!activeUserStrokeId) return;
-  const updatedUserStrokePoints = this._stateManager.state.quiz.userStrokes[activeUserStrokeId].points.slice(0);
+  const updatedUserStrokePoints = this._getState().userStrokes[activeUserStrokeId].points.slice(0);
   updatedUserStrokePoints.push(point);
-  this._stateManager.runMutationChain(
+  this._stateManager.run(
     quizActions.updateUserStroke(activeUserStrokeId, updatedUserStrokePoints),
-    { scope: `quiz.userStrokes.${activeUserStrokeId}` },
   );
 };
 
 QuizManager.prototype.endUserStroke = function() {
-  const activeUserStrokeId = this._stateManager.state.quiz.activeUserStrokeId;
+  const activeUserStrokeId = this._getState().quiz.activeUserStrokeId;
   if (!activeUserStrokeId) return;
 
-  const stroke = this._character.getStroke(this._stateManager.state.quiz.currentStroke);
-  const userStrokePoints = this._stateManager.state.quiz.userStrokes[activeUserStrokeId].points;
+  const stroke = this._character.getStroke(this._getState().quiz.currentStroke);
+  const userStrokePoints = this._getState().userStrokes[activeUserStrokeId].points;
   const isMatch = this._strokeMatcher.strokeMatches(userStrokePoints, stroke);
-
-  this._stateManager.runMutationChain(
-    quizActions.removeUserStroke(activeUserStrokeId, this._options.drawingFadeDuration),
-    { scope: `quiz.userStrokes.${activeUserStrokeId}` },
-  );
 
   if (isMatch) {
     this._handleSuccess();
   } else {
     this._handleFailure(stroke);
   }
-};
 
-QuizManager.prototype.cancel = function() {
-  this._isActive = false;
+  this._stateManager.run(
+    quizActions.removeUserStroke(activeUserStrokeId, this._options.drawingFadeDuration),
+  );
 };
 
 QuizManager.prototype._handleSuccess = function() {
-  const strokeNum = this._stateManager.state.quiz.currentStroke;
+  const strokeNum = this._getState().quiz.currentStroke;
   callIfExists(this._options.onCorrectStroke, {
     character: this._character.symbol,
     strokeNum,
-    mistakesOnStroke: this._stateManager.state.quiz.strokes[strokeNum].mistakes,
+    mistakesOnStroke: this._getState().quiz.strokes[strokeNum].mistakes,
     totalMistakes: this._getTotalMistakes(),
     strokesRemaining: this._character.getNumStrokes() - strokeNum - 1,
   });
@@ -98,7 +85,6 @@ QuizManager.prototype._handleSuccess = function() {
     });
 
     if (this._options.highlightOnComplete) {
-      this._stateManager.cancelMutations('character.highlight');
       animation = animation
         .concat(characterActions.hideCharacter('highlight', this._character))
         .concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration))
@@ -106,23 +92,14 @@ QuizManager.prototype._handleSuccess = function() {
     }
   }
 
-  this._stateManager.runMutationChain(
-    quizActions.nextStroke(strokeNum + 1, isDone),
-    { scope: 'quiz' },
-  );
-  this._stateManager.runMutationChain(animation, {
-    scope: `character.main.strokes.${strokeNum}`,
-    ensureComplete: true,
-  });
+  this._stateManager.run(quizActions.nextStroke(strokeNum + 1, isDone));
+  this._stateManager.run(animation, { force: true });
 };
 
 QuizManager.prototype._handleFailure = function(stroke) {
-  const strokeNum = this._stateManager.state.quiz.currentStroke;
-  const numMistakes = this._stateManager.state.quiz.strokes[strokeNum].mistakes + 1;
-  this._stateManager.runMutationChain(
-    quizActions.strokeMistake(strokeNum, numMistakes),
-    { scope: 'quiz.currentStroke' },
-  );
+  const strokeNum = this._getState().quiz.currentStroke;
+  const numMistakes = this._getState().quiz.strokes[strokeNum].mistakes + 1;
+  this._stateManager.run(quizActions.strokeMistake(strokeNum, numMistakes));
   callIfExists(this._options.onMistake, {
     character: this._character.symbol,
     strokeNum,
@@ -132,17 +109,17 @@ QuizManager.prototype._handleFailure = function(stroke) {
   });
 
   if (numMistakes >= this._options.showHintAfterMisses) {
-    this._stateManager.runMutationChain(
+    this._stateManager.run(
       characterActions.highlightStroke('highlight', stroke, this._options.strokeHighlightSpeed),
-      { scope: `character.highlight.strokes.${strokeNum}`, ensureComplete: true },
+      { force: true },
     );
   }
 };
 
 QuizManager.prototype._getTotalMistakes = function() {
   let total = 0;
-  Object.keys(this._stateManager.state.quiz.strokes).forEach(key => {
-    total += this._stateManager.state.quiz.strokes[key].mistakes;
+  Object.keys(this._getState().quiz.strokes).forEach(key => {
+    total += this._getState().quiz.strokes[key].mistakes;
   });
   return total;
 };

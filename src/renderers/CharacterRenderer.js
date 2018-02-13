@@ -37,7 +37,7 @@ CharacterRenderer.prototype.render = function(props) {
   if (props.opacity !== this._oldProps.opacity) {
     this._group.style.opacity = props.opacity;
   }
-  for (let i = 0; i < this.strokeRenderers.length; i += 1) {
+  for (let i = 0; i < this.strokeRenderers.length; i++) {
     this.strokeRenderers[i].render(exractStrokeProps(i, props));
   }
   this._oldProps = props;

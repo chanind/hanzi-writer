@@ -40,7 +40,7 @@ const getLinesIntersectPoint = (l1p1, l1p2, l2p1, l2p2) => {
 
 const getLineSegmentsLength = (points) => {
   let totalDist = 0;
-  for (let i = 1; i < points.length; i += 1) {
+  for (let i = 1; i < points.length; i++) {
     totalDist += Point.getDistance(points[i], points[i - 1]);
   }
   return totalDist;
@@ -53,7 +53,7 @@ const getLineSegmentsPortion = (points, portion) => {
   const portionedPoints = [points[0]];
   const portionedDist = totalDist * portion;
   let cumuativeDist = 0;
-  for (let i = 1; i < points.length; i += 1) {
+  for (let i = 1; i < points.length; i++) {
     const lastPoint = points[i - 1];
     const segmentLength = Point.getDistance(points[i], lastPoint);
     if (cumuativeDist + segmentLength >= portionedDist) {
@@ -92,7 +92,7 @@ const linesToPolygon = (points, thickness) => {
   const dist = thickness / 2;
   const topSegments = [];
   const bottomSegments = [];
-  for (let i = 1; i < points.length; i += 1) {
+  for (let i = 1; i < points.length; i++) {
     const startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
     const endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
     topSegments.push({ start: startPoints[0], end: endPoints[1] });
@@ -100,7 +100,7 @@ const linesToPolygon = (points, thickness) => {
   }
   const topPoints = [topSegments[0].start];
   const bottomPoints = [bottomSegments[0].start];
-  for (let i = 1; i < topSegments.length; i += 1) {
+  for (let i = 1; i < topSegments.length; i++) {
     const topIntersect = getLinesIntersectPoint(
       topSegments[i - 1].start,
       topSegments[i - 1].end,

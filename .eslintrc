@@ -9,6 +9,7 @@
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
     "max-len":[0],
     "no-loop-func": [0],
+    "no-plusplus": [0],
     "no-prototype-builtins": [0],
     "no-underscore-dangle": [0],
     "jsx-a11y/href-no-hash": [0],

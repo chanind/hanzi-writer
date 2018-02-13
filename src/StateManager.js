@@ -2,7 +2,7 @@ const { copyAndMergeDeep } = require('./utils');
 
 function StateManager(character, options, onStateChange) {
   this._onStateChange = onStateChange;
-  this._scopedMutationChains = {};
+  this._mutationChains = [];
   this.state = {
     options: {
       usePolygonMasks: options.usePolygonMasks,
@@ -29,14 +29,14 @@ function StateManager(character, options, onStateChange) {
         strokes: {},
       },
     },
+    userStrokes: null,
     quiz: {
-      userStrokes: null,
       currentStroke: 0,
       activeUserStrokeId: null,
       isActive: false,
     },
   };
-  for (let i = 0; i < character.strokes.length; i += 1) {
+  for (let i = 0; i < character.strokes.length; i++) {
     this.state.character.main.strokes[i] = {
       opacity: 1,
       displayPortion: 1,
@@ -58,9 +58,9 @@ StateManager.prototype.updateState = function(stateChanges) {
   this.state = nextState;
 };
 
-StateManager.prototype.runMutationChain = function(mutations, options = {}) {
-  const scope = options.scope || 'character';
-  this.cancelMutations(scope);
+StateManager.prototype.run = function(mutations, options = {}) {
+  const scopes = mutations.map(mut => mut.scope).filter(x => x);
+  this.cancelMutations(scopes);
   return new Promise(resolve => {
     const mutationChain = {
       _isActive: true,
@@ -68,14 +68,14 @@ StateManager.prototype.runMutationChain = function(mutations, options = {}) {
       _resolve: resolve,
       _mutations: mutations,
       _loop: options.loop,
-      _scope: scope,
+      _scopes: scopes,
     };
-    this._scopedMutationChains[scope] = mutationChain;
-    this._runMutationChain(mutationChain);
+    this._mutationChains.push(mutationChain);
+    this._run(mutationChain);
   });
 };
 
-StateManager.prototype._runMutationChain = function(mutationChain) {
+StateManager.prototype._run = function(mutationChain) {
   if (!mutationChain._isActive) return;
   const mutations = mutationChain._mutations;
   if (mutationChain._index >= mutations.length) {
@@ -83,7 +83,7 @@ StateManager.prototype._runMutationChain = function(mutationChain) {
       mutationChain._index = 0; // eslint-disable-line no-param-reassign
     } else {
       mutationChain._isActive = false; // eslint-disable-line no-param-reassign
-      delete this._scopedMutationChains[mutationChain._scope];
+      this._mutationChains = this._mutationChains.filter(chain => chain !== mutationChain);
       // The chain is done - resolve the promise with true to signal it finished successfully
       mutationChain._resolve(true);
       return;
@@ -93,31 +93,34 @@ StateManager.prototype._runMutationChain = function(mutationChain) {
   const activeMutation = mutationChain._mutations[mutationChain._index];
   activeMutation.run(this).then(() => {
     if (mutationChain._isActive) {
-      mutationChain._index += 1; // eslint-disable-line no-param-reassign
-      this._runMutationChain(mutationChain);
+      mutationChain._index++; // eslint-disable-line no-param-reassign
+      this._run(mutationChain);
     }
   });
 };
 
-StateManager.prototype.cancelMutations = function(scope = 'character') {
-  Object.keys(this._scopedMutationChains).forEach(key => {
-    if (key.indexOf(scope) >= 0) {
-      this._cancelMutationChain(key);
-    }
+StateManager.prototype.cancelMutations = function(scopes) {
+  this._mutationChains.forEach(chain => {
+    chain._scopes.forEach(chainScope => {
+      scopes.forEach(scope => {
+        if (chainScope.indexOf(scope) >= 0) {
+          this._cancelMutationChain(chain);
+        }
+      });
+    });
   });
 };
 
-StateManager.prototype._cancelMutationChain = function(key) {
-  const mutationChain = this._scopedMutationChains[key];
-  mutationChain._isActive = false;
-  for (let i = mutationChain._index; i < mutationChain._mutations.length; i += 1) {
+StateManager.prototype._cancelMutationChain = function(mutationChain) {
+  mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+  for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
     mutationChain._mutations[i].cancel(this);
   }
   if (mutationChain._resolve) {
     // resolve with false to indicate the chain was canceled before completion
     mutationChain._resolve(false);
   }
-  delete this._scopedMutationChains[key];
+  this._mutationChains = this._mutationChains.filter(chain => chain !== mutationChain);
 };
 
 module.exports = StateManager;

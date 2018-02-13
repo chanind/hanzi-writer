@@ -39,6 +39,18 @@ function copyAndMergeDeep(base, override) {
   return output;
 }
 
+function inflate(scope, obj) {
+  const parts = scope.split('.');
+  const final = {};
+  let current = final;
+  for (let i = 0; i < parts.length; i++) {
+    const cap = i === parts.length - 1 ? obj : {};
+    current[parts[i]] = cap;
+    current = cap;
+  }
+  return final;
+}
+
 // utils for classes without es6, sigh...
 // from: https://github.com/nodejs/node-v0.x-archive/blob/546ae2ee/lib/util.js#L552-L575
 function inherits(ctor, superCtor) {
@@ -74,7 +86,7 @@ function callIfExists(callback, ...args) {
 
 let count = 0;
 function counter() {
-  count += 1;
+  count++;
   return count;
 }
 
@@ -96,14 +108,14 @@ function isMSBrowser() {
   );
 }
 
-// call func for each stroke of character,
-// return a new array-like object with int keys
-const mapStrokes = (character, func) => {
-  const strokes = {};
-  character.strokes.forEach((stroke, i) => {
-    strokes[i] = func(stroke, i);
-  });
-  return strokes;
+// return a new array-like object with int keys where each key is item
+// ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
+const objRepeat = (item, times) => {
+  const obj = {};
+  for (let i = 0; i < times; i++) {
+    obj[i] = item;
+  }
+  return obj;
 };
 
 module.exports = {
@@ -117,9 +129,10 @@ module.exports = {
   counter,
   emptyFunc,
   getExtremes,
+  inflate,
   inherits,
   isMSBrowser,
-  mapStrokes,
+  objRepeat,
   performanceNow,
   requestAnimationFrame,
   timeout,

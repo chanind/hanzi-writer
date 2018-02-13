@@ -43,7 +43,7 @@ HanziWriterRenderer.prototype.render = function(props) {
   this._mainCharRenderer.render(extractCharProps(props, 'main'));
   this._highlightCharRenderer.render(extractCharProps(props, 'highlight'));
 
-  const userStrokes = props.quiz.userStrokes || {};
+  const userStrokes = props.userStrokes || {};
   Object.keys(this._userStrokeRenderers).forEach(userStrokeId => {
     if (!userStrokes[userStrokeId]) {
       this._userStrokeRenderers[userStrokeId].destroy();

@@ -1,4 +1,5 @@
 const {
+  inflate,
   performanceNow,
   requestAnimationFrame,
   cancelAnimationFrame,
@@ -40,10 +41,11 @@ const isAlreadyAtEnd = function(startValues, endValues) {
 // from https://github.com/maxwellito/vivus
 const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
-function Mutation(values, options = {}) {
-  this._values = values;
+function Mutation(scope, values, options = {}) {
+  this.scope = scope;
+  this._values = inflate(scope, values);
   this._duration = options.duration || 0;
-  this._ensureComplete = options.ensureComplete;
+  this._force = options.force;
 }
 
 Mutation.prototype.run = function(stateManager) {
@@ -80,7 +82,7 @@ Mutation.prototype.cancel = function(stateManager) {
   if (this._resolve) this._resolve();
   this._resolve = null;
   if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
-  if (this._ensureComplete) stateManager.updateState(this._values);
+  if (this._force) stateManager.updateState(this._values);
 };
 
 // ------ Mutation.Pause Class --------

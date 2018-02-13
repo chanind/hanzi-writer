@@ -3,28 +3,13 @@ const characterActions = require('./characterActions');
 const { objRepeat } = require('./utils');
 
 const startQuiz = (character, fadeDuration) => {
-  return [
-    new Mutation('quiz', {
-      isActive: true,
-      currentStroke: 0,
-      userStrokes: null,
-      activeUserStrokeId: null,
-      strokes: objRepeat({ mistakes: 0 }, character.strokes.length),
-    }),
-  ].concat(
-    characterActions.hideCharacter('main', character, fadeDuration),
-  ).concat([
-    new Mutation('character.main', {
-      opacity: 1,
-      strokes: objRepeat({ opacity: 0 }, character.strokes.length),
-    }),
-  ]);
-};
-
-const cancelQuiz = () => {
-  return [
-    new Mutation('quiz', { isActive: false }),
-  ];
+  return characterActions.hideCharacter('main', character, fadeDuration)
+    .concat([
+      new Mutation('character.main', {
+        opacity: 1,
+        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+      }),
+    ]);
 };
 
 const startUserStroke = (id, point) => {
@@ -37,48 +22,22 @@ const startUserStroke = (id, point) => {
   ];
 };
 
-const updateUserStroke = (activeUserStrokeId, points) => {
+const updateUserStroke = (userStrokeId, points) => {
   return [
-    new Mutation(`userStrokes.${activeUserStrokeId}.points`, points),
+    new Mutation(`userStrokes.${userStrokeId}.points`, points),
   ];
 };
 
 const removeUserStroke = (userStrokeId, duration) => {
   return [
-    new Mutation(`userStrokes.${userStrokeId}.opacity`, 0, { duration, force: true }),
-    new Mutation(`userStrokes.${userStrokeId}`, null),
-  ];
-};
-
-const nextStroke = (nextStrokeNum, isDone) => {
-  return [
-    new Mutation('quiz', {
-      activeUserStrokeId: null,
-      isActive: !isDone,
-      currentStroke: nextStrokeNum,
-    }),
-  ];
-};
-
-const strokeMistake = (strokeNum, mistakes) => {
-  return [
-    new Mutation('quiz', {
-      activeUserStrokeId: null,
-      strokes: {
-        [strokeNum]: {
-          mistakes,
-        },
-      },
-    }),
+    new Mutation(`userStrokes.${userStrokeId}.opacity`, 0, { duration }),
+    new Mutation(`userStrokes.${userStrokeId}`, null, { force: true }),
   ];
 };
 
 module.exports = {
-  nextStroke,
   startQuiz,
   startUserStroke,
-  strokeMistake,
-  cancelQuiz,
   updateUserStroke,
   removeUserStroke,
 };

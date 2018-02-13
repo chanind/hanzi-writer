@@ -48,13 +48,13 @@ function Mutation(scope, values, options = {}) {
   this._force = options.force;
 }
 
-Mutation.prototype.run = function(stateManager) {
-  if (this._duration === 0 || isAlreadyAtEnd(stateManager.state, this._values)) {
-    stateManager.updateState(this._values);
+Mutation.prototype.run = function(renderState) {
+  if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
+    renderState.updateState(this._values);
     return Promise.resolve();
   }
-  this._stateManager = stateManager;
-  this._startState = stateManager.state;
+  this._renderState = renderState;
+  this._startState = renderState.state;
   this._startTime = performanceNow();
   this._nextTick();
   return new Promise((resolve) => {
@@ -69,20 +69,20 @@ Mutation.prototype._nextTick = function() {
 Mutation.prototype._tick = function(timing) {
   const progress = Math.min(1, (timing - this._startTime) / this._duration);
   const easedProgress = ease(progress);
-  this._stateManager.updateState(getPartialValues(this._startState, this._values, easedProgress));
+  this._renderState.updateState(getPartialValues(this._startState, this._values, easedProgress));
   if (easedProgress === 1) {
     this._frameHandle = null;
-    this.cancel(this._stateManager);
+    this.cancel(this._renderState);
   } else {
     this._nextTick();
   }
 };
 
-Mutation.prototype.cancel = function(stateManager) {
+Mutation.prototype.cancel = function(renderState) {
   if (this._resolve) this._resolve();
   this._resolve = null;
   if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
-  if (this._force) stateManager.updateState(this._values);
+  if (this._force) renderState.updateState(this._values);
 };
 
 // ------ Mutation.Pause Class --------

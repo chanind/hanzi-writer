@@ -1,4 +1,5 @@
-function UserStroke(startingPoint) {
+function UserStroke(id, startingPoint) {
+  this.id = id;
   this.points = [startingPoint];
 }
 

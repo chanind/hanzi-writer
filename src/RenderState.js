@@ -1,6 +1,6 @@
 const { copyAndMergeDeep } = require('./utils');
 
-function StateManager(character, options, onStateChange) {
+function RenderState(character, options, onStateChange) {
   this._onStateChange = onStateChange;
   this._mutationChains = [];
   this.state = {
@@ -30,11 +30,6 @@ function StateManager(character, options, onStateChange) {
       },
     },
     userStrokes: null,
-    quiz: {
-      currentStroke: 0,
-      activeUserStrokeId: null,
-      isActive: false,
-    },
   };
   for (let i = 0; i < character.strokes.length; i++) {
     this.state.character.main.strokes[i] = {
@@ -52,13 +47,13 @@ function StateManager(character, options, onStateChange) {
   }
 }
 
-StateManager.prototype.updateState = function(stateChanges) {
+RenderState.prototype.updateState = function(stateChanges) {
   const nextState = copyAndMergeDeep(this.state, stateChanges);
   this._onStateChange(nextState, this.state);
   this.state = nextState;
 };
 
-StateManager.prototype.run = function(mutations, options = {}) {
+RenderState.prototype.run = function(mutations, options = {}) {
   const scopes = mutations.map(mut => mut.scope).filter(x => x);
   this.cancelMutations(scopes);
   return new Promise(resolve => {
@@ -75,7 +70,7 @@ StateManager.prototype.run = function(mutations, options = {}) {
   });
 };
 
-StateManager.prototype._run = function(mutationChain) {
+RenderState.prototype._run = function(mutationChain) {
   if (!mutationChain._isActive) return;
   const mutations = mutationChain._mutations;
   if (mutationChain._index >= mutations.length) {
@@ -99,7 +94,7 @@ StateManager.prototype._run = function(mutationChain) {
   });
 };
 
-StateManager.prototype.cancelMutations = function(scopes) {
+RenderState.prototype.cancelMutations = function(scopes) {
   this._mutationChains.forEach(chain => {
     chain._scopes.forEach(chainScope => {
       scopes.forEach(scope => {
@@ -111,7 +106,7 @@ StateManager.prototype.cancelMutations = function(scopes) {
   });
 };
 
-StateManager.prototype._cancelMutationChain = function(mutationChain) {
+RenderState.prototype._cancelMutationChain = function(mutationChain) {
   mutationChain._isActive = false; // eslint-disable-line no-param-reassign
   for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
     mutationChain._mutations[i].cancel(this);
@@ -123,4 +118,4 @@ StateManager.prototype._cancelMutationChain = function(mutationChain) {
   this._mutationChains = this._mutationChains.filter(chain => chain !== mutationChain);
 };
 
-module.exports = StateManager;
+module.exports = RenderState;

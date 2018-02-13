@@ -8,6 +8,7 @@ function StateManager(character, options, onStateChange) {
       usePolygonMasks: options.usePolygonMasks,
       drawingFadeDuration: options.drawingFadeDuration,
       drawingWidth: options.drawingWidth,
+      drawingColor: options.drawingColor,
       strokeWidth: options.strokeWidth,
     },
     character: {

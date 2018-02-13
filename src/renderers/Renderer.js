@@ -1,6 +1,4 @@
-function Renderer(canvas) {
-  this._canvas = canvas;
-  this._isDestroyed = false; // check this in children in animations, etc
+function Renderer() {
   this._childRenderers = [];
 }
 
@@ -10,7 +8,7 @@ Renderer.prototype.mount = function(canvas, props) {
 };
 
 // implement in children
-Renderer.prototype.render = function(props, oldProps = {}) {
+Renderer.prototype.render = function(props) {
   return this;
 };
 
@@ -21,7 +19,6 @@ Renderer.prototype.registerChild = function(child) {
 
 // extend this in children with extra behavior
 Renderer.prototype.destroy = function() {
-  this._isDestroyed = true;
   this._childRenderers.forEach(child => child.destroy());
 };
 

@@ -45,6 +45,7 @@ const startUserStroke = (id, point) => {
         userStrokes: {
           [id]: {
             points: [point],
+            opacity: 1,
           },
         },
       },
@@ -60,6 +61,27 @@ const updateUserStroke = (activeUserStrokeId, points) => {
           [activeUserStrokeId]: {
             points,
           },
+        },
+      },
+    }),
+  ];
+};
+
+const removeUserStroke = (userStrokeId, duration) => {
+  return [
+    new Mutation({
+      quiz: {
+        userStrokes: {
+          [userStrokeId]: {
+            opacity: 0,
+          },
+        },
+      },
+    }, { duration }),
+    new Mutation({
+      quiz: {
+        userStrokes: {
+          [userStrokeId]: null,
         },
       },
     }),
@@ -100,4 +122,5 @@ module.exports = {
   strokeMistake,
   cancelQuiz,
   updateUserStroke,
+  removeUserStroke,
 };

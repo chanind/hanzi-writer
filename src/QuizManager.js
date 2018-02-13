@@ -61,6 +61,11 @@ QuizManager.prototype.endUserStroke = function() {
   const userStrokePoints = this._stateManager.state.quiz.userStrokes[activeUserStrokeId].points;
   const isMatch = this._strokeMatcher.strokeMatches(userStrokePoints, stroke);
 
+  this._stateManager.runMutationChain(
+    quizActions.removeUserStroke(activeUserStrokeId, this._options.drawingFadeDuration),
+    { scope: `quiz.userStrokes.${activeUserStrokeId}` },
+  );
+
   if (isMatch) {
     this._handleSuccess();
   } else {
@@ -93,6 +98,7 @@ QuizManager.prototype._handleSuccess = function() {
     });
 
     if (this._options.highlightOnComplete) {
+      this._stateManager.cancelMutations('character.highlight');
       animation = animation
         .concat(characterActions.hideCharacter('highlight', this._character))
         .concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration))
@@ -115,7 +121,7 @@ QuizManager.prototype._handleFailure = function(stroke) {
   const numMistakes = this._stateManager.state.quiz.strokes[strokeNum].mistakes + 1;
   this._stateManager.runMutationChain(
     quizActions.strokeMistake(strokeNum, numMistakes),
-    { scope: 'quiz' },
+    { scope: 'quiz.currentStroke' },
   );
   callIfExists(this._options.onMistake, {
     character: this._character.symbol,

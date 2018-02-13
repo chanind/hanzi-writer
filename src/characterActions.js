@@ -1,12 +1,5 @@
 const Mutation = require('./Mutation');
-
-const mapStrokes = (character, func) => {
-  const strokes = {};
-  character.strokes.forEach((stroke, i) => {
-    strokes[i] = func(stroke, i);
-  });
-  return strokes;
-};
+const { mapStrokes } = require('./utils');
 
 const hideStrokes = (charName, character, duration) => {
   return [
@@ -73,13 +66,74 @@ const animateStroke = (charName, stroke, speed) => {
           },
         },
       },
-    }, { duration: 0 }),
+    }),
     new Mutation({
       character: {
         [charName]: {
           strokes: {
             [strokeNum]: {
               displayPortion: 1,
+            },
+          },
+        },
+      },
+    }, { duration }),
+  ];
+};
+
+const highlightStroke = (charName, stroke, speed) => {
+  const strokeNum = stroke.strokeNum;
+  const duration = (stroke.getLength() + 600) / (3 * speed);
+  return [
+    new Mutation({
+      character: {
+        [charName]: {
+          opacity: 1,
+          strokes: {
+            [strokeNum]: {
+              displayPortion: 0,
+              opacity: 0,
+            },
+          },
+        },
+      },
+    }),
+    new Mutation({
+      character: {
+        [charName]: {
+          strokes: {
+            [strokeNum]: {
+              displayPortion: 1,
+              opacity: 1,
+            },
+          },
+        },
+      },
+    }, { duration }),
+    new Mutation({
+      character: {
+        [charName]: {
+          strokes: {
+            [strokeNum]: {
+              opacity: 0,
+            },
+          },
+        },
+      },
+    }, { duration }),
+  ];
+};
+
+const showStroke = (charName, strokeNum, duration) => {
+  return [
+    new Mutation({
+      character: {
+        [charName]: {
+          opacity: 1,
+          strokes: {
+            [strokeNum]: {
+              displayPortion: 1,
+              opacity: 1,
             },
           },
         },
@@ -98,7 +152,7 @@ const animateCharacter = (charName, character, fadeDuration, speed, delayBetween
         strokes: mapStrokes(character, () => ({ opacity: 0 })),
       },
     },
-  }, { duration: 0, ensureComplete: true }));
+  }, { ensureComplete: true }));
   character.strokes.forEach((stroke, i) => {
     if (i > 0) mutations.push(new Mutation.Pause(delayBetweenStrokes));
     mutations = mutations.concat(animateStroke(charName, stroke, speed));
@@ -120,4 +174,6 @@ module.exports = {
   animateCharacter,
   animateCharacterLoop,
   animateStroke,
+  highlightStroke,
+  showStroke,
 };

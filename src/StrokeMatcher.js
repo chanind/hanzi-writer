@@ -7,8 +7,8 @@ const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 
 function StrokeMatcher() {}
 
-StrokeMatcher.prototype.strokeMatches = function(userStroke, stroke) {
-  const points = this._stripDuplicates(userStroke.points);
+StrokeMatcher.prototype.strokeMatches = function(userStrokePoints, stroke) {
+  const points = this._stripDuplicates(userStrokePoints);
   if (points.length < 2) return null;
 
   const avgDist = stroke.getAverageDistance(points);

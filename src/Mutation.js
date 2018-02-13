@@ -42,7 +42,7 @@ const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
 function Mutation(values, options = {}) {
   this._values = values;
-  this._duration = options.duration;
+  this._duration = options.duration || 0;
   this._ensureComplete = options.ensureComplete;
 }
 

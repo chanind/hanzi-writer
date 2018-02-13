@@ -28,6 +28,12 @@ function StateManager(character, options, onStateChange) {
         strokes: {},
       },
     },
+    quiz: {
+      userStrokes: null,
+      currentStroke: 0,
+      activeUserStrokeId: null,
+      isActive: false,
+    },
   };
   for (let i = 0; i < character.strokes.length; i += 1) {
     this.state.character.main.strokes[i] = {

@@ -23,7 +23,13 @@ function copyAndMergeDeep(base, override) {
   const output = assign({}, base);
   for (const key in override) {
     if (Object.prototype.hasOwnProperty.call(override, key)) {
-      if (base[key] && override[key] && typeof base[key] === 'object' && typeof override[key] === 'object') {
+      if (
+        base[key] &&
+        override[key] &&
+        typeof base[key] === 'object' &&
+        typeof override[key] === 'object' &&
+        !Array.isArray(override[key])
+      ) {
         output[key] = copyAndMergeDeep(base[key], override[key]);
       } else {
         output[key] = override[key];
@@ -90,6 +96,16 @@ function isMSBrowser() {
   );
 }
 
+// call func for each stroke of character,
+// return a new array-like object with int keys
+const mapStrokes = (character, func) => {
+  const strokes = {};
+  character.strokes.forEach((stroke, i) => {
+    strokes[i] = func(stroke, i);
+  });
+  return strokes;
+};
+
 module.exports = {
   arrayMax,
   arrayMin,
@@ -103,6 +119,7 @@ module.exports = {
   getExtremes,
   inherits,
   isMSBrowser,
+  mapStrokes,
   performanceNow,
   requestAnimationFrame,
   timeout,

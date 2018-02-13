@@ -74,13 +74,13 @@ Quiz.prototype._handleSuccess = function(stroke) {
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1,
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1,
   });
   let animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
   this._currentStrokeIndex += 1;
   this._numRecentMistakes = 0;
 
-  if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+  if (this._currentStrokeIndex === this._character.strokes.length) {
     this._isActive = false;
     callIfExists(this._options.onComplete, {
       character: this._character.symbol,
@@ -104,12 +104,12 @@ Quiz.prototype._handleFailure = function() {
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex,
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
   });
 };
 
 Quiz.prototype._getCurrentStroke = function() {
-  return this._character.getStroke(this._currentStrokeIndex);
+  return this._character.strokes[this._currentStrokeIndex];
 };
 
 module.exports = Quiz;

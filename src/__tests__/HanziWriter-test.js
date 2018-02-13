@@ -22,8 +22,13 @@ describe('HanziWriter', () => {
       expect(svg.childNodes.length).toBe(2);
       expect(svg.childNodes[0].nodeName).toBe('defs');
       expect(svg.childNodes[1].nodeName).toBe('g');
-      // the strokes are repeated 3 times - one for outline, character, and highlight
-      expect(svg.childNodes[1].childNodes.length).toBe(6);
+      // the characters are repeated 3 times - one for outline, character, and highlight
+      expect(svg.childNodes[1].childNodes.length).toBe(3);
+      svg.childNodes[1].childNodes.forEach(charNode => {
+        expect(charNode.nodeName).toBe('g');
+        // 2 strokes per character
+        expect(charNode.childNodes.length).toBe(2);
+      });
     });
   });
 

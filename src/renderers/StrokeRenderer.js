@@ -126,4 +126,12 @@ StrokeRenderer.prototype._getColor = function({ strokeColor, radicalColor }) {
   return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
+StrokeRenderer.prototype.destroy = function() {
+  StrokeRenderer.super_.prototype.destroy.call(this);
+  svg.removeElm(this._maskPath);
+  svg.removeElm(this._polyMaskTip);
+  svg.removeElm(this._path);
+  svg.removeElm(this._mask);
+};
+
 module.exports = StrokeRenderer;

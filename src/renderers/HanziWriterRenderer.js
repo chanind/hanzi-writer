@@ -67,4 +67,9 @@ HanziWriterRenderer.prototype.render = function(props) {
   });
 };
 
+HanziWriterRenderer.prototype.destroy = function() {
+  HanziWriterRenderer.super_.prototype.destroy.call(this);
+  svg.removeElm(this._positionedCanvas.svg);
+};
+
 module.exports = HanziWriterRenderer;

@@ -1,6 +1,7 @@
 const Renderer = require('./Renderer');
 const StrokeRenderer = require('./StrokeRenderer');
 const { assign, inherits } = require('../utils');
+const svg = require('../svg');
 
 
 const exractStrokeProps = (strokeNum, props) => {
@@ -42,5 +43,12 @@ CharacterRenderer.prototype.render = function(props) {
   }
   this._oldProps = props;
 };
+
+
+CharacterRenderer.prototype.destroy = function() {
+  CharacterRenderer.super_.prototype.destroy.call(this);
+  svg.removeElm(this._group);
+};
+
 
 module.exports = CharacterRenderer;

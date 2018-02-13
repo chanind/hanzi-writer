@@ -21,6 +21,10 @@ function getPathString(points, close = false) {
   return pathString;
 }
 
+function removeElm(elm) {
+  if (elm) elm.parentNode.removeChild(elm);
+}
+
 // -------- CANVAS CLASS --------
 
 function Canvas(svg, defs) {
@@ -53,8 +57,4 @@ Canvas.init = elmOrId => {
   return new Canvas(svg, defs);
 };
 
-Canvas.prototype.remove = function () {
-  this.svg.parentNode.removeChild(this.svg);
-};
-
-module.exports = { createElm, attrs, attr, Canvas, getPathString };
+module.exports = { createElm, attrs, attr, Canvas, getPathString, removeElm };

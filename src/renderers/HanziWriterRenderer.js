@@ -10,6 +10,7 @@ const extractCharProps = (props, charName) => {
   return assign({
     usePolygonMasks: props.options.usePolygonMasks,
   }, props.character[charName]);
+
 };
 
 

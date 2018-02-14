@@ -24,7 +24,7 @@ describe('utils', () => {
         a: {
           b: 1,
           c: 2,
-        }
+        },
       };
       const override = {
         a: {
@@ -40,7 +40,7 @@ describe('utils', () => {
           d: 14,
         },
         q: 9,
-      })
+      });
     });
   });
 
@@ -51,6 +51,6 @@ describe('utils', () => {
 
     it('should do nothing if no callback is passed', () => {
       utils.callIfExists(null);
-    })
+    });
   });
 });

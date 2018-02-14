@@ -4,11 +4,8 @@ const HanziWriter = require('../HanziWriter');
 const { timeout } = require('../utils');
 
 describe('HanziWriter', () => {
-  // Hack because JSDom doesn't support SVG well
-  window.SVGElement.prototype.getTotalLength = () => 10;
-
   describe('constructor', () => {
-    it("loads data and builds an instance in a dom element", async () => {
+    it('loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const writer = new HanziWriter('target', '人', {
@@ -33,7 +30,7 @@ describe('HanziWriter', () => {
   });
 
   describe('data loading', () => {
-    it("calls onLoadCharDataError if provided on loading failure", async () => {
+    it('calls onLoadCharDataError if provided on loading failure', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const onLoadCharDataError = jest.fn();
@@ -48,7 +45,7 @@ describe('HanziWriter', () => {
       expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
     });
 
-    it("tries reloading when calling an animatable method after loading failure", async () => {
+    it('tries reloading when calling an animatable method after loading failure', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const onLoadCharDataError = jest.fn();
@@ -67,7 +64,7 @@ describe('HanziWriter', () => {
       expect(onLoadCharDataError.mock.calls[1][0]).toBe('reasons');
     });
 
-    it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
+    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const writer = new HanziWriter('target', '人', {
@@ -84,10 +81,10 @@ describe('HanziWriter', () => {
     it('deletes the current character while loading', async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = new HanziWriter('target', '人', {
-        charDataLoader: (char) => timeout(1).then(() => char == '人' ? ren : yi)
+        charDataLoader: (char) => timeout(1).then(() => (char === '人' ? ren : yi)),
       });
       await writer._withDataPromise;
- 
+
       expect(document.querySelector('#target svg g')).not.toBe(null);
       expect(document.querySelector('#target svg defs *')).not.toBe(null);
       writer.setCharacter('一');

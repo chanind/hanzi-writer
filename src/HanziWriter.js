@@ -100,7 +100,7 @@ HanziWriter.prototype.animateCharacter = function(options = {}) {
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   this.cancelQuiz();
   return this._withData(() => (
-    this._renderState.run(characterActions.animateCharacter(
+    this._renderState.run(characterActions.animateCharacterLoop(
       'main',
       this._character,
       this._options.strokeFadeDuration,

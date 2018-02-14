@@ -27,6 +27,7 @@
     "grunt-webpack": "^3.0.2",
     "hanzi-writer-data": "^1.0.0",
     "jest-cli": "^22.2.1",
+    "lolex": "^2.3.2",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
   },
@@ -37,6 +38,7 @@
     "prepublishOnly": "grunt"
   },
   "jest": {
+    "setupTestFrameworkScriptFile": "<rootDir>/../jest-setup.js",
     "transform": {
       ".*": "<rootDir>/../babel-jest-processor.js"
     },

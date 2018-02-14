@@ -4,7 +4,8 @@
     "jest": true
   },
   "globals": {
-    "document": true
+    "document": true,
+    "clock": true
   },
   "rules": {
     "id-length": [0]

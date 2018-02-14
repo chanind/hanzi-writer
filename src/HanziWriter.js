@@ -4,11 +4,11 @@ const Point = require('./models/Point');
 const CharDataParser = require('./CharDataParser');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
-const svg = require('./svg');
+const dom = require('./dom');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, isMSBrowser, callIfExists } = require('./utils');
+const { assign, callIfExists } = require('./utils');
 
 
 const defaultOptions = {
@@ -52,12 +52,10 @@ const defaultOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
-  // MS browsers are terrible and can't handle masks using paths with stroke
-  usePolygonMasks: isMSBrowser(),
 };
 
 function HanziWriter(element, character, options = {}) {
-  this._canvas = svg.Canvas.init(element);
+  this._target = dom.initDiv(element);
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
@@ -158,7 +156,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       this._hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this._canvas, this._renderState.state);
+    this._hanziWriterRenderer.mount(this._target, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;
@@ -188,7 +186,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._canvas.svg.getBoundingClientRect();
+    const { width, height } = this._target.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -216,22 +214,22 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._canvas.svg.addEventListener('mousedown', (evt) => {
+  this._target.addEventListener('mousedown', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchstart', (evt) => {
+  this._target.addEventListener('touchstart', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
   });
-  this._canvas.svg.addEventListener('mousemove', (evt) => {
+  this._target.addEventListener('mousemove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchmove', (evt) => {
+  this._target.addEventListener('touchmove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
@@ -248,12 +246,12 @@ HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
 };
 
 HanziWriter.prototype._getMousePoint = function(evt) {
-  const box = this._canvas.svg.getBoundingClientRect();
+  const box = this._target.getBoundingClientRect();
   return this._positioner.convertExternalPoint(new Point(evt.clientX - box.left, evt.clientY - box.top));
 };
 
 HanziWriter.prototype._getTouchPoint = function(evt) {
-  const box = this._canvas.svg.getBoundingClientRect();
+  const box = this._target.getBoundingClientRect();
   const x = evt.touches[0].clientX - box.left;
   const y = evt.touches[0].clientY - box.top;
   return this._positioner.convertExternalPoint(new Point(x, y));

@@ -1,7 +1,6 @@
 const yi = require('hanzi-writer-data/一.json');
 const StrokeRenderer = require('../StrokeRenderer');
 const svg = require('../../svg');
-const { copyAndMergeDeep } = require('../../utils');
 const CharDataParser = require('../../CharDataParser');
 
 

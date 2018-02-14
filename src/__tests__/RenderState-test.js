@@ -130,5 +130,36 @@ describe('RenderState', () => {
       expect(isResolved).toBe(true);
       expect(resolvedVal).toBe(true);
     });
+
+    it('resolves its promise with false if mutations are canceled before completion', async () => {
+      const updateState = jest.fn();
+      const renderState = new RenderState(char, opts, updateState);
+
+      let isResolved = false;
+      let resolvedVal;
+
+      renderState.run([
+        new Mutation('character.main.opacity', 0.3),
+        new Mutation('character.main.opacity', 0.9, { duration: 50 }),
+        new Mutation.Pause(100),
+        new Mutation('character.main.opacity', 0, { duration: 50 }),
+      ]).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      // allow instant mutation to finish
+      await Promise.resolve();
+      expect(updateState).toHaveBeenCalledTimes(1);
+      expect(isResolved).toBe(false);
+      expect(renderState.state.character.main.opacity).toBe(0.3);
+
+      renderState.cancelMutations(['character']);
+
+      await Promise.resolve();
+      expect(renderState.state.character.main.opacity).toBe(0.3);
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toBe(false);
+    });
   });
 });

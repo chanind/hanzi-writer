@@ -65,12 +65,12 @@ Mutation.prototype.run = function(renderState) {
 
 Mutation.prototype._tick = function(timing) {
   const progress = Math.min(1, (timing - this._startTime) / this._duration);
-  const easedProgress = ease(progress);
-  if (easedProgress === 1) {
+  if (progress === 1) {
     this._renderState.updateState(this._values);
     this._frameHandle = null;
     this.cancel(this._renderState);
   } else {
+    const easedProgress = ease(progress);
     this._renderState.updateState(getPartialValues(this._startState, this._values, easedProgress));
     this._frameHandle = requestAnimationFrame(this._tickBound);
   }

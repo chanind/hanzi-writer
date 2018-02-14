@@ -9,15 +9,15 @@ const {
 
 const getPartialValues = function(startValues, endValues, progress) {
   const target = {};
-  for (const key in endValues) {
-    if (endValues.hasOwnProperty(key)) {
-      const endValue = endValues[key];
-      const startValue = startValues[key];
-      if (endValue >= 0) {
-        target[key] = progress * (endValue - startValue) + startValue;
-      } else {
-        target[key] = getPartialValues(startValue, endValue, progress);
-      }
+  for (const key in endValues) { // eslint-disable-line guard-for-in
+    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
+    // in here that aren't plain objects anyway and this is a hot code path
+    const endValue = endValues[key];
+    const startValue = startValues[key];
+    if (endValue >= 0) {
+      target[key] = progress * (endValue - startValue) + startValue;
+    } else {
+      target[key] = getPartialValues(startValue, endValue, progress);
     }
   }
   return target;
@@ -46,6 +46,7 @@ function Mutation(scope, values, options = {}) {
   this._values = inflate(scope, values);
   this._duration = options.duration || 0;
   this._force = options.force;
+  this._tickBound = this._tick.bind(this);
 }
 
 Mutation.prototype.run = function(renderState) {
@@ -56,14 +57,10 @@ Mutation.prototype.run = function(renderState) {
   this._renderState = renderState;
   this._startState = renderState.state;
   this._startTime = performanceNow();
-  this._nextTick();
+  this._frameHandle = requestAnimationFrame(this._tickBound);
   return new Promise((resolve) => {
     this._resolve = resolve;
   });
-};
-
-Mutation.prototype._nextTick = function() {
-  this._frameHandle = requestAnimationFrame((timing) => this._tick(timing));
 };
 
 Mutation.prototype._tick = function(timing) {
@@ -74,7 +71,7 @@ Mutation.prototype._tick = function(timing) {
     this._frameHandle = null;
     this.cancel(this._renderState);
   } else {
-    this._nextTick();
+    this._frameHandle = requestAnimationFrame(this._tickBound);
   }
 };
 
@@ -82,6 +79,7 @@ Mutation.prototype.cancel = function(renderState) {
   if (this._resolve) this._resolve();
   this._resolve = null;
   if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
+  this._frameHandle = null;
   if (this._force) renderState.updateState(this._values);
 };
 

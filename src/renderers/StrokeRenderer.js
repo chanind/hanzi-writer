@@ -87,7 +87,7 @@ StrokeRenderer.prototype.render = function(props) {
     if (usePolygonMasks) {
       this._setPolyMaskPortion(props.displayPortion);
     } else {
-      this._maskPath.style['stroke-dashoffset'] = this._getStrokeDashoffset(props.displayPortion);
+      this._maskPath.style.strokeDashoffset = this._getStrokeDashoffset(props.displayPortion);
     }
   }
 

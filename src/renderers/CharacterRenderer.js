@@ -1,17 +1,19 @@
 const Renderer = require('./Renderer');
 const StrokeRenderer = require('./StrokeRenderer');
-const { assign, inherits } = require('../utils');
+const { inherits } = require('../utils');
 const svg = require('../svg');
 
 
 const exractStrokeProps = (strokeNum, props) => {
   if (!props.strokes) return props;
-  return assign({
+  return {
     usePolygonMasks: props.usePolygonMasks,
     strokeColor: props.strokeColor,
     radicalColor: props.radicalColor,
     strokeWidth: props.strokeWidth,
-  }, props.strokes[strokeNum]);
+    opacity: props.strokes[strokeNum].opacity,
+    displayPortion: props.strokes[strokeNum].displayPortion,
+  };
 };
 
 

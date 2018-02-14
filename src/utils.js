@@ -5,7 +5,7 @@ const requestAnimationFrame = global.requestAnimationFrame || (callback => setTi
 const cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
 
 // Object.assign polyfill, because IE :/
-function assign(target, ...overrides) {
+const assign = Object.assign || function(target, ...overrides) {
   const overrideTarget = Object(target);
   overrides.forEach(override => {
     if (override != null) {
@@ -17,23 +17,26 @@ function assign(target, ...overrides) {
     }
   });
   return overrideTarget;
-}
+};
 
 function copyAndMergeDeep(base, override) {
   const output = assign({}, base);
-  for (const key in override) {
-    if (Object.prototype.hasOwnProperty.call(override, key)) {
-      if (
-        base[key] &&
-        override[key] &&
-        typeof base[key] === 'object' &&
-        typeof override[key] === 'object' &&
-        !Array.isArray(override[key])
-      ) {
-        output[key] = copyAndMergeDeep(base[key], override[key]);
-      } else {
-        output[key] = override[key];
-      }
+  for (const key in override) { // eslint-disable-line guard-for-in
+    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
+    // in here that aren't plain objects anyway and this is a hot code path
+    const baseVal = base[key];
+    const overrideVal = override[key];
+    if (baseVal === overrideVal) continue; // eslint-disable-line no-continue
+    if (
+      baseVal &&
+      overrideVal &&
+      typeof baseVal === 'object' &&
+      typeof overrideVal === 'object' &&
+      !Array.isArray(overrideVal)
+    ) {
+      output[key] = copyAndMergeDeep(baseVal, overrideVal);
+    } else {
+      output[key] = overrideVal;
     }
   }
   return output;

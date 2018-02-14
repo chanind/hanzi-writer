@@ -75,4 +75,29 @@ describe('Mutation', () => {
     await Promise.resolve();
     expect(isResolved).toBe(true);
   });
+
+  it('updates state on cancel if force: true', async () => {
+    const renderState = {
+      state: {a: {b: 7 } },
+      updateState: jest.fn(),
+    };
+
+    const mut = new Mutation('a.b', 10, { force: true });
+
+    mut.cancel(renderState);
+    expect(renderState.updateState).toHaveBeenCalledTimes(1);
+    expect(renderState.updateState).toHaveBeenLastCalledWith({ a: { b: 10 } });
+  });
+
+  it('does not update state on cancel if force: false', async () => {
+    const renderState = {
+      state: {a: {b: 7 } },
+      updateState: jest.fn(),
+    };
+
+    const mut = new Mutation('a.b', 10);
+
+    mut.cancel(renderState);
+    expect(renderState.updateState).not.toHaveBeenCalled();
+  });
 });

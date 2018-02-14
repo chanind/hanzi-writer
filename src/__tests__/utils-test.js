@@ -53,4 +53,18 @@ describe('utils', () => {
       utils.callIfExists(null);
     });
   });
+
+  describe('inflate', () => {
+    it('inflates the scope into a full object and attaches the obj', () => {
+      expect(utils.inflate('bob.jim.joe', {x: 8})).toEqual({
+        bob: {
+          jim: {
+            joe: {
+              x: 8,
+            },
+          },
+        },
+      });
+    });
+  });
 });

@@ -49,8 +49,8 @@ function Mutation(scope, values, options = {}) {
 }
 
 Mutation.prototype.run = function(renderState) {
+  if (this._duration === 0) renderState.updateState(this._values);
   if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
-    renderState.updateState(this._values);
     return Promise.resolve();
   }
   this._renderState = renderState;

@@ -9,8 +9,7 @@ function updateCharacter() {
 	writer = new HanziWriter('target', character, {
 		width: 400,
 		height: 400,
-		// radicalColor: '#166E16',
-		strokeColor: 'rgba(0,0,0,0.3)',
+		radicalColor: '#166E16',
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;

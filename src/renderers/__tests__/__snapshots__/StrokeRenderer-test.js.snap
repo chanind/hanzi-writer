@@ -1,29 +1,7 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`StrokeRenderer can render using clip-mask 1`] = `
-<clippath
-  id="mask-2"
->
-  <circle
-    cx="420.3610543060645"
-    cy="402.2623261897416"
-    r="100"
-  />
-  <path
-    d="M 53 517 L 200.69230769230745 473.92307692307696 L 406.46418793868423 501.48181088464526 L 412.5798403425982 501.95913009666106 L 428.1422682695308 302.56552228282214 L 427.5358120612777 302.5181891153496 L 185.30769230769243 270.07692307692304 L -3 325Z"
-  />
-</clippath>
-`;
-
-exports[`StrokeRenderer renders a path and mask 1`] = `
+exports[`StrokeRenderer renders a path and clipPath 1`] = `
 <path
-  d="M 25 421 L 193 372 L 417 402 L 827 434 L 920 401"
-  fill="none"
-  stroke="#FFFFFF"
-  stroke-dasharray="910.9281897070704,910.9281897070704"
-  stroke-linecap="round"
-  stroke-linejoin="miter"
-  stroke-width="200"
-  style="stroke-dashoffset: 546.010356910418;"
+  d="M 518 382 Q 572 385 623 389 Q 758 399 900 383 Q 928 379 935 390 Q 944 405 930 419 Q 896 452 845 475 Q 829 482 798 473 Q 723 460 480 434 Q 180 409 137 408 Q 130 408 124 408 Q 108 408 106 395 Q 105 380 127 363 Q 146 348 183 334 Q 195 330 216 338 Q 232 344 306 354 Q 400 373 518 382 Z"
 />
 `;

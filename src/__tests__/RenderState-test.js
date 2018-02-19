@@ -13,7 +13,6 @@ const opts = {
   drawingColor: '#333',
   drawingFadeDuration: 300,
   drawingWidth: 4,
-  strokeWidth: 2,
   outlineWidth: 2,
   showCharacter: true,
   showOutline: false,
@@ -31,7 +30,6 @@ describe('RenderState', () => {
         drawingFadeDuration: 300,
         drawingWidth: 4,
         drawingColor: '#333',
-        strokeWidth: 2,
       },
       character: {
         main: {

@@ -4,15 +4,6 @@ const UserStrokeRenderer = require('./UserStrokeRenderer');
 const {inherits, assign} = require('../utils');
 const svg = require('../svg');
 
-
-const extractCharProps = (props, charName) => {
-  if (!props.character) return props;
-  return assign({
-    usePolygonMasks: props.options.usePolygonMasks,
-  }, props.character[charName]);
-};
-
-
 function HanziWriterRenderer(character, positioner) {
   HanziWriterRenderer.super_.call(this);
   this._character = character;
@@ -25,23 +16,23 @@ function HanziWriterRenderer(character, positioner) {
 
 inherits(HanziWriterRenderer, Renderer);
 
-HanziWriterRenderer.prototype.mount = function(canvas, props) {
+HanziWriterRenderer.prototype.mount = function(canvas) {
   const positionedCanvas = canvas.createSubCanvas();
   const group = positionedCanvas.svg;
   svg.attr(group, 'transform', `
     translate(${this._positioner.getXOffset()}, ${this._positioner.getHeight() - this._positioner.getYOffset()})
     scale(${this._positioner.getScale()}, ${-1 * this._positioner.getScale()})
   `);
-  this._outlineCharRenderer.mount(positionedCanvas, extractCharProps(props, 'outline'));
-  this._mainCharRenderer.mount(positionedCanvas, extractCharProps(props, 'main'));
-  this._highlightCharRenderer.mount(positionedCanvas, extractCharProps(props, 'highlight'));
+  this._outlineCharRenderer.mount(positionedCanvas);
+  this._mainCharRenderer.mount(positionedCanvas);
+  this._highlightCharRenderer.mount(positionedCanvas);
   this._positionedCanvas = positionedCanvas;
 };
 
 HanziWriterRenderer.prototype.render = function(props) {
-  this._outlineCharRenderer.render(extractCharProps(props, 'outline'));
-  this._mainCharRenderer.render(extractCharProps(props, 'main'));
-  this._highlightCharRenderer.render(extractCharProps(props, 'highlight'));
+  this._outlineCharRenderer.render(props.character.outline);
+  this._mainCharRenderer.render(props.character.main);
+  this._highlightCharRenderer.render(props.character.highlight);
 
   const userStrokes = props.userStrokes || {};
   Object.keys(this._userStrokeRenderers).forEach(userStrokeId => {

@@ -9,7 +9,6 @@ function RenderState(character, options, onStateChange) {
       drawingFadeDuration: options.drawingFadeDuration,
       drawingWidth: options.drawingWidth,
       drawingColor: options.drawingColor,
-      strokeWidth: options.strokeWidth,
     },
     character: {
       main: {

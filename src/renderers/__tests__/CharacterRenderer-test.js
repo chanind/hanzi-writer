@@ -18,7 +18,6 @@ describe('CharacterRenderer', () => {
 
   it('renders a g element and puts strokes inside', () => {
     const props = {
-      usePolygonMasks: false,
       strokeColor: '#123',
       radicalColor: null,
       strokeWidth: 2,
@@ -46,7 +45,7 @@ describe('CharacterRenderer', () => {
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach(node => {
       expect(node.nodeName).toBe('path');
-      expect(node.getAttribute('fill')).toBe('#123');
+      expect(node.getAttribute('stroke')).toBe('#123');
     });
   });
 
@@ -87,7 +86,7 @@ describe('CharacterRenderer', () => {
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach(node => {
       expect(node.nodeName).toBe('path');
-      expect(node.getAttribute('fill')).toBe('#456');
+      expect(node.getAttribute('stroke')).toBe('#456');
     });
   });
 

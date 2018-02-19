@@ -9,12 +9,13 @@ function UserStrokeRenderer() {
 }
 inherits(UserStrokeRenderer, Renderer);
 
-UserStrokeRenderer.prototype.mount = function(canvas, props) {
+UserStrokeRenderer.prototype.mount = function(canvas) {
   this._path = svg.createElm('path');
   canvas.svg.appendChild(this._path);
 };
 
 UserStrokeRenderer.prototype.render = function(props) {
+  if (props === this._oldProps) return;
   if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
     svg.attrs(this._path, {
       fill: 'none',

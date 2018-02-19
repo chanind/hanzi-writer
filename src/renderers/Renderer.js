@@ -3,7 +3,7 @@ function Renderer() {
 }
 
 // implement in children
-Renderer.prototype.mount = function(canvas, props) {
+Renderer.prototype.mount = function(canvas) {
   return this;
 };
 

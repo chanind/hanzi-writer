@@ -1,5 +1,4 @@
-const Renderer = require('./Renderer');
-const {counter, inherits } = require('../utils');
+const {counter} = require('../utils');
 const svg = require('../svg');
 const {
   extendPointOnLine,
@@ -21,12 +20,10 @@ const extendStart = (points, distance) => {
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
-  StrokeRenderer.super_.call(this);
   this._oldProps = {};
   this._stroke = stroke;
   this._pathLength = stroke.getLength() + (STROKE_WIDTH / 2);
 }
-inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.mount = function(canvas) {
   this._animationPath = svg.createElm('path');
@@ -79,13 +76,6 @@ StrokeRenderer.prototype._getStrokeDashoffset = function(displayPortion) {
 
 StrokeRenderer.prototype._getColor = function({ strokeColor, radicalColor }) {
   return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
-};
-
-StrokeRenderer.prototype.destroy = function() {
-  StrokeRenderer.super_.prototype.destroy.call(this);
-  svg.removeElm(this._strokePath);
-  svg.removeElm(this._animationPath);
-  svg.removeElm(this._clip);
 };
 
 module.exports = StrokeRenderer;

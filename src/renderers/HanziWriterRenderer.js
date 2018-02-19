@@ -1,20 +1,16 @@
-const Renderer = require('./Renderer');
 const CharacterRenderer = require('./CharacterRenderer');
 const UserStrokeRenderer = require('./UserStrokeRenderer');
-const {inherits, assign} = require('../utils');
+const {assign} = require('../utils');
 const svg = require('../svg');
 
 function HanziWriterRenderer(character, positioner) {
-  HanziWriterRenderer.super_.call(this);
   this._character = character;
   this._positioner = positioner;
-  this._mainCharRenderer = this.registerChild(new CharacterRenderer(character));
-  this._outlineCharRenderer = this.registerChild(new CharacterRenderer(character));
-  this._highlightCharRenderer = this.registerChild(new CharacterRenderer(character));
+  this._mainCharRenderer = new CharacterRenderer(character);
+  this._outlineCharRenderer = new CharacterRenderer(character);
+  this._highlightCharRenderer = new CharacterRenderer(character);
   this._userStrokeRenderers = {};
 }
-
-inherits(HanziWriterRenderer, Renderer);
 
 HanziWriterRenderer.prototype.mount = function(canvas) {
   const positionedCanvas = canvas.createSubCanvas();
@@ -59,8 +55,8 @@ HanziWriterRenderer.prototype.render = function(props) {
 };
 
 HanziWriterRenderer.prototype.destroy = function() {
-  HanziWriterRenderer.super_.prototype.destroy.call(this);
   svg.removeElm(this._positionedCanvas.svg);
+  this._positionedCanvas.defs.innerHTML = '';
 };
 
 module.exports = HanziWriterRenderer;

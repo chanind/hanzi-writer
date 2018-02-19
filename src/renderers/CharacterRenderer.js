@@ -1,19 +1,11 @@
-const Renderer = require('./Renderer');
 const StrokeRenderer = require('./StrokeRenderer');
-const { inherits } = require('../utils');
-const svg = require('../svg');
 
 
 function CharacterRenderer(character) {
-  CharacterRenderer.super_.call(this);
   this._oldProps = {};
   this.character = character;
-  this.strokeRenderers = this.character.strokes.map((stroke) => {
-    return this.registerChild(new StrokeRenderer(stroke));
-  });
+  this.strokeRenderers = this.character.strokes.map((stroke) => new StrokeRenderer(stroke));
 }
-
-inherits(CharacterRenderer, Renderer);
 
 CharacterRenderer.prototype.mount = function(canvas) {
   const subCanvas = canvas.createSubCanvas();
@@ -42,12 +34,6 @@ CharacterRenderer.prototype.render = function(props) {
     });
   }
   this._oldProps = props;
-};
-
-
-CharacterRenderer.prototype.destroy = function() {
-  CharacterRenderer.super_.prototype.destroy.call(this);
-  svg.removeElm(this._group);
 };
 
 

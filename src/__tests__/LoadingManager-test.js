@@ -1,11 +1,10 @@
 const ren = require('hanzi-writer-data/人.json');
 const ta = require('hanzi-writer-data/他.json');
-const { timeout } = require('../utils');
 const LoadingManager = require('../LoadingManager');
 
 describe('LoadingManager', () => {
   describe('loadCharData', () => {
-    it("resolves when data is loaded via async callback", async () => {
+    it('resolves when data is loaded via async callback', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => {
           setTimeout(() => onComplete(ren), 1);
@@ -16,7 +15,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via sync callback", async () => {
+    it('resolves when data is loaded via sync callback', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => { onComplete(ren); },
       });
@@ -25,7 +24,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via promise", async () => {
+    it('resolves when data is loaded via promise', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => Promise.resolve(ren),
       });
@@ -34,7 +33,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via sync return", async () => {
+    it('resolves when data is loaded via sync return', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => ren,
       });
@@ -43,11 +42,11 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("passes data to onLoadCharDataSuccess if provided", async () => {
+    it('passes data to onLoadCharDataSuccess if provided', async () => {
       let successVal;
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => ren,
-        onLoadCharDataSuccess: (returnedData) => successVal = returnedData
+        onLoadCharDataSuccess: (returnedData) => { successVal = returnedData; },
       });
       const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
@@ -55,7 +54,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("throws an error if loading fails via onErr callback and no callback is provided", async () => {
+    it('throws an error if loading fails via onErr callback and no callback is provided', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => { onErr('OMG'); },
       });
@@ -63,7 +62,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(true);
     });
 
-    it("rethrows if loading fails via onErr callback passing an Error and no callback is provided", async () => {
+    it('rethrows if loading fails via onErr callback passing an Error and no callback is provided', async () => {
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => { onErr(new Error('OMG')); },
       });
@@ -71,7 +70,7 @@ describe('LoadingManager', () => {
       expect(manager.loadingFailed).toBe(true);
     });
 
-    it("resolves if loading fails via onErr callback and a callback is provided", async () => {
+    it('resolves if loading fails via onErr callback and a callback is provided', async () => {
       let failureReason;
       const manager = new LoadingManager({
         charDataLoader: (char, onComplete, onErr) => { onErr('everything is terrible'); },
@@ -83,7 +82,7 @@ describe('LoadingManager', () => {
       expect(failureReason).toBe('everything is terrible');
     });
 
-    it("debounces if multiple loads are called at the same time", async () => {
+    it('debounces if multiple loads are called at the same time', async () => {
       const onLoadCharDataSuccess = jest.fn();
       const onCompleteFns = [];
       const manager = new LoadingManager({
@@ -92,7 +91,7 @@ describe('LoadingManager', () => {
           onCompleteFns.push(onComplete);
         },
       });
-      
+
       const loadPromise1 = manager.loadCharData('人');
       const loadPromise2 = manager.loadCharData('他');
       // it should return the same promise for both since loading isn't complete

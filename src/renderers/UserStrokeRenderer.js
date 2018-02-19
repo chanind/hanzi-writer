@@ -3,53 +3,39 @@ const { inherits } = require('../utils');
 const svg = require('../svg');
 
 
-function UserStrokeRenderer(userStroke, options = {}) {
+function UserStrokeRenderer() {
   UserStrokeRenderer.super_.call(this);
-  this.options = options;
-  this.userStroke = userStroke;
+  this._oldProps = {};
 }
-
 inherits(UserStrokeRenderer, Renderer);
 
-UserStrokeRenderer.prototype.getPathString = function() {
-  return svg.getPathString(this.userStroke.points);
+UserStrokeRenderer.prototype.mount = function(canvas, props) {
+  this._path = svg.createElm('path');
+  canvas.svg.appendChild(this._path);
 };
 
-UserStrokeRenderer.prototype.updatePath = function() {
-  svg.attr(this.path, 'd', this.getPathString());
-};
-
-UserStrokeRenderer.prototype.draw = function() {
-  UserStrokeRenderer.super_.prototype.draw.call(this);
-  this.path = svg.createElm('path');
-  svg.attrs(this.path, this.getStrokeAttrs());
-  this.path.style.opacity = 1;
-  this.updatePath();
-  this.canvas.svg.appendChild(this.path);
-  return this;
-};
-
-UserStrokeRenderer.prototype.fadeAndRemove = function(animation) {
-  const tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.fadeDuration,
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start().then(() => this.destroy());
-};
-
-UserStrokeRenderer.prototype.getStrokeAttrs = function() {
-  return {
-    fill: 'none',
-    stroke: this.options.strokeColor,
-    'stroke-width': this.options.strokeWidth,
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round',
-  };
+UserStrokeRenderer.prototype.render = function(props) {
+  if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
+    svg.attrs(this._path, {
+      fill: 'none',
+      stroke: props.strokeColor,
+      'stroke-width': props.strokeWidth,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+    });
+  }
+  if (props.opacity !== this._oldProps.opacity) {
+    svg.attr(this._path, 'opacity', props.opacity);
+  }
+  if (props.points !== this._oldProps.points) {
+    svg.attr(this._path, 'd', svg.getPathString(props.points));
+  }
+  this._oldProps = props;
 };
 
 UserStrokeRenderer.prototype.destroy = function() {
   UserStrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
+  this._path.parentNode.removeChild(this._path);
 };
 
 module.exports = UserStrokeRenderer;

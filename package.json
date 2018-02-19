@@ -12,7 +12,7 @@
     "babel-loader": "^7.1.2",
     "babel-plugin-transform-runtime": "^6.23.0",
     "babel-preset-env": "^1.6.0",
-    "eslint": "^4.8.0",
+    "eslint": "^4.17.0",
     "eslint-config-airbnb": "^15.1.0",
     "eslint-loader": "^1.9.0",
     "eslint-plugin-import": "^2.7.0",
@@ -27,15 +27,18 @@
     "grunt-webpack": "^3.0.2",
     "hanzi-writer-data": "^1.0.0",
     "jest-cli": "^22.2.1",
+    "lolex": "^2.3.2",
     "webpack": "^3.6.0",
     "webpack-dev-server": "^2.9.1"
   },
   "scripts": {
     "test": "jest",
+    "lint-test": "eslint -c .eslintrc-jest src",
     "build": "grunt",
     "prepublishOnly": "grunt"
   },
   "jest": {
+    "setupTestFrameworkScriptFile": "<rootDir>/../jest-setup.js",
     "transform": {
       ".*": "<rootDir>/../babel-jest-processor.js"
     },

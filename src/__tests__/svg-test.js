@@ -3,7 +3,7 @@ const Point = require('../models/Point');
 
 describe('svg', () => {
   describe('getPathString', () => {
-    it("returns d path based on the points passed in", () => {
+    it('returns d path based on the points passed in', () => {
       const points = [
         new Point(0, 0),
         new Point(5, 0),
@@ -19,6 +19,6 @@ describe('svg', () => {
         new Point(5, 2),
       ];
       expect(svg.getPathString(points, true)).toEqual('M 0 0 L 5 0 L 5 2Z');
-    })
+    });
   });
 });

@@ -1,124 +1,115 @@
 const StrokeMatcher = require('./StrokeMatcher');
 const UserStroke = require('./models/UserStroke');
-const UserStrokeRenderer = require('./renderers/UserStrokeRenderer');
-const {callIfExists} = require('./utils');
+const {callIfExists, counter} = require('./utils');
+const quizActions = require('./quizActions');
+const characterActions = require('./characterActions');
 
 
-// TODO: too many dependencies... do something about this
-function Quiz({canvas, animator, character, characterRenderer, highlightRenderer, quizOptions, userStrokeOptions}) {
-  this._canvas = canvas;
-  this._animator = animator;
+function Quiz(character, renderState, quizOptions) {
   this._character = character;
-  this._characterRenderer = characterRenderer;
-  this._highlightRenderer = highlightRenderer;
-  this._quizOptions = quizOptions;
-  this._userStrokeOptions = userStrokeOptions;
+  this._renderState = renderState;
+  this._isActive = false;
+  this._strokeMatcher = new StrokeMatcher();
+}
 
+Quiz.prototype.startQuiz = function(options) {
+  this._isActive = true;
+  this._options = options;
   this._currentStrokeIndex = 0;
   this._numRecentMistakes = 0;
   this._totalMistakes = 0;
   this._drawnStrokes = [];
-  this._isActive = true;
-  this._strokeMatcher = new StrokeMatcher();
-
-  this._setupCharacter();
-}
+  this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
+};
 
 Quiz.prototype.startUserStroke = function(point) {
   if (!this._isActive) return null;
   if (this._userStroke) return this.endUserStroke();
-  this._userStroke = new UserStroke(point);
-  this._userStrokeRenderer = new UserStrokeRenderer(this._userStroke, this._userStrokeOptions);
-  this._userStrokeRenderer.setCanvas(this._canvas).draw();
+  const strokeId = counter();
+  this._userStroke = new UserStroke(strokeId, point);
+  this._renderState.run(
+    quizActions.startUserStroke(strokeId, point),
+  );
 };
 
 Quiz.prototype.continueUserStroke = function(point) {
   if (!this._userStroke) return;
   this._userStroke.appendPoint(point);
-  this._userStrokeRenderer.updatePath();
+  const nextPoints = this._userStroke.points.slice(0);
+  this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
 };
 
 Quiz.prototype.endUserStroke = function() {
-  if (!this._userStroke) return Promise.resolve();
+  if (!this._userStroke) return;
 
-  this._animator.animate((animation) => {
-    if (!this._isActive) return Promise.resolve();
-    const promises = [];
-    const nextStroke = this._getNextStroke();
-    const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, nextStroke);
-    promises.push(this._userStrokeRenderer.fadeAndRemove(animation));
-    this._userStroke = null;
-    this._userStrokeRenderer = null;
+  this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
 
-    if (isMatch) {
-      promises.push(this._handleSuccess(nextStroke, animation));
-    } else {
-      this._handleFailure();
-      if (this._numRecentMistakes >= this._quizOptions.showHintAfterMisses) {
-        promises.push(this._highlightCorrectStroke(animation));
-      }
+  const currentStroke = this._getCurrentStroke();
+  const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, currentStroke);
+  this._userStroke = null;
+
+  if (isMatch) {
+    this._handleSuccess(currentStroke);
+  } else {
+    this._handleFailure();
+    if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
+      this._renderState.run(
+        characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed),
+        { force: true },
+      );
     }
-    return Promise.all(promises);
-  });
+  }
 };
 
 Quiz.prototype.cancel = function() {
   this._isActive = false;
+  if (this._userStroke) {
+    this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
+  }
 };
 
-Quiz.prototype._handleSuccess = function(stroke, animation) {
-  callIfExists(this._quizOptions.onCorrectStroke, {
+Quiz.prototype._handleSuccess = function(stroke) {
+  callIfExists(this._options.onCorrectStroke, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1,
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1,
   });
+  let animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
   this._currentStrokeIndex += 1;
   this._numRecentMistakes = 0;
-  let promise = this._drawMatchingStroke(stroke, animation);
-  if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+
+  if (this._currentStrokeIndex === this._character.strokes.length) {
     this._isActive = false;
-    callIfExists(this._quizOptions.onComplete, {
+    callIfExists(this._options.onComplete, {
       character: this._character.symbol,
       totalMistakes: this._totalMistakes,
     });
-    if (this._quizOptions.highlightOnComplete) {
-      promise = promise.then(() => this._highlightRenderer.flash(animation));
+    if (this._options.highlightOnComplete) {
+      animation = animation
+        .concat(characterActions.hideCharacter('highlight', this._character))
+        .concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration))
+        .concat(characterActions.hideCharacter('highlight', this._character, this._options.strokeHighlightDuration));
     }
   }
-  return promise;
+  this._renderState.run(animation);
 };
 
 Quiz.prototype._handleFailure = function() {
   this._numRecentMistakes += 1;
   this._totalMistakes += 1;
-  callIfExists(this._quizOptions.onMistake, {
+  callIfExists(this._options.onMistake, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex,
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
   });
 };
 
-Quiz.prototype._highlightCorrectStroke = function(animation) {
-  const strokeHintRenderer = this._highlightRenderer.getStrokeRenderer(this._currentStrokeIndex);
-  return strokeHintRenderer.highlight(animation);
-};
-
-Quiz.prototype._drawMatchingStroke = function(stroke, animation) {
-  this._drawnStrokes.push(stroke);
-  return this._characterRenderer.showStroke(stroke.strokeNum, animation);
-};
-
-Quiz.prototype._getNextStroke = function() {
-  return this._character.getStroke(this._currentStrokeIndex);
-};
-
-// hide the caracter
-Quiz.prototype._setupCharacter = function() {
-  this._animator.animate(animation => this._characterRenderer.hide(animation));
+Quiz.prototype._getCurrentStroke = function() {
+  return this._character.strokes[this._currentStrokeIndex];
 };
 
 module.exports = Quiz;

@@ -53,7 +53,7 @@ LoadingManager.prototype.loadCharData = function(char) {
   }
   this.loadingFailed = false;
   this._isLoading = true;
-  this._loadCounter += 1;
+  this._loadCounter++;
   this._debouncedLoad(char, this._loadCounter);
   return this._loadingPromise;
 };

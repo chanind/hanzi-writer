@@ -1,12 +1,7 @@
-const Point = require('./Point');
-
-function UserStroke(startingPoint) {
+function UserStroke(id, startingPoint) {
+  this.id = id;
   this.points = [startingPoint];
 }
-
-UserStroke.prototype.getBounds = function() {
-  return Point.getBounds(this.points);
-};
 
 UserStroke.prototype.appendPoint = function(point) {
   this.points.push(point);

@@ -33,7 +33,7 @@ window.onload = function() {
 		isOutlineVisible = !isOutlineVisible;
 	});
 	document.querySelector('.js-animate').addEventListener('click', function() {
-		writer.animateCharacter();
+		writer.loopCharacterAnimation();
 	});
 	document.querySelector('.js-quiz').addEventListener('click', function() {
 		writer.quiz({

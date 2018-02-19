@@ -7,10 +7,6 @@ function Stroke(path, points, strokeNum, isInRadical = false) {
   this.isInRadical = isInRadical;
 }
 
-Stroke.prototype.getStrokeNum = function() {
-  return this.strokeNum;
-};
-
 Stroke.prototype.getStartingPoint = function() {
   return this.points[0];
 };

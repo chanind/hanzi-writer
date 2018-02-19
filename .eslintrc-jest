@@ -1,0 +1,13 @@
+{
+  "extends": ".eslintrc",
+  "env": {
+    "jest": true
+  },
+  "globals": {
+    "document": true,
+    "clock": true
+  },
+  "rules": {
+    "id-length": [0]
+  }
+}

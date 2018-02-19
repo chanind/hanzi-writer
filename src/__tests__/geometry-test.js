@@ -110,7 +110,7 @@ describe('geometry', () => {
         new Point(9, 3),
       ];
       expect(geometry.getLineSegmentsPortion(points, 0)).toEqual([
-        new Point(0, 0)
+        new Point(0, 0),
       ]);
       expect(geometry.getLineSegmentsPortion(points, 0.2)).toEqual([
         new Point(0, 0),

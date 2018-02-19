@@ -18,6 +18,32 @@ describe('utils', () => {
     });
   });
 
+  describe('copyAndMergeDeep', () => {
+    it('should nested merge properties of both objects', () => {
+      const base = {
+        a: {
+          b: 1,
+          c: 2,
+        },
+      };
+      const override = {
+        a: {
+          c: 7,
+          d: 14,
+        },
+        q: 9,
+      };
+      expect(utils.copyAndMergeDeep(base, override)).toEqual({
+        a: {
+          b: 1,
+          c: 7,
+          d: 14,
+        },
+        q: 9,
+      });
+    });
+  });
+
   describe('callIfExists', () => {
     it('should trigger the callback passed in', (callback) => {
       utils.callIfExists(callback);
@@ -25,6 +51,20 @@ describe('utils', () => {
 
     it('should do nothing if no callback is passed', () => {
       utils.callIfExists(null);
-    })
+    });
+  });
+
+  describe('inflate', () => {
+    it('inflates the scope into a full object and attaches the obj', () => {
+      expect(utils.inflate('bob.jim.joe', {x: 8})).toEqual({
+        bob: {
+          jim: {
+            joe: {
+              x: 8,
+            },
+          },
+        },
+      });
+    });
   });
 });

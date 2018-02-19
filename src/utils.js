@@ -104,13 +104,6 @@ function timeout(duration = 0) {
   });
 }
 
-function isMSBrowser() {
-  return global.navigator && global.navigator.userAgent && (
-    global.navigator.userAgent.indexOf('Edge') >= 0
-    || global.navigator.userAgent.indexOf('MSIE') >= 0
-  );
-}
-
 // return a new array-like object with int keys where each key is item
 // ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
 const objRepeat = (item, times) => {
@@ -134,7 +127,6 @@ module.exports = {
   getExtremes,
   inflate,
   inherits,
-  isMSBrowser,
   objRepeat,
   performanceNow,
   requestAnimationFrame,

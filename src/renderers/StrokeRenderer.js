@@ -29,19 +29,19 @@ function StrokeRenderer(stroke) {
 inherits(StrokeRenderer, Renderer);
 
 StrokeRenderer.prototype.mount = function(canvas) {
-  this._path = svg.createElm('path');
-  this._mask = svg.createElm('clipPath');
-  this._maskPath = svg.createElm('path');
+  this._animationPath = svg.createElm('path');
+  this._clip = svg.createElm('clipPath');
+  this._strokePath = svg.createElm('path');
   const maskId = `mask-${counter()}`;
-  svg.attr(this._mask, 'id', maskId);
+  svg.attr(this._clip, 'id', maskId);
 
-  svg.attr(this._maskPath, 'd', this._stroke.path);
-  this._path.style.opacity = 0;
-  svg.attr(this._path, 'clip-path', `url(#${maskId})`);
+  svg.attr(this._strokePath, 'd', this._stroke.path);
+  this._animationPath.style.opacity = 0;
+  svg.attr(this._animationPath, 'clip-path', `url(#${maskId})`);
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
-  svg.attr(this._path, 'd', svg.getPathString(this.extendedMaskPoints));
-  svg.attrs(this._path, {
+  const extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
+  svg.attr(this._animationPath, 'd', svg.getPathString(extendedMaskPoints));
+  svg.attrs(this._animationPath, {
     stroke: '#FFFFFF',
     'stroke-width': STROKE_WIDTH,
     fill: 'none',
@@ -50,25 +50,25 @@ StrokeRenderer.prototype.mount = function(canvas) {
     'stroke-dasharray': `${this._pathLength},${this._pathLength}`,
   });
 
-  this._mask.appendChild(this._maskPath);
-  canvas.defs.appendChild(this._mask);
-  canvas.svg.appendChild(this._path);
+  this._clip.appendChild(this._strokePath);
+  canvas.defs.appendChild(this._clip);
+  canvas.svg.appendChild(this._animationPath);
   return this;
 };
 
 StrokeRenderer.prototype.render = function(props) {
   if (props === this._oldProps) return;
   if (props.displayPortion !== this._oldProps.displayPortion) {
-    this._path.style.strokeDashoffset = this._getStrokeDashoffset(props.displayPortion);
+    this._animationPath.style.strokeDashoffset = this._getStrokeDashoffset(props.displayPortion);
   }
 
   const color = this._getColor(props);
   if (color !== this._getColor(this._oldProps)) {
-    svg.attrs(this._path, { stroke: color });
+    svg.attrs(this._animationPath, { stroke: color });
   }
 
   if (props.opacity !== this._oldProps.opacity) {
-    this._path.style.opacity = props.opacity;
+    this._animationPath.style.opacity = props.opacity;
   }
   this._oldProps = props;
 };
@@ -83,9 +83,9 @@ StrokeRenderer.prototype._getColor = function({ strokeColor, radicalColor }) {
 
 StrokeRenderer.prototype.destroy = function() {
   StrokeRenderer.super_.prototype.destroy.call(this);
-  svg.removeElm(this._maskPath);
-  svg.removeElm(this._path);
-  svg.removeElm(this._mask);
+  svg.removeElm(this._strokePath);
+  svg.removeElm(this._animationPath);
+  svg.removeElm(this._clip);
 };
 
 module.exports = StrokeRenderer;

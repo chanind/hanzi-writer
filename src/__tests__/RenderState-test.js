@@ -16,7 +16,6 @@ const opts = {
   outlineWidth: 2,
   showCharacter: true,
   showOutline: false,
-  usePolygonMasks: false,
 };
 
 
@@ -26,7 +25,6 @@ describe('RenderState', () => {
 
     expect(renderState.state).toEqual({
       options: {
-        usePolygonMasks: false,
         drawingFadeDuration: 300,
         drawingWidth: 4,
         drawingColor: '#333',

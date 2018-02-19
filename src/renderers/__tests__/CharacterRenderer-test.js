@@ -51,7 +51,6 @@ describe('CharacterRenderer', () => {
 
   it('updates opacity and updates passed-through props', () => {
     const props1 = {
-      usePolygonMasks: false,
       strokeColor: '#123',
       radicalColor: null,
       strokeWidth: 2,

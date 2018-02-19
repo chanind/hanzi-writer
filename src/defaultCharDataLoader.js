@@ -1,7 +1,7 @@
 // corresponds to the integer in the gh-pages branch under the cdn folder
 // make sure to check out a new version of the master branch in gh-pages when changing the data format
 // otherwise this may break any existing hanzi-writer deploys in the wild
-const VERSION = '1';
+const VERSION = '2.0';
 const getCharDataUrl = (char) => `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
 
 module.exports = (char, onLoad, onError) => {

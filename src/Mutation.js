@@ -27,9 +27,6 @@ const isAlreadyAtEnd = function(startValues, endValues) {
   for (const key in endValues) {
     if (endValues.hasOwnProperty(key)) {
       const endValue = endValues[key];
-      if (!startValues) {
-        console.log(startValues, endValues);
-      }
       const startValue = startValues[key];
       if (endValue >= 0) {
         if (endValue !== startValue) return false;

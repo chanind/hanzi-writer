@@ -200,7 +200,7 @@ describe('Quiz', () => {
       quiz.startUserStroke(new Point(10, 20));
       quiz.continueUserStroke(new Point(100, 200));
 
-      const currentStrokeId = quiz._userStroke.id
+      const currentStrokeId = quiz._userStroke.id;
       expect(quiz._currentStrokeIndex).toBe(0);
       quiz.endUserStroke();
       await resolvePromises();
@@ -245,7 +245,7 @@ describe('Quiz', () => {
       quiz.startUserStroke(new Point(10, 20));
       quiz.continueUserStroke(new Point(100, 200));
 
-      const currentStrokeId = quiz._userStroke.id
+      const currentStrokeId = quiz._userStroke.id;
       expect(quiz._currentStrokeIndex).toBe(0);
       quiz.endUserStroke();
       await resolvePromises();

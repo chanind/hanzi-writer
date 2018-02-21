@@ -5,11 +5,9 @@ function RenderState(character, options, onStateChange) {
   this._mutationChains = [];
   this.state = {
     options: {
-      usePolygonMasks: options.usePolygonMasks,
       drawingFadeDuration: options.drawingFadeDuration,
       drawingWidth: options.drawingWidth,
       drawingColor: options.drawingColor,
-      strokeWidth: options.strokeWidth,
     },
     character: {
       main: {

@@ -8,7 +8,7 @@ const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, isMSBrowser, callIfExists } = require('./utils');
+const { assign, callIfExists } = require('./utils');
 
 
 const defaultOptions = {
@@ -52,8 +52,6 @@ const defaultOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
-  // MS browsers are terrible and can't handle masks using paths with stroke
-  usePolygonMasks: isMSBrowser(),
 };
 
 function HanziWriter(element, character, options = {}) {

@@ -8,6 +8,7 @@
     "clock": true
   },
   "rules": {
-    "id-length": [0]
+    "id-length": [0],
+    "no-await-in-loop": [0]
   }
 }

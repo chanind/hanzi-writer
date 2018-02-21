@@ -77,8 +77,8 @@ RenderState.prototype._run = function(mutationChain) {
     } else {
       mutationChain._isActive = false; // eslint-disable-line no-param-reassign
       this._mutationChains = this._mutationChains.filter(chain => chain !== mutationChain);
-      // The chain is done - resolve the promise with true to signal it finished successfully
-      mutationChain._resolve(true);
+      // The chain is done - resolve the promise to signal it finished successfully
+      mutationChain._resolve({ canceled: false });
       return;
     }
   }
@@ -104,14 +104,17 @@ RenderState.prototype.cancelMutations = function(scopes) {
   });
 };
 
+RenderState.prototype.cancelAll = function() {
+  this.cancelMutations(['']);
+};
+
 RenderState.prototype._cancelMutationChain = function(mutationChain) {
   mutationChain._isActive = false; // eslint-disable-line no-param-reassign
   for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
     mutationChain._mutations[i].cancel(this);
   }
   if (mutationChain._resolve) {
-    // resolve with false to indicate the chain was canceled before completion
-    mutationChain._resolve(false);
+    mutationChain._resolve({ canceled: true });
   }
   this._mutationChains = this._mutationChains.filter(chain => chain !== mutationChain);
 };

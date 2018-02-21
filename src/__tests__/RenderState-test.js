@@ -124,10 +124,10 @@ describe('RenderState', () => {
       // allow another tick for the state to realized all mutations are done
       await Promise.resolve();
       expect(isResolved).toBe(true);
-      expect(resolvedVal).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
     });
 
-    it('resolves its promise with false if mutations are canceled before completion', async () => {
+    it('resolves its promise with canceled: true if mutations are canceled before completion', async () => {
       const updateState = jest.fn();
       const renderState = new RenderState(char, opts, updateState);
 
@@ -155,7 +155,7 @@ describe('RenderState', () => {
       await Promise.resolve();
       expect(renderState.state.character.main.opacity).toBe(0.3);
       expect(isResolved).toBe(true);
-      expect(resolvedVal).toBe(false);
+      expect(resolvedVal).toEqual({ canceled: true });
     });
   });
 });

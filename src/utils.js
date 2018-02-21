@@ -70,8 +70,9 @@ function getExtremes(numArray) {
   return [max, mid, min];
 }
 
-function callIfExists(callback, ...args) {
-  if (callback) callback(...args);
+function callIfExists(callback, arg) {
+  if (callback) callback(arg);
+  return arg;
 }
 
 let count = 0;

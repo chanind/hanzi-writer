@@ -35,7 +35,7 @@ describe('CharacterRenderer', () => {
     };
 
     const charRenderer = new CharacterRenderer(char);
-    charRenderer.mount(canvas, props);
+    charRenderer.mount(canvas);
     charRenderer.render(props);
 
     const subCanvas = canvas.svg.childNodes[1];
@@ -73,7 +73,7 @@ describe('CharacterRenderer', () => {
     });
 
     const charRenderer = new CharacterRenderer(char);
-    charRenderer.mount(canvas, props1);
+    charRenderer.mount(canvas);
     charRenderer.render(props1);
     charRenderer.render(props2);
 
@@ -87,6 +87,43 @@ describe('CharacterRenderer', () => {
       expect(node.nodeName).toBe('path');
       expect(node.getAttribute('stroke')).toBe('#456');
     });
+  });
+
+  it('sets display: none if opacity is 0', () => {
+    const props1 = {
+      strokeColor: '#123',
+      radicalColor: null,
+      strokeWidth: 2,
+      opacity: 0,
+      strokes: {
+        0: {
+          opacity: 1,
+          displayPortion: 1,
+        },
+        1: {
+          opacity: 1,
+          displayPortion: 1,
+        },
+      },
+    };
+
+    const props2 = copyAndMergeDeep(props1, {
+      strokeColor: '#456',
+      opacity: 0.9,
+    });
+
+    const charRenderer = new CharacterRenderer(char);
+    charRenderer.mount(canvas);
+    charRenderer.render(props1);
+    const subCanvas = canvas.svg.childNodes[1];
+
+    expect(subCanvas.style.opacity).toBe('0');
+    expect(subCanvas.style.display).toBe('none');
+
+    charRenderer.render(props2);
+
+    expect(subCanvas.style.opacity).toBe('0.9');
+    expect(subCanvas.style.display).toBe('initial');
   });
 
 });

@@ -71,7 +71,7 @@ HanziWriter.prototype.showCharacter = function(options = {}) {
       'main',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    )).then(() => callIfExists(options.onComplete))
+    )).then(res => callIfExists(options.onComplete, res))
   ));
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
@@ -80,7 +80,7 @@ HanziWriter.prototype.hideCharacter = function(options = {}) {
       'main',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    )).then(() => callIfExists(options.onComplete))
+    )).then(res => callIfExists(options.onComplete, res))
   ));
 };
 HanziWriter.prototype.animateCharacter = function(options = {}) {
@@ -92,7 +92,7 @@ HanziWriter.prototype.animateCharacter = function(options = {}) {
       this._options.strokeFadeDuration,
       this._options.strokeAnimationSpeed,
       this._options.delayBetweenStrokes,
-    )).then(() => callIfExists(options.onComplete))
+    )).then(res => callIfExists(options.onComplete, res))
   ));
 };
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
@@ -115,7 +115,7 @@ HanziWriter.prototype.showOutline = function(options = {}) {
       'outline',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    )).then(() => callIfExists(options.onComplete))
+    )).then(res => callIfExists(options.onComplete, res))
   ));
 };
 
@@ -125,7 +125,7 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
       'outline',
       this._character,
       options.duration || this._options.strokeFadeDuration,
-    )).then(() => callIfExists(options.onComplete))
+    )).then(res => callIfExists(options.onComplete, res))
   ));
 };
 
@@ -145,6 +145,7 @@ HanziWriter.prototype.setCharacter = function(char) {
   this.cancelQuiz();
   this._char = char;
   if (this._hanziWriterRenderer) this._hanziWriterRenderer.destroy();
+  if (this._renderState) this._renderState.cancelAll();
   this._hanziWriterRenderer = null;
   this._withDataPromise = this._loadingManager.loadCharData(char).then(pathStrings => {
     if (this._loadingManager.loadingFailed) return;

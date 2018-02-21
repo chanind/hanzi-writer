@@ -2,6 +2,7 @@ const ren = require('hanzi-writer-data/人.json');
 const yi = require('hanzi-writer-data/一.json');
 const HanziWriter = require('../HanziWriter');
 const { timeout } = require('../utils');
+const { resolvePromises } = require('../testUtils');
 
 describe('HanziWriter', () => {
   describe('constructor', () => {
@@ -94,6 +95,192 @@ describe('HanziWriter', () => {
       await writer._withDataPromise;
       expect(document.querySelector('#target svg g').childNodes.length).toBe(3);
       expect(document.querySelector('#target svg defs *')).not.toBe(null);
+    });
+  });
+
+  describe('animateCharacter', () => {
+    it('returns animates and returns promise that resolves when animation is finished', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        showCharacter: true,
+        charDataLoader: () => ren,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.animateCharacter({ onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.opacity).toBe(1);
+      [0, 1].forEach(strokeNum => {
+        expect(writer._renderState.state.character.main.strokes[strokeNum].opacity).toBe(1);
+      });
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.opacity).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(0);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
+      expect(isResolved).toBe(false);
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+  });
+
+  describe('hideCharacter', () => {
+    it('returns animates and returns promise that resolves when finished', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        showCharacter: true,
+        charDataLoader: () => ren,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.hideCharacter({ onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.opacity).toBe(1);
+      expect(isResolved).toBe(false);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.opacity).toBe(0);
+
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+
+    it('returns instantly if char is already hidden', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        showCharacter: false,
+        charDataLoader: () => ren,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.hideCharacter({ onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      expect(isResolved).toBe(false);
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.opacity).toBe(0);
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+  });
+
+  [
+    { methodLabel: 'Character', stateLabel: 'main' },
+    { methodLabel: 'Outline', stateLabel: 'outline' },
+  ].forEach(({ methodLabel, stateLabel }) => {
+    describe(`show${methodLabel}`, () => {
+      it('returns animates and returns promise that resolves when finished', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          [`show${methodLabel}`]: false,
+          charDataLoader: () => ren,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`show${methodLabel}`]({ onComplete }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
+        expect(isResolved).toBe(false);
+
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
+
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
+
+      it('returns instantly if already shown', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          [`show${methodLabel}`]: true,
+          charDataLoader: () => ren,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`show${methodLabel}`]({ onComplete }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        expect(isResolved).toBe(false);
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
     });
   });
 });

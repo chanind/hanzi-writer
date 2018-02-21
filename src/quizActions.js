@@ -14,17 +14,17 @@ const startQuiz = (character, fadeDuration) => {
 
 const startUserStroke = (id, point) => {
   return [
-    new Mutation('quiz.activeUserStrokeId', id),
+    new Mutation('quiz.activeUserStrokeId', id, { force: true }),
     new Mutation(`userStrokes.${id}`, {
       points: [point],
       opacity: 1,
-    }),
+    }, { force: true }),
   ];
 };
 
 const updateUserStroke = (userStrokeId, points) => {
   return [
-    new Mutation(`userStrokes.${userStrokeId}.points`, points),
+    new Mutation(`userStrokes.${userStrokeId}.points`, points, { force: true }),
   ];
 };
 

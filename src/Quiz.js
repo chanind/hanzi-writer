@@ -5,7 +5,7 @@ const quizActions = require('./quizActions');
 const characterActions = require('./characterActions');
 
 
-function Quiz(character, renderState, quizOptions) {
+function Quiz(character, renderState) {
   this._character = character;
   this._renderState = renderState;
   this._isActive = false;
@@ -55,7 +55,6 @@ Quiz.prototype.endUserStroke = function() {
     if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
       this._renderState.run(
         characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed),
-        { force: true },
       );
     }
   }

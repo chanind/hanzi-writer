@@ -65,7 +65,7 @@ module.exports =
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 5);
+/******/ 	return __webpack_require__(__webpack_require__.s = 6);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -75,10 +75,24 @@ module.exports =
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 function emptyFunc() {}
 
+var performanceNow = global.performance && function () {
+  return global.performance.now();
+} || function () {
+  return Date.now();
+};
+var requestAnimationFrame = global.requestAnimationFrame || function (callback) {
+  return setTimeout(function () {
+    return callback(performanceNow());
+  }, 1000 / 60);
+};
+var cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
+
 // Object.assign polyfill, because IE :/
-function assign(target) {
+var assign = Object.assign || function (target) {
   var overrideTarget = Object(target);
 
   for (var _len = arguments.length, overrides = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -95,20 +109,36 @@ function assign(target) {
     }
   });
   return overrideTarget;
+};
+
+function copyAndMergeDeep(base, override) {
+  var output = assign({}, base);
+  for (var key in override) {
+    // eslint-disable-line guard-for-in
+    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
+    // in here that aren't plain objects anyway and this is a hot code path
+    var baseVal = base[key];
+    var overrideVal = override[key];
+    if (baseVal === overrideVal) continue; // eslint-disable-line no-continue
+    if (baseVal && overrideVal && (typeof baseVal === 'undefined' ? 'undefined' : _typeof(baseVal)) === 'object' && (typeof overrideVal === 'undefined' ? 'undefined' : _typeof(overrideVal)) === 'object' && !Array.isArray(overrideVal)) {
+      output[key] = copyAndMergeDeep(baseVal, overrideVal);
+    } else {
+      output[key] = overrideVal;
+    }
+  }
+  return output;
 }
 
-// utils for classes without es6, sigh...
-// from: https://github.com/nodejs/node-v0.x-archive/blob/546ae2ee/lib/util.js#L552-L575
-function inherits(ctor, superCtor) {
-  ctor.super_ = superCtor; // eslint-disable-line no-param-reassign
-  ctor.prototype = Object.create(superCtor.prototype, { // eslint-disable-line no-param-reassign
-    constructor: {
-      value: ctor,
-      enumerable: false,
-      writable: true,
-      configurable: true
-    }
-  });
+function inflate(scope, obj) {
+  var parts = scope.split('.');
+  var final = {};
+  var current = final;
+  for (var i = 0; i < parts.length; i++) {
+    var cap = i === parts.length - 1 ? obj : {};
+    current[parts[i]] = cap;
+    current = cap;
+  }
+  return final;
 }
 
 function arrayMax(numArray) {
@@ -126,17 +156,14 @@ function getExtremes(numArray) {
   return [max, mid, min];
 }
 
-function callIfExists(callback) {
-  for (var _len2 = arguments.length, args = Array(_len2 > 1 ? _len2 - 1 : 0), _key2 = 1; _key2 < _len2; _key2++) {
-    args[_key2 - 1] = arguments[_key2];
-  }
-
-  if (callback) callback.apply(undefined, args);
+function callIfExists(callback, arg) {
+  if (callback) callback(arg);
+  return arg;
 }
 
 var count = 0;
 function counter() {
-  count += 1;
+  count++;
   return count;
 }
 
@@ -155,21 +182,31 @@ function timeout() {
   });
 }
 
-function isMSBrowser() {
-  return global.navigator && global.navigator.userAgent && (global.navigator.userAgent.indexOf('Edge') >= 0 || global.navigator.userAgent.indexOf('MSIE') >= 0);
-}
+// return a new array-like object with int keys where each key is item
+// ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
+var objRepeat = function objRepeat(item, times) {
+  var obj = {};
+  for (var i = 0; i < times; i++) {
+    obj[i] = item;
+  }
+  return obj;
+};
 
 module.exports = {
-  inherits: inherits,
-  assign: assign,
   arrayMax: arrayMax,
   arrayMin: arrayMin,
+  assign: assign,
   average: average,
   callIfExists: callIfExists,
+  cancelAnimationFrame: cancelAnimationFrame,
+  copyAndMergeDeep: copyAndMergeDeep,
   counter: counter,
   emptyFunc: emptyFunc,
   getExtremes: getExtremes,
-  isMSBrowser: isMSBrowser,
+  inflate: inflate,
+  objRepeat: objRepeat,
+  performanceNow: performanceNow,
+  requestAnimationFrame: requestAnimationFrame,
   timeout: timeout
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
@@ -284,66 +321,7 @@ module.exports = g;
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-
-
-function Renderer() {
-  this.isDestroyed = false; // check this in children in animations, etc
-  this.childRenderers = [];
-  this.parentRenderer = null;
-}
-
-// implement in children
-Renderer.prototype.draw = function () {
-  return this;
-};
-
-Renderer.prototype.registerChild = function (child) {
-  this.childRenderers.push(child);
-  child.setParent(this);
-  return child;
-};
-
-Renderer.prototype.setParent = function (parent) {
-  this.parentRenderer = parent;
-  return this;
-};
-
-Renderer.prototype.setCanvas = function (canvas) {
-  this.canvas = canvas;
-  return this;
-};
-
-// extend this in children with extra behavior
-Renderer.prototype.destroy = function () {
-  this.isDestroyed = true;
-  this.childRenderers.forEach(function (child) {
-    return child.destroy();
-  });
-};
-
-module.exports = Renderer;
-
-/***/ }),
-/* 4 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
-
-var _require = __webpack_require__(0),
-    inherits = _require.inherits;
-
-var performanceNow = global.performance && function () {
-  return global.performance.now();
-} || function () {
-  return Date.now();
-};
-var requestAnimFrame = global.requestAnimationFrame || function (callback) {
-  return setTimeout(function () {
-    return callback(performanceNow());
-  }, 1000 / 60);
-};
-var cancelAnimFrame = global.cancelAnimationFrame || clearTimeout;
 
 function createElm(elmType) {
   return global.document.createElementNS('http://www.w3.org/2000/svg', elmType);
@@ -372,100 +350,9 @@ function getPathString(points) {
   return pathString;
 }
 
-// ------- STYLETWEEN CLASS ---------
-
-// from https://github.com/maxwellito/vivus
-var ease = function ease(x) {
-  return -Math.cos(x * Math.PI) / 2 + 0.5;
-};
-
-function Tween(onTick) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  this._onTick = onTick;
-  this._duration = options.duration || 300;
-  this._isActive = false;
+function removeElm(elm) {
+  if (elm) elm.parentNode.removeChild(elm);
 }
-
-Tween.prototype.start = function () {
-  var _this = this;
-
-  this._isActive = true;
-  this._startTime = performanceNow();
-  this._progress = 0;
-  this._nextTick();
-
-  return new Promise(function (resolve, reject) {
-    _this._resolve = resolve;
-  });
-};
-
-Tween.prototype._nextTick = function () {
-  var _this2 = this;
-
-  this._frameHandle = requestAnimFrame(function (timing) {
-    return _this2._tick(timing);
-  });
-};
-
-Tween.prototype._tick = function (timing) {
-  if (!this._isActive) return;
-  var progress = Math.min(1, (timing - this._startTime) / this._duration);
-  if (progress === this._progress) return this._nextTick();
-  this._progress = progress;
-  var easedProgress = ease(progress);
-  this._onTick(easedProgress);
-  if (progress === 1) {
-    this._frameHandle = null;
-    this.finish();
-  } else {
-    this._nextTick();
-  }
-};
-
-Tween.prototype.finish = function () {
-  if (!this._isActive) return;
-  this._isActive = false;
-  if (this._frameHandle) {
-    cancelAnimFrame(this._frameHandle);
-  }
-  if (this._resolve) {
-    this._resolve();
-    this._resolve = null;
-  }
-};
-
-function StyleTween(elm, style, endValue) {
-  var _this3 = this;
-
-  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
-
-  StyleTween.super_.call(this, function (easedProgress) {
-    var nextStyleValue = (_this3._endValue - _this3._startValue) * easedProgress + _this3._startValue;
-    _this3._elm.style[_this3._style] = nextStyleValue;
-  }, options);
-  this._elm = elm;
-  this._style = style;
-  this._endValue = endValue;
-  // ensureEndStyle is if the tween is canceled early, should elm style be set immediately to endValue?
-  this._ensureEndStyle = options.ensureEndStyle;
-}
-inherits(StyleTween, Tween);
-
-StyleTween.prototype.start = function () {
-  this._startValue = parseFloat(this._elm.style[this._style], 10);
-  if (this._startValue === this._endValue) {
-    return Promise.resolve();
-  }
-  return StyleTween.super_.prototype.start.call(this);
-};
-
-StyleTween.prototype.finish = function () {
-  if (this._isActive && this._ensureEndStyle) {
-    this._elm.style[this._style] = this._endValue;
-  }
-  return StyleTween.super_.prototype.finish.call(this);
-};
 
 // -------- CANVAS CLASS --------
 
@@ -499,35 +386,262 @@ Canvas.init = function (elmOrId) {
   return new Canvas(svg, defs);
 };
 
-Canvas.prototype.remove = function () {
-  this.svg.parentNode.removeChild(this.svg);
+module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, getPathString: getPathString, removeElm: removeElm };
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ }),
+/* 4 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
+var Mutation = __webpack_require__(5);
+
+var _require = __webpack_require__(0),
+    objRepeat = _require.objRepeat;
+
+var hideStrokes = function hideStrokes(charName, character, duration) {
+  return [new Mutation('character.' + charName + '.strokes', objRepeat({ opacity: 0 }, character.strokes.length), { duration: duration, force: true })];
 };
 
-module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, Tween: Tween, StyleTween: StyleTween, getPathString: getPathString };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+var showStrokes = function showStrokes(charName, character, duration) {
+  return [new Mutation('character.' + charName + '.strokes', objRepeat({ opacity: 1, displayPortion: 1 }, character.strokes.length), { duration: duration, force: true })];
+};
+
+var showCharacter = function showCharacter(charName, character, duration) {
+  return [new Mutation('character.' + charName, {
+    opacity: 1,
+    strokes: objRepeat({ opacity: 1, displayPortion: 1 }, character.strokes.length)
+  }, { duration: duration, force: true })];
+};
+
+var hideCharacter = function hideCharacter(charName, character, duration) {
+  return [new Mutation('character.' + charName + '.opacity', 0, { duration: duration, force: true })].concat(showStrokes(charName, character, 0));
+};
+
+var animateStroke = function animateStroke(charName, stroke, speed) {
+  var strokeNum = stroke.strokeNum;
+  var duration = (stroke.getLength() + 600) / (3 * speed);
+  return [new Mutation('character.' + charName, {
+    opacity: 1,
+    strokes: _defineProperty({}, strokeNum, {
+      displayPortion: 0,
+      opacity: 1
+    })
+  }), new Mutation('character.' + charName + '.strokes.' + strokeNum + '.displayPortion', 1, { duration: duration })];
+};
+
+var highlightStroke = function highlightStroke(charName, stroke, speed) {
+  var strokeNum = stroke.strokeNum;
+  var duration = (stroke.getLength() + 600) / (3 * speed);
+  return [new Mutation('character.' + charName, {
+    opacity: 1,
+    strokes: _defineProperty({}, strokeNum, {
+      displayPortion: 0,
+      opacity: 0
+    })
+  }), new Mutation('character.' + charName + '.strokes.' + strokeNum, {
+    displayPortion: 1,
+    opacity: 1
+  }, { duration: duration }), new Mutation('character.' + charName + '.strokes.' + strokeNum + '.opacity', 0, { duration: duration })];
+};
+
+var showStroke = function showStroke(charName, strokeNum, duration) {
+  return [new Mutation('character.' + charName, {
+    opacity: 1,
+    strokes: _defineProperty({}, strokeNum, {
+      displayPortion: 1,
+      opacity: 1
+    })
+  }, { duration: duration })];
+};
+
+var animateCharacter = function animateCharacter(charName, character, fadeDuration, speed, delayBetweenStrokes) {
+  var mutations = hideCharacter(charName, character, fadeDuration);
+  mutations = mutations.concat(showStrokes(charName, character, 0));
+  mutations.push(new Mutation('character.' + charName, {
+    opacity: 1,
+    strokes: objRepeat({ opacity: 0 }, character.strokes.length)
+  }, { force: true }));
+  character.strokes.forEach(function (stroke, i) {
+    if (i > 0) mutations.push(new Mutation.Pause(delayBetweenStrokes));
+    mutations = mutations.concat(animateStroke(charName, stroke, speed));
+  });
+  return mutations;
+};
+
+var animateCharacterLoop = function animateCharacterLoop(charName, character, fadeDuration, speed, delayBetweenStrokes, delayBetweenLoops) {
+  var mutations = animateCharacter(charName, character, fadeDuration, speed, delayBetweenStrokes);
+  mutations.push(new Mutation.Pause(delayBetweenLoops));
+  return mutations;
+};
+
+module.exports = {
+  showStrokes: showStrokes,
+  hideStrokes: hideStrokes,
+  showCharacter: showCharacter,
+  hideCharacter: hideCharacter,
+  animateCharacter: animateCharacter,
+  animateCharacterLoop: animateCharacterLoop,
+  animateStroke: animateStroke,
+  highlightStroke: highlightStroke,
+  showStroke: showStroke
+};
 
 /***/ }),
 /* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
+
+
+var _require = __webpack_require__(0),
+    inflate = _require.inflate,
+    performanceNow = _require.performanceNow,
+    requestAnimationFrame = _require.requestAnimationFrame,
+    cancelAnimationFrame = _require.cancelAnimationFrame;
+
+// ------ Mutation class --------
+
+var getPartialValues = function getPartialValues(startValues, endValues, progress) {
+  var target = {};
+  for (var key in endValues) {
+    // eslint-disable-line guard-for-in
+    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
+    // in here that aren't plain objects anyway and this is a hot code path
+    var endValue = endValues[key];
+    var startValue = startValues[key];
+    if (endValue >= 0) {
+      target[key] = progress * (endValue - startValue) + startValue;
+    } else {
+      target[key] = getPartialValues(startValue, endValue, progress);
+    }
+  }
+  return target;
+};
+
+var isAlreadyAtEnd = function isAlreadyAtEnd(startValues, endValues) {
+  for (var key in endValues) {
+    if (endValues.hasOwnProperty(key)) {
+      var endValue = endValues[key];
+      var startValue = startValues[key];
+      if (endValue >= 0) {
+        if (endValue !== startValue) return false;
+      } else if (!isAlreadyAtEnd(startValue, endValue)) {
+        return false;
+      }
+    }
+  }
+  return true;
+};
+
+// from https://github.com/maxwellito/vivus
+var ease = function ease(x) {
+  return -Math.cos(x * Math.PI) / 2 + 0.5;
+};
+
+function Mutation(scope, values) {
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  this.scope = scope;
+  this._values = inflate(scope, values);
+  this._duration = options.duration || 0;
+  this._force = options.force;
+  this._tickBound = this._tick.bind(this);
+}
+
+Mutation.prototype.run = function (renderState) {
+  var _this = this;
+
+  if (this._duration === 0) renderState.updateState(this._values);
+  if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
+    return Promise.resolve();
+  }
+  this._renderState = renderState;
+  this._startState = renderState.state;
+  this._startTime = performanceNow();
+  this._frameHandle = requestAnimationFrame(this._tickBound);
+  return new Promise(function (resolve) {
+    _this._resolve = resolve;
+  });
+};
+
+Mutation.prototype._tick = function (timing) {
+  var progress = Math.min(1, (timing - this._startTime) / this._duration);
+  if (progress === 1) {
+    this._renderState.updateState(this._values);
+    this._frameHandle = null;
+    this.cancel(this._renderState);
+  } else {
+    var easedProgress = ease(progress);
+    this._renderState.updateState(getPartialValues(this._startState, this._values, easedProgress));
+    this._frameHandle = requestAnimationFrame(this._tickBound);
+  }
+};
+
+Mutation.prototype.cancel = function (renderState) {
+  if (this._resolve) this._resolve();
+  this._resolve = null;
+  if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
+  this._frameHandle = null;
+  if (this._force) renderState.updateState(this._values);
+};
+
+// ------ Mutation.Pause Class --------
+
+function Pause(duration) {
+  this._duration = duration;
+}
+
+Pause.prototype.run = function () {
+  var _this2 = this;
+
+  var timeoutPromise = new Promise(function (resolve) {
+    _this2._resolve = resolve;
+  });
+  this._timeout = setTimeout(function () {
+    return _this2.cancel();
+  }, this._duration);
+  return timeoutPromise;
+};
+
+Pause.prototype.cancel = function () {
+  clearTimeout(this._timeout);
+  if (this._resolve) this._resolve();
+  this._resolve = false;
+};
+
+Mutation.Pause = Pause;
+
+// -------------------------------------
+
+
+module.exports = Mutation;
+
+/***/ }),
+/* 6 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var CharacterRenderer = __webpack_require__(6);
-var PositionerRenderer = __webpack_require__(9);
+var HanziWriterRenderer = __webpack_require__(7);
+var RenderState = __webpack_require__(12);
 var Point = __webpack_require__(1);
-var CharDataParser = __webpack_require__(10);
-var Positioner = __webpack_require__(13);
-var Quiz = __webpack_require__(14);
-var svg = __webpack_require__(4);
-var defaultCharDataLoader = __webpack_require__(18);
-var Animator = __webpack_require__(19);
-var LoadingManager = __webpack_require__(21);
+var CharDataParser = __webpack_require__(13);
+var Positioner = __webpack_require__(16);
+var Quiz = __webpack_require__(17);
+var svg = __webpack_require__(3);
+var defaultCharDataLoader = __webpack_require__(21);
+var LoadingManager = __webpack_require__(22);
+var characterActions = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
     assign = _require.assign,
-    isMSBrowser = _require.isMSBrowser,
-    timeout = _require.timeout;
+    callIfExists = _require.callIfExists;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -569,12 +683,134 @@ var defaultOptions = {
   drawingFadeDuration: 300,
   drawingWidth: 4,
   strokeWidth: 2,
-  outlineWidth: 2,
-  // MS browsers are terrible and can't handle masks using paths with stroke
-  usePolygonMasks: isMSBrowser()
+  outlineWidth: 2
 };
 
-var assignOptions = function assignOptions(options) {
+function HanziWriter(element, character) {
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  this._canvas = svg.Canvas.init(element);
+  this._options = this._assignOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
+  this.setCharacter(character);
+  this._setupListeners();
+  this._quiz = null;
+}
+
+// ------ public API ------ //
+
+HanziWriter.prototype.showCharacter = function () {
+  var _this = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return this._withData(function () {
+    return _this._renderState.run(characterActions.showCharacter('main', _this._character, options.duration || _this._options.strokeFadeDuration)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+HanziWriter.prototype.hideCharacter = function () {
+  var _this2 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return this._withData(function () {
+    return _this2._renderState.run(characterActions.hideCharacter('main', _this2._character, options.duration || _this2._options.strokeFadeDuration)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+HanziWriter.prototype.animateCharacter = function () {
+  var _this3 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  this.cancelQuiz();
+  return this._withData(function () {
+    return _this3._renderState.run(characterActions.animateCharacter('main', _this3._character, _this3._options.strokeFadeDuration, _this3._options.strokeAnimationSpeed, _this3._options.delayBetweenStrokes)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+HanziWriter.prototype.loopCharacterAnimation = function () {
+  var _this4 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  this.cancelQuiz();
+  return this._withData(function () {
+    return _this4._renderState.run(characterActions.animateCharacterLoop('main', _this4._character, _this4._options.strokeFadeDuration, _this4._options.strokeAnimationSpeed, _this4._options.delayBetweenStrokes, _this4._options.delayBetweenLoops), { loop: true });
+  });
+};
+
+HanziWriter.prototype.showOutline = function () {
+  var _this5 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return this._withData(function () {
+    return _this5._renderState.run(characterActions.showCharacter('outline', _this5._character, options.duration || _this5._options.strokeFadeDuration)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+
+HanziWriter.prototype.hideOutline = function () {
+  var _this6 = this;
+
+  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  return this._withData(function () {
+    return _this6._renderState.run(characterActions.hideCharacter('outline', _this6._character, options.duration || _this6._options.strokeFadeDuration)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+
+HanziWriter.prototype.quiz = function () {
+  var _this7 = this;
+
+  var quizOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
+
+  this._withData(function () {
+    _this7.cancelQuiz();
+    _this7._quiz = new Quiz(_this7._character, _this7._renderState);
+    _this7._quiz.startQuiz(assign({}, _this7._options, quizOptions));
+  });
+};
+
+HanziWriter.prototype.cancelQuiz = function () {
+  if (this._quiz) this._quiz.cancel();
+};
+
+HanziWriter.prototype.setCharacter = function (char) {
+  var _this8 = this;
+
+  this.cancelQuiz();
+  this._char = char;
+  if (this._hanziWriterRenderer) this._hanziWriterRenderer.destroy();
+  if (this._renderState) this._renderState.cancelAll();
+  this._hanziWriterRenderer = null;
+  this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
+    if (_this8._loadingManager.loadingFailed) return;
+
+    var charDataParser = new CharDataParser();
+    _this8._character = charDataParser.generateCharacter(char, pathStrings);
+    _this8._positioner = new Positioner(_this8._character, _this8._options);
+    _this8._hanziWriterRenderer = new HanziWriterRenderer(_this8._character, _this8._positioner);
+    _this8._renderState = new RenderState(_this8._character, _this8._options, function (nextState) {
+      _this8._hanziWriterRenderer.render(nextState);
+    });
+    _this8._hanziWriterRenderer.mount(_this8._canvas, _this8._renderState.state);
+    _this8._hanziWriterRenderer.render(_this8._renderState.state);
+  });
+  return this._withDataPromise;
+};
+
+// ------------- //
+
+HanziWriter.prototype._assignOptions = function (options) {
   var mergedOptions = assign({}, defaultOptions, options);
 
   // backfill strokeAnimationSpeed if deprecated strokeAnimationDuration is provided instead
@@ -585,179 +821,8 @@ var assignOptions = function assignOptions(options) {
     mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
   }
 
-  return mergedOptions;
+  return this._fillWidthAndHeight(mergedOptions);
 };
-
-function HanziWriter(element, character) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  this._animator = new Animator();
-  this._canvas = svg.Canvas.init(element);
-  this.setOptions(options);
-  this._loadingManager = new LoadingManager(this._options);
-  this.setCharacter(character);
-  this._setupListeners();
-  this._quiz = null;
-}
-
-HanziWriter.prototype.setOptions = function (options) {
-  this._options = assignOptions(options);
-  this._mainCharOptions = {
-    strokeColor: this._options.strokeColor,
-    radicalColor: this._options.radicalColor,
-    strokeWidth: this._options.strokeWidth,
-    strokeAnimationSpeed: this._options.strokeAnimationSpeed,
-    strokeFadeDuration: this._options.strokeFadeDuration,
-    delayBetweenStrokes: this._options.delayBetweenStrokes,
-    usePolygonMasks: this._options.usePolygonMasks
-  };
-  this._outlineCharOptions = assign({}, this._mainCharOptions, {
-    strokeColor: this._options.outlineColor,
-    radicalColor: null,
-    strokeWidth: this._options.outlineWidth
-  });
-  this._highlightCharOptions = assign({}, this._mainCharOptions, {
-    strokeColor: this._options.highlightColor,
-    radicalColor: null,
-    strokeAnimationSpeed: this._options.strokeHighlightSpeed
-  });
-  this._userStrokeOptions = {
-    strokeColor: this._options.drawingColor,
-    strokeWidth: this._options.drawingWidth,
-    fadeDuration: this._options.drawingFadeDuration
-  };
-};
-
-// ------ public API ------ //
-
-HanziWriter.prototype.showCharacter = function () {
-  var _this = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return this._animateWithData(function (animation) {
-    return _this._characterRenderer.show(animation);
-  }, options);
-};
-HanziWriter.prototype.hideCharacter = function () {
-  var _this2 = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return this._animateWithData(function (animation) {
-    return _this2._characterRenderer.hide(animation);
-  }, options);
-};
-HanziWriter.prototype.animateCharacter = function () {
-  var _this3 = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  this.cancelQuiz();
-  return this._animateWithData(function (animation) {
-    return _this3._characterRenderer.animate(animation);
-  }, options);
-};
-HanziWriter.prototype.loopCharacterAnimation = function () {
-  var _this4 = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  var animateForever = function animateForever(animation) {
-    if (!animation.isActive()) return null;
-    var cascadedOpts = assign({}, _this4._options, options);
-    var delayBetweenLoops = cascadedOpts.delayBetweenLoops;
-    var animatePromise = _this4._characterRenderer.animate(animation);
-    if (!animatePromise) return null;
-    return animatePromise.then(function () {
-      return timeout(delayBetweenLoops);
-    }).then(function () {
-      return animateForever(animation);
-    });
-  };
-
-  this.cancelQuiz();
-  return this._animateWithData(animateForever, options);
-};
-
-HanziWriter.prototype.showOutline = function () {
-  var _this5 = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return this._animateWithData(function (animation) {
-    return _this5._outlineRenderer.show(animation);
-  }, options);
-};
-HanziWriter.prototype.hideOutline = function () {
-  var _this6 = this;
-
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  return this._animateWithData(function (animation) {
-    return _this6._outlineRenderer.hide(animation);
-  }, options);
-};
-
-HanziWriter.prototype.quiz = function () {
-  var _this7 = this;
-
-  var quizOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  this._withData(function () {
-    _this7.cancelQuiz();
-    _this7._quiz = new Quiz({
-      canvas: _this7._subCanvas,
-      animator: _this7._animator,
-      character: _this7._character,
-      characterRenderer: _this7._characterRenderer,
-      highlightRenderer: _this7._highlightRenderer,
-      quizOptions: assign({}, _this7._options, quizOptions),
-      userStrokeOptions: _this7._userStrokeOptions
-    });
-  });
-};
-
-HanziWriter.prototype.cancelQuiz = function () {
-  if (this._quiz) this._quiz.cancel();
-  this._quiz = null;
-};
-
-HanziWriter.prototype.setCharacter = function (char) {
-  var _this8 = this;
-
-  this.cancelQuiz();
-  this._char = char;
-  this._animator.cancel();
-  if (this._positionerRenderer) this._positionerRenderer.destroy();
-  if (this._characterRenderer) this._characterRenderer.destroy();
-  if (this._outlineRenderer) this._outlineRenderer.destroy();
-  if (this._highlightRenderer) this._highlightRenderer.destroy();
-  this._positionerRenderer = null;
-  this._characterRenderer = null;
-  this._outlineRenderer = null;
-  this._highlightRenderer = null;
-  this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
-    if (_this8._loadingManager.loadingFailed) return;
-
-    var charDataParser = new CharDataParser();
-    _this8._character = charDataParser.generateCharacter(char, pathStrings);
-    _this8._positioner = new Positioner(_this8._character, _this8._fillWidthAndHeight(_this8._options));
-
-    _this8._positionerRenderer = new PositionerRenderer(_this8._positioner).setCanvas(_this8._canvas);
-    _this8._subCanvas = _this8._positionerRenderer.positionedCanvas;
-
-    _this8._outlineRenderer = new CharacterRenderer(_this8._character, _this8._outlineCharOptions).setCanvas(_this8._subCanvas).draw();
-    _this8._characterRenderer = new CharacterRenderer(_this8._character, _this8._mainCharOptions).setCanvas(_this8._subCanvas).draw();
-    _this8._highlightRenderer = new CharacterRenderer(_this8._character, _this8._highlightCharOptions).setCanvas(_this8._subCanvas).draw();
-
-    if (_this8._options.showCharacter) _this8._characterRenderer.showImmediate();
-    if (_this8._options.showOutline) _this8._outlineRenderer.showImmediate();
-  });
-  return this._withDataPromise;
-};
-
-// ------------- //
 
 // returns a new options object with width and height filled in if missing
 HanziWriter.prototype._fillWidthAndHeight = function (options) {
@@ -856,22 +921,6 @@ HanziWriter.prototype._getTouchPoint = function (evt) {
   return this._positioner.convertExternalPoint(new Point(x, y));
 };
 
-HanziWriter.prototype._animate = function (func) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  return this._animator.animate(func, options);
-};
-
-HanziWriter.prototype._animateWithData = function (func) {
-  var _this11 = this;
-
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  return this._withData(function () {
-    return _this11._animate(func, options);
-  });
-};
-
 // set up window.HanziWriter if we're in the browser
 if (typeof global.window !== 'undefined') {
   // store whatever used to be called HanziWriter in case of a conflict
@@ -893,137 +942,144 @@ if (true) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Renderer = __webpack_require__(3);
-var StrokeRenderer = __webpack_require__(7);
-
-var _require = __webpack_require__(0),
-    timeout = _require.timeout,
-    inherits = _require.inherits;
-
-function CharacterRenderer(character) {
-  var _this = this;
-
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  CharacterRenderer.super_.call(this);
-  this.options = options;
-  this.character = character;
-  this.strokeRenderers = this.character.strokes.map(function (stroke) {
-    return _this.registerChild(new StrokeRenderer(stroke, options));
-  });
-}
-
-inherits(CharacterRenderer, Renderer);
-
-CharacterRenderer.prototype.getBounds = function () {
-  return this.character.getBounds();
-};
-
-CharacterRenderer.prototype.show = function (animation) {
-  var promises = this.strokeRenderers.map(function (strokeRenderer) {
-    return strokeRenderer.show(animation);
-  });
-  return Promise.all(promises);
-};
-
-CharacterRenderer.prototype.showImmediate = function () {
-  this.strokeRenderers.map(function (renderer) {
-    return renderer.showImmediate();
-  });
-};
-
-CharacterRenderer.prototype.hide = function (animation) {
-  var promises = this.strokeRenderers.map(function (strokeRenderer) {
-    return strokeRenderer.hide(animation);
-  });
-  return Promise.all(promises);
-};
-
-CharacterRenderer.prototype.hideImmediate = function () {
-  this.strokeRenderers.map(function (renderer) {
-    return renderer.hideImmediate();
-  });
-};
-
-CharacterRenderer.prototype.flash = function (animation) {
-  var _this2 = this;
-
-  return this.show(animation).then(function () {
-    return _this2.hide(animation);
-  });
-};
-
-CharacterRenderer.prototype.showStroke = function (strokeNum, animation) {
-  return this.getStrokeRenderer(strokeNum).show(animation);
-};
-
-CharacterRenderer.prototype.draw = function () {
-  this.strokeRenderers.forEach(function (renderer) {
-    return renderer.draw();
-  });
-  return this;
-};
-
-CharacterRenderer.prototype.getStrokeRenderer = function (strokeNum) {
-  return this.strokeRenderers[strokeNum];
-};
-
-CharacterRenderer.prototype.animate = function (animation) {
-  var _this3 = this;
-
-  if (!animation.isActive()) return null;
-  var renderChain = this.hide(animation);
-  this.strokeRenderers.forEach(function (strokeRenderer, index) {
-    if (index > 0) renderChain = renderChain.then(function () {
-      return timeout(_this3.options.delayBetweenStrokes);
-    });
-    renderChain = renderChain.then(function () {
-      return strokeRenderer.animate(animation);
-    });
-  });
-  return renderChain;
-};
-
-CharacterRenderer.prototype.setCanvas = function (canvas) {
-  CharacterRenderer.super_.prototype.setCanvas.call(this, canvas);
-  this.strokeRenderers.forEach(function (renderer) {
-    return renderer.setCanvas(canvas);
-  });
-  return this;
-};
-
-module.exports = CharacterRenderer;
-
-/***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(3);
+var CharacterRenderer = __webpack_require__(8);
+var UserStrokeRenderer = __webpack_require__(11);
 
 var _require = __webpack_require__(0),
-    counter = _require.counter,
-    inherits = _require.inherits;
+    assign = _require.assign;
 
-var svg = __webpack_require__(4);
+var svg = __webpack_require__(3);
 
-var _require2 = __webpack_require__(8),
+function HanziWriterRenderer(character, positioner) {
+  this._character = character;
+  this._positioner = positioner;
+  this._mainCharRenderer = new CharacterRenderer(character);
+  this._outlineCharRenderer = new CharacterRenderer(character);
+  this._highlightCharRenderer = new CharacterRenderer(character);
+  this._userStrokeRenderers = {};
+}
+
+HanziWriterRenderer.prototype.mount = function (canvas) {
+  var positionedCanvas = canvas.createSubCanvas();
+  var group = positionedCanvas.svg;
+  svg.attr(group, 'transform', '\n    translate(' + this._positioner.getXOffset() + ', ' + (this._positioner.getHeight() - this._positioner.getYOffset()) + ')\n    scale(' + this._positioner.getScale() + ', ' + -1 * this._positioner.getScale() + ')\n  ');
+  this._outlineCharRenderer.mount(positionedCanvas);
+  this._mainCharRenderer.mount(positionedCanvas);
+  this._highlightCharRenderer.mount(positionedCanvas);
+  this._positionedCanvas = positionedCanvas;
+};
+
+HanziWriterRenderer.prototype.render = function (props) {
+  var _this = this;
+
+  this._outlineCharRenderer.render(props.character.outline);
+  this._mainCharRenderer.render(props.character.main);
+  this._highlightCharRenderer.render(props.character.highlight);
+
+  var userStrokes = props.userStrokes || {};
+  Object.keys(this._userStrokeRenderers).forEach(function (userStrokeId) {
+    if (!userStrokes[userStrokeId]) {
+      _this._userStrokeRenderers[userStrokeId].destroy();
+      delete _this._userStrokeRenderers[userStrokeId];
+    }
+  });
+
+  Object.keys(userStrokes).forEach(function (userStrokeId) {
+    if (!userStrokes[userStrokeId]) return;
+    var userStrokeProps = assign({
+      strokeWidth: props.options.drawingWidth,
+      strokeColor: props.options.drawingColor
+    }, userStrokes[userStrokeId]);
+    var strokeRenderer = _this._userStrokeRenderers[userStrokeId];
+    if (!strokeRenderer) {
+      strokeRenderer = new UserStrokeRenderer();
+      strokeRenderer.mount(_this._positionedCanvas, userStrokeProps);
+      _this._userStrokeRenderers[userStrokeId] = strokeRenderer;
+    }
+    strokeRenderer.render(userStrokeProps);
+  });
+};
+
+HanziWriterRenderer.prototype.destroy = function () {
+  svg.removeElm(this._positionedCanvas.svg);
+  this._positionedCanvas.defs.innerHTML = '';
+};
+
+module.exports = HanziWriterRenderer;
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var StrokeRenderer = __webpack_require__(9);
+
+function CharacterRenderer(character) {
+  this._oldProps = {};
+  this.character = character;
+  this.strokeRenderers = this.character.strokes.map(function (stroke) {
+    return new StrokeRenderer(stroke);
+  });
+}
+
+CharacterRenderer.prototype.mount = function (canvas) {
+  var subCanvas = canvas.createSubCanvas();
+  this._group = subCanvas.svg;
+  this.strokeRenderers.forEach(function (strokeRenderer, i) {
+    strokeRenderer.mount(subCanvas);
+  });
+};
+
+CharacterRenderer.prototype.render = function (props) {
+  if (props === this._oldProps) return;
+  if (props.opacity !== this._oldProps.opacity) {
+    this._group.style.opacity = props.opacity;
+    if (props.opacity === 0) {
+      this._group.style.display = 'none';
+    } else if (this._oldProps.opacity === 0) {
+      this._group.style.display = 'initial';
+    }
+  }
+  for (var i = 0; i < this.strokeRenderers.length; i++) {
+    this.strokeRenderers[i].render({
+      strokeColor: props.strokeColor,
+      radicalColor: props.radicalColor,
+      opacity: props.strokes[i].opacity,
+      displayPortion: props.strokes[i].displayPortion
+    });
+  }
+  this._oldProps = props;
+};
+
+module.exports = CharacterRenderer;
+
+/***/ }),
+/* 9 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(0),
+    counter = _require.counter;
+
+var svg = __webpack_require__(3);
+
+var _require2 = __webpack_require__(10),
     extendPointOnLine = _require2.extendPointOnLine,
-    getLineSegmentsPortion = _require2.getLineSegmentsPortion,
-    filterParallelPoints = _require2.filterParallelPoints,
-    linesToPolygon = _require2.linesToPolygon;
+    filterParallelPoints = _require2.filterParallelPoints;
+
+var STROKE_WIDTH = 200;
 
 // take points on a path and move their start point backwards by distance
-
-
 var extendStart = function extendStart(points, distance) {
   if (points.length < 2) return points;
   var p1 = points[1];
@@ -1034,165 +1090,73 @@ var extendStart = function extendStart(points, distance) {
   return extendedPoints;
 };
 
-// take points on a path and move their end point backwards by distance
-var extendEnd = function extendEnd(points, distance) {
-  if (points.length < 2) return points;
-  var p1 = points[points.length - 2];
-  var p2 = points[points.length - 1];
-  var newEnd = extendPointOnLine(p1, p2, distance);
-  var extendedPoints = points.slice(0, points.length - 1);
-  extendedPoints.push(newEnd);
-  return extendedPoints;
-};
-
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  StrokeRenderer.super_.call(this);
-  this.stroke = stroke;
-  this.options = options;
+  this._oldProps = {};
+  this._stroke = stroke;
+  this._pathLength = stroke.getLength() + STROKE_WIDTH / 2;
 }
-inherits(StrokeRenderer, Renderer);
 
-StrokeRenderer.prototype.draw = function () {
-  this.path = svg.createElm('path');
-  var maskType = this.options.usePolygonMasks ? 'clipPath' : 'mask';
-  this.mask = svg.createElm(maskType);
-  this.maskPath = svg.createElm('path');
+StrokeRenderer.prototype.mount = function (canvas) {
+  this._animationPath = svg.createElm('path');
+  this._clip = svg.createElm('clipPath');
+  this._strokePath = svg.createElm('path');
   var maskId = 'mask-' + counter();
-  svg.attr(this.mask, 'id', maskId);
+  svg.attr(this._clip, 'id', maskId);
 
-  svg.attr(this.path, 'd', this.stroke.path);
-  svg.attrs(this.path, this.getStrokeAttrs());
-  this.path.style.opacity = 0;
-  var maskAttr = this.options.usePolygonMasks ? 'clip-path' : 'mask';
-  svg.attr(this.path, maskAttr, 'url(#' + maskId + ')');
+  svg.attr(this._strokePath, 'd', this._stroke.path);
+  this._animationPath.style.opacity = 0;
+  svg.attr(this._animationPath, 'clip-path', 'url(#' + maskId + ')');
 
-  this.extendedMaskPoints = extendStart(filterParallelPoints(this.stroke.points), 100);
-  if (this.options.usePolygonMasks) {
-    this.extendedMaskPoints = extendEnd(this.extendedMaskPoints, 100);
-    this.polyMaskTip = svg.createElm('circle');
-    // need to add this to the mask before the maskPath or else weird things happen. Not sure why
-    this.mask.appendChild(this.polyMaskTip);
-    svg.attr(this.polyMaskTip, 'r', 100);
-    this._setPolyMaskPortion(1);
-  } else {
-    svg.attr(this.maskPath, 'd', svg.getPathString(this.extendedMaskPoints));
-    this._maskPathLength = this.maskPath.getTotalLength();
-    svg.attrs(this.maskPath, {
-      stroke: '#FFFFFF',
-      'stroke-width': 200,
-      fill: 'none',
-      'stroke-linecap': 'round',
-      'stroke-linejoin': 'miter',
-      'stroke-dasharray': this._maskPathLength + ',' + this._maskPathLength
-    });
-    this.maskPath.style['stroke-dashoffset'] = 0;
-  }
+  var extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
+  svg.attr(this._animationPath, 'd', svg.getPathString(extendedMaskPoints));
+  svg.attrs(this._animationPath, {
+    stroke: '#FFFFFF',
+    'stroke-width': STROKE_WIDTH,
+    fill: 'none',
+    'stroke-linecap': 'round',
+    'stroke-linejoin': 'miter',
+    'stroke-dasharray': this._pathLength + ',' + this._pathLength
+  });
 
-  this.mask.appendChild(this.maskPath);
-  this.canvas.defs.appendChild(this.mask);
-  this.canvas.svg.appendChild(this.path);
+  this._clip.appendChild(this._strokePath);
+  canvas.defs.appendChild(this._clip);
+  canvas.svg.appendChild(this._animationPath);
   return this;
 };
 
-StrokeRenderer.prototype._setPolyMaskPortion = function (portion) {
-  var strokePointsPortion = getLineSegmentsPortion(this.extendedMaskPoints, portion);
-  var pathString = svg.getPathString(linesToPolygon(strokePointsPortion, 200), true);
-  var endPoint = strokePointsPortion[strokePointsPortion.length - 1];
-  svg.attr(this.maskPath, 'd', pathString);
-  svg.attr(this.polyMaskTip, 'cx', endPoint.x);
-  svg.attr(this.polyMaskTip, 'cy', endPoint.y);
-};
-
-StrokeRenderer.prototype.show = function (animation) {
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(1);
-  } else {
-    this.maskPath.style['stroke-dashoffset'] = 0;
+StrokeRenderer.prototype.render = function (props) {
+  if (props === this._oldProps) return;
+  if (props.displayPortion !== this._oldProps.displayPortion) {
+    this._animationPath.style.strokeDashoffset = this._getStrokeDashoffset(props.displayPortion);
   }
-  var tween = new svg.StyleTween(this.path, 'opacity', 1, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
 
-StrokeRenderer.prototype.hide = function (animation) {
-  var tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.strokeFadeDuration,
-    ensureEndStyle: true
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
-
-StrokeRenderer.prototype.animate = function (animation) {
-  var _this = this;
-
-  if (!animation.isActive()) return null;
-  this.showImmediate();
-  var strokeLength = this.stroke.getLength();
-  var duration = (strokeLength + 600) / (3 * this.options.strokeAnimationSpeed);
-  var tween = void 0;
-  if (this.options.usePolygonMasks) {
-    this._setPolyMaskPortion(0);
-    tween = new svg.Tween(function (portion) {
-      return _this._setPolyMaskPortion(portion);
-    }, { duration: duration });
-  } else {
-    // safari has a bug where setting the dashoffset to exactly the length causes a brief flicker
-    this.maskPath.style['stroke-dashoffset'] = this._maskPathLength * 0.999;
-    tween = new svg.StyleTween(this.maskPath, 'stroke-dashoffset', 0, { duration: duration });
+  var color = this._getColor(props);
+  if (color !== this._getColor(this._oldProps)) {
+    svg.attrs(this._animationPath, { stroke: color });
   }
-  animation.registerSvgAnimation(tween);
-  return tween.start();
-};
 
-StrokeRenderer.prototype.hideImmediate = function () {
-  this.path.style.opacity = 0;
-};
-StrokeRenderer.prototype.showImmediate = function () {
-  this.path.style.opacity = 1;
-};
-
-StrokeRenderer.prototype.highlight = function (animation) {
-  var _this2 = this;
-
-  return this.animate(animation).then(function () {
-    return _this2.hide(animation);
-  });
-};
-
-StrokeRenderer.prototype.getColor = function () {
-  var color = this.options.strokeColor;
-  if (this.options.radicalColor && this.stroke.isInRadical) {
-    color = this.options.radicalColor;
+  if (props.opacity !== this._oldProps.opacity) {
+    this._animationPath.style.opacity = props.opacity;
   }
-  return color;
+  this._oldProps = props;
 };
 
-StrokeRenderer.prototype.getStrokeAttrs = function () {
-  return {
-    fill: this.getColor(),
-    stroke: this.getColor(),
-    'stroke-width': this.options.strokeWidth
-  };
+StrokeRenderer.prototype._getStrokeDashoffset = function (displayPortion) {
+  return this._pathLength * 0.999 * (1 - displayPortion);
 };
 
-StrokeRenderer.prototype.destroy = function () {
-  StrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-  if (this.maskPath) this.maskPath.remove();
-  if (this.mask) this.mask.remove();
+StrokeRenderer.prototype._getColor = function (_ref) {
+  var strokeColor = _ref.strokeColor,
+      radicalColor = _ref.radicalColor;
+
+  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
 module.exports = StrokeRenderer;
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1206,58 +1170,6 @@ var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
   var vect = p2.subtract(p1);
   var norm = distance / vect.getMagnitude();
   return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
-};
-
-// return 2 points distance from targetPoint on line perpendicular to the line between
-// targetPoint and refPoint
-var getPerpendicularPointsAtDist = function getPerpendicularPointsAtDist(targetPoint, refPoint, distance) {
-  var vect = targetPoint.subtract(refPoint);
-  var norm = distance / vect.getMagnitude();
-  // simulate taking a cross-product with the vector (0, 0, 1) to get the new perpendicular vect
-  var perpVect = new Point(norm * vect.y, -1 * norm * vect.x);
-  return [targetPoint.add(perpVect), targetPoint.subtract(perpVect)];
-};
-
-// get the intersection point of 2 lines defined by 2 points each
-// from https://en.wikipedia.org/wiki/Line%E2%80%93line_intersection
-var getLinesIntersectPoint = function getLinesIntersectPoint(l1p1, l1p2, l2p1, l2p2) {
-  var x1 = l1p1.x;
-  var x2 = l1p2.x;
-  var x3 = l2p1.x;
-  var x4 = l2p2.x;
-  var y1 = l1p1.y;
-  var y2 = l1p2.y;
-  var y3 = l2p1.y;
-  var y4 = l2p2.y;
-  var xNumerator = (x1 * y2 - y1 * x2) * (x3 - x4) - (x1 - x2) * (x3 * y4 - y3 * x4);
-  var yNumerator = (x1 * y2 - y1 * x2) * (y3 - y4) - (y1 - y2) * (x3 * y4 - y3 * x4);
-  var denominator = (x1 - x2) * (y3 - y4) - (y1 - y2) * (x3 - x4);
-  return new Point(xNumerator / denominator, yNumerator / denominator);
-};
-
-var getLineSegmentsPortion = function getLineSegmentsPortion(points, portion) {
-  if (points.length < 2 || portion >= 1) return points;
-  if (portion === 0) return [points[0]];
-  var totalDist = 0;
-  for (var i = 1; i < points.length; i += 1) {
-    totalDist += Point.getDistance(points[i], points[i - 1]);
-  }
-  var portionedPoints = [points[0]];
-  var portionedDist = totalDist * portion;
-  var cumuativeDist = 0;
-  for (var _i = 1; _i < points.length; _i += 1) {
-    var lastPoint = points[_i - 1];
-    var segmentLength = Point.getDistance(points[_i], lastPoint);
-    if (cumuativeDist + segmentLength >= portionedDist) {
-      var vect = points[_i].subtract(lastPoint);
-      var norm = (portionedDist - cumuativeDist) / segmentLength;
-      portionedPoints.push(new Point(lastPoint.x + norm * vect.x, lastPoint.y + norm * vect.y));
-      return portionedPoints;
-    }
-    cumuativeDist += segmentLength;
-    portionedPoints.push(points[_i]);
-  }
-  return portionedPoints;
 };
 
 // remove intermediate points that are on the same line as the points to either side
@@ -1278,100 +1190,204 @@ var filterParallelPoints = function filterParallelPoints(points) {
   return filteredPoints;
 };
 
-// given the points of a polyline, return the points outlining a polygon that's that polyline stroked with thickness
-var linesToPolygon = function linesToPolygon(points, thickness) {
-  if (points.length < 2) return points;
-  var dist = thickness / 2;
-  var topSegments = [];
-  var bottomSegments = [];
-  for (var i = 1; i < points.length; i += 1) {
-    var startPoints = getPerpendicularPointsAtDist(points[i - 1], points[i], dist);
-    var endPoints = getPerpendicularPointsAtDist(points[i], points[i - 1], dist);
-    topSegments.push({ start: startPoints[0], end: endPoints[1] });
-    bottomSegments.push({ start: startPoints[1], end: endPoints[0] });
-  }
-  var topPoints = [topSegments[0].start];
-  var bottomPoints = [bottomSegments[0].start];
-  for (var _i2 = 1; _i2 < topSegments.length; _i2 += 1) {
-    var topIntersect = getLinesIntersectPoint(topSegments[_i2 - 1].start, topSegments[_i2 - 1].end, topSegments[_i2].start, topSegments[_i2].end);
-    var bottomIntersect = getLinesIntersectPoint(bottomSegments[_i2 - 1].start, bottomSegments[_i2 - 1].end, bottomSegments[_i2].start, bottomSegments[_i2].end);
-    topPoints.push(topIntersect);
-    bottomPoints.push(bottomIntersect);
-  }
-
-  var topEndPoint = topSegments[topSegments.length - 1].end;
-  var bottomEndPoint = bottomSegments[bottomSegments.length - 1].end;
-
-  var endOverlapIntersect = getLinesIntersectPoint(topPoints[topPoints.length - 1], bottomPoints[bottomPoints.length - 1], topEndPoint, bottomEndPoint);
-
-  // correct for case where there's a hard corner and we're overlapping an area we already drew
-  if (Point.getDistance(endOverlapIntersect, points[points.length - 1]) < dist) {
-    var topVect = topEndPoint.subtract(points[points.length - 1]);
-    var overlapVect = endOverlapIntersect.subtract(points[points.length - 1]);
-    // figure out if the top point is overlapping of the bottom point is overlapping by using dot-product
-    var isTopOverlapping = topVect.x * overlapVect.x + topVect.y * overlapVect.y > 0;
-    if (isTopOverlapping) {
-      topEndPoint = endOverlapIntersect;
-    } else {
-      bottomEndPoint = endOverlapIntersect;
-    }
-  }
-
-  topPoints.push(topEndPoint);
-  bottomPoints.push(bottomEndPoint);
-  bottomPoints.reverse();
-  return topPoints.concat(bottomPoints);
-};
-
 module.exports = {
   extendPointOnLine: extendPointOnLine,
-  filterParallelPoints: filterParallelPoints,
-  getLineSegmentsPortion: getLineSegmentsPortion,
-  getLinesIntersectPoint: getLinesIntersectPoint,
-  getPerpendicularPointsAtDist: getPerpendicularPointsAtDist,
-  linesToPolygon: linesToPolygon
+  filterParallelPoints: filterParallelPoints
 };
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(3);
-var svg = __webpack_require__(4);
+var svg = __webpack_require__(3);
 
-var _require = __webpack_require__(0),
-    inherits = _require.inherits;
-
-function PositionerRenderer(positioner) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  PositionerRenderer.super_.call(this);
-  this.positioner = positioner;
-  this.positionedCanvas = null;
+function UserStrokeRenderer() {
+  this._oldProps = {};
 }
 
-inherits(PositionerRenderer, Renderer);
-
-PositionerRenderer.prototype.setCanvas = function (canvas) {
-  PositionerRenderer.super_.prototype.setCanvas.call(this, canvas);
-  this.positionedCanvas = canvas.createSubCanvas();
-  var group = this.positionedCanvas.svg;
-  svg.attr(group, 'transform', '\n    translate(' + this.positioner.getXOffset() + ', ' + (this.positioner.getHeight() - this.positioner.getYOffset()) + ')\n    scale(' + this.positioner.getScale() + ', ' + -1 * this.positioner.getScale() + ')\n  ');
-  return this;
+UserStrokeRenderer.prototype.mount = function (canvas) {
+  this._path = svg.createElm('path');
+  canvas.svg.appendChild(this._path);
 };
 
-PositionerRenderer.prototype.destroy = function () {
-  PositionerRenderer.super_.prototype.destroy.call(this);
-  this.positionedCanvas.remove();
+UserStrokeRenderer.prototype.render = function (props) {
+  if (props === this._oldProps) return;
+  if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
+    svg.attrs(this._path, {
+      fill: 'none',
+      stroke: props.strokeColor,
+      'stroke-width': props.strokeWidth,
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round'
+    });
+  }
+  if (props.opacity !== this._oldProps.opacity) {
+    svg.attr(this._path, 'opacity', props.opacity);
+  }
+  if (props.points !== this._oldProps.points) {
+    svg.attr(this._path, 'd', svg.getPathString(props.points));
+  }
+  this._oldProps = props;
 };
 
-module.exports = PositionerRenderer;
+UserStrokeRenderer.prototype.destroy = function () {
+  svg.removeElm(this._path);
+};
+
+module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 10 */
+/* 12 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var _require = __webpack_require__(0),
+    copyAndMergeDeep = _require.copyAndMergeDeep;
+
+function RenderState(character, options, onStateChange) {
+  this._onStateChange = onStateChange;
+  this._mutationChains = [];
+  this.state = {
+    options: {
+      drawingFadeDuration: options.drawingFadeDuration,
+      drawingWidth: options.drawingWidth,
+      drawingColor: options.drawingColor
+    },
+    character: {
+      main: {
+        strokeColor: options.strokeColor,
+        radicalColor: options.radicalColor,
+        opacity: options.showCharacter ? 1 : 0,
+        strokes: {}
+      },
+      outline: {
+        strokeColor: options.outlineColor,
+        opacity: options.showOutline ? 1 : 0,
+        strokes: {}
+      },
+      highlight: {
+        strokeColor: options.highlightColor,
+        opacity: 1,
+        strokes: {}
+      }
+    },
+    userStrokes: null
+  };
+  for (var i = 0; i < character.strokes.length; i++) {
+    this.state.character.main.strokes[i] = {
+      opacity: 1,
+      displayPortion: 1
+    };
+    this.state.character.outline.strokes[i] = {
+      opacity: 1,
+      displayPortion: 1
+    };
+    this.state.character.highlight.strokes[i] = {
+      opacity: 0,
+      displayPortion: 1
+    };
+  }
+}
+
+RenderState.prototype.updateState = function (stateChanges) {
+  var nextState = copyAndMergeDeep(this.state, stateChanges);
+  this._onStateChange(nextState, this.state);
+  this.state = nextState;
+};
+
+RenderState.prototype.run = function (mutations) {
+  var _this = this;
+
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var scopes = mutations.map(function (mut) {
+    return mut.scope;
+  }).filter(function (x) {
+    return x;
+  });
+  this.cancelMutations(scopes);
+  return new Promise(function (resolve) {
+    var mutationChain = {
+      _isActive: true,
+      _index: 0,
+      _resolve: resolve,
+      _mutations: mutations,
+      _loop: options.loop,
+      _scopes: scopes
+    };
+    _this._mutationChains.push(mutationChain);
+    _this._run(mutationChain);
+  });
+};
+
+RenderState.prototype._run = function (mutationChain) {
+  var _this2 = this;
+
+  if (!mutationChain._isActive) return;
+  var mutations = mutationChain._mutations;
+  if (mutationChain._index >= mutations.length) {
+    if (mutationChain._loop) {
+      mutationChain._index = 0; // eslint-disable-line no-param-reassign
+    } else {
+      mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+      this._mutationChains = this._mutationChains.filter(function (chain) {
+        return chain !== mutationChain;
+      });
+      // The chain is done - resolve the promise to signal it finished successfully
+      mutationChain._resolve({ canceled: false });
+      return;
+    }
+  }
+
+  var activeMutation = mutationChain._mutations[mutationChain._index];
+  activeMutation.run(this).then(function () {
+    if (mutationChain._isActive) {
+      mutationChain._index++; // eslint-disable-line no-param-reassign
+      _this2._run(mutationChain);
+    }
+  });
+};
+
+RenderState.prototype.cancelMutations = function (scopes) {
+  var _this3 = this;
+
+  this._mutationChains.forEach(function (chain) {
+    chain._scopes.forEach(function (chainScope) {
+      scopes.forEach(function (scope) {
+        if (chainScope.indexOf(scope) >= 0) {
+          _this3._cancelMutationChain(chain);
+        }
+      });
+    });
+  });
+};
+
+RenderState.prototype.cancelAll = function () {
+  this.cancelMutations(['']);
+};
+
+RenderState.prototype._cancelMutationChain = function (mutationChain) {
+  mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+  for (var i = mutationChain._index; i < mutationChain._mutations.length; i++) {
+    mutationChain._mutations[i].cancel(this);
+  }
+  if (mutationChain._resolve) {
+    mutationChain._resolve({ canceled: true });
+  }
+  this._mutationChains = this._mutationChains.filter(function (chain) {
+    return chain !== mutationChain;
+  });
+};
+
+module.exports = RenderState;
+
+/***/ }),
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1380,8 +1396,8 @@ module.exports = PositionerRenderer;
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
 var Point = __webpack_require__(1);
-var Stroke = __webpack_require__(11);
-var Character = __webpack_require__(12);
+var Stroke = __webpack_require__(14);
+var Character = __webpack_require__(15);
 
 function CharDataParser() {}
 
@@ -1410,7 +1426,7 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
 module.exports = CharDataParser;
 
 /***/ }),
-/* 11 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1426,10 +1442,6 @@ function Stroke(path, points, strokeNum) {
   this.strokeNum = strokeNum;
   this.isInRadical = isInRadical;
 }
-
-Stroke.prototype.getStrokeNum = function () {
-  return this.strokeNum;
-};
 
 Stroke.prototype.getStartingPoint = function () {
   return this.points[0];
@@ -1478,7 +1490,7 @@ Stroke.prototype.getAverageDistance = function (points) {
 module.exports = Stroke;
 
 /***/ }),
-/* 12 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1491,14 +1503,6 @@ function Character(symbol, strokes) {
   this.strokes = strokes;
 }
 
-Character.prototype.getStroke = function (strokeNum) {
-  return this.strokes[strokeNum];
-};
-
-Character.prototype.getNumStrokes = function () {
-  return this.strokes.length;
-};
-
 Character.prototype.getBounds = function () {
   return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
 };
@@ -1506,7 +1510,7 @@ Character.prototype.getBounds = function () {
 module.exports = Character;
 
 /***/ }),
-/* 13 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1559,160 +1563,125 @@ Positioner.prototype._calculateScaleAndOffset = function () {
 module.exports = Positioner;
 
 /***/ }),
-/* 14 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeMatcher = __webpack_require__(15);
-var UserStroke = __webpack_require__(16);
-var UserStrokeRenderer = __webpack_require__(17);
+var StrokeMatcher = __webpack_require__(18);
+var UserStroke = __webpack_require__(19);
 
 var _require = __webpack_require__(0),
-    callIfExists = _require.callIfExists;
+    callIfExists = _require.callIfExists,
+    counter = _require.counter;
 
-// TODO: too many dependencies... do something about this
+var quizActions = __webpack_require__(20);
+var characterActions = __webpack_require__(4);
 
-
-function Quiz(_ref) {
-  var canvas = _ref.canvas,
-      animator = _ref.animator,
-      character = _ref.character,
-      characterRenderer = _ref.characterRenderer,
-      highlightRenderer = _ref.highlightRenderer,
-      quizOptions = _ref.quizOptions,
-      userStrokeOptions = _ref.userStrokeOptions;
-
-  this._canvas = canvas;
-  this._animator = animator;
+function Quiz(character, renderState) {
   this._character = character;
-  this._characterRenderer = characterRenderer;
-  this._highlightRenderer = highlightRenderer;
-  this._quizOptions = quizOptions;
-  this._userStrokeOptions = userStrokeOptions;
+  this._renderState = renderState;
+  this._isActive = false;
+  this._strokeMatcher = new StrokeMatcher();
+}
 
+Quiz.prototype.startQuiz = function (options) {
+  this._isActive = true;
+  this._options = options;
   this._currentStrokeIndex = 0;
   this._numRecentMistakes = 0;
   this._totalMistakes = 0;
   this._drawnStrokes = [];
-  this._isActive = true;
-  this._strokeMatcher = new StrokeMatcher();
-
-  this._setupCharacter();
-}
+  this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
+};
 
 Quiz.prototype.startUserStroke = function (point) {
   if (!this._isActive) return null;
   if (this._userStroke) return this.endUserStroke();
-  this._userStroke = new UserStroke(point);
-  this._userStrokeRenderer = new UserStrokeRenderer(this._userStroke, this._userStrokeOptions);
-  this._userStrokeRenderer.setCanvas(this._canvas).draw();
+  var strokeId = counter();
+  this._userStroke = new UserStroke(strokeId, point);
+  this._renderState.run(quizActions.startUserStroke(strokeId, point));
 };
 
 Quiz.prototype.continueUserStroke = function (point) {
   if (!this._userStroke) return;
   this._userStroke.appendPoint(point);
-  this._userStrokeRenderer.updatePath();
+  var nextPoints = this._userStroke.points.slice(0);
+  this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
 };
 
 Quiz.prototype.endUserStroke = function () {
-  var _this = this;
+  if (!this._userStroke) return;
 
-  if (!this._userStroke) return Promise.resolve();
+  this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
 
-  this._animator.animate(function (animation) {
-    if (!_this._isActive) return Promise.resolve();
-    var promises = [];
-    var nextStroke = _this._getNextStroke();
-    var isMatch = _this._strokeMatcher.strokeMatches(_this._userStroke, nextStroke);
-    promises.push(_this._userStrokeRenderer.fadeAndRemove(animation));
-    _this._userStroke = null;
-    _this._userStrokeRenderer = null;
+  var currentStroke = this._getCurrentStroke();
+  var isMatch = this._strokeMatcher.strokeMatches(this._userStroke, currentStroke);
+  this._userStroke = null;
 
-    if (isMatch) {
-      promises.push(_this._handleSuccess(nextStroke, animation));
-    } else {
-      _this._handleFailure();
-      if (_this._numRecentMistakes >= _this._quizOptions.showHintAfterMisses) {
-        promises.push(_this._highlightCorrectStroke(animation));
-      }
+  if (isMatch) {
+    this._handleSuccess(currentStroke);
+  } else {
+    this._handleFailure();
+    if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
+      this._renderState.run(characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed));
     }
-    return Promise.all(promises);
-  });
+  }
 };
 
 Quiz.prototype.cancel = function () {
   this._isActive = false;
+  if (this._userStroke) {
+    this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
+  }
 };
 
-Quiz.prototype._handleSuccess = function (stroke, animation) {
-  var _this2 = this;
-
-  callIfExists(this._quizOptions.onCorrectStroke, {
+Quiz.prototype._handleSuccess = function (stroke) {
+  callIfExists(this._options.onCorrectStroke, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex - 1
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1
   });
+  var animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
   this._currentStrokeIndex += 1;
   this._numRecentMistakes = 0;
-  var promise = this._drawMatchingStroke(stroke, animation);
-  if (this._currentStrokeIndex === this._character.getNumStrokes()) {
+
+  if (this._currentStrokeIndex === this._character.strokes.length) {
     this._isActive = false;
-    callIfExists(this._quizOptions.onComplete, {
+    callIfExists(this._options.onComplete, {
       character: this._character.symbol,
       totalMistakes: this._totalMistakes
     });
-    if (this._quizOptions.highlightOnComplete) {
-      promise = promise.then(function () {
-        return _this2._highlightRenderer.flash(animation);
-      });
+    if (this._options.highlightOnComplete) {
+      animation = animation.concat(characterActions.hideCharacter('highlight', this._character)).concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration)).concat(characterActions.hideCharacter('highlight', this._character, this._options.strokeHighlightDuration));
     }
   }
-  return promise;
+  this._renderState.run(animation);
 };
 
 Quiz.prototype._handleFailure = function () {
   this._numRecentMistakes += 1;
   this._totalMistakes += 1;
-  callIfExists(this._quizOptions.onMistake, {
+  callIfExists(this._options.onMistake, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.getNumStrokes() - this._currentStrokeIndex
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex
   });
 };
 
-Quiz.prototype._highlightCorrectStroke = function (animation) {
-  var strokeHintRenderer = this._highlightRenderer.getStrokeRenderer(this._currentStrokeIndex);
-  return strokeHintRenderer.highlight(animation);
-};
-
-Quiz.prototype._drawMatchingStroke = function (stroke, animation) {
-  this._drawnStrokes.push(stroke);
-  return this._characterRenderer.showStroke(stroke.strokeNum, animation);
-};
-
-Quiz.prototype._getNextStroke = function () {
-  return this._character.getStroke(this._currentStrokeIndex);
-};
-
-// hide the caracter
-Quiz.prototype._setupCharacter = function () {
-  var _this3 = this;
-
-  this._animator.animate(function (animation) {
-    return _this3._characterRenderer.hide(animation);
-  });
+Quiz.prototype._getCurrentStroke = function () {
+  return this._character.strokes[this._currentStrokeIndex];
 };
 
 module.exports = Quiz;
 
 /***/ }),
-/* 15 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1794,21 +1763,16 @@ StrokeMatcher.prototype._getEdgeVectors = function (points) {
 module.exports = StrokeMatcher;
 
 /***/ }),
-/* 16 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Point = __webpack_require__(1);
-
-function UserStroke(startingPoint) {
+function UserStroke(id, startingPoint) {
+  this.id = id;
   this.points = [startingPoint];
 }
-
-UserStroke.prototype.getBounds = function () {
-  return Point.getBounds(this.points);
-};
 
 UserStroke.prototype.appendPoint = function (point) {
   this.points.push(point);
@@ -1817,78 +1781,49 @@ UserStroke.prototype.appendPoint = function (point) {
 module.exports = UserStroke;
 
 /***/ }),
-/* 17 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Renderer = __webpack_require__(3);
+var Mutation = __webpack_require__(5);
+var characterActions = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
-    inherits = _require.inherits;
+    objRepeat = _require.objRepeat;
 
-var svg = __webpack_require__(4);
-
-function UserStrokeRenderer(userStroke) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  UserStrokeRenderer.super_.call(this);
-  this.options = options;
-  this.userStroke = userStroke;
-}
-
-inherits(UserStrokeRenderer, Renderer);
-
-UserStrokeRenderer.prototype.getPathString = function () {
-  return svg.getPathString(this.userStroke.points);
+var startQuiz = function startQuiz(character, fadeDuration) {
+  return characterActions.hideCharacter('main', character, fadeDuration).concat([new Mutation('character.main', {
+    opacity: 1,
+    strokes: objRepeat({ opacity: 0 }, character.strokes.length)
+  })]);
 };
 
-UserStrokeRenderer.prototype.updatePath = function () {
-  svg.attr(this.path, 'd', this.getPathString());
+var startUserStroke = function startUserStroke(id, point) {
+  return [new Mutation('quiz.activeUserStrokeId', id, { force: true }), new Mutation('userStrokes.' + id, {
+    points: [point],
+    opacity: 1
+  }, { force: true })];
 };
 
-UserStrokeRenderer.prototype.draw = function () {
-  UserStrokeRenderer.super_.prototype.draw.call(this);
-  this.path = svg.createElm('path');
-  svg.attrs(this.path, this.getStrokeAttrs());
-  this.path.style.opacity = 1;
-  this.updatePath();
-  this.canvas.svg.appendChild(this.path);
-  return this;
+var updateUserStroke = function updateUserStroke(userStrokeId, points) {
+  return [new Mutation('userStrokes.' + userStrokeId + '.points', points, { force: true })];
 };
 
-UserStrokeRenderer.prototype.fadeAndRemove = function (animation) {
-  var _this = this;
-
-  var tween = new svg.StyleTween(this.path, 'opacity', 0, {
-    duration: this.options.fadeDuration
-  });
-  animation.registerSvgAnimation(tween);
-  return tween.start().then(function () {
-    return _this.destroy();
-  });
+var removeUserStroke = function removeUserStroke(userStrokeId, duration) {
+  return [new Mutation('userStrokes.' + userStrokeId + '.opacity', 0, { duration: duration }), new Mutation('userStrokes.' + userStrokeId, null, { force: true })];
 };
 
-UserStrokeRenderer.prototype.getStrokeAttrs = function () {
-  return {
-    fill: 'none',
-    stroke: this.options.strokeColor,
-    'stroke-width': this.options.strokeWidth,
-    'stroke-linecap': 'round',
-    'stroke-linejoin': 'round'
-  };
+module.exports = {
+  startQuiz: startQuiz,
+  startUserStroke: startUserStroke,
+  updateUserStroke: updateUserStroke,
+  removeUserStroke: removeUserStroke
 };
-
-UserStrokeRenderer.prototype.destroy = function () {
-  UserStrokeRenderer.super_.prototype.destroy.call(this);
-  if (this.path) this.path.remove();
-};
-
-module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 18 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1897,7 +1832,7 @@ module.exports = UserStrokeRenderer;
 // corresponds to the integer in the gh-pages branch under the cdn folder
 // make sure to check out a new version of the master branch in gh-pages when changing the data format
 // otherwise this may break any existing hanzi-writer deploys in the wild
-var VERSION = '1';
+var VERSION = '2.0';
 var getCharDataUrl = function getCharDataUrl(char) {
   return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
 };
@@ -1928,86 +1863,7 @@ module.exports = function (char, onLoad, onError) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 19 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var Animation = __webpack_require__(20);
-
-function Animator() {
-  this._lastAnimation = null;
-}
-
-Animator.prototype.animate = function (func) {
-  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
-
-  var animation = this._setupAnimation(options);
-  return func(animation).then(function () {
-    return animation.finish();
-  });
-};
-
-Animator.prototype._setupAnimation = function (options) {
-  this.cancel();
-  this._lastAnimation = new Animation(options);
-  return this._lastAnimation;
-};
-
-Animator.prototype.cancel = function () {
-  if (this._lastAnimation) this._lastAnimation.cancel();
-};
-
-module.exports = Animator;
-
-/***/ }),
-/* 20 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _require = __webpack_require__(0),
-    callIfExists = _require.callIfExists;
-
-function Animation() {
-  var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
-
-  this._svgAnimations = [];
-  this._isActive = true;
-  this._callback = options.onComplete;
-}
-
-Animation.prototype.cancel = function () {
-  if (!this.isActive()) return;
-  this._isActive = false;
-  this._svgAnimations.forEach(function (anim) {
-    return anim.finish();
-  });
-};
-
-Animation.prototype.registerSvgAnimation = function (svgAnimation) {
-  if (this._svgAnimations.indexOf(svgAnimation) === -1) {
-    this._svgAnimations.push(svgAnimation);
-  }
-};
-
-Animation.prototype.isActive = function () {
-  return this._isActive;
-};
-
-Animation.prototype.finish = function () {
-  if (this.isActive()) {
-    this._isActive = false;
-    callIfExists(this._callback);
-  }
-};
-
-module.exports = Animation;
-
-/***/ }),
-/* 21 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2072,7 +1928,7 @@ LoadingManager.prototype.loadCharData = function (char) {
   }
   this.loadingFailed = false;
   this._isLoading = true;
-  this._loadCounter += 1;
+  this._loadCounter++;
   this._debouncedLoad(char, this._loadCounter);
   return this._loadingPromise;
 };

@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.6.0
+ * Hanzi Writer v0.7.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =

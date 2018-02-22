@@ -1,4 +1,4 @@
-[![CircleCI](https://circleci.com/gh/chanind/hanzi-writer/tree/master.svg?style=svg)](https://circleci.com/gh/chanind/hanzi-writer/tree/master)
+[![CircleCI](https://circleci.com/gh/chanind/hanzi-writer/tree/master.svg?style=svg)](https://circleci.com/gh/chanind/hanzi-writer/tree/master) [![codecov](https://codecov.io/gh/chanind/hanzi-writer/branch/master/graph/badge.svg)](https://codecov.io/gh/chanind/hanzi-writer)
 
 
 Hanzi Writer

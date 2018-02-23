@@ -196,15 +196,8 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
 
 HanziWriter.prototype._withData = function(func) {
   // if this._loadingManager.loadingFailed, then loading failed before this method was called
-  // Try reloading again and see if it helps
   if (this._loadingManager.loadingFailed) {
-    this.setCharacter(this._char);
-    return Promise.resolve().then(() => {
-      // check loadingFailed again just in case setCharacter fails synchronously
-      if (!this._loadingManager.loadingFailed) {
-        return this._withData(func);
-      }
-    });
+    throw Error('Failed to load character data. Call setCharacter and try again.');
   }
   return this._withDataPromise.then(() => {
     if (!this._loadingManager.loadingFailed) {

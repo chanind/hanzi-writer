@@ -20,7 +20,7 @@ module.exports = (char, onLoad, onError) => {
 
     if (xhr.status === 200) {
       onLoad(JSON.parse(xhr.responseText));
-    } else if (onError) {
+    } else if (xhr.status !== 0 && onError) {
       onError(xhr);
     }
   };

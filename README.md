@@ -1,4 +1,4 @@
-[![CircleCI](https://img.shields.io/circleci/project/github/chanind/hanzi-writer.svg)]() [![Codecov](https://img.shields.io/codecov/c/github/chanind/hanzi-writer.svg)]()
+[![CircleCI](https://img.shields.io/circleci/project/github/chanind/hanzi-writer.svg)]() [![Codecov](https://img.shields.io/codecov/c/github/chanind/hanzi-writer.svg)]() [![npm](https://img.shields.io/npm/v/hanzi-writer.svg)]()
 
 
 Hanzi Writer

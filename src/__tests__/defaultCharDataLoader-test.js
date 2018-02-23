@@ -9,8 +9,8 @@ let requests;
 beforeEach(() => {
   requests = [];
   xhr = fakeXhr.useFakeXMLHttpRequest();
-  xhr.onCreate = function (xhr) {
-    requests.push(xhr);
+  xhr.onCreate = function(req) {
+    requests.push(req);
   };
 });
 
@@ -29,7 +29,7 @@ describe('defaultCharDataLoader', () => {
     expect(requests.length).toBe(1);
     expect(requests[0].url).toBe('https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/人.json');
 
-    requests[0].respond(200, { "Content-Type": "application/json" }, JSON.stringify(ren));
+    requests[0].respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(ren));
 
     expect(onError).not.toHaveBeenCalled();
     expect(onLoad).toHaveBeenCalledTimes(1);
@@ -45,7 +45,7 @@ describe('defaultCharDataLoader', () => {
     expect(requests.length).toBe(1);
     expect(requests[0].url).toBe('https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/Q.json');
 
-    requests[0].respond(404, { "Content-Type": "text/plain" }, "Couldn't find the requested file /Q.json in hanzi-writer-data.");
+    requests[0].respond(404, { 'Content-Type': 'text/plain' }, "Couldn't find the requested file /Q.json in hanzi-writer-data.");
 
     expect(onError).toHaveBeenCalledTimes(1);
     expect(onLoad).not.toHaveBeenCalled();

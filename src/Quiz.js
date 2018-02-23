@@ -1,4 +1,4 @@
-const StrokeMatcher = require('./StrokeMatcher');
+const strokeMatches = require('./strokeMatches');
 const UserStroke = require('./models/UserStroke');
 const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
@@ -17,7 +17,6 @@ function Quiz(character, renderState, positioner) {
   this._renderState = renderState;
   this._isActive = false;
   this._positioner = positioner;
-  this._strokeMatcher = new StrokeMatcher();
 }
 
 Quiz.prototype.startQuiz = function(options) {
@@ -55,7 +54,7 @@ Quiz.prototype.endUserStroke = function() {
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
 
   const currentStroke = this._getCurrentStroke();
-  const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, currentStroke);
+  const isMatch = strokeMatches(this._userStroke, currentStroke);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);

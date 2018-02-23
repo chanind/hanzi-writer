@@ -1,14 +1,13 @@
 const ren = require('hanzi-writer-data/人.json');
-const StrokeMatcher = require('../StrokeMatcher');
+const strokeMatches = require('../strokeMatches');
 const Stroke = require('../models/Stroke');
 const UserStroke = require('../models/UserStroke');
 const CharDataParser = require('../CharDataParser');
 
 
 const char = new CharDataParser().generateCharacter('人', ren);
-const matcher = new StrokeMatcher();
 
-describe('StrokeMatcher', () => {
+describe('strokeMatches', () => {
   it('matches if the user stroke roughly matches the stroke medians', () => {
     const stroke = new Stroke('', [{x: 0, y: 0}, {x: 10, y: 50}], 0);
 
@@ -16,7 +15,7 @@ describe('StrokeMatcher', () => {
     userStroke.appendPoint({x: 5, y: 25}, {x: 9999, y: 9999});
     userStroke.appendPoint({x: 10, y: 51}, {x: 9999, y: 9999});
 
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(true);
+    expect(strokeMatches(userStroke, stroke)).toBe(true);
   });
 
   it('does not match if the user stroke is in the wrong direction', () => {
@@ -26,7 +25,7 @@ describe('StrokeMatcher', () => {
     userStroke.appendPoint({x: 5, y: 25}, {x: 9999, y: 9999});
     userStroke.appendPoint({x: 2, y: 1}, {x: 9999, y: 9999});
 
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 
   it('does not match if the user stroke is too far away', () => {
@@ -36,7 +35,7 @@ describe('StrokeMatcher', () => {
     userStroke.appendPoint({x: 5 + 200, y: 25 + 200}, {x: 9999, y: 9999});
     userStroke.appendPoint({x: 10 + 200, y: 51 + 200}, {x: 9999, y: 9999});
 
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 
   it('matches using real data 1', () => {
@@ -116,7 +115,7 @@ describe('StrokeMatcher', () => {
         {x: 54.044444444444444, y: 151.9111111111111},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(true);
+    expect(strokeMatches(userStroke, stroke)).toBe(true);
   });
 
   it('matches using real data 2', () => {
@@ -142,7 +141,7 @@ describe('StrokeMatcher', () => {
         {x: 998.4, y: 95.02222222222223},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(true);
+    expect(strokeMatches(userStroke, stroke)).toBe(true);
   });
 
   it('does not match using real data 1', () => {
@@ -168,7 +167,7 @@ describe('StrokeMatcher', () => {
         {x: 620.0888888888888, y: 595.6444444444444},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 
   it('does not match using real data 2', () => {
@@ -197,7 +196,7 @@ describe('StrokeMatcher', () => {
         {x: 733.8666666666667, y: 706.5777777777778},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 
   it('does not match using real data 3', () => {
@@ -222,7 +221,7 @@ describe('StrokeMatcher', () => {
         {x: 369.77777777777777, y: 612.7111111111111},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 
   it('does not match using real data 4', () => {
@@ -275,6 +274,6 @@ describe('StrokeMatcher', () => {
         {x: 733.8666666666667, y: 66.57777777777778},
       ],
     };
-    expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
+    expect(strokeMatches(userStroke, stroke)).toBe(false);
   });
 });

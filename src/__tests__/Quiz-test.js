@@ -1,4 +1,4 @@
-jest.mock('../StrokeMatcher');
+jest.mock('../strokeMatches');
 jest.mock('../Positioner');
 
 const ren = require('hanzi-writer-data/人.json');
@@ -7,7 +7,7 @@ const CharDataParser = require('../CharDataParser');
 const RenderState = require('../RenderState');
 const Positioner = require('../Positioner');
 const { resolvePromises } = require('../testUtils');
-const StrokeMatcher = require('../StrokeMatcher');
+const strokeMatches = require('../strokeMatches');
 
 
 Positioner.mockImplementation(() => ({
@@ -16,7 +16,7 @@ Positioner.mockImplementation(() => ({
 
 
 beforeEach(() => {
-  StrokeMatcher.mockClear();
+  strokeMatches.mockClear();
   Positioner.mockClear();
 });
 
@@ -195,9 +195,7 @@ describe('Quiz', () => {
 
   describe('endUserStroke', () => {
     it('finishes the stroke and moves on if it was correct', async () => {
-      StrokeMatcher.mockImplementationOnce(() => ({
-        strokeMatches: () => true,
-      }));
+      strokeMatches.mockImplementation(() => true);
 
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
@@ -244,9 +242,7 @@ describe('Quiz', () => {
     });
 
     it('stays on the stroke if it was incorrect', async () => {
-      StrokeMatcher.mockImplementationOnce(() => ({
-        strokeMatches: () => false,
-      }));
+      strokeMatches.mockImplementation(() => false);
 
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
@@ -293,9 +289,7 @@ describe('Quiz', () => {
     });
 
     it('highlights the stroke if the number of mistakes exceeds showHintAfterMisses', async () => {
-      StrokeMatcher.mockImplementationOnce(() => ({
-        strokeMatches: () => false,
-      }));
+      strokeMatches.mockImplementation(() => false);
 
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
@@ -351,9 +345,7 @@ describe('Quiz', () => {
     });
 
     it('finishes the quiz when all strokes are successful', async () => {
-      StrokeMatcher.mockImplementationOnce(() => ({
-        strokeMatches: () => true,
-      }));
+      strokeMatches.mockImplementation(() => true);
 
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());

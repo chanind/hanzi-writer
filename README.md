@@ -1,4 +1,6 @@
-[![CircleCI](https://img.shields.io/circleci/project/github/chanind/hanzi-writer.svg)]() [![Codecov](https://img.shields.io/codecov/c/github/chanind/hanzi-writer.svg)]() [![npm](https://img.shields.io/npm/v/hanzi-writer.svg)]()
+[![CircleCI](https://img.shields.io/circleci/project/github/chanind/hanzi-writer.svg)](https://circleci.com/gh/chanind/hanzi-writer/tree/master)
+[![Codecov](https://img.shields.io/codecov/c/github/chanind/hanzi-writer.svg)](https://codecov.io/gh/chanind/hanzi-writer)
+[![npm](https://img.shields.io/npm/v/hanzi-writer.svg)](https://www.npmjs.com/package/hanzi-writer)
 
 
 Hanzi Writer

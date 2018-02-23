@@ -54,22 +54,6 @@ function inflate(scope, obj) {
   return final;
 }
 
-
-function arrayMax(numArray) {
-  return Math.max.apply(null, numArray);
-}
-
-function arrayMin(numArray) {
-  return Math.min.apply(null, numArray);
-}
-
-function getExtremes(numArray) {
-  const max = arrayMax(numArray);
-  const min = arrayMin(numArray);
-  const mid = (max + min) / 2;
-  return [max, mid, min];
-}
-
 function callIfExists(callback, arg) {
   if (callback) callback(arg);
   return arg;
@@ -103,8 +87,6 @@ const objRepeat = (item, times) => {
 };
 
 module.exports = {
-  arrayMax,
-  arrayMin,
   assign,
   average,
   callIfExists,
@@ -112,7 +94,6 @@ module.exports = {
   copyAndMergeDeep,
   counter,
   emptyFunc,
-  getExtremes,
   inflate,
   objRepeat,
   performanceNow,

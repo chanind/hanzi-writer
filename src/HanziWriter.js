@@ -132,7 +132,7 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
   this._withData(() => {
     this.cancelQuiz();
-    this._quiz = new Quiz(this._character, this._renderState);
+    this._quiz = new Quiz(this._character, this._renderState, this._positioner);
     this._quiz.startQuiz(assign({}, this._options, quizOptions));
   });
 };
@@ -248,14 +248,14 @@ HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
 
 HanziWriter.prototype._getMousePoint = function(evt) {
   const box = this._canvas.svg.getBoundingClientRect();
-  return this._positioner.convertExternalPoint(new Point(evt.clientX - box.left, evt.clientY - box.top));
+  return new Point(evt.clientX - box.left, evt.clientY - box.top);
 };
 
 HanziWriter.prototype._getTouchPoint = function(evt) {
   const box = this._canvas.svg.getBoundingClientRect();
   const x = evt.touches[0].clientX - box.left;
   const y = evt.touches[0].clientY - box.top;
-  return this._positioner.convertExternalPoint(new Point(x, y));
+  return new Point(x, y);
 };
 
 

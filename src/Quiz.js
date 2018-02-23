@@ -2,13 +2,21 @@ const StrokeMatcher = require('./StrokeMatcher');
 const UserStroke = require('./models/UserStroke');
 const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
+const svg = require('./svg');
 const characterActions = require('./characterActions');
 
 
-function Quiz(character, renderState) {
+const getDrawnPath = (userStroke) => ({
+  pathString: svg.getPathString(userStroke.externalPoints),
+  points: userStroke.points,
+});
+
+
+function Quiz(character, renderState, positioner) {
   this._character = character;
   this._renderState = renderState;
   this._isActive = false;
+  this._positioner = positioner;
   this._strokeMatcher = new StrokeMatcher();
 }
 
@@ -22,19 +30,21 @@ Quiz.prototype.startQuiz = function(options) {
   this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
 };
 
-Quiz.prototype.startUserStroke = function(point) {
+Quiz.prototype.startUserStroke = function(externalPoint) {
+  const point = this._positioner.convertExternalPoint(externalPoint);
   if (!this._isActive) return null;
   if (this._userStroke) return this.endUserStroke();
   const strokeId = counter();
-  this._userStroke = new UserStroke(strokeId, point);
+  this._userStroke = new UserStroke(strokeId, point, externalPoint);
   this._renderState.run(
     quizActions.startUserStroke(strokeId, point),
   );
 };
 
-Quiz.prototype.continueUserStroke = function(point) {
+Quiz.prototype.continueUserStroke = function(externalPoint) {
   if (!this._userStroke) return;
-  this._userStroke.appendPoint(point);
+  const point = this._positioner.convertExternalPoint(externalPoint);
+  this._userStroke.appendPoint(point, externalPoint);
   const nextPoints = this._userStroke.points.slice(0);
   this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
 };
@@ -46,7 +56,6 @@ Quiz.prototype.endUserStroke = function() {
 
   const currentStroke = this._getCurrentStroke();
   const isMatch = this._strokeMatcher.strokeMatches(this._userStroke, currentStroke);
-  this._userStroke = null;
 
   if (isMatch) {
     this._handleSuccess(currentStroke);
@@ -58,6 +67,7 @@ Quiz.prototype.endUserStroke = function() {
       );
     }
   }
+  this._userStroke = null;
 };
 
 Quiz.prototype.cancel = function() {
@@ -74,6 +84,7 @@ Quiz.prototype._handleSuccess = function(stroke) {
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
     strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1,
+    drawnPath: getDrawnPath(this._userStroke),
   });
   let animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
   this._currentStrokeIndex += 1;
@@ -104,6 +115,7 @@ Quiz.prototype._handleFailure = function() {
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
     strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
+    drawnPath: getDrawnPath(this._userStroke),
   });
 };
 

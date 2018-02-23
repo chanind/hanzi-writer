@@ -6,7 +6,7 @@ function Character(symbol, strokes) {
 }
 
 Character.prototype.getBounds = function() {
-  return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
+  return [new Point(0, -124), new Point(1024, 900)];
 };
 
 module.exports = Character;

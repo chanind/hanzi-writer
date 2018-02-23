@@ -1,16 +1,24 @@
 jest.mock('../StrokeMatcher');
+jest.mock('../Positioner');
 
 const ren = require('hanzi-writer-data/人.json');
 const Quiz = require('../Quiz');
 const Point = require('../models/Point');
 const CharDataParser = require('../CharDataParser');
 const RenderState = require('../RenderState');
+const Positioner = require('../Positioner');
 const { resolvePromises } = require('../testUtils');
 const StrokeMatcher = require('../StrokeMatcher');
 
 
+Positioner.mockImplementation(() => ({
+  convertExternalPoint: (point) => new Point(point.x + 5, point.y + 5),
+}));
+
+
 beforeEach(() => {
   StrokeMatcher.mockClear();
+  Positioner.mockClear();
 });
 
 
@@ -64,7 +72,7 @@ describe('Quiz', () => {
   describe('startQuiz', () => {
     it('resets the quiz and makes it active', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       expect(quiz._isActive).toBe(false);
 
       quiz.startQuiz(Object.assign({}, opts));
@@ -83,7 +91,7 @@ describe('Quiz', () => {
   describe('startUserStroke', () => {
     it('begins a stroke with the provided point', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       quiz.startQuiz(Object.assign({}, opts));
 
       await resolvePromises();
@@ -97,13 +105,13 @@ describe('Quiz', () => {
       const userStrokeIds = Object.keys(renderState.state.userStrokes);
       expect(userStrokeIds.length).toBe(1);
       expect(quiz._userStroke.id.toString()).toBe(userStrokeIds[0]);
-      expect(renderState.state.userStrokes[userStrokeIds[0]].points).toEqual([new Point(10, 20)]);
-      expect(quiz._userStroke.points).toEqual([new Point(10, 20)]);
+      expect(renderState.state.userStrokes[userStrokeIds[0]].points).toEqual([new Point(15, 25)]);
+      expect(quiz._userStroke.points).toEqual([new Point(15, 25)]);
     });
 
     it('ends the current user stroke if one exists', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       quiz.startQuiz(Object.assign({}, opts));
 
       await resolvePromises();
@@ -121,7 +129,7 @@ describe('Quiz', () => {
       const userStrokeIds = Object.keys(renderState.state.userStrokes);
       expect(userStrokeIds.length).toBe(1);
       expect(quiz._userStroke).toBe(null);
-      expect(renderState.state.userStrokes[currentStrokeId].points).toEqual([new Point(10, 20)]);
+      expect(renderState.state.userStrokes[currentStrokeId].points).toEqual([new Point(15, 25)]);
 
       clock.tick(1000);
       await resolvePromises();
@@ -134,7 +142,7 @@ describe('Quiz', () => {
   describe('continueUserStroke', () => {
     it('adds to the current user stroke', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       quiz.startQuiz(Object.assign({}, opts));
 
       await resolvePromises();
@@ -153,10 +161,14 @@ describe('Quiz', () => {
       expect(userStrokeIds.length).toBe(1);
       expect(quiz._userStroke.id).toBe(currentStrokeId);
       expect(renderState.state.userStrokes[currentStrokeId].points).toEqual([
-        new Point(10, 20),
-        new Point(100, 200),
+        new Point(15, 25),
+        new Point(105, 205),
       ]);
       expect(quiz._userStroke.points).toEqual([
+        new Point(15, 25),
+        new Point(105, 205),
+      ]);
+      expect(quiz._userStroke.externalPoints).toEqual([
         new Point(10, 20),
         new Point(100, 200),
       ]);
@@ -164,7 +176,7 @@ describe('Quiz', () => {
 
     it('does nothing if there is no current stroke', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       quiz.startQuiz(Object.assign({}, opts));
 
       await resolvePromises();
@@ -189,7 +201,7 @@ describe('Quiz', () => {
       }));
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -215,6 +227,10 @@ describe('Quiz', () => {
         strokeNum: 0,
         strokesRemaining: 1,
         totalMistakes: 0,
+        drawnPath: {
+          pathString: 'M 10 20 L 100 200',
+          points: [{x: 15, y: 25}, {x: 105, y: 205}],
+        },
       });
       expect(onMistake).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -234,7 +250,7 @@ describe('Quiz', () => {
       }));
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -260,6 +276,10 @@ describe('Quiz', () => {
         strokeNum: 0,
         strokesRemaining: 2,
         totalMistakes: 1,
+        drawnPath: {
+          pathString: 'M 10 20 L 100 200',
+          points: [{x: 15, y: 25}, {x: 105, y: 205}],
+        },
       });
       expect(onCorrectStroke).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -279,7 +299,7 @@ describe('Quiz', () => {
       }));
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -310,6 +330,10 @@ describe('Quiz', () => {
         strokeNum: 0,
         strokesRemaining: 2,
         totalMistakes: 2,
+        drawnPath: {
+          pathString: 'M 10 20',
+          points: [{x: 15, y: 25}],
+        },
       });
       expect(onCorrectStroke).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -333,7 +357,7 @@ describe('Quiz', () => {
       }));
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState);
+      const quiz = new Quiz(char, renderState, new Positioner());
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -360,6 +384,10 @@ describe('Quiz', () => {
         strokeNum: 1,
         strokesRemaining: 0,
         totalMistakes: 0,
+        drawnPath: {
+          pathString: 'M 10 20',
+          points: [{x: 15, y: 25}],
+        },
       });
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenLastCalledWith({

@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.7.0
+ * Hanzi Writer v0.8.0
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -140,21 +140,6 @@ function inflate(scope, obj) {
   return final;
 }
 
-function arrayMax(numArray) {
-  return Math.max.apply(null, numArray);
-}
-
-function arrayMin(numArray) {
-  return Math.min.apply(null, numArray);
-}
-
-function getExtremes(numArray) {
-  var max = arrayMax(numArray);
-  var min = arrayMin(numArray);
-  var mid = (max + min) / 2;
-  return [max, mid, min];
-}
-
 function callIfExists(callback, arg) {
   if (callback) callback(arg);
   return arg;
@@ -192,8 +177,6 @@ var objRepeat = function objRepeat(item, times) {
 };
 
 module.exports = {
-  arrayMax: arrayMax,
-  arrayMin: arrayMin,
   assign: assign,
   average: average,
   callIfExists: callIfExists,
@@ -201,7 +184,6 @@ module.exports = {
   copyAndMergeDeep: copyAndMergeDeep,
   counter: counter,
   emptyFunc: emptyFunc,
-  getExtremes: getExtremes,
   inflate: inflate,
   objRepeat: objRepeat,
   performanceNow: performanceNow,
@@ -212,111 +194,6 @@ module.exports = {
 
 /***/ }),
 /* 1 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
-
-var _require = __webpack_require__(0),
-    arrayMin = _require.arrayMin,
-    arrayMax = _require.arrayMax;
-
-function Point(x, y) {
-  this.x = parseFloat(x, 10);
-  this.y = parseFloat(y, 10);
-}
-
-// return a new point subtracting point from this
-Point.prototype.subtract = function (point) {
-  return new Point(this.x - point.x, this.y - point.y);
-};
-
-// return a new point adding point from this
-Point.prototype.add = function (point) {
-  return new Point(this.x + point.x, this.y + point.y);
-};
-
-Point.prototype.getMagnitude = function () {
-  return Math.sqrt(Math.pow(this.x, 2) + Math.pow(this.y, 2));
-};
-
-Point.prototype.equals = function (point) {
-  if (!point) return false;
-  return point.x === this.x && point.y === this.y;
-};
-
-Point.getBounds = function (points) {
-  var xs = points.map(function (point) {
-    return point.x;
-  });
-  var ys = points.map(function (point) {
-    return point.y;
-  });
-  var maxX = arrayMax(xs);
-  var maxY = arrayMax(ys);
-  var minX = arrayMin(xs);
-  var minY = arrayMin(ys);
-  return [new Point(minX, minY), new Point(maxX, maxY)];
-};
-
-// boundable here refers to any object with a getBounds() method
-Point.getOverallBounds = function (boundables) {
-  var bounds = [];
-  boundables.forEach(function (boundable) {
-    var _boundable$getBounds = boundable.getBounds(),
-        _boundable$getBounds2 = _slicedToArray(_boundable$getBounds, 2),
-        lowerBound = _boundable$getBounds2[0],
-        upperBound = _boundable$getBounds2[1];
-
-    bounds.push(lowerBound);
-    bounds.push(upperBound);
-  });
-  return Point.getBounds(bounds);
-};
-
-Point.getDistance = function (point1, point2) {
-  var difference = point1.subtract(point2);
-  return difference.getMagnitude();
-};
-
-Point.cosineSimilarity = function (point1, point2) {
-  var rawDotProduct = point1.x * point2.x + point1.y * point2.y;
-  return rawDotProduct / point1.getMagnitude() / point2.getMagnitude();
-};
-
-module.exports = Point;
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -387,6 +264,93 @@ Canvas.init = function (elmOrId) {
 
 module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, getPathString: getPathString, removeElm: removeElm };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+
+/***/ }),
+/* 2 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+var subtract = function subtract(p1, p2) {
+  return { x: p1.x - p2.x, y: p1.y - p2.y };
+};
+var magnitude = function magnitude(point) {
+  return Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+};
+var distance = function distance(point1, point2) {
+  return magnitude(subtract(point1, point2));
+};
+var equals = function equals(point1, point2) {
+  return point1.x === point2.x && point1.y === point2.y;
+};
+
+var cosineSimilarity = function cosineSimilarity(point1, point2) {
+  var rawDotProduct = point1.x * point2.x + point1.y * point2.y;
+  return rawDotProduct / magnitude(point1) / magnitude(point2);
+};
+
+// return a new point, p3, which is on the same line as p1 and p2, but distance away
+// from p2. p1, p2, p3 will always lie on the line in that order
+var extendPointOnLine = function extendPointOnLine(p1, p2, dist) {
+  var vect = subtract(p2, p1);
+  var norm = dist / magnitude(vect);
+  return { x: p2.x + norm * vect.x, y: p2.y + norm * vect.y };
+};
+
+// remove intermediate points that are on the same line as the points to either side
+var filterParallelPoints = function filterParallelPoints(points) {
+  if (points.length < 3) return points;
+  var filteredPoints = [points[0], points[1]];
+  points.slice(2).forEach(function (point, i) {
+    var numFilteredPoints = filteredPoints.length;
+    var curVect = subtract(point, filteredPoints[numFilteredPoints - 1]);
+    var prevVect = subtract(filteredPoints[numFilteredPoints - 1], filteredPoints[numFilteredPoints - 2]);
+    // this is the z coord of the cross-product. If this is 0 then they're parallel
+    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
+    if (isParallel) {
+      filteredPoints.pop();
+    }
+    filteredPoints.push(point);
+  });
+  return filteredPoints;
+};
+
+module.exports = {
+  equals: equals,
+  distance: distance,
+  subtract: subtract,
+  cosineSimilarity: cosineSimilarity,
+  extendPointOnLine: extendPointOnLine,
+  filterParallelPoints: filterParallelPoints
+};
 
 /***/ }),
 /* 4 */
@@ -628,14 +592,13 @@ module.exports = Mutation;
 /* WEBPACK VAR INJECTION */(function(global) {
 
 var HanziWriterRenderer = __webpack_require__(7);
-var RenderState = __webpack_require__(12);
-var Point = __webpack_require__(1);
-var CharDataParser = __webpack_require__(13);
-var Positioner = __webpack_require__(16);
-var Quiz = __webpack_require__(17);
-var svg = __webpack_require__(3);
-var defaultCharDataLoader = __webpack_require__(21);
-var LoadingManager = __webpack_require__(22);
+var RenderState = __webpack_require__(11);
+var CharDataParser = __webpack_require__(12);
+var Positioner = __webpack_require__(15);
+var Quiz = __webpack_require__(16);
+var svg = __webpack_require__(1);
+var defaultCharDataLoader = __webpack_require__(20);
+var LoadingManager = __webpack_require__(21);
 var characterActions = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
@@ -774,7 +737,7 @@ HanziWriter.prototype.quiz = function () {
 
   this._withData(function () {
     _this7.cancelQuiz();
-    _this7._quiz = new Quiz(_this7._character, _this7._renderState);
+    _this7._quiz = new Quiz(_this7._character, _this7._renderState, _this7._positioner);
     _this7._quiz.startQuiz(assign({}, _this7._options, quizOptions));
   });
 };
@@ -846,15 +809,8 @@ HanziWriter.prototype._withData = function (func) {
   var _this9 = this;
 
   // if this._loadingManager.loadingFailed, then loading failed before this method was called
-  // Try reloading again and see if it helps
   if (this._loadingManager.loadingFailed) {
-    this.setCharacter(this._char);
-    return Promise.resolve().then(function () {
-      // check loadingFailed again just in case setCharacter fails synchronously
-      if (!_this9._loadingManager.loadingFailed) {
-        return _this9._withData(func);
-      }
-    });
+    throw Error('Failed to load character data. Call setCharacter and try again.');
   }
   return this._withDataPromise.then(function () {
     if (!_this9._loadingManager.loadingFailed) {
@@ -910,14 +866,14 @@ HanziWriter.prototype._forwardToQuiz = function (method) {
 
 HanziWriter.prototype._getMousePoint = function (evt) {
   var box = this._canvas.svg.getBoundingClientRect();
-  return this._positioner.convertExternalPoint(new Point(evt.clientX - box.left, evt.clientY - box.top));
+  return { x: evt.clientX - box.left, y: evt.clientY - box.top };
 };
 
 HanziWriter.prototype._getTouchPoint = function (evt) {
   var box = this._canvas.svg.getBoundingClientRect();
   var x = evt.touches[0].clientX - box.left;
   var y = evt.touches[0].clientY - box.top;
-  return this._positioner.convertExternalPoint(new Point(x, y));
+  return { x: x, y: y };
 };
 
 // set up window.HanziWriter if we're in the browser
@@ -948,12 +904,12 @@ if (true) {
 
 
 var CharacterRenderer = __webpack_require__(8);
-var UserStrokeRenderer = __webpack_require__(11);
+var UserStrokeRenderer = __webpack_require__(10);
 
 var _require = __webpack_require__(0),
     assign = _require.assign;
 
-var svg = __webpack_require__(3);
+var svg = __webpack_require__(1);
 
 function HanziWriterRenderer(character, positioner) {
   this._character = character;
@@ -1070,9 +1026,9 @@ module.exports = CharacterRenderer;
 var _require = __webpack_require__(0),
     counter = _require.counter;
 
-var svg = __webpack_require__(3);
+var svg = __webpack_require__(1);
 
-var _require2 = __webpack_require__(10),
+var _require2 = __webpack_require__(3),
     extendPointOnLine = _require2.extendPointOnLine,
     filterParallelPoints = _require2.filterParallelPoints;
 
@@ -1161,47 +1117,7 @@ module.exports = StrokeRenderer;
 "use strict";
 
 
-var Point = __webpack_require__(1);
-
-// return a new point, p3, which is on the same line as p1 and p2, but distance away
-// from p2. p1, p2, p3 will always lie on the line in that order
-var extendPointOnLine = function extendPointOnLine(p1, p2, distance) {
-  var vect = p2.subtract(p1);
-  var norm = distance / vect.getMagnitude();
-  return new Point(p2.x + norm * vect.x, p2.y + norm * vect.y);
-};
-
-// remove intermediate points that are on the same line as the points to either side
-var filterParallelPoints = function filterParallelPoints(points) {
-  if (points.length < 3) return points;
-  var filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach(function (point, i) {
-    var numFilteredPoints = filteredPoints.length;
-    var curVect = point.subtract(filteredPoints[numFilteredPoints - 1]);
-    var prevVect = filteredPoints[numFilteredPoints - 1].subtract(filteredPoints[numFilteredPoints - 2]);
-    // this is the z coord of the cross-product. If this is 0 then they're parallel
-    var isParallel = curVect.y * prevVect.x - curVect.x * prevVect.y === 0;
-    if (isParallel) {
-      filteredPoints.pop();
-    }
-    filteredPoints.push(point);
-  });
-  return filteredPoints;
-};
-
-module.exports = {
-  extendPointOnLine: extendPointOnLine,
-  filterParallelPoints: filterParallelPoints
-};
-
-/***/ }),
-/* 11 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-var svg = __webpack_require__(3);
+var svg = __webpack_require__(1);
 
 function UserStrokeRenderer() {
   this._oldProps = {};
@@ -1239,7 +1155,7 @@ UserStrokeRenderer.prototype.destroy = function () {
 module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 12 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1386,7 +1302,7 @@ RenderState.prototype._cancelMutationChain = function (mutationChain) {
 module.exports = RenderState;
 
 /***/ }),
-/* 13 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1394,9 +1310,8 @@ module.exports = RenderState;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var Point = __webpack_require__(1);
-var Stroke = __webpack_require__(14);
-var Character = __webpack_require__(15);
+var Stroke = __webpack_require__(13);
+var Character = __webpack_require__(14);
 
 function CharDataParser() {}
 
@@ -1416,7 +1331,7 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
           x = _pointData[0],
           y = _pointData[1];
 
-      return new Point(x, y);
+      return { x: x, y: y };
     });
     return new Stroke(path, points, index, isInRadical(index));
   });
@@ -1425,13 +1340,15 @@ CharDataParser.prototype.generateStrokes = function (charJson) {
 module.exports = CharDataParser;
 
 /***/ }),
-/* 14 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Point = __webpack_require__(1);
+var _require = __webpack_require__(3),
+    subtract = _require.subtract,
+    distance = _require.distance;
 
 function Stroke(path, points, strokeNum) {
   var isInRadical = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
@@ -1454,7 +1371,7 @@ Stroke.prototype.getLength = function () {
   var lastPoint = this.points[0];
   var pointsSansFirst = this.points.slice(1);
   return pointsSansFirst.reduce(function (acc, point) {
-    var dist = Point.getDistance(point, lastPoint);
+    var dist = distance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
   }, 0);
@@ -1464,7 +1381,7 @@ Stroke.prototype.getVectors = function () {
   var lastPoint = this.points[0];
   var pointsSansFirst = this.points.slice(1);
   return pointsSansFirst.map(function (point) {
-    var vector = point.subtract(lastPoint);
+    var vector = subtract(point, lastPoint);
     lastPoint = point;
     return vector;
   });
@@ -1472,7 +1389,7 @@ Stroke.prototype.getVectors = function () {
 
 Stroke.prototype.getDistance = function (point) {
   var distances = this.points.map(function (strokePoint) {
-    return Point.getDistance(strokePoint, point);
+    return distance(strokePoint, point);
   });
   return Math.min.apply(Math, distances);
 };
@@ -1489,13 +1406,11 @@ Stroke.prototype.getAverageDistance = function (points) {
 module.exports = Stroke;
 
 /***/ }),
-/* 15 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
-var Point = __webpack_require__(1);
 
 function Character(symbol, strokes) {
   this.symbol = symbol;
@@ -1503,19 +1418,17 @@ function Character(symbol, strokes) {
 }
 
 Character.prototype.getBounds = function () {
-  return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
+  return [{ x: 0, y: -124 }, { x: 1024, y: 900 }];
 };
 
 module.exports = Character;
 
 /***/ }),
-/* 16 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
-
-var Point = __webpack_require__(1);
 
 function Positioner(character, options) {
   this._character = character;
@@ -1526,7 +1439,7 @@ function Positioner(character, options) {
 Positioner.prototype.convertExternalPoint = function (point) {
   var x = (point.x - this._xOffset) / this._scale;
   var y = (this.getHeight() - this._yOffset - point.y) / this._scale;
-  return new Point(x, y);
+  return { x: x, y: y };
 };
 
 Positioner.prototype.getXOffset = function () {
@@ -1562,27 +1475,35 @@ Positioner.prototype._calculateScaleAndOffset = function () {
 module.exports = Positioner;
 
 /***/ }),
-/* 17 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeMatcher = __webpack_require__(18);
-var UserStroke = __webpack_require__(19);
+var strokeMatches = __webpack_require__(17);
+var UserStroke = __webpack_require__(18);
 
 var _require = __webpack_require__(0),
     callIfExists = _require.callIfExists,
     counter = _require.counter;
 
-var quizActions = __webpack_require__(20);
+var quizActions = __webpack_require__(19);
+var svg = __webpack_require__(1);
 var characterActions = __webpack_require__(4);
 
-function Quiz(character, renderState) {
+var getDrawnPath = function getDrawnPath(userStroke) {
+  return {
+    pathString: svg.getPathString(userStroke.externalPoints),
+    points: userStroke.points
+  };
+};
+
+function Quiz(character, renderState, positioner) {
   this._character = character;
   this._renderState = renderState;
   this._isActive = false;
-  this._strokeMatcher = new StrokeMatcher();
+  this._positioner = positioner;
 }
 
 Quiz.prototype.startQuiz = function (options) {
@@ -1595,17 +1516,19 @@ Quiz.prototype.startQuiz = function (options) {
   this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
 };
 
-Quiz.prototype.startUserStroke = function (point) {
+Quiz.prototype.startUserStroke = function (externalPoint) {
+  var point = this._positioner.convertExternalPoint(externalPoint);
   if (!this._isActive) return null;
   if (this._userStroke) return this.endUserStroke();
   var strokeId = counter();
-  this._userStroke = new UserStroke(strokeId, point);
+  this._userStroke = new UserStroke(strokeId, point, externalPoint);
   this._renderState.run(quizActions.startUserStroke(strokeId, point));
 };
 
-Quiz.prototype.continueUserStroke = function (point) {
+Quiz.prototype.continueUserStroke = function (externalPoint) {
   if (!this._userStroke) return;
-  this._userStroke.appendPoint(point);
+  var point = this._positioner.convertExternalPoint(externalPoint);
+  this._userStroke.appendPoint(point, externalPoint);
   var nextPoints = this._userStroke.points.slice(0);
   this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
 };
@@ -1616,8 +1539,7 @@ Quiz.prototype.endUserStroke = function () {
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
 
   var currentStroke = this._getCurrentStroke();
-  var isMatch = this._strokeMatcher.strokeMatches(this._userStroke, currentStroke);
-  this._userStroke = null;
+  var isMatch = strokeMatches(this._userStroke, currentStroke);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);
@@ -1627,6 +1549,7 @@ Quiz.prototype.endUserStroke = function () {
       this._renderState.run(characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed));
     }
   }
+  this._userStroke = null;
 };
 
 Quiz.prototype.cancel = function () {
@@ -1642,7 +1565,8 @@ Quiz.prototype._handleSuccess = function (stroke) {
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1,
+    drawnPath: getDrawnPath(this._userStroke)
   });
   var animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
   this._currentStrokeIndex += 1;
@@ -1669,7 +1593,8 @@ Quiz.prototype._handleFailure = function () {
     strokeNum: this._currentStrokeIndex,
     mistakesOnStroke: this._numRecentMistakes,
     totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex
+    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
+    drawnPath: getDrawnPath(this._userStroke)
   });
 };
 
@@ -1680,46 +1605,48 @@ Quiz.prototype._getCurrentStroke = function () {
 module.exports = Quiz;
 
 /***/ }),
-/* 18 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var Point = __webpack_require__(1);
-
 var _require = __webpack_require__(0),
     average = _require.average;
+
+var _require2 = __webpack_require__(3),
+    cosineSimilarity = _require2.cosineSimilarity,
+    equals = _require2.equals,
+    distance = _require2.distance,
+    subtract = _require2.subtract;
 
 var AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 
-function StrokeMatcher() {}
-
-StrokeMatcher.prototype.strokeMatches = function (userStroke, stroke) {
-  var points = this._stripDuplicates(userStroke.points);
-  if (points.length < 2) return null;
-
-  var avgDist = stroke.getAverageDistance(points);
-  var withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
-  var startAndEndMatch = this._startAndEndMatches(points, stroke);
-  var directionMatches = this._directionMatches(points, stroke);
-  return withinDistThresh && startAndEndMatch && directionMatches;
-};
-
-StrokeMatcher.prototype._startAndEndMatches = function (points, closestStroke) {
-  var startingDist = Point.getDistance(closestStroke.getStartingPoint(), points[0]);
-  var endingDist = Point.getDistance(closestStroke.getEndingPoint(), points[points.length - 1]);
+var startAndEndMatches = function startAndEndMatches(points, closestStroke) {
+  var startingDist = distance(closestStroke.getStartingPoint(), points[0]);
+  var endingDist = distance(closestStroke.getEndingPoint(), points[points.length - 1]);
   return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
 };
 
-StrokeMatcher.prototype._directionMatches = function (points, stroke) {
-  var edgeVectors = this._getEdgeVectors(points);
+// returns a list of the direction of all segments in the line connecting the points
+var getEdgeVectors = function getEdgeVectors(points) {
+  var vectors = [];
+  var lastPoint = points[0];
+  points.slice(1).forEach(function (point) {
+    vectors.push(subtract(point, lastPoint));
+    lastPoint = point;
+  });
+  return vectors;
+};
+
+var directionMatches = function directionMatches(points, stroke) {
+  var edgeVectors = getEdgeVectors(points);
   var strokeVectors = stroke.getVectors();
   var similarities = edgeVectors.map(function (edgeVector) {
     var strokeSimilarities = strokeVectors.map(function (strokeVector) {
-      return Point.cosineSimilarity(strokeVector, edgeVector);
+      return cosineSimilarity(strokeVector, edgeVector);
     });
     return Math.max.apply(Math, strokeSimilarities);
   });
@@ -1727,60 +1654,52 @@ StrokeMatcher.prototype._directionMatches = function (points, stroke) {
   return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
 };
 
-StrokeMatcher.prototype._stripDuplicates = function (points) {
+var stripDuplicates = function stripDuplicates(points) {
   if (points.length < 2) return points;
   var dedupedPoints = [points[0]];
   points.slice(1).forEach(function (point) {
-    if (!point.equals(dedupedPoints[dedupedPoints.length - 1])) {
+    if (!equals(point, dedupedPoints[dedupedPoints.length - 1])) {
       dedupedPoints.push(point);
     }
   });
   return dedupedPoints;
 };
 
-StrokeMatcher.prototype._getLength = function (points) {
-  var length = 0;
-  var lastPoint = points[0];
-  points.forEach(function (point) {
-    length += Point.getDistance(point, lastPoint);
-    lastPoint = point;
-  });
-  return length;
+var strokeMatches = function strokeMatches(userStroke, stroke) {
+  var points = stripDuplicates(userStroke.points);
+  if (points.length < 2) return null;
+
+  var avgDist = stroke.getAverageDistance(points);
+  var withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
+  var startAndEndMatch = startAndEndMatches(points, stroke);
+  var directionMatch = directionMatches(points, stroke);
+  return withinDistThresh && startAndEndMatch && directionMatch;
 };
 
-// returns a list of the direction of all segments in the line connecting the points
-StrokeMatcher.prototype._getEdgeVectors = function (points) {
-  var vectors = [];
-  var lastPoint = points[0];
-  points.slice(1).forEach(function (point) {
-    vectors.push(point.subtract(lastPoint));
-    lastPoint = point;
-  });
-  return vectors;
-};
-
-module.exports = StrokeMatcher;
+module.exports = strokeMatches;
 
 /***/ }),
-/* 19 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-function UserStroke(id, startingPoint) {
+function UserStroke(id, startingPoint, startingExternalPoint) {
   this.id = id;
   this.points = [startingPoint];
+  this.externalPoints = [startingExternalPoint];
 }
 
-UserStroke.prototype.appendPoint = function (point) {
+UserStroke.prototype.appendPoint = function (point, externalPoint) {
   this.points.push(point);
+  this.externalPoints.push(externalPoint);
 };
 
 module.exports = UserStroke;
 
 /***/ }),
-/* 20 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1822,7 +1741,7 @@ module.exports = {
 };
 
 /***/ }),
-/* 21 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1853,7 +1772,7 @@ module.exports = function (char, onLoad, onError) {
 
     if (xhr.status === 200) {
       onLoad(JSON.parse(xhr.responseText));
-    } else if (onError) {
+    } else if (xhr.status !== 0 && onError) {
       onError(xhr);
     }
   };
@@ -1862,7 +1781,7 @@ module.exports = function (char, onLoad, onError) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
 
 /***/ }),
-/* 22 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

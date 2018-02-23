@@ -2,7 +2,6 @@ const ren = require('hanzi-writer-data/人.json');
 const HanziWriterRenderer = require('../HanziWriterRenderer');
 const svg = require('../../svg');
 const { copyAndMergeDeep } = require('../../utils');
-const Point = require('../../models/Point');
 const Positioner = require('../../Positioner');
 const CharDataParser = require('../../CharDataParser');
 
@@ -52,7 +51,7 @@ describe('HanziWriterRenderer', () => {
       },
       userStrokes: {
         17: {
-          points: [new Point(0, 0), new Point(1, 3)],
+          points: [{x: 0, y: 0}, {x: 1, y: 3}],
           opacity: 0.9,
         },
       },

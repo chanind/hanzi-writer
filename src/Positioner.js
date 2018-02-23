@@ -1,5 +1,3 @@
-const Point = require('./models/Point');
-
 function Positioner(character, options) {
   this._character = character;
   this._options = options;
@@ -9,7 +7,7 @@ function Positioner(character, options) {
 Positioner.prototype.convertExternalPoint = function(point) {
   const x = (point.x - this._xOffset) / this._scale;
   const y = (this.getHeight() - this._yOffset - point.y) / this._scale;
-  return new Point(x, y);
+  return {x, y};
 };
 
 Positioner.prototype.getXOffset = function() { return this._xOffset; };

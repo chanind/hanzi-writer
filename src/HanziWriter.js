@@ -1,6 +1,5 @@
 const HanziWriterRenderer = require('./renderers/HanziWriterRenderer');
 const RenderState = require('./RenderState');
-const Point = require('./models/Point');
 const CharDataParser = require('./CharDataParser');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
@@ -248,14 +247,14 @@ HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
 
 HanziWriter.prototype._getMousePoint = function(evt) {
   const box = this._canvas.svg.getBoundingClientRect();
-  return new Point(evt.clientX - box.left, evt.clientY - box.top);
+  return {x: evt.clientX - box.left, y: evt.clientY - box.top};
 };
 
 HanziWriter.prototype._getTouchPoint = function(evt) {
   const box = this._canvas.svg.getBoundingClientRect();
   const x = evt.touches[0].clientX - box.left;
   const y = evt.touches[0].clientY - box.top;
-  return new Point(x, y);
+  return {x, y};
 };
 
 

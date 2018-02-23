@@ -1,6 +1,5 @@
 const ren = require('hanzi-writer-data/人.json');
 const Positioner = require('../Positioner');
-const Point = require('../models/Point');
 const CharDataParser = require('../CharDataParser');
 
 
@@ -19,6 +18,6 @@ describe('Positioner', () => {
 
   it('converts points from the external reference frame to the character reference frame', () => {
     const positioner = new Positioner(char, { width: 400, height: 400, padding: 20 });
-    expect(positioner.convertExternalPoint(new Point(30, 50))).toEqual(new Point(28.444444444444443, 814.6666666666666));
+    expect(positioner.convertExternalPoint({x: 30, y: 50})).toEqual({x: 28.444444444444443, y: 814.6666666666666});
   });
 });

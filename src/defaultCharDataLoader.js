@@ -5,7 +5,6 @@ const VERSION = '2.0';
 const getCharDataUrl = (char) => `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
 
 module.exports = (char, onLoad, onError) => {
-  let onErrorCalled = false
   // load char data from hanziwriter.org cdn (currently hosted on github pages)
   const xhr = new global.XMLHttpRequest();
   if (xhr.overrideMimeType) { // IE 9 and 10 don't seem to support this...
@@ -13,10 +12,7 @@ module.exports = (char, onLoad, onError) => {
   }
   xhr.open('GET', getCharDataUrl(char), true);
   xhr.onerror = (event) => {
-    if (!onErrorCalled) {
-      onErrorCalled = true;
-      onError(xhr, event);
-    }
+    onError(xhr, event);
   };
   xhr.onreadystatechange = () => {
     // TODO: error handling
@@ -24,8 +20,7 @@ module.exports = (char, onLoad, onError) => {
 
     if (xhr.status === 200) {
       onLoad(JSON.parse(xhr.responseText));
-    } else if (onError && !onErrorCalled) {
-      onErrorCalled = true;
+    } else if (xhr.status !== 0 && onError) {
       onError(xhr);
     }
   };

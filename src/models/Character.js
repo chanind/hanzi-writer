@@ -1,12 +1,10 @@
-const Point = require('./Point');
-
 function Character(symbol, strokes) {
   this.symbol = symbol;
   this.strokes = strokes;
 }
 
 Character.prototype.getBounds = function() {
-  return Point.getBounds([new Point(0, 900), new Point(1024, -124)]);
+  return [{x: 0, y: -124}, {x: 1024, y: 900}];
 };
 
 module.exports = Character;

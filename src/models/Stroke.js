@@ -1,4 +1,4 @@
-const Point = require('./Point');
+const { subtract, distance } = require('../geometry');
 
 function Stroke(path, points, strokeNum, isInRadical = false) {
   this.path = path;
@@ -19,7 +19,7 @@ Stroke.prototype.getLength = function() {
   let lastPoint = this.points[0];
   const pointsSansFirst = this.points.slice(1);
   return pointsSansFirst.reduce((acc, point) => {
-    const dist = Point.getDistance(point, lastPoint);
+    const dist = distance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
   }, 0);
@@ -29,14 +29,14 @@ Stroke.prototype.getVectors = function() {
   let lastPoint = this.points[0];
   const pointsSansFirst = this.points.slice(1);
   return pointsSansFirst.map((point) => {
-    const vector = point.subtract(lastPoint);
+    const vector = subtract(point, lastPoint);
     lastPoint = point;
     return vector;
   });
 };
 
 Stroke.prototype.getDistance = function(point) {
-  const distances = this.points.map(strokePoint => Point.getDistance(strokePoint, point));
+  const distances = this.points.map(strokePoint => distance(strokePoint, point));
   return Math.min.apply(Math, distances);
 };
 

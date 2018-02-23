@@ -7,7 +7,7 @@ const CharDataParser = require('../CharDataParser');
 
 
 const char = new CharDataParser().generateCharacter('人', ren);
-const matcher = new StrokeMatcher()
+const matcher = new StrokeMatcher();
 
 describe('StrokeMatcher', () => {
   it('matches if the user stroke roughly matches the stroke medians', () => {
@@ -115,12 +115,12 @@ describe('StrokeMatcher', () => {
         new Point(56.888888888888886, 154.75555555555556),
         new Point(56.888888888888886, 151.9111111111111),
         new Point(54.044444444444444, 151.9111111111111),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(true);
   });
 
-it('matches using real data 2', () => {
+  it('matches using real data 2', () => {
     const stroke = char.strokes[1];
     const userStroke = {
       points: [
@@ -141,7 +141,7 @@ it('matches using real data 2', () => {
         new Point(992.7111111111111, 97.86666666666666),
         new Point(998.4, 95.02222222222223),
         new Point(998.4, 95.02222222222223),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(true);
   });
@@ -167,7 +167,7 @@ it('matches using real data 2', () => {
         new Point(620.0888888888888, 595.6444444444444),
         new Point(620.0888888888888, 595.6444444444444),
         new Point(620.0888888888888, 595.6444444444444),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
   });
@@ -196,7 +196,7 @@ it('matches using real data 2', () => {
         new Point(728.1777777777778, 703.7333333333333),
         new Point(733.8666666666667, 706.5777777777778),
         new Point(733.8666666666667, 706.5777777777778),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
   });
@@ -221,7 +221,7 @@ it('matches using real data 2', () => {
         new Point(372.6222222222222, 612.7111111111111),
         new Point(369.77777777777777, 612.7111111111111),
         new Point(369.77777777777777, 612.7111111111111),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
   });
@@ -274,7 +274,7 @@ it('matches using real data 2', () => {
         new Point(733.8666666666667, 63.733333333333334),
         new Point(733.8666666666667, 66.57777777777778),
         new Point(733.8666666666667, 66.57777777777778),
-      ]
+      ],
     };
     expect(matcher.strokeMatches(userStroke, stroke)).toBe(false);
   });

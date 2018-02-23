@@ -46,7 +46,7 @@ describe('HanziWriter', () => {
       expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
     });
 
-    it('tries reloading when calling an animatable method after loading failure', async () => {
+    it('throws when calling an animatable method after loading failure', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const onLoadCharDataError = jest.fn();
@@ -58,11 +58,10 @@ describe('HanziWriter', () => {
       });
 
       await writer._withDataPromise;
-      await writer.showCharacter();
+      expect(() => writer.showCharacter()).toThrow();
 
-      expect(onLoadCharDataError.mock.calls.length).toBe(2);
-      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
-      expect(onLoadCharDataError.mock.calls[1][0]).toBe('reasons');
+      expect(onLoadCharDataError).toHaveBeenCalledTimes(1);
+      expect(onLoadCharDataError).toHaveBeenCalledWith('reasons');
     });
 
     it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {

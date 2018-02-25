@@ -85,6 +85,31 @@ describe('Quiz', () => {
         expect(renderState.state.character.main.strokes[strokeNum].opacity).toBe(0);
       });
     });
+
+    it('sets all highlight stroke opacities to 0', async () => {
+      const renderState = createRenderState();
+      renderState.updateState({
+        character: {
+          highlight: {
+            opacity: 0,
+            strokes: {
+              0: { opacity: 1 },
+              1: { opacity: 1 },
+            },
+          },
+        },
+      });
+
+      const quiz = new Quiz(char, renderState, new Positioner());
+      quiz.startQuiz(Object.assign({}, opts));
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.highlight.opacity).toBe(1);
+      Object.keys(renderState.state.character.main.strokes).forEach(strokeNum => {
+        expect(renderState.state.character.highlight.strokes[strokeNum].opacity).toBe(0);
+      });
+    });
   });
 
   describe('startUserStroke', () => {

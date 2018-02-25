@@ -5,9 +5,13 @@ const { objRepeat } = require('./utils');
 const startQuiz = (character, fadeDuration) => {
   return characterActions.hideCharacter('main', character, fadeDuration)
     .concat([
+      new Mutation('character.highlight', {
+        opacity: 1,
+        strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length),
+      }),
       new Mutation('character.main', {
         opacity: 1,
-        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+        strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length),
       }),
     ]);
 };

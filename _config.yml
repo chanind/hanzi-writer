@@ -2,8 +2,8 @@
 title: Hanzi Writer
 email: chanindav@gmail.com
 description: >
-  Hanzi Writer is a free and open-source javascript library for both animating
-  simplified Chinese characters and quizzing users on character stroke order.
+  Hanzi Writer is a free and open-source javascript library
+  for Chinese character stroke order animations and practice quizzes
 baseurl: "/hanzi-writer" # the subpath of your site, e.g. /blog/
 url: "http://chanind.github.io/hanzi-writer" # the base hostname & protocol for your site
 github_username:  chanind

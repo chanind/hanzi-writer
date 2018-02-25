@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.8.0
+ * Hanzi Writer v0.8.1
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -1713,9 +1713,12 @@ var _require = __webpack_require__(0),
     objRepeat = _require.objRepeat;
 
 var startQuiz = function startQuiz(character, fadeDuration) {
-  return characterActions.hideCharacter('main', character, fadeDuration).concat([new Mutation('character.main', {
+  return characterActions.hideCharacter('main', character, fadeDuration).concat([new Mutation('character.highlight', {
     opacity: 1,
-    strokes: objRepeat({ opacity: 0 }, character.strokes.length)
+    strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length)
+  }), new Mutation('character.main', {
+    opacity: 1,
+    strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length)
   })]);
 };
 

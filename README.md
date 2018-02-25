@@ -13,9 +13,9 @@ Hanzi Writer is a free and open-source javascript library for Chinese character 
 
 [Live demo](https://chanind.github.io/hanzi-writer/demo.html)
 
-## Getting Started
+## Getting Started and Documentation
 
-For more info and instructions for getting started with HanziWriter check out https://chanind.github.io/hanzi-writer
+For more info and instructions on getting started check out https://chanind.github.io/hanzi-writer
 
 ## Data source
 

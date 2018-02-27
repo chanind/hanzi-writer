@@ -3,12 +3,13 @@ const UserStroke = require('./models/UserStroke');
 const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
 const svg = require('./svg');
+const geometry = require('./geometry');
 const characterActions = require('./characterActions');
 
 
 const getDrawnPath = (userStroke) => ({
   pathString: svg.getPathString(userStroke.externalPoints),
-  points: userStroke.points,
+  points: userStroke.points.map(point => geometry.round(point)),
 });
 
 

@@ -2,6 +2,13 @@ const subtract = (p1, p2) => ({x: p1.x - p2.x, y: p1.y - p2.y});
 const magnitude = (point) => Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
 const distance = (point1, point2) => magnitude(subtract(point1, point2));
 const equals = (point1, point2) => point1.x === point2.x && point1.y === point2.y;
+const round = (point, precision = 1) => {
+  const multiplier = precision * 10;
+  return {
+    x: Math.round(multiplier * point.x) / multiplier,
+    y: Math.round(multiplier * point.y) / multiplier,
+  };
+};
 
 const cosineSimilarity = (point1, point2) => {
   const rawDotProduct = point1.x * point2.x + point1.y * point2.y;
@@ -37,6 +44,7 @@ const filterParallelPoints = (points) => {
 };
 
 module.exports = {
+  round,
   equals,
   distance,
   subtract,

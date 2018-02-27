@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.8.1
+ * Hanzi Writer v0.8.2
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -190,7 +190,7 @@ module.exports = {
   requestAnimationFrame: requestAnimationFrame,
   timeout: timeout
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 1 */
@@ -198,6 +198,9 @@ module.exports = {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
+
+var _require = __webpack_require__(2),
+    round = _require.round;
 
 function createElm(elmType) {
   return global.document.createElementNS('http://www.w3.org/2000/svg', elmType);
@@ -216,11 +219,12 @@ function attrs(elm, attrsMap) {
 function getPathString(points) {
   var close = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
-  var start = points[0];
+  var start = round(points[0]);
   var remainingPoints = points.slice(1);
   var pathString = 'M ' + start.x + ' ' + start.y;
   remainingPoints.forEach(function (point) {
-    pathString += ' L ' + point.x + ' ' + point.y;
+    var roundedPoint = round(point);
+    pathString += ' L ' + roundedPoint.x + ' ' + roundedPoint.y;
   });
   if (close) pathString += 'Z';
   return pathString;
@@ -263,37 +267,10 @@ Canvas.init = function (elmOrId) {
 };
 
 module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, getPathString: getPathString, removeElm: removeElm };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 2 */
-/***/ (function(module, exports) {
-
-var g;
-
-// This works in non-strict mode
-g = (function() {
-	return this;
-})();
-
-try {
-	// This works if eval is allowed (see CSP)
-	g = g || Function("return this")() || (1,eval)("this");
-} catch(e) {
-	// This works if the window reference is available
-	if(typeof window === "object")
-		g = window;
-}
-
-// g can still be undefined, but nothing to do about it...
-// We return undefined, instead of nothing here, so it's
-// easier to handle this case. if(!global) { ...}
-
-module.exports = g;
-
-
-/***/ }),
-/* 3 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -310,6 +287,15 @@ var distance = function distance(point1, point2) {
 };
 var equals = function equals(point1, point2) {
   return point1.x === point2.x && point1.y === point2.y;
+};
+var round = function round(point) {
+  var precision = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 1;
+
+  var multiplier = precision * 10;
+  return {
+    x: Math.round(multiplier * point.x) / multiplier,
+    y: Math.round(multiplier * point.y) / multiplier
+  };
 };
 
 var cosineSimilarity = function cosineSimilarity(point1, point2) {
@@ -344,6 +330,7 @@ var filterParallelPoints = function filterParallelPoints(points) {
 };
 
 module.exports = {
+  round: round,
   equals: equals,
   distance: distance,
   subtract: subtract,
@@ -351,6 +338,33 @@ module.exports = {
   extendPointOnLine: extendPointOnLine,
   filterParallelPoints: filterParallelPoints
 };
+
+/***/ }),
+/* 3 */
+/***/ (function(module, exports) {
+
+var g;
+
+// This works in non-strict mode
+g = (function() {
+	return this;
+})();
+
+try {
+	// This works if eval is allowed (see CSP)
+	g = g || Function("return this")() || (1,eval)("this");
+} catch(e) {
+	// This works if the window reference is available
+	if(typeof window === "object")
+		g = window;
+}
+
+// g can still be undefined, but nothing to do about it...
+// We return undefined, instead of nothing here, so it's
+// easier to handle this case. if(!global) { ...}
+
+module.exports = g;
+
 
 /***/ }),
 /* 4 */
@@ -894,7 +908,7 @@ if (typeof global.window !== 'undefined') {
 if (true) {
   module.exports = HanziWriter;
 }
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 7 */
@@ -1028,7 +1042,7 @@ var _require = __webpack_require__(0),
 
 var svg = __webpack_require__(1);
 
-var _require2 = __webpack_require__(3),
+var _require2 = __webpack_require__(2),
     extendPointOnLine = _require2.extendPointOnLine,
     filterParallelPoints = _require2.filterParallelPoints;
 
@@ -1346,7 +1360,7 @@ module.exports = CharDataParser;
 "use strict";
 
 
-var _require = __webpack_require__(3),
+var _require = __webpack_require__(2),
     subtract = _require.subtract,
     distance = _require.distance;
 
@@ -1490,12 +1504,15 @@ var _require = __webpack_require__(0),
 
 var quizActions = __webpack_require__(19);
 var svg = __webpack_require__(1);
+var geometry = __webpack_require__(2);
 var characterActions = __webpack_require__(4);
 
 var getDrawnPath = function getDrawnPath(userStroke) {
   return {
     pathString: svg.getPathString(userStroke.externalPoints),
-    points: userStroke.points
+    points: userStroke.points.map(function (point) {
+      return geometry.round(point);
+    })
   };
 };
 
@@ -1614,7 +1631,7 @@ module.exports = Quiz;
 var _require = __webpack_require__(0),
     average = _require.average;
 
-var _require2 = __webpack_require__(3),
+var _require2 = __webpack_require__(2),
     cosineSimilarity = _require2.cosineSimilarity,
     equals = _require2.equals,
     distance = _require2.distance,
@@ -1781,7 +1798,7 @@ module.exports = function (char, onLoad, onError) {
   };
   xhr.send(null);
 };
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(2)))
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
 /* 21 */

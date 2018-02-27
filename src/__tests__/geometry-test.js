@@ -27,6 +27,24 @@ describe('geometry', () => {
     });
   });
 
+  describe('frechetDist', () => {
+    it('is 0 if the curves are the same', () => {
+      const curve1 = [{x: 0, y: 0}, {x: 4, y: 4}];
+      const curve2 = [{x: 0, y: 0}, {x: 4, y: 4}];
+
+      expect(geometry.frechetDist(curve1, curve2)).toBe(0);
+      expect(geometry.frechetDist(curve2, curve1)).toBe(0);
+    });
+
+    it('will be the dist of the starting points if those are the only difference', () => {
+      const curve1 = [{x: 1, y: 0}, {x: 4, y: 4}];
+      const curve2 = [{x: 0, y: 0}, {x: 4, y: 4}];
+
+      expect(geometry.frechetDist(curve1, curve2)).toBe(1);
+      expect(geometry.frechetDist(curve2, curve1)).toBe(1);
+    });
+  });
+
   describe('filterParallelPoints', () => {
     it('removes internal points that are on the line connecting the points on either side', () => {
       const points = [

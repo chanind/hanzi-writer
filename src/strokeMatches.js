@@ -1,5 +1,13 @@
 const {average} = require('./utils');
-const {cosineSimilarity, equals, distance, subtract} = require('./geometry');
+const {
+  cosineSimilarity,
+  equals,
+  frechetDist,
+  distance,
+  subtract,
+  normalizeCurve,
+  rotate,
+} = require('./geometry');
 
 const AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
@@ -45,6 +53,28 @@ const stripDuplicates = (points) => {
   return dedupedPoints;
 };
 
+const FIT_ROTATIONS = [
+  Math.PI / 8,
+  Math.PI / 16,
+  0,
+  -1 * Math.PI / 16,
+  -1 * Math.PI / 8,
+];
+
+const shapeFit = (curve1, curve2) => {
+  const normCurve1 = normalizeCurve(curve1);
+  const normCurve2 = normalizeCurve(curve2);
+  let minFrechetDist = Math.Infinity;
+  FIT_ROTATIONS.forEach(theta => {
+    const rotatedCurve2 = rotate(normCurve2, theta);
+    const dist = frechetDist(normCurve1, rotatedCurve2);
+    if (dist < minFrechetDist) {
+      minFrechetDist = dist;
+    }
+  });
+  return minFrechetDist;
+};
+
 const strokeMatches = (userStroke, stroke) => {
   const points = stripDuplicates(userStroke.points);
   if (points.length < 2) return null;
@@ -53,6 +83,8 @@ const strokeMatches = (userStroke, stroke) => {
   const withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
   const startAndEndMatch = startAndEndMatches(points, stroke);
   const directionMatch = directionMatches(points, stroke);
+  const shapeMatch = shapeFit(points, stroke.points);
+  console.log(shapeMatch);
   return withinDistThresh && startAndEndMatch && directionMatch;
 };
 

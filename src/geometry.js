@@ -1,3 +1,6 @@
+const { average } = require('./utils');
+
+
 const subtract = (p1, p2) => ({x: p1.x - p2.x, y: p1.y - p2.y});
 const magnitude = (point) => Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
 const distance = (point1, point2) => magnitude(subtract(point1, point2));
@@ -41,9 +44,9 @@ const frechetDist = (curve1, curve2) => {
         Math.min(
           recursiveCalc(i - 1, j),
           recursiveCalc(i - 1, j - 1),
-          recursiveCalc(i, j - 1)
+          recursiveCalc(i, j - 1),
         ),
-        distance(curve1[i], curve2[j])
+        distance(curve1[i], curve2[j]),
       );
     } else {
       results[i][j] = Infinity;
@@ -54,6 +57,23 @@ const frechetDist = (curve1, curve2) => {
   return recursiveCalc(curve1.length - 1, curve2.length - 1);
 };
 
+// translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
+const normalizeCurve = (curve) => {
+  const meanX = average(curve.map(point => point.x));
+  const meanY = average(curve.map(point => point.y));
+  const mean = { x: meanX, y: meanY };
+  const translatedCurve = curve.map(point => subtract(point, mean));
+  const scale = Math.sqrt(average(translatedCurve.map(point => Math.pow(point.x, 2) + Math.pow(point.y, 2))));
+  return translatedCurve.map(point => ({ x: point.x / scale, y: point.y / scale }));
+};
+
+// rotate around the origin
+const rotate = (curve, theta) => {
+  return curve.map(point => ({
+    x: Math.cos(theta) * point.x - Math.sin(theta) * point.y,
+    y: Math.sin(theta) * point.x + Math.cos(theta) * point.y,
+  }));
+};
 
 // remove intermediate points that are on the same line as the points to either side
 const filterParallelPoints = (points) => {
@@ -77,6 +97,8 @@ module.exports = {
   equals,
   distance,
   frechetDist,
+  normalizeCurve,
+  rotate,
   subtract,
   cosineSimilarity,
   extendPointOnLine,

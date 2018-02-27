@@ -428,5 +428,33 @@ describe('Quiz', () => {
       await resolvePromises();
       expect(renderState.state.character.highlight.opacity).toBe(0);
     });
+
+    it('rounds drawn path data', async () => {
+      strokeMatches.mockImplementation(() => true);
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(char, renderState, new Positioner());
+      const onCorrectStroke = jest.fn();
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke }));
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({x: 10.93234, y: 20.4567978});
+      quiz.endUserStroke();
+
+      await resolvePromises();
+      expect(onCorrectStroke).toHaveBeenCalledTimes(1);
+      expect(onCorrectStroke).toHaveBeenLastCalledWith({
+        character: '人',
+        mistakesOnStroke: 0,
+        strokeNum: 0,
+        strokesRemaining: 1,
+        totalMistakes: 0,
+        drawnPath: {
+          pathString: 'M 10.9 20.5',
+          points: [{x: 15.9, y: 25.5}],
+        },
+      });
+    });
   });
 });

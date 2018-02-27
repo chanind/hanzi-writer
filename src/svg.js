@@ -1,3 +1,6 @@
+const { round } = require('./geometry');
+
+
 function createElm(elmType) {
   return global.document.createElementNS('http://www.w3.org/2000/svg', elmType);
 }
@@ -11,12 +14,12 @@ function attrs(elm, attrsMap) {
 }
 
 function getPathString(points, close = false) {
-  const start = points[0];
+  const start = round(points[0]);
   const remainingPoints = points.slice(1);
-  const round = (num) => Math.round(num * 10) / 10;
-  let pathString = `M ${round(start.x)} ${round(start.y)}`;
+  let pathString = `M ${start.x} ${start.y}`;
   remainingPoints.forEach(point => {
-    pathString += ` L ${round(point.x)} ${round(point.y)}`;
+    const roundedPoint = round(point);
+    pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
   });
   if (close) pathString += 'Z';
   return pathString;

@@ -13,9 +13,10 @@ function attrs(elm, attrsMap) {
 function getPathString(points, close = false) {
   const start = points[0];
   const remainingPoints = points.slice(1);
-  let pathString = `M ${start.x} ${start.y}`;
+  const round = (num) => Math.round(num * 10) / 10;
+  let pathString = `M ${round(start.x)} ${round(start.y)}`;
   remainingPoints.forEach(point => {
-    pathString += ` L ${point.x} ${point.y}`;
+    pathString += ` L ${round(point.x)} ${round(point.y)}`;
   });
   if (close) pathString += 'Z';
   return pathString;

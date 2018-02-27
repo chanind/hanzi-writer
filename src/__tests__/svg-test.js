@@ -19,5 +19,14 @@ describe('svg', () => {
       ];
       expect(svg.getPathString(points, true)).toEqual('M 0 0 L 5 0 L 5 2Z');
     });
+
+    it('rounds points to 1 decimal point', () => {
+      const points = [
+        {x: 0.11113, y: 0.991212},
+        {x: 5.4565, y: 0.923},
+        {x: 5.4456, y: 2},
+      ];
+      expect(svg.getPathString(points, true)).toEqual('M 0.1 1 L 5.5 0.9 L 5.4 2Z');
+    });
   });
 });

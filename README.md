@@ -7,8 +7,6 @@ https://chanind.github.io/hanzi-writer
 Hanzi Writer
 =====================
 
-[![Demo](https://user-images.githubusercontent.com/200725/36640405-d655d7b8-1a58-11e8-8016-60bcfd446ff1.gif)](https://chanind.github.io/hanzi-writer/demo.html)
-
 Hanzi Writer is a free and open-source javascript library for Chinese character stroke order animations and stroke order practice quizzes. Works with both simplified and traditional characters.
 
 [Live demo](https://chanind.github.io/hanzi-writer/demo.html)

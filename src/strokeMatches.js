@@ -6,12 +6,14 @@ const {
   distance,
   subtract,
   normalizeCurve,
+  // subdivideCurve,
   rotate,
 } = require('./geometry');
 
 const AVG_DIST_THRESHOLD = 300; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
+const FRECHET_THRESHOLD = 0.3; // bigger = more lenient
 
 const startAndEndMatches = function(points, closestStroke) {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -53,39 +55,37 @@ const stripDuplicates = (points) => {
   return dedupedPoints;
 };
 
-const FIT_ROTATIONS = [
-  Math.PI / 8,
+const SHAPE_FIT_ROTATIONS = [
   Math.PI / 16,
+  Math.PI / 32,
   0,
+  -1 * Math.PI / 32,
   -1 * Math.PI / 16,
-  -1 * Math.PI / 8,
 ];
 
 const shapeFit = (curve1, curve2) => {
-  const normCurve1 = normalizeCurve(curve1);
-  const normCurve2 = normalizeCurve(curve2);
-  let minFrechetDist = Math.Infinity;
-  FIT_ROTATIONS.forEach(theta => {
-    const rotatedCurve2 = rotate(normCurve2, theta);
-    const dist = frechetDist(normCurve1, rotatedCurve2);
-    if (dist < minFrechetDist) {
-      minFrechetDist = dist;
+  const normCurve1 = normalizeCurve(curve1, 2);
+  const normCurve2 = normalizeCurve(curve2, 2);
+  let minDist = Infinity;
+  SHAPE_FIT_ROTATIONS.forEach(theta => {
+    const dist = frechetDist(normCurve1, rotate(normCurve2, theta));
+    if (dist < minDist) {
+      minDist = dist;
     }
   });
-  return minFrechetDist;
+  return minDist < FRECHET_THRESHOLD;
 };
 
-const strokeMatches = (userStroke, stroke) => {
+const strokeMatches = (userStroke, stroke, isOutlineVisible = false) => {
   const points = stripDuplicates(userStroke.points);
   if (points.length < 2) return null;
 
   const avgDist = stroke.getAverageDistance(points);
-  const withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
+  const withinDistThresh = avgDist < AVG_DIST_THRESHOLD * (isOutlineVisible ? 0.5 : 1);
   const startAndEndMatch = startAndEndMatches(points, stroke);
   const directionMatch = directionMatches(points, stroke);
   const shapeMatch = shapeFit(points, stroke.points);
-  console.log(shapeMatch);
-  return withinDistThresh && startAndEndMatch && directionMatch;
+  return withinDistThresh && startAndEndMatch && directionMatch && shapeMatch;
 };
 
 

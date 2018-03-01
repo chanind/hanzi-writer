@@ -1,4 +1,4 @@
-const { average } = require('./utils');
+const { average, arrLast } = require('./utils');
 
 
 const subtract = (p1, p2) => ({x: p1.x - p2.x, y: p1.y - p2.y});
@@ -57,14 +57,37 @@ const frechetDist = (curve1, curve2) => {
   return recursiveCalc(curve1.length - 1, curve2.length - 1);
 };
 
+// break up long segments in the curve into smaller segments of len maxLen or smaller
+const subdivideCurve = (curve, maxLen = 0.05) => {
+  const newCurve = curve.slice(0, 1);
+  curve.slice(1).forEach(point => {
+    const prevPoint = newCurve[newCurve.length - 1];
+    const segLen = distance(point, prevPoint);
+    if (segLen > maxLen) {
+      const numNewPoints = Math.ceil(segLen / maxLen);
+      const newSegLen = segLen / numNewPoints;
+      for (let i = 0; i < numNewPoints; i++) {
+        newCurve.push(extendPointOnLine(point, prevPoint, -1 * newSegLen * (i + 1)));
+      }
+    } else {
+      newCurve.push(point);
+    }
+  });
+  return newCurve;
+};
+
 // translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
 const normalizeCurve = (curve) => {
-  const meanX = average(curve.map(point => point.x));
-  const meanY = average(curve.map(point => point.y));
+  const meanX = average([curve[0].x, arrLast(curve).x]);
+  const meanY = average([curve[0].y, arrLast(curve).y]);
   const mean = { x: meanX, y: meanY };
   const translatedCurve = curve.map(point => subtract(point, mean));
-  const scale = Math.sqrt(average(translatedCurve.map(point => Math.pow(point.x, 2) + Math.pow(point.y, 2))));
-  return translatedCurve.map(point => ({ x: point.x / scale, y: point.y / scale }));
+  const scale = Math.sqrt(average([
+    Math.pow(translatedCurve[0].x, 2) + Math.pow(translatedCurve[0].y, 2),
+    Math.pow(arrLast(translatedCurve).x, 2) + Math.pow(arrLast(translatedCurve).y, 2),
+  ]));
+  const scaledCurve = translatedCurve.map(point => ({ x: point.x / scale, y: point.y / scale }));
+  return subdivideCurve(scaledCurve);
 };
 
 // rotate around the origin
@@ -97,10 +120,11 @@ module.exports = {
   equals,
   distance,
   frechetDist,
-  normalizeCurve,
   rotate,
   subtract,
   cosineSimilarity,
   extendPointOnLine,
   filterParallelPoints,
+  subdivideCurve,
+  normalizeCurve,
 };

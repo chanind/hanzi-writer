@@ -54,7 +54,8 @@ Quiz.prototype.endUserStroke = function() {
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
 
   const currentStroke = this._getCurrentStroke();
-  const isMatch = strokeMatches(this._userStroke, currentStroke);
+  const isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
+  const isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);

@@ -52,6 +52,11 @@ Quiz.prototype.endUserStroke = function() {
   if (!this._userStroke) return;
 
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
+  // skip single-point strokes
+  if (this._userStroke.points.length === 1) {
+    this._userStroke = null;
+    return;
+  }
 
   const currentStroke = this._getCurrentStroke();
   const isOutlineVisible = this._renderState.state.character.outline.opacity > 0;

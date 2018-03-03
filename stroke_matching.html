@@ -1,0 +1,87 @@
+---
+layout: default
+js: stroke_matching.js
+title: Stroke matching visualizer
+---
+
+<style type="text/css">
+
+.char-container {
+  margin: 10px;
+  border: 1px solid #999;
+  float: left;
+  position: relative;
+}
+
+.char-target {
+  width: 200px;
+  height: 200px;
+}
+
+.info-target {
+  color: #999;
+  position: absolute;
+  bottom: 3px;
+  left: 6px;
+  font-size: 8px;
+}
+
+.count-target {
+  color: #000;
+  font-weight: bold;
+  position: absolute;
+  top: 3px;
+  left: 6px;
+}
+
+.show-data {
+  color: #999;
+  display: block;
+  position: absolute;
+  bottom: 3px;
+  right: 6px;
+  font-size: 8px;
+}
+
+pre {
+  user-select: all;
+}
+
+path {
+  fill: rgba(0,0,0, 0.1);
+}
+
+.target-path {
+  fill: rgba(0, 0, 150, 0.3);
+}
+
+.user-stroke {
+  fill: none;
+  stroke-width: 4px;
+  stroke: #333;
+}
+
+.clear {
+  clear: both;
+}
+
+</style>
+<div class="container">
+  <div id="target"></div>
+  <div class="clear"></div>
+</div>
+
+<div class="modal fade" id="data-modal" tabindex="-1" role="dialog">
+  <div class="modal-dialog" role="document">
+    <div class="modal-content">
+      <div class="modal-header">
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+        <h4 class="modal-title">Drawing Points</h4>
+      </div>
+      <div class="modal-body"><pre id="modal-content"></pre></div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>

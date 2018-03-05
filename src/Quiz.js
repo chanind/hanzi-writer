@@ -60,7 +60,7 @@ Quiz.prototype.endUserStroke = function() {
 
   const currentStroke = this._getCurrentStroke();
   const isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
-  const isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible);
+  const isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible, this._options.leniency);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);

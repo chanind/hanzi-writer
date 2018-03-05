@@ -42,6 +42,7 @@ const defaultOptions = {
 
   // quiz options
 
+  leniency: 1,
   showHintAfterMisses: 3,
   highlightOnComplete: true,
 

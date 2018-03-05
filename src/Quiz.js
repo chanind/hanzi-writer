@@ -53,9 +53,15 @@ Quiz.prototype.endUserStroke = function() {
   if (!this._userStroke) return;
 
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
+  // skip single-point strokes
+  if (this._userStroke.points.length === 1) {
+    this._userStroke = null;
+    return;
+  }
 
   const currentStroke = this._getCurrentStroke();
-  const isMatch = strokeMatches(this._userStroke, currentStroke);
+  const isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
+  const isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible, this._options.leniency);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);

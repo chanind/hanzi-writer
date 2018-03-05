@@ -19,6 +19,8 @@ const assign = Object.assign || function(target, ...overrides) {
   return overrideTarget;
 };
 
+const arrLast = (arr) => arr[arr.length - 1];
+
 function copyAndMergeDeep(base, override) {
   const output = assign({}, base);
   for (const key in override) { // eslint-disable-line guard-for-in
@@ -87,6 +89,7 @@ const objRepeat = (item, times) => {
 };
 
 module.exports = {
+  arrLast,
   assign,
   average,
   callIfExists,

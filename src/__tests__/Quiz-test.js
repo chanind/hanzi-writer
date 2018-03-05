@@ -266,6 +266,39 @@ describe('Quiz', () => {
       expect(renderState.state.userStrokes[currentStrokeId]).toBe(null);
     });
 
+    it('ignores single point strokes', async () => {
+      strokeMatches.mockImplementation(() => false);
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(char, renderState, new Positioner());
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake }));
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({x: 10, y: 20});
+      const currentStrokeId = quiz._userStroke.id;
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBe(null);
+      expect(quiz._isActive).toBe(true);
+      expect(quiz._currentStrokeIndex).toBe(0);
+      expect(onMistake).not.toHaveBeenCalled();
+      expect(onCorrectStroke).not.toHaveBeenCalled();
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+      // should fade and disappear
+      expect(renderState.state.userStrokes[currentStrokeId]).toBe(null);
+    });
+
     it('stays on the stroke if it was incorrect', async () => {
       strokeMatches.mockImplementation(() => false);
 
@@ -326,6 +359,7 @@ describe('Quiz', () => {
       await resolvePromises();
 
       quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 11, y: 21});
       quiz.endUserStroke();
       await resolvePromises();
       clock.tick(1000);
@@ -335,6 +369,7 @@ describe('Quiz', () => {
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
 
       quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 11, y: 21});
       quiz.endUserStroke();
       await resolvePromises();
 
@@ -349,8 +384,8 @@ describe('Quiz', () => {
         strokesRemaining: 2,
         totalMistakes: 2,
         drawnPath: {
-          pathString: 'M 10 20',
-          points: [{x: 15, y: 25}],
+          pathString: 'M 10 20 L 11 21',
+          points: [{x: 15, y: 25}, {x: 16, y: 26}],
         },
       });
       expect(onCorrectStroke).not.toHaveBeenCalled();
@@ -382,12 +417,14 @@ describe('Quiz', () => {
       await resolvePromises();
 
       quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 11, y: 21});
       quiz.endUserStroke();
       await resolvePromises();
       clock.tick(1000);
       await resolvePromises();
 
       quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 11, y: 21});
       quiz.endUserStroke();
       await resolvePromises();
 
@@ -401,8 +438,8 @@ describe('Quiz', () => {
         strokesRemaining: 0,
         totalMistakes: 0,
         drawnPath: {
-          pathString: 'M 10 20',
-          points: [{x: 15, y: 25}],
+          pathString: 'M 10 20 L 11 21',
+          points: [{x: 15, y: 25}, {x: 16, y: 26}],
         },
       });
       expect(onComplete).toHaveBeenCalledTimes(1);

@@ -477,6 +477,7 @@ describe('Quiz', () => {
       await resolvePromises();
 
       quiz.startUserStroke({x: 10.93234, y: 20.4567978});
+      quiz.continueUserStroke({x: 11.87, y: 23.4444});
       quiz.endUserStroke();
 
       await resolvePromises();
@@ -488,8 +489,8 @@ describe('Quiz', () => {
         strokesRemaining: 1,
         totalMistakes: 0,
         drawnPath: {
-          pathString: 'M 10.9 20.5',
-          points: [{x: 15.9, y: 25.5}],
+          pathString: 'M 10.9 20.5 L 11.9 23.4',
+          points: [{x: 15.9, y: 25.5}, {x: 16.9, y: 28.4}],
         },
       });
     });

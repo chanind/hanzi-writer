@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.8.2
+ * Hanzi Writer v0.9.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -111,6 +111,10 @@ var assign = Object.assign || function (target) {
   return overrideTarget;
 };
 
+var arrLast = function arrLast(arr) {
+  return arr[arr.length - 1];
+};
+
 function copyAndMergeDeep(base, override) {
   var output = assign({}, base);
   for (var key in override) {
@@ -178,6 +182,7 @@ var objRepeat = function objRepeat(item, times) {
 };
 
 module.exports = {
+  arrLast: arrLast,
   assign: assign,
   average: average,
   callIfExists: callIfExists,
@@ -277,6 +282,10 @@ module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canva
 "use strict";
 
 
+var _require = __webpack_require__(0),
+    average = _require.average,
+    arrLast = _require.arrLast;
+
 var subtract = function subtract(p1, p2) {
   return { x: p1.x - p2.x, y: p1.y - p2.y };
 };
@@ -312,6 +321,81 @@ var extendPointOnLine = function extendPointOnLine(p1, p2, dist) {
   return { x: p2.x + norm * vect.x, y: p2.y + norm * vect.y };
 };
 
+// based on http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf
+var frechetDist = function frechetDist(curve1, curve2) {
+  var results = [];
+  for (var i = 0; i < curve1.length; i++) {
+    results.push([]);
+    for (var j = 0; j < curve2.length; j++) {
+      results[i].push(-1);
+    }
+  }
+
+  var recursiveCalc = function recursiveCalc(i, j) {
+    if (results[i][j] > -1) return results[i][j];
+    if (i === 0 && j === 0) {
+      results[i][j] = distance(curve1[0], curve2[0]);
+    } else if (i > 0 && j === 0) {
+      results[i][j] = Math.max(recursiveCalc(i - 1, 0), distance(curve1[i], curve2[0]));
+    } else if (i === 0 && j > 0) {
+      results[i][j] = Math.max(recursiveCalc(0, j - 1), distance(curve1[0], curve2[j]));
+    } else if (i > 0 && j > 0) {
+      results[i][j] = Math.max(Math.min(recursiveCalc(i - 1, j), recursiveCalc(i - 1, j - 1), recursiveCalc(i, j - 1)), distance(curve1[i], curve2[j]));
+    } else {
+      results[i][j] = Infinity;
+    }
+    return results[i][j];
+  };
+
+  return recursiveCalc(curve1.length - 1, curve2.length - 1);
+};
+
+// break up long segments in the curve into smaller segments of len maxLen or smaller
+var subdivideCurve = function subdivideCurve(curve) {
+  var maxLen = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 0.05;
+
+  var newCurve = curve.slice(0, 1);
+  curve.slice(1).forEach(function (point) {
+    var prevPoint = newCurve[newCurve.length - 1];
+    var segLen = distance(point, prevPoint);
+    if (segLen > maxLen) {
+      var numNewPoints = Math.ceil(segLen / maxLen);
+      var newSegLen = segLen / numNewPoints;
+      for (var i = 0; i < numNewPoints; i++) {
+        newCurve.push(extendPointOnLine(point, prevPoint, -1 * newSegLen * (i + 1)));
+      }
+    } else {
+      newCurve.push(point);
+    }
+  });
+  return newCurve;
+};
+
+// translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
+var normalizeCurve = function normalizeCurve(curve) {
+  var meanX = average([curve[0].x, arrLast(curve).x]);
+  var meanY = average([curve[0].y, arrLast(curve).y]);
+  var mean = { x: meanX, y: meanY };
+  var translatedCurve = curve.map(function (point) {
+    return subtract(point, mean);
+  });
+  var scale = Math.sqrt(average([Math.pow(translatedCurve[0].x, 2) + Math.pow(translatedCurve[0].y, 2), Math.pow(arrLast(translatedCurve).x, 2) + Math.pow(arrLast(translatedCurve).y, 2)]));
+  var scaledCurve = translatedCurve.map(function (point) {
+    return { x: point.x / scale, y: point.y / scale };
+  });
+  return subdivideCurve(scaledCurve);
+};
+
+// rotate around the origin
+var rotate = function rotate(curve, theta) {
+  return curve.map(function (point) {
+    return {
+      x: Math.cos(theta) * point.x - Math.sin(theta) * point.y,
+      y: Math.sin(theta) * point.x + Math.cos(theta) * point.y
+    };
+  });
+};
+
 // remove intermediate points that are on the same line as the points to either side
 var filterParallelPoints = function filterParallelPoints(points) {
   if (points.length < 3) return points;
@@ -334,10 +418,14 @@ module.exports = {
   round: round,
   equals: equals,
   distance: distance,
+  frechetDist: frechetDist,
+  rotate: rotate,
   subtract: subtract,
   cosineSimilarity: cosineSimilarity,
   extendPointOnLine: extendPointOnLine,
-  filterParallelPoints: filterParallelPoints
+  filterParallelPoints: filterParallelPoints,
+  subdivideCurve: subdivideCurve,
+  normalizeCurve: normalizeCurve
 };
 
 /***/ }),
@@ -652,6 +740,7 @@ var defaultOptions = {
 
   // quiz options
 
+  leniency: 1,
   showHintAfterMisses: 3,
   highlightOnComplete: true,
 
@@ -1555,9 +1644,15 @@ Quiz.prototype.endUserStroke = function () {
   if (!this._userStroke) return;
 
   this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
+  // skip single-point strokes
+  if (this._userStroke.points.length === 1) {
+    this._userStroke = null;
+    return;
+  }
 
   var currentStroke = this._getCurrentStroke();
-  var isMatch = strokeMatches(this._userStroke, currentStroke);
+  var isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
+  var isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible, this._options.leniency);
 
   if (isMatch) {
     this._handleSuccess(currentStroke);
@@ -1635,17 +1730,21 @@ var _require = __webpack_require__(0),
 var _require2 = __webpack_require__(2),
     cosineSimilarity = _require2.cosineSimilarity,
     equals = _require2.equals,
+    frechetDist = _require2.frechetDist,
     distance = _require2.distance,
-    subtract = _require2.subtract;
+    subtract = _require2.subtract,
+    normalizeCurve = _require2.normalizeCurve,
+    rotate = _require2.rotate;
 
-var AVG_DIST_THRESHOLD = 300; // bigger = more lenient
+var AVG_DIST_THRESHOLD = 230; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
+var FRECHET_THRESHOLD = 0.75; // bigger = more lenient
 
-var startAndEndMatches = function startAndEndMatches(points, closestStroke) {
+var startAndEndMatches = function startAndEndMatches(points, closestStroke, leniency) {
   var startingDist = distance(closestStroke.getStartingPoint(), points[0]);
   var endingDist = distance(closestStroke.getEndingPoint(), points[points.length - 1]);
-  return startingDist < START_AND_END_DIST_THRESHOLD && endingDist < START_AND_END_DIST_THRESHOLD;
+  return startingDist <= START_AND_END_DIST_THRESHOLD * leniency && endingDist <= START_AND_END_DIST_THRESHOLD * leniency;
 };
 
 // returns a list of the direction of all segments in the line connecting the points
@@ -1683,15 +1782,35 @@ var stripDuplicates = function stripDuplicates(points) {
   return dedupedPoints;
 };
 
+var SHAPE_FIT_ROTATIONS = [Math.PI / 16, Math.PI / 32, 0, -1 * Math.PI / 32, -1 * Math.PI / 16];
+
+var shapeFit = function shapeFit(curve1, curve2, leniency) {
+  var normCurve1 = normalizeCurve(curve1, 2);
+  var normCurve2 = normalizeCurve(curve2, 2);
+  var minDist = Infinity;
+  SHAPE_FIT_ROTATIONS.forEach(function (theta) {
+    var dist = frechetDist(normCurve1, rotate(normCurve2, theta));
+    if (dist < minDist) {
+      minDist = dist;
+    }
+  });
+  return minDist <= FRECHET_THRESHOLD * leniency;
+};
+
 var strokeMatches = function strokeMatches(userStroke, stroke) {
+  var isOutlineVisible = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
+  var leniency = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
+
   var points = stripDuplicates(userStroke.points);
   if (points.length < 2) return null;
 
   var avgDist = stroke.getAverageDistance(points);
-  var withinDistThresh = avgDist < AVG_DIST_THRESHOLD;
-  var startAndEndMatch = startAndEndMatches(points, stroke);
+  var distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
+  var withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
+  var startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   var directionMatch = directionMatches(points, stroke);
-  return withinDistThresh && startAndEndMatch && directionMatch;
+  var shapeMatch = shapeFit(points, stroke.points, leniency);
+  return withinDistThresh && startAndEndMatch && directionMatch && shapeMatch;
 };
 
 module.exports = strokeMatches;

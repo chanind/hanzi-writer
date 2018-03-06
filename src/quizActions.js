@@ -7,12 +7,12 @@ const startQuiz = (character, fadeDuration) => {
     .concat([
       new Mutation('character.highlight', {
         opacity: 1,
-        strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length),
-      }),
+        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+      }, { force: true }),
       new Mutation('character.main', {
         opacity: 1,
-        strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length),
-      }),
+        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+      }, { force: true }),
     ]);
 };
 

@@ -495,4 +495,59 @@ describe('Quiz', () => {
       });
     });
   });
+
+  it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
+    strokeMatches.mockImplementation(() => true);
+    const renderState = createRenderState();
+    const quiz = new Quiz(char, renderState, new Positioner());
+
+    quiz.startQuiz(Object.assign({}, opts));
+    clock.tick(1000);
+    await resolvePromises();
+
+    quiz.startUserStroke({x: 10, y: 20});
+    quiz.continueUserStroke({x: 11, y: 23});
+    quiz.endUserStroke();
+    clock.tick(100);
+    await resolvePromises();
+
+    quiz.startUserStroke({x: 10, y: 20});
+    quiz.continueUserStroke({x: 11, y: 23});
+    quiz.endUserStroke();
+    clock.tick(100);
+    await resolvePromises();
+
+    clock.tick(1000);
+    await resolvePromises();
+
+    expect(renderState.state.character.main.opacity).toBe(1);
+    expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+    expect(renderState.state.character.main.strokes[1].opacity).toBe(1);
+  });
+
+  it('sets up character opacities correctly if the users starts drawing during char fading', async () => {
+    strokeMatches.mockImplementation(() => true);
+    const renderState = createRenderState();
+    const quiz = new Quiz(char, renderState, new Positioner());
+
+    quiz.startQuiz(Object.assign({}, opts));
+    clock.tick(20);
+    await resolvePromises();
+
+    quiz.startUserStroke({x: 10, y: 20});
+    quiz.continueUserStroke({x: 12, y: 23});
+    quiz.endUserStroke();
+    clock.tick(100);
+    await resolvePromises();
+    clock.tick(1000);
+    await resolvePromises();
+
+    expect(renderState.state.character.main.opacity).toBe(1);
+    expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+    expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+
+    expect(renderState.state.character.highlight.opacity).toBe(1);
+    expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
+    expect(renderState.state.character.highlight.strokes[1].opacity).toBe(0);
+  });
 });

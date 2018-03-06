@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.9.0
+ * Hanzi Writer v0.9.1
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -515,13 +515,10 @@ var highlightStroke = function highlightStroke(charName, stroke, speed) {
 };
 
 var showStroke = function showStroke(charName, strokeNum, duration) {
-  return [new Mutation('character.' + charName, {
-    opacity: 1,
-    strokes: _defineProperty({}, strokeNum, {
-      displayPortion: 1,
-      opacity: 1
-    })
-  }, { duration: duration })];
+  return [new Mutation('character.' + charName + '.strokes.' + strokeNum, {
+    displayPortion: 1,
+    opacity: 1
+  }, { duration: duration, force: true })];
 };
 
 var animateCharacter = function animateCharacter(charName, character, fadeDuration, speed, delayBetweenStrokes) {
@@ -1377,7 +1374,7 @@ RenderState.prototype.cancelMutations = function (scopes) {
   this._mutationChains.forEach(function (chain) {
     chain._scopes.forEach(function (chainScope) {
       scopes.forEach(function (scope) {
-        if (chainScope.indexOf(scope) >= 0) {
+        if (chainScope.indexOf(scope) >= 0 || scope.indexOf(chainScope) >= 0) {
           _this3._cancelMutationChain(chain);
         }
       });
@@ -1850,11 +1847,11 @@ var _require = __webpack_require__(0),
 var startQuiz = function startQuiz(character, fadeDuration) {
   return characterActions.hideCharacter('main', character, fadeDuration).concat([new Mutation('character.highlight', {
     opacity: 1,
-    strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length)
-  }), new Mutation('character.main', {
+    strokes: objRepeat({ opacity: 0 }, character.strokes.length)
+  }, { force: true }), new Mutation('character.main', {
     opacity: 1,
-    strokes: objRepeat({ opacity: 0, force: true }, character.strokes.length)
-  })]);
+    strokes: objRepeat({ opacity: 0 }, character.strokes.length)
+  }, { force: true })]);
 };
 
 var startUserStroke = function startUserStroke(id, point) {

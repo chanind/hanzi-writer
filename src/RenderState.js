@@ -96,7 +96,7 @@ RenderState.prototype.cancelMutations = function(scopes) {
   this._mutationChains.forEach(chain => {
     chain._scopes.forEach(chainScope => {
       scopes.forEach(scope => {
-        if (chainScope.indexOf(scope) >= 0) {
+        if (chainScope.indexOf(scope) >= 0 || scope.indexOf(chainScope) >= 0) {
           this._cancelMutationChain(chain);
         }
       });

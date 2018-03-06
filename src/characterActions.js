@@ -76,15 +76,10 @@ const highlightStroke = (charName, stroke, speed) => {
 
 const showStroke = (charName, strokeNum, duration) => {
   return [
-    new Mutation(`character.${charName}`, {
+    new Mutation(`character.${charName}.strokes.${strokeNum}`, {
+      displayPortion: 1,
       opacity: 1,
-      strokes: {
-        [strokeNum]: {
-          displayPortion: 1,
-          opacity: 1,
-        },
-      },
-    }, { duration }),
+    }, { duration, force: true }),
   ];
 };
 

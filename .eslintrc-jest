@@ -5,7 +5,9 @@
   },
   "globals": {
     "document": true,
-    "clock": true
+    "clock": true,
+    "MouseEvent": true,
+    "TouchEvent": true
   },
   "rules": {
     "id-length": [0],

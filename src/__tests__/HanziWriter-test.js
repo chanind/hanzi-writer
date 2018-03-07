@@ -381,4 +381,93 @@ describe('HanziWriter', () => {
       expect(writer._quiz).toBe(null);
     });
   });
+
+  describe('mouse and touch events', () => {
+    let writer;
+    beforeEach(async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      writer = new HanziWriter('target', '人');
+      await writer._withDataPromise;
+      writer.quiz();
+      await resolvePromises();
+    });
+
+    it('starts a user stroke on mousedown', () => {
+      const evt = new MouseEvent('mousedown', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 170,
+        clientY: 127,
+      });
+      const svg = document.querySelector('#target svg');
+      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
+      const canceled = !svg.dispatchEvent(evt);
+      expect(canceled).toBe(true);
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+    });
+
+    it('starts a user stroke on touchstart', () => {
+      const evt = new TouchEvent('touchstart', {
+        bubbles: true,
+        cancelable: true,
+        touches: [{
+          clientX: 170,
+          clientY: 127,
+        }],
+      });
+      const svg = document.querySelector('#target svg');
+      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
+      const canceled = !svg.dispatchEvent(evt);
+      expect(canceled).toBe(true);
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+    });
+
+    it('continues a user stroke on mousemove', () => {
+      const evt = new MouseEvent('mousemove', {
+        bubbles: true,
+        cancelable: true,
+        clientX: 170,
+        clientY: 127,
+      });
+      const svg = document.querySelector('#target svg');
+      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
+      const canceled = !svg.dispatchEvent(evt);
+      expect(canceled).toBe(true);
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+    });
+
+    it('continues a user stroke on touchmove', () => {
+      const evt = new TouchEvent('touchmove', {
+        bubbles: true,
+        cancelable: true,
+        touches: [{
+          clientX: 170,
+          clientY: 127,
+        }],
+      });
+      const svg = document.querySelector('#target svg');
+      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
+      const canceled = !svg.dispatchEvent(evt);
+      expect(canceled).toBe(true);
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+    });
+
+    it('ends a user stroke on mouseup', () => {
+      const evt = new MouseEvent('mouseup', { bubbles: true, cancelable: true });
+      const svg = document.querySelector('#target svg');
+      svg.dispatchEvent(evt);
+      expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
+    });
+
+    it('ends a user stroke on touchend', () => {
+      const evt = new TouchEvent('touchend', { bubbles: true, cancelable: true });
+      const svg = document.querySelector('#target svg');
+      svg.dispatchEvent(evt);
+      expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
+    });
+  });
 });

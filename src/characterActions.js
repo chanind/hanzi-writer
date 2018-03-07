@@ -1,16 +1,6 @@
 const Mutation = require('./Mutation');
 const { objRepeat } = require('./utils');
 
-const hideStrokes = (charName, character, duration) => {
-  return [
-    new Mutation(
-      `character.${charName}.strokes`,
-      objRepeat({ opacity: 0 }, character.strokes.length),
-      { duration, force: true },
-    ),
-  ];
-};
-
 const showStrokes = (charName, character, duration) => {
   return [
     new Mutation(
@@ -105,7 +95,6 @@ const animateCharacterLoop = (charName, character, fadeDuration, speed, delayBet
 
 module.exports = {
   showStrokes,
-  hideStrokes,
   showCharacter,
   hideCharacter,
   animateCharacter,

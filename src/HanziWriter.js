@@ -138,7 +138,10 @@ HanziWriter.prototype.quiz = function(quizOptions = {}) {
 };
 
 HanziWriter.prototype.cancelQuiz = function() {
-  if (this._quiz) this._quiz.cancel();
+  if (this._quiz) {
+    this._quiz.cancel();
+    this._quiz = null;
+  }
 };
 
 HanziWriter.prototype.setCharacter = function(char) {

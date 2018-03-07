@@ -1,10 +1,18 @@
+jest.mock('../Quiz');
+
 const ren = require('hanzi-writer-data/人.json');
 const yi = require('hanzi-writer-data/一.json');
 const HanziWriter = require('../HanziWriter');
 const { timeout } = require('../utils');
 const { resolvePromises } = require('../testUtils');
+const Quiz = require('../Quiz');
+
 
 describe('HanziWriter', () => {
+  beforeEach(() => {
+    Quiz.mockClear();
+  });
+
   describe('constructor', () => {
     it('loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
@@ -98,7 +106,7 @@ describe('HanziWriter', () => {
   });
 
   describe('animateCharacter', () => {
-    it('returns animates and returns promise that resolves when animation is finished', async () => {
+    it('animates and returns promise that resolves when animation is finished', async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = new HanziWriter('target', '人', {
         showCharacter: true,
@@ -152,8 +160,8 @@ describe('HanziWriter', () => {
     });
   });
 
-  describe('hideCharacter', () => {
-    it('returns animates and returns promise that resolves when finished', async () => {
+  describe('loopCharacterAnimation', () => {
+    it('animates and then repeats until something else stops it', async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = new HanziWriter('target', '人', {
         showCharacter: true,
@@ -161,57 +169,54 @@ describe('HanziWriter', () => {
       });
       await writer._withDataPromise;
 
-      let isResolved = false;
-      let resolvedVal;
-      const onComplete = jest.fn();
-
-      writer.hideCharacter({ onComplete }).then(result => {
-        isResolved = true;
-        resolvedVal = result;
-      });
+      writer.loopCharacterAnimation();
 
       await resolvePromises();
 
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      expect(isResolved).toBe(false);
+      // loop 5 times
+      for (let i = 0; i < 5; i++) {
+        expect(writer._renderState.state.character.main.opacity).toBe(1);
+        [0, 1].forEach(strokeNum => {
+          expect(writer._renderState.state.character.main.strokes[strokeNum].opacity).toBe(1);
+        });
 
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character.main.opacity).toBe(1);
+        expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
+        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(0);
+
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
+
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
+
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+
+        clock.tick(3000);
+        await resolvePromises();
+      }
+
+      // now, stop the animation by running something different
+      writer.showCharacter();
+      await resolvePromises();
       clock.tick(1000);
       await resolvePromises();
 
-      expect(writer._renderState.state.character.main.opacity).toBe(0);
-
-      expect(isResolved).toBe(true);
-      expect(resolvedVal).toEqual({ canceled: false });
-      expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
-    });
-
-    it('returns instantly if char is already hidden', async () => {
-      document.body.innerHTML = '<div id="target"></div>';
-      const writer = new HanziWriter('target', '人', {
-        showCharacter: false,
-        charDataLoader: () => ren,
-      });
-      await writer._withDataPromise;
-
-      let isResolved = false;
-      let resolvedVal;
-      const onComplete = jest.fn();
-
-      writer.hideCharacter({ onComplete }).then(result => {
-        isResolved = true;
-        resolvedVal = result;
-      });
-
-      expect(isResolved).toBe(false);
-
-      await resolvePromises();
-
-      expect(writer._renderState.state.character.main.opacity).toBe(0);
-      expect(isResolved).toBe(true);
-      expect(resolvedVal).toEqual({ canceled: false });
-      expect(onComplete).toHaveBeenCalledTimes(1);
-      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      expect(writer._renderState.state.character.main.opacity).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
     });
   });
 
@@ -219,8 +224,72 @@ describe('HanziWriter', () => {
     { methodLabel: 'Character', stateLabel: 'main' },
     { methodLabel: 'Outline', stateLabel: 'outline' },
   ].forEach(({ methodLabel, stateLabel }) => {
+    describe(`hide${methodLabel}`, () => {
+      it('animates and returns promise that resolves when finished', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          showCharacter: true,
+          charDataLoader: () => ren,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`hide${methodLabel}`]({ onComplete }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
+        expect(isResolved).toBe(false);
+
+        clock.tick(1000);
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
+
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
+
+      it('returns instantly if char is already hidden', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          showCharacter: false,
+          showOutline: false,
+          charDataLoader: () => ren,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`hide${methodLabel}`]({ onComplete }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        expect(isResolved).toBe(false);
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
+    });
+
     describe(`show${methodLabel}`, () => {
-      it('returns animates and returns promise that resolves when finished', async () => {
+      it('animates and returns promise that resolves when finished', async () => {
         document.body.innerHTML = '<div id="target"></div>';
         const writer = new HanziWriter('target', '人', {
           [`show${methodLabel}`]: false,
@@ -280,6 +349,36 @@ describe('HanziWriter', () => {
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
+    });
+  });
+
+  describe('quiz', () => {
+    it('sets up and starts the quiz', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人');
+      const onComplete = jest.fn();
+      writer.quiz({ onComplete });
+      expect(Quiz).not.toHaveBeenCalled();
+      await writer._withDataPromise;
+      await resolvePromises();
+      expect(Quiz).toHaveBeenCalledTimes(1);
+      expect(Quiz).toHaveBeenCalledWith(writer._character, writer._renderState, writer._positioner);
+      expect(writer._quiz.startQuiz).toHaveBeenCalledTimes(1);
+      expect(writer._quiz.startQuiz).toHaveBeenCalledWith(Object.assign({}, writer._options, { onComplete }));
+    });
+  });
+
+  describe('cancelQuiz', () => {
+    it('cancels the existing quiz', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人');
+      await writer._withDataPromise;
+      writer.quiz();
+      await resolvePromises();
+      const quiz = writer._quiz;
+      writer.cancelQuiz();
+      expect(quiz.cancel).toHaveBeenCalledTimes(1);
+      expect(writer._quiz).toBe(null);
     });
   });
 });

@@ -112,6 +112,29 @@ describe('Quiz', () => {
     });
   });
 
+  describe('cancel', () => {
+    it('makes the quiz inactive and removes the current stroke', async () => {
+      const renderState = createRenderState();
+      const quiz = new Quiz(char, renderState, new Positioner());
+      quiz.startQuiz(Object.assign({}, opts));
+
+      quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 12, y: 23});
+      clock.tick(100);
+      await resolvePromises();
+      const currentStrokeId = quiz._userStroke.id;
+
+      quiz.cancel();
+      await resolvePromises();
+
+      expect(quiz._isActive).toBe(false);
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.userStrokes[currentStrokeId]).toBe(null);
+    });
+  });
+
   describe('startUserStroke', () => {
     it('begins a stroke with the provided point', async () => {
       const renderState = createRenderState();

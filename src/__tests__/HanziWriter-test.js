@@ -1,5 +1,8 @@
 jest.mock('../Quiz');
 
+const oldGlobal = {test: 'object'};
+global.HanziWriter = oldGlobal;
+
 const ren = require('hanzi-writer-data/人.json');
 const yi = require('hanzi-writer-data/一.json');
 const HanziWriter = require('../HanziWriter');
@@ -468,6 +471,25 @@ describe('HanziWriter', () => {
       const svg = document.querySelector('#target svg');
       svg.dispatchEvent(evt);
       expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
+    });
+  });
+
+  describe('noConflict', () => {
+    it('resets whatever was previously in the global HanziWriter namespace', () => {
+      expect(global.HanziWriter).toBe(HanziWriter);
+      HanziWriter.noConflict();
+      expect(global.HanziWriter).toBe(oldGlobal);
+    });
+  });
+
+  describe('option defaults', () => {
+    it('works with legacy strokeAnimationDuration and strokeHighlightDuration if present', () => {
+      const writer = new HanziWriter('target', '人', {
+        strokeAnimationDuration: 1000,
+        strokeHighlightDuration: 250,
+      });
+      expect(writer._options.strokeAnimationSpeed).toBe(0.5);
+      expect(writer._options.strokeHighlightSpeed).toBe(2);
     });
   });
 });

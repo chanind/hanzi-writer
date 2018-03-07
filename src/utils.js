@@ -5,7 +5,7 @@ const requestAnimationFrame = global.requestAnimationFrame || (callback => setTi
 const cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
 
 // Object.assign polyfill, because IE :/
-const assign = Object.assign || function(target, ...overrides) {
+const _assign = function(target, ...overrides) {
   const overrideTarget = Object(target);
   overrides.forEach(override => {
     if (override != null) {
@@ -18,6 +18,8 @@ const assign = Object.assign || function(target, ...overrides) {
   });
   return overrideTarget;
 };
+
+const assign = Object.assign || _assign;
 
 const arrLast = (arr) => arr[arr.length - 1];
 
@@ -89,6 +91,7 @@ const objRepeat = (item, times) => {
 };
 
 module.exports = {
+  _assign,
   arrLast,
   assign,
   average,

@@ -6,11 +6,10 @@ const {
   distance,
   subtract,
   normalizeCurve,
-  // subdivideCurve,
   rotate,
 } = require('./geometry');
 
-const AVG_DIST_THRESHOLD = 230; // bigger = more lenient
+const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.75; // bigger = more lenient
@@ -79,17 +78,34 @@ const shapeFit = (curve1, curve2, leniency) => {
   return minDist <= FRECHET_THRESHOLD * leniency;
 };
 
-const strokeMatches = (userStroke, stroke, isOutlineVisible = false, leniency = 1) => {
-  const points = stripDuplicates(userStroke.points);
-  if (points.length < 2) return null;
-
+const getMatchData = (points, stroke, options) => {
+  const { leniency = 1, isOutlineVisible = false } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
   const withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
   const startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   const directionMatch = directionMatches(points, stroke);
   const shapeMatch = shapeFit(points, stroke.points, leniency);
-  return withinDistThresh && startAndEndMatch && directionMatch && shapeMatch;
+  return {
+    isMatch: withinDistThresh && startAndEndMatch && directionMatch && shapeMatch,
+    avgDist,
+  };
+};
+
+const strokeMatches = (userStroke, character, strokeNum, options = {}) => {
+  const points = stripDuplicates(userStroke.points);
+  if (points.length < 2) return null;
+
+  const strokeMatchData = getMatchData(points, character.strokes[strokeNum], options);
+  if (!strokeMatchData.isMatch) return false;
+
+  // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
+  const laterStrokes = character.strokes.slice(strokeNum + 1);
+  for (let i = 0; i < laterStrokes.length; i++) {
+    const laterMatchData = getMatchData(points, laterStrokes[i], options);
+    if (laterMatchData.isMatch && laterMatchData.avgDist < strokeMatchData.avgDist) return false;
+  }
+  return true;
 };
 
 

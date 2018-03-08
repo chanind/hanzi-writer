@@ -14,7 +14,7 @@ const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.75; // bigger = more lenient
-const MIN_LEN_THRESHOLD = 0.25; // smalled = more lenient
+const MIN_LEN_THRESHOLD = 0.35; // smalled = more lenient
 
 const startAndEndMatches = function(points, closestStroke, leniency) {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -49,7 +49,7 @@ const directionMatches = (points, stroke) => {
 };
 
 const lengthMatches = (points, stroke, leniency) => {
-  return leniency * length(points) / stroke.getLength() >= MIN_LEN_THRESHOLD;
+  return leniency * (length(points) + 25) / (stroke.getLength() + 25) >= MIN_LEN_THRESHOLD;
 };
 
 const stripDuplicates = (points) => {
@@ -89,6 +89,10 @@ const getMatchData = (points, stroke, options) => {
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
   const withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
+  // short circuit for faster matching
+  if (!withinDistThresh) {
+    return { isMatch: false, avgDist };
+  }
   const startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   const directionMatch = directionMatches(points, stroke);
   const shapeMatch = shapeFit(points, stroke.points, leniency);

@@ -11,6 +11,8 @@ const { resolvePromises } = require('../testUtils');
 const Quiz = require('../Quiz');
 
 
+const charDataLoader = () => ren;
+
 describe('HanziWriter', () => {
   beforeEach(() => {
     Quiz.mockClear();
@@ -20,9 +22,7 @@ describe('HanziWriter', () => {
     it('loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = new HanziWriter('target', '人', {
-        charDataLoader: () => ren,
-      });
+      const writer = new HanziWriter('target', '人', { charDataLoader });
 
       await writer._withDataPromise;
 
@@ -111,10 +111,7 @@ describe('HanziWriter', () => {
   describe('animateCharacter', () => {
     it('animates and returns promise that resolves when animation is finished', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = new HanziWriter('target', '人', {
-        showCharacter: true,
-        charDataLoader: () => ren,
-      });
+      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
       await writer._withDataPromise;
 
       let isResolved = false;
@@ -166,10 +163,7 @@ describe('HanziWriter', () => {
   describe('loopCharacterAnimation', () => {
     it('animates and then repeats until something else stops it', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = new HanziWriter('target', '人', {
-        showCharacter: true,
-        charDataLoader: () => ren,
-      });
+      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
       await writer._withDataPromise;
 
       writer.loopCharacterAnimation();
@@ -230,10 +224,7 @@ describe('HanziWriter', () => {
     describe(`hide${methodLabel}`, () => {
       it('animates and returns promise that resolves when finished', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = new HanziWriter('target', '人', {
-          showCharacter: true,
-          charDataLoader: () => ren,
-        });
+        const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
         await writer._withDataPromise;
 
         let isResolved = false;
@@ -266,7 +257,7 @@ describe('HanziWriter', () => {
         const writer = new HanziWriter('target', '人', {
           showCharacter: false,
           showOutline: false,
-          charDataLoader: () => ren,
+          charDataLoader,
         });
         await writer._withDataPromise;
 
@@ -296,7 +287,7 @@ describe('HanziWriter', () => {
         document.body.innerHTML = '<div id="target"></div>';
         const writer = new HanziWriter('target', '人', {
           [`show${methodLabel}`]: false,
-          charDataLoader: () => ren,
+          charDataLoader,
         });
         await writer._withDataPromise;
 
@@ -329,7 +320,7 @@ describe('HanziWriter', () => {
         document.body.innerHTML = '<div id="target"></div>';
         const writer = new HanziWriter('target', '人', {
           [`show${methodLabel}`]: true,
-          charDataLoader: () => ren,
+          charDataLoader,
         });
         await writer._withDataPromise;
 
@@ -358,7 +349,7 @@ describe('HanziWriter', () => {
   describe('quiz', () => {
     it('sets up and starts the quiz', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = new HanziWriter('target', '人');
+      const writer = new HanziWriter('target', '人', { charDataLoader });
       const onComplete = jest.fn();
       writer.quiz({ onComplete });
       expect(Quiz).not.toHaveBeenCalled();
@@ -374,7 +365,7 @@ describe('HanziWriter', () => {
   describe('cancelQuiz', () => {
     it('cancels the existing quiz', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = new HanziWriter('target', '人');
+      const writer = new HanziWriter('target', '人', { charDataLoader });
       await writer._withDataPromise;
       writer.quiz();
       await resolvePromises();
@@ -389,7 +380,7 @@ describe('HanziWriter', () => {
     let writer;
     beforeEach(async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      writer = new HanziWriter('target', '人');
+      writer = new HanziWriter('target', '人', { charDataLoader });
       await writer._withDataPromise;
       writer.quiz();
       await resolvePromises();

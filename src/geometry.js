@@ -13,6 +13,16 @@ const round = (point, precision = 1) => {
   };
 };
 
+const length = (points) => {
+  let lastPoint = points[0];
+  const pointsSansFirst = points.slice(1);
+  return pointsSansFirst.reduce((acc, point) => {
+    const dist = distance(point, lastPoint);
+    lastPoint = point;
+    return acc + dist;
+  }, 0);
+};
+
 const cosineSimilarity = (point1, point2) => {
   const rawDotProduct = point1.x * point2.x + point1.y * point2.y;
   return rawDotProduct / magnitude(point1) / magnitude(point2);
@@ -128,6 +138,7 @@ module.exports = {
   equals,
   distance,
   frechetDist,
+  length,
   rotate,
   subtract,
   cosineSimilarity,

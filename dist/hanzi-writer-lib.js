@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.9.1
+ * Hanzi Writer v0.9.2
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -92,7 +92,7 @@ var requestAnimationFrame = global.requestAnimationFrame || function (callback) 
 var cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
 
 // Object.assign polyfill, because IE :/
-var assign = Object.assign || function (target) {
+var _assign = function _assign(target) {
   var overrideTarget = Object(target);
 
   for (var _len = arguments.length, overrides = Array(_len > 1 ? _len - 1 : 0), _key = 1; _key < _len; _key++) {
@@ -110,6 +110,8 @@ var assign = Object.assign || function (target) {
   });
   return overrideTarget;
 };
+
+var assign = Object.assign || _assign;
 
 var arrLast = function arrLast(arr) {
   return arr[arr.length - 1];
@@ -182,6 +184,7 @@ var objRepeat = function objRepeat(item, times) {
 };
 
 module.exports = {
+  _assign: _assign,
   arrLast: arrLast,
   assign: assign,
   average: average,
@@ -308,6 +311,16 @@ var round = function round(point) {
   };
 };
 
+var length = function length(points) {
+  var lastPoint = points[0];
+  var pointsSansFirst = points.slice(1);
+  return pointsSansFirst.reduce(function (acc, point) {
+    var dist = distance(point, lastPoint);
+    lastPoint = point;
+    return acc + dist;
+  }, 0);
+};
+
 var cosineSimilarity = function cosineSimilarity(point1, point2) {
   var rawDotProduct = point1.x * point2.x + point1.y * point2.y;
   return rawDotProduct / magnitude(point1) / magnitude(point2);
@@ -419,6 +432,7 @@ module.exports = {
   equals: equals,
   distance: distance,
   frechetDist: frechetDist,
+  length: length,
   rotate: rotate,
   subtract: subtract,
   cosineSimilarity: cosineSimilarity,
@@ -468,10 +482,6 @@ var Mutation = __webpack_require__(5);
 
 var _require = __webpack_require__(0),
     objRepeat = _require.objRepeat;
-
-var hideStrokes = function hideStrokes(charName, character, duration) {
-  return [new Mutation('character.' + charName + '.strokes', objRepeat({ opacity: 0 }, character.strokes.length), { duration: duration, force: true })];
-};
 
 var showStrokes = function showStrokes(charName, character, duration) {
   return [new Mutation('character.' + charName + '.strokes', objRepeat({ opacity: 1, displayPortion: 1 }, character.strokes.length), { duration: duration, force: true })];
@@ -544,7 +554,6 @@ var animateCharacterLoop = function animateCharacterLoop(charName, character, fa
 
 module.exports = {
   showStrokes: showStrokes,
-  hideStrokes: hideStrokes,
   showCharacter: showCharacter,
   hideCharacter: hideCharacter,
   animateCharacter: animateCharacter,
@@ -844,7 +853,10 @@ HanziWriter.prototype.quiz = function () {
 };
 
 HanziWriter.prototype.cancelQuiz = function () {
-  if (this._quiz) this._quiz.cancel();
+  if (this._quiz) {
+    this._quiz.cancel();
+    this._quiz = null;
+  }
 };
 
 HanziWriter.prototype.setCharacter = function (char) {
@@ -1449,7 +1461,8 @@ module.exports = CharDataParser;
 
 var _require = __webpack_require__(2),
     subtract = _require.subtract,
-    distance = _require.distance;
+    distance = _require.distance,
+    length = _require.length;
 
 function Stroke(path, points, strokeNum) {
   var isInRadical = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : false;
@@ -1469,13 +1482,7 @@ Stroke.prototype.getEndingPoint = function () {
 };
 
 Stroke.prototype.getLength = function () {
-  var lastPoint = this.points[0];
-  var pointsSansFirst = this.points.slice(1);
-  return pointsSansFirst.reduce(function (acc, point) {
-    var dist = distance(point, lastPoint);
-    lastPoint = point;
-    return acc + dist;
-  }, 0);
+  return length(this.points);
 };
 
 Stroke.prototype.getVectors = function () {
@@ -1649,7 +1656,10 @@ Quiz.prototype.endUserStroke = function () {
 
   var currentStroke = this._getCurrentStroke();
   var isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
-  var isMatch = strokeMatches(this._userStroke, currentStroke, isOutlineVisible, this._options.leniency);
+  var isMatch = strokeMatches(this._userStroke, this._character, this._currentStrokeIndex, {
+    isOutlineVisible: isOutlineVisible,
+    leniency: this._options.leniency
+  });
 
   if (isMatch) {
     this._handleSuccess(currentStroke);
@@ -1731,12 +1741,14 @@ var _require2 = __webpack_require__(2),
     distance = _require2.distance,
     subtract = _require2.subtract,
     normalizeCurve = _require2.normalizeCurve,
-    rotate = _require2.rotate;
+    rotate = _require2.rotate,
+    length = _require2.length;
 
-var AVG_DIST_THRESHOLD = 230; // bigger = more lenient
+var AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 var FRECHET_THRESHOLD = 0.75; // bigger = more lenient
+var MIN_LEN_THRESHOLD = 0.35; // smalled = more lenient
 
 var startAndEndMatches = function startAndEndMatches(points, closestStroke, leniency) {
   var startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -1768,6 +1780,10 @@ var directionMatches = function directionMatches(points, stroke) {
   return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
 };
 
+var lengthMatches = function lengthMatches(points, stroke, leniency) {
+  return leniency * (length(points) + 25) / (stroke.getLength() + 25) >= MIN_LEN_THRESHOLD;
+};
+
 var stripDuplicates = function stripDuplicates(points) {
   if (points.length < 2) return points;
   var dedupedPoints = [points[0]];
@@ -1794,20 +1810,45 @@ var shapeFit = function shapeFit(curve1, curve2, leniency) {
   return minDist <= FRECHET_THRESHOLD * leniency;
 };
 
-var strokeMatches = function strokeMatches(userStroke, stroke) {
-  var isOutlineVisible = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : false;
-  var leniency = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : 1;
-
-  var points = stripDuplicates(userStroke.points);
-  if (points.length < 2) return null;
+var getMatchData = function getMatchData(points, stroke, options) {
+  var _options$leniency = options.leniency,
+      leniency = _options$leniency === undefined ? 1 : _options$leniency,
+      _options$isOutlineVis = options.isOutlineVisible,
+      isOutlineVisible = _options$isOutlineVis === undefined ? false : _options$isOutlineVis;
 
   var avgDist = stroke.getAverageDistance(points);
   var distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
   var withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
+  // short circuit for faster matching
+  if (!withinDistThresh) {
+    return { isMatch: false, avgDist: avgDist };
+  }
   var startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   var directionMatch = directionMatches(points, stroke);
   var shapeMatch = shapeFit(points, stroke.points, leniency);
-  return withinDistThresh && startAndEndMatch && directionMatch && shapeMatch;
+  var lengthMatch = lengthMatches(points, stroke, leniency);
+  return {
+    isMatch: withinDistThresh && startAndEndMatch && directionMatch && shapeMatch && lengthMatch,
+    avgDist: avgDist
+  };
+};
+
+var strokeMatches = function strokeMatches(userStroke, character, strokeNum) {
+  var options = arguments.length > 3 && arguments[3] !== undefined ? arguments[3] : {};
+
+  var points = stripDuplicates(userStroke.points);
+  if (points.length < 2) return null;
+
+  var strokeMatchData = getMatchData(points, character.strokes[strokeNum], options);
+  if (!strokeMatchData.isMatch) return false;
+
+  // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
+  var laterStrokes = character.strokes.slice(strokeNum + 1);
+  for (var i = 0; i < laterStrokes.length; i++) {
+    var laterMatchData = getMatchData(points, laterStrokes[i], options);
+    if (laterMatchData.isMatch && laterMatchData.avgDist < strokeMatchData.avgDist) return false;
+  }
+  return true;
 };
 
 module.exports = strokeMatches;

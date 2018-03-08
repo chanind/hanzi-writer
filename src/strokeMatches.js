@@ -7,12 +7,14 @@ const {
   subtract,
   normalizeCurve,
   rotate,
+  length,
 } = require('./geometry');
 
 const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.75; // bigger = more lenient
+const MIN_LEN_THRESHOLD = 0.25; // smalled = more lenient
 
 const startAndEndMatches = function(points, closestStroke, leniency) {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -44,6 +46,10 @@ const directionMatches = (points, stroke) => {
   });
   const avgSimilarity = average(similarities);
   return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
+};
+
+const lengthMatches = (points, stroke, leniency) => {
+  return leniency * length(points) / stroke.getLength() >= MIN_LEN_THRESHOLD;
 };
 
 const stripDuplicates = (points) => {
@@ -86,8 +92,9 @@ const getMatchData = (points, stroke, options) => {
   const startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   const directionMatch = directionMatches(points, stroke);
   const shapeMatch = shapeFit(points, stroke.points, leniency);
+  const lengthMatch = lengthMatches(points, stroke, leniency);
   return {
-    isMatch: withinDistThresh && startAndEndMatch && directionMatch && shapeMatch,
+    isMatch: withinDistThresh && startAndEndMatch && directionMatch && shapeMatch && lengthMatch,
     avgDist,
   };
 };

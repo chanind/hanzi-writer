@@ -716,4 +716,17 @@ describe('strokeMatches', () => {
     assertNotMatches('弓', 2, points);
   });
 
+  it('matches using real data 17', () => {
+    const points = [
+      {x: 526.6, y: 626.7},
+      {x: 526.6, y: 616.5},
+      {x: 506.1, y: 599.4},
+      {x: 495.8, y: 592.6},
+      {x: 465.1, y: 578.9},
+    ];
+    assertNotMatches('犭', 0, points);
+    assertNotMatches('犭', 1, points);
+    assertNotMatches('犭', 2, points);
+  });
+
 });

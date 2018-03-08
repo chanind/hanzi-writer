@@ -1,4 +1,3 @@
-const ren = require('hanzi-writer-data/人.json');
 const strokeMatches = require('../strokeMatches');
 const Stroke = require('../models/Stroke');
 const UserStroke = require('../models/UserStroke');

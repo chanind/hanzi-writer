@@ -697,9 +697,48 @@ var writer = new HanziWriter('target', '人', {
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
           <li><code>onComplete:</code> function(data). Called when the quiz is complete. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz.</li>
-          <li><code>onCorrectStroke:</code> function(data). Called when the user draws a stroke correctly. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz so far, <code>strokeNum</code> the current stroke number, <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke, and <code>strokesRemaining</code> the number of strokes left until the quiz is complete.</li>
-          <li><code>onMistake:</code> function(data). Called when the user makes a mistake drawing a stroke. The function is called with an object containing <code>totalMistakes</code> which is the total mistakes made during the quiz so far, <code>strokeNum</code> the current stroke number, <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke so far, and <code>strokesRemaining</code> the number of strokes left until the quiz is complete.</li>
+          <li>
+            <code>onCorrectStroke:</code> function(data). Called when the user draws a stroke correctly. The function is called with an object containing:
+            <ul>
+              <li>
+                <code>totalMistakes</code> the total mistakes made during the quiz so far.
+              </li>
+              <li>
+                <code>strokeNum</code> the current stroke number.
+              </li>
+              <li>
+                <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke so far.
+              </li>
+              <li>
+                <code>strokesRemaining</code> the number of strokes left until the quiz is complete.
+              </li>
+              <li>
+                <code>drawnPath</code> an object containg the <code>pathString</code> drawn by the user and the <code>points</code> used for grading.
+              </li>
+            </ul>
+          </li>
+          <li>
+            <code>onMistake:</code> function(data). Called when the user makes a mistake drawing a stroke. The function is called with an object containing:
+            <ul>
+              <li>
+                <code>totalMistakes</code> the total mistakes made during the quiz so far.
+              </li>
+              <li>
+                <code>strokeNum</code> the current stroke number.
+              </li>
+              <li>
+                <code>mistakesOnStroke</code> the number of mistakes the user made drawing this stroke so far.
+              </li>
+              <li>
+                <code>strokesRemaining</code> the number of strokes left until the quiz is complete.
+              </li>
+              <li>
+                <code>drawnPath</code> an object containg the <code>pathString</code> drawn by the user and the <code>points</code> used for grading.
+              </li>
+            </ul>
+          </li>
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating the writer instance.</li>
+          <li><code>leniency:</code> float, default 1.0. This can be set to make stroke grading more or less lenient. The closer this is to 0 the more strictly the quiz is graded.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating the writer instance.</li>
         </ul>
       </p>

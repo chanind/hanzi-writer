@@ -482,5 +482,15 @@ describe('HanziWriter', () => {
       expect(writer._options.strokeAnimationSpeed).toBe(0.5);
       expect(writer._options.strokeHighlightSpeed).toBe(2);
     });
+
+    it('sets highlightCompleteColor to highlightColor if not explicitly set', () => {
+      const writer = new HanziWriter('target', '人', { highlightColor: '#ABC' });
+      expect(writer._options.highlightCompleteColor).toBe('#ABC');
+    });
+
+    it('sets highlightCompleteColor to the default highilghtColor if none is passed', () => {
+      const writer = new HanziWriter('target', '人');
+      expect(writer._options.highlightCompleteColor).toBe('#AAF');
+    });
   });
 });

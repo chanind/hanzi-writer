@@ -43,27 +43,6 @@ const animateStroke = (charName, stroke, speed) => {
   ];
 };
 
-const highlightStroke = (charName, stroke, speed) => {
-  const strokeNum = stroke.strokeNum;
-  const duration = (stroke.getLength() + 600) / (3 * speed);
-  return [
-    new Mutation(`character.${charName}`, {
-      opacity: 1,
-      strokes: {
-        [strokeNum]: {
-          displayPortion: 0,
-          opacity: 0,
-        },
-      },
-    }),
-    new Mutation(`character.${charName}.strokes.${strokeNum}`, {
-      displayPortion: 1,
-      opacity: 1,
-    }, { duration }),
-    new Mutation(`character.${charName}.strokes.${strokeNum}.opacity`, 0, { duration }),
-  ];
-};
-
 const showStroke = (charName, strokeNum, duration) => {
   return [
     new Mutation(`character.${charName}.strokes.${strokeNum}`, {
@@ -100,6 +79,5 @@ module.exports = {
   animateCharacter,
   animateCharacterLoop,
   animateStroke,
-  highlightStroke,
   showStroke,
 };

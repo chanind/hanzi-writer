@@ -55,6 +55,7 @@ const opts = {
 
   showHintAfterMisses: 3,
   highlightOnComplete: true,
+  highlightCompleteColor: null,
 
   // undocumented obscure options
 
@@ -64,7 +65,10 @@ const opts = {
   outlineWidth: 2,
 };
 
-const createRenderState = () => new RenderState(char, opts, () => {});
+const createRenderState = (optOverrides = {}) => {
+  const options = Object.assign({}, opts, optOverrides);
+  return new RenderState(char, options, () => {});
+};
 
 
 describe('Quiz', () => {
@@ -373,6 +377,8 @@ describe('Quiz', () => {
       strokeMatches.mockImplementation(() => false);
 
       const renderState = createRenderState();
+      // should reset this color before highlighting
+      renderState.state.character.highlight.strokeColor = '#00F';
       const quiz = new Quiz(char, renderState, new Positioner());
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
@@ -421,6 +427,7 @@ describe('Quiz', () => {
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
 
       // should highlight the stroke now
+      expect(renderState.state.character.highlight.strokeColor).toBe('#AAF');
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();
@@ -435,7 +442,13 @@ describe('Quiz', () => {
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake, highlightOnComplete: true }));
+      quiz.startQuiz(Object.assign({}, opts, {
+        onCorrectStroke,
+        onComplete,
+        onMistake,
+        highlightOnComplete: true,
+        highlightCompleteColor: '#0F0',
+      }));
       clock.tick(1000);
       await resolvePromises();
 
@@ -483,6 +496,7 @@ describe('Quiz', () => {
       await resolvePromises();
 
       // highlights the character at the end
+      expect(renderState.state.character.highlight.strokeColor).toBe('#0F0');
       expect(renderState.state.character.highlight.opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();

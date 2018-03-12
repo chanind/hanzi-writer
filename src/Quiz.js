@@ -72,7 +72,7 @@ Quiz.prototype.endUserStroke = function() {
     this._handleFailure();
     if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
       this._renderState.run(
-        characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed),
+        quizActions.highlightStroke(currentStroke, this._options.highlightColor, this._options.strokeHighlightSpeed),
       );
     }
   }
@@ -106,10 +106,11 @@ Quiz.prototype._handleSuccess = function(stroke) {
       totalMistakes: this._totalMistakes,
     });
     if (this._options.highlightOnComplete) {
-      animation = animation
-        .concat(characterActions.hideCharacter('highlight', this._character))
-        .concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration))
-        .concat(characterActions.hideCharacter('highlight', this._character, this._options.strokeHighlightDuration));
+      animation = animation.concat(quizActions.highlightCompleteChar(
+        this._character,
+        this._options.highlightCompleteColor,
+        this._options.strokeHighlightDuration * 2,
+      ));
     }
   }
   this._renderState.run(animation);

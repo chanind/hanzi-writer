@@ -39,7 +39,40 @@ const removeUserStroke = (userStrokeId, duration) => {
   ];
 };
 
+const highlightStroke = (stroke, color, speed) => {
+  const strokeNum = stroke.strokeNum;
+  const duration = (stroke.getLength() + 600) / (3 * speed);
+  return [
+    new Mutation('character.highlight.strokeColor', color),
+    new Mutation('character.highlight', {
+      opacity: 1,
+      strokes: {
+        [strokeNum]: {
+          displayPortion: 0,
+          opacity: 0,
+        },
+      },
+    }),
+    new Mutation(`character.highlight.strokes.${strokeNum}`, {
+      displayPortion: 1,
+      opacity: 1,
+    }, { duration }),
+    new Mutation(`character.highlight.strokes.${strokeNum}.opacity`, 0, { duration }),
+  ];
+};
+
+const highlightCompleteChar = (character, color, duration) => {
+  return [
+    new Mutation('character.highlight.strokeColor', color),
+  ]
+    .concat(characterActions.hideCharacter('highlight', character))
+    .concat(characterActions.showCharacter('highlight', character, duration / 2))
+    .concat(characterActions.hideCharacter('highlight', character, duration / 2));
+};
+
 module.exports = {
+  highlightCompleteChar,
+  highlightStroke,
   startQuiz,
   startUserStroke,
   updateUserStroke,

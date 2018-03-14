@@ -45,6 +45,7 @@ const defaultOptions = {
   leniency: 1,
   showHintAfterMisses: 3,
   highlightOnComplete: true,
+  highlightCompleteColor: null,
 
   // undocumented obscure options
 
@@ -177,6 +178,10 @@ HanziWriter.prototype._assignOptions = function(options) {
   }
   if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
     mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
+  }
+
+  if (!options.highlightCompleteColor) {
+    mergedOptions.highlightCompleteColor = mergedOptions.highlightColor;
   }
 
   return this._fillWidthAndHeight(mergedOptions);

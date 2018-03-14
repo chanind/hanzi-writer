@@ -67,7 +67,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.9/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.10/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -631,6 +631,7 @@ var writer = new HanziWriter('target', '人', {
           <li><code>drawingWidth:</code> number, default 4. The width of the lines drawn by users during quizzing in px.</li>
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
+          <li><code>highlightCompleteColor:</code> hex string, default null. The color to use when highlighting the character on complete in quizzes. If not set, <code>highlightColor</code> will be used instead. Only relevant if <code>highlightOnComplete</code> is <code>true</code>.</li>
           <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
           <li><code>onLoadCharDataSuccess:</code> function. Callback for when character data is loaded successfully. This function is called with the data that was loaded. This can be used to implement a loading spinner.</li>
           <li><code>onLoadCharDataError:</code> function. Callback for when character data loading fails. This function is passed whatever the failure reason is from <i>charDataLoader</i>.</li>

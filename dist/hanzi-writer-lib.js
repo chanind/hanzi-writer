@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.9.2
+ * Hanzi Writer v0.10.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -510,21 +510,6 @@ var animateStroke = function animateStroke(charName, stroke, speed) {
   }), new Mutation('character.' + charName + '.strokes.' + strokeNum + '.displayPortion', 1, { duration: duration })];
 };
 
-var highlightStroke = function highlightStroke(charName, stroke, speed) {
-  var strokeNum = stroke.strokeNum;
-  var duration = (stroke.getLength() + 600) / (3 * speed);
-  return [new Mutation('character.' + charName, {
-    opacity: 1,
-    strokes: _defineProperty({}, strokeNum, {
-      displayPortion: 0,
-      opacity: 0
-    })
-  }), new Mutation('character.' + charName + '.strokes.' + strokeNum, {
-    displayPortion: 1,
-    opacity: 1
-  }, { duration: duration }), new Mutation('character.' + charName + '.strokes.' + strokeNum + '.opacity', 0, { duration: duration })];
-};
-
 var showStroke = function showStroke(charName, strokeNum, duration) {
   return [new Mutation('character.' + charName + '.strokes.' + strokeNum, {
     displayPortion: 1,
@@ -559,7 +544,6 @@ module.exports = {
   animateCharacter: animateCharacter,
   animateCharacterLoop: animateCharacterLoop,
   animateStroke: animateStroke,
-  highlightStroke: highlightStroke,
   showStroke: showStroke
 };
 
@@ -749,6 +733,7 @@ var defaultOptions = {
   leniency: 1,
   showHintAfterMisses: 3,
   highlightOnComplete: true,
+  highlightCompleteColor: null,
 
   // undocumented obscure options
 
@@ -894,6 +879,10 @@ HanziWriter.prototype._assignOptions = function (options) {
   }
   if (options.strokeHighlightDuration && !options.strokeHighlightSpeed) {
     mergedOptions.strokeHighlightSpeed = 500 / mergedOptions.strokeHighlightDuration;
+  }
+
+  if (!options.highlightCompleteColor) {
+    mergedOptions.highlightCompleteColor = mergedOptions.highlightColor;
   }
 
   return this._fillWidthAndHeight(mergedOptions);
@@ -1666,7 +1655,7 @@ Quiz.prototype.endUserStroke = function () {
   } else {
     this._handleFailure();
     if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
-      this._renderState.run(characterActions.highlightStroke('highlight', currentStroke, this._options.strokeHighlightSpeed));
+      this._renderState.run(quizActions.highlightStroke(currentStroke, this._options.highlightColor, this._options.strokeHighlightSpeed));
     }
   }
   this._userStroke = null;
@@ -1699,7 +1688,7 @@ Quiz.prototype._handleSuccess = function (stroke) {
       totalMistakes: this._totalMistakes
     });
     if (this._options.highlightOnComplete) {
-      animation = animation.concat(characterActions.hideCharacter('highlight', this._character)).concat(characterActions.showCharacter('highlight', this._character, this._options.strokeHighlightDuration)).concat(characterActions.hideCharacter('highlight', this._character, this._options.strokeHighlightDuration));
+      animation = animation.concat(quizActions.highlightCompleteChar(this._character, this._options.highlightCompleteColor, this._options.strokeHighlightDuration * 2));
     }
   }
   this._renderState.run(animation);
@@ -1880,6 +1869,8 @@ module.exports = UserStroke;
 "use strict";
 
 
+function _defineProperty(obj, key, value) { if (key in obj) { Object.defineProperty(obj, key, { value: value, enumerable: true, configurable: true, writable: true }); } else { obj[key] = value; } return obj; }
+
 var Mutation = __webpack_require__(5);
 var characterActions = __webpack_require__(4);
 
@@ -1911,7 +1902,28 @@ var removeUserStroke = function removeUserStroke(userStrokeId, duration) {
   return [new Mutation('userStrokes.' + userStrokeId + '.opacity', 0, { duration: duration }), new Mutation('userStrokes.' + userStrokeId, null, { force: true })];
 };
 
+var highlightStroke = function highlightStroke(stroke, color, speed) {
+  var strokeNum = stroke.strokeNum;
+  var duration = (stroke.getLength() + 600) / (3 * speed);
+  return [new Mutation('character.highlight.strokeColor', color), new Mutation('character.highlight', {
+    opacity: 1,
+    strokes: _defineProperty({}, strokeNum, {
+      displayPortion: 0,
+      opacity: 0
+    })
+  }), new Mutation('character.highlight.strokes.' + strokeNum, {
+    displayPortion: 1,
+    opacity: 1
+  }, { duration: duration }), new Mutation('character.highlight.strokes.' + strokeNum + '.opacity', 0, { duration: duration })];
+};
+
+var highlightCompleteChar = function highlightCompleteChar(character, color, duration) {
+  return [new Mutation('character.highlight.strokeColor', color)].concat(characterActions.hideCharacter('highlight', character)).concat(characterActions.showCharacter('highlight', character, duration / 2)).concat(characterActions.hideCharacter('highlight', character, duration / 2));
+};
+
 module.exports = {
+  highlightCompleteChar: highlightCompleteChar,
+  highlightStroke: highlightStroke,
   startQuiz: startQuiz,
   startUserStroke: startUserStroke,
   updateUserStroke: updateUserStroke,

@@ -643,7 +643,8 @@ var writer = new HanziWriter('target', '人', {
       <p>
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
-          <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+          <li><code>onComplete:</code> function. Called when the showing animation is complete.</li>
+          <li><code>duration:</code> number, optional. How long the showing animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
         </ul>
       </p>
 
@@ -652,7 +653,8 @@ var writer = new HanziWriter('target', '人', {
       <p>
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
-          <li><code>onComplete:</code> function. Called when the showing animation is complete.</li>
+          <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+          <li><code>duration:</code> number, optional. How long the hiding animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
         </ul>
       </p>
 
@@ -662,6 +664,7 @@ var writer = new HanziWriter('target', '人', {
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
           <li><code>onComplete:</code> function. Called when the showing animation is complete.</li>
+          <li><code>duration:</code> number, optional. How long the showing animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
         </ul>
       </p>
 
@@ -671,6 +674,7 @@ var writer = new HanziWriter('target', '人', {
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
           <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+          <li><code>duration:</code> number, optional. How long the hiding animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
         </ul>
       </p>
 
@@ -680,6 +684,7 @@ var writer = new HanziWriter('target', '人', {
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
           <li><code>onComplete:</code> function. Called when the animation is complete.</li>
+
         </ul>
       </p>
 

@@ -280,6 +280,35 @@ describe('HanziWriter', () => {
         expect(onComplete).toHaveBeenCalledTimes(1);
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
+
+      it('resolves immediately if duration: 0 is passed', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          showCharacter: true,
+          showOutline: true,
+          charDataLoader,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`hide${methodLabel}`]({ onComplete, duration: 0 }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        expect(isResolved).toBe(false);
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
     });
 
     describe(`show${methodLabel}`, () => {
@@ -329,6 +358,34 @@ describe('HanziWriter', () => {
         const onComplete = jest.fn();
 
         writer[`show${methodLabel}`]({ onComplete }).then(result => {
+          isResolved = true;
+          resolvedVal = result;
+        });
+
+        expect(isResolved).toBe(false);
+
+        await resolvePromises();
+
+        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
+        expect(isResolved).toBe(true);
+        expect(resolvedVal).toEqual({ canceled: false });
+        expect(onComplete).toHaveBeenCalledTimes(1);
+        expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+      });
+
+      it('resolves immediately if duration: 0 is passed', async () => {
+        document.body.innerHTML = '<div id="target"></div>';
+        const writer = new HanziWriter('target', '人', {
+          [`show${methodLabel}`]: false,
+          charDataLoader,
+        });
+        await writer._withDataPromise;
+
+        let isResolved = false;
+        let resolvedVal;
+        const onComplete = jest.fn();
+
+        writer[`show${methodLabel}`]({ onComplete, duration: 0 }).then(result => {
           isResolved = true;
           resolvedVal = result;
         });

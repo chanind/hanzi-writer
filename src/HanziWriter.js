@@ -71,7 +71,7 @@ HanziWriter.prototype.showCharacter = function(options = {}) {
     this._renderState.run(characterActions.showCharacter(
       'main',
       this._character,
-      options.duration || this._options.strokeFadeDuration,
+      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };
@@ -80,7 +80,7 @@ HanziWriter.prototype.hideCharacter = function(options = {}) {
     this._renderState.run(characterActions.hideCharacter(
       'main',
       this._character,
-      options.duration || this._options.strokeFadeDuration,
+      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };
@@ -115,7 +115,7 @@ HanziWriter.prototype.showOutline = function(options = {}) {
     this._renderState.run(characterActions.showCharacter(
       'outline',
       this._character,
-      options.duration || this._options.strokeFadeDuration,
+      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };
@@ -125,7 +125,7 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
     this._renderState.run(characterActions.hideCharacter(
       'outline',
       this._character,
-      options.duration || this._options.strokeFadeDuration,
+      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };

@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.10.0
+ * Hanzi Writer v0.10.1
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -761,7 +761,7 @@ HanziWriter.prototype.showCharacter = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this._renderState.run(characterActions.showCharacter('main', _this._character, options.duration || _this._options.strokeFadeDuration)).then(function (res) {
+    return _this._renderState.run(characterActions.showCharacter('main', _this._character, typeof options.duration === 'number' ? options.duration : _this._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
@@ -772,7 +772,7 @@ HanziWriter.prototype.hideCharacter = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this2._renderState.run(characterActions.hideCharacter('main', _this2._character, options.duration || _this2._options.strokeFadeDuration)).then(function (res) {
+    return _this2._renderState.run(characterActions.hideCharacter('main', _this2._character, typeof options.duration === 'number' ? options.duration : _this2._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
@@ -806,7 +806,7 @@ HanziWriter.prototype.showOutline = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this5._renderState.run(characterActions.showCharacter('outline', _this5._character, options.duration || _this5._options.strokeFadeDuration)).then(function (res) {
+    return _this5._renderState.run(characterActions.showCharacter('outline', _this5._character, typeof options.duration === 'number' ? options.duration : _this5._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
@@ -818,7 +818,7 @@ HanziWriter.prototype.hideOutline = function () {
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this6._renderState.run(characterActions.hideCharacter('outline', _this6._character, options.duration || _this6._options.strokeFadeDuration)).then(function (res) {
+    return _this6._renderState.run(characterActions.hideCharacter('outline', _this6._character, typeof options.duration === 'number' ? options.duration : _this6._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });

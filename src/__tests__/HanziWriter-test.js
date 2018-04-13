@@ -530,6 +530,53 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('loadCharacterData', () => {
+    it('calls onLoadCharDataError if provided on loading failure', async () => {
+      const onLoadCharDataError = jest.fn();
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
+        onLoadCharDataError,
+        charDataLoader: () => Promise.reject('reasons'),
+      });
+
+      await loadingPromise;
+
+      expect(onLoadCharDataError.mock.calls.length).toBe(1);
+      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
+    });
+
+    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
+        charDataLoader: (char, onComplete, onErr) => {
+          onErr(new Error('reasons'));
+        },
+      });
+
+      await expect(loadingPromise).rejects.toThrow(new Error('reasons'));
+    });
+
+    it('returns the character data in a promise on success', async () => {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
+        charDataLoader: (char, onComplete, onErr) => ren,
+      });
+
+      const result = await loadingPromise;
+      expect(result).toBe(ren);
+    });
+
+    it('returns the character data in onLoadCharDataSuccess if provided', async () => {
+      const onLoadCharDataSuccess = jest.fn();
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
+        onLoadCharDataSuccess,
+        charDataLoader: (char, onComplete, onErr) => ren,
+      });
+
+      await loadingPromise;
+
+      expect(onLoadCharDataSuccess.mock.calls.length).toBe(1);
+      expect(onLoadCharDataSuccess.mock.calls[0][0]).toBe(ren);
+    });
+  });
+
   describe('option defaults', () => {
     it('works with legacy strokeAnimationDuration and strokeHighlightDuration if present', () => {
       const writer = new HanziWriter('target', '人', {

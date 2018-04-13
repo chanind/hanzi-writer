@@ -64,36 +64,6 @@ function HanziWriter(element, character, options = {}) {
   this._quiz = null;
 }
 
-// --- Static Public API --- //
-
-let lastLoadingManager = null;
-let lastLoadingOptions = null;
-
-HanziWriter.loadCharacterData = (character, options = {}) => {
-  let loadingManager;
-  if (lastLoadingManager && lastLoadingOptions === options) {
-    loadingManager = lastLoadingManager;
-  } else {
-    loadingManager = new LoadingManager(options);
-  }
-  lastLoadingManager = loadingManager;
-  lastLoadingOptions = options;
-  return loadingManager.loadCharData(character);
-};
-
-HanziWriter.getScalingTransform = (width, height, padding = 0) => {
-  const positioner = new Positioner({ width, height, padding });
-  return {
-    x: positioner.getXOffset(),
-    y: positioner.getYOffset(),
-    scale: positioner.getScale(),
-    transform: trim(`
-translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
-scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
-    `),
-  };
-};
-
 // ------ public API ------ //
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
@@ -289,6 +259,35 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
   return {x, y};
 };
 
+// --- Static Public API --- //
+
+let lastLoadingManager = null;
+let lastLoadingOptions = null;
+
+HanziWriter.loadCharacterData = (character, options = {}) => {
+  let loadingManager;
+  if (lastLoadingManager && lastLoadingOptions === options) {
+    loadingManager = lastLoadingManager;
+  } else {
+    loadingManager = new LoadingManager(options);
+  }
+  lastLoadingManager = loadingManager;
+  lastLoadingOptions = options;
+  return loadingManager.loadCharData(character);
+};
+
+HanziWriter.getScalingTransform = (width, height, padding = 0) => {
+  const positioner = new Positioner({ width, height, padding });
+  return {
+    x: positioner.getXOffset(),
+    y: positioner.getYOffset(),
+    scale: positioner.getScale(),
+    transform: trim(`
+translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
+scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
+    `),
+  };
+};
 
 // set up window.HanziWriter if we're in the browser
 if (typeof global.window !== 'undefined') {

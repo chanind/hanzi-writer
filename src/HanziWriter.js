@@ -269,7 +269,7 @@ HanziWriter.loadCharacterData = (character, options = {}) => {
   if (lastLoadingManager && lastLoadingOptions === options) {
     loadingManager = lastLoadingManager;
   } else {
-    loadingManager = new LoadingManager(options);
+    loadingManager = new LoadingManager(assign({}, defaultOptions, options));
   }
   lastLoadingManager = loadingManager;
   lastLoadingOptions = options;

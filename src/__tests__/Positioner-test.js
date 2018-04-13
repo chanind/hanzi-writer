@@ -1,9 +1,5 @@
-const ren = require('hanzi-writer-data/人.json');
 const Positioner = require('../Positioner');
 const CharDataParser = require('../CharDataParser');
-
-
-const char = new CharDataParser().generateCharacter('人', ren);
 
 
 describe('Positioner', () => {

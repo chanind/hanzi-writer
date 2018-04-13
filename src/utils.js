@@ -80,6 +80,8 @@ function timeout(duration = 0) {
   });
 }
 
+const trim = (string) => string.replace(/^\s+/, '').replace(/\s+$/, '');
+
 // return a new array-like object with int keys where each key is item
 // ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
 const objRepeat = (item, times) => {
@@ -105,4 +107,5 @@ module.exports = {
   performanceNow,
   requestAnimationFrame,
   timeout,
+  trim,
 };

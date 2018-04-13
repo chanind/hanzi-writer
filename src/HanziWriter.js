@@ -7,7 +7,7 @@ const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, callIfExists } = require('./utils');
+const { assign, callIfExists, trim } = require('./utils');
 
 
 const defaultOptions = {
@@ -63,6 +63,36 @@ function HanziWriter(element, character, options = {}) {
   this._setupListeners();
   this._quiz = null;
 }
+
+// --- Static Public API --- //
+
+let lastLoadingManager = null;
+let lastLoadingOptions = null;
+
+HanziWriter.loadCharacterData = (character, options = {}) => {
+  let loadingManager;
+  if (lastLoadingManager && lastLoadingOptions === options) {
+    loadingManager = lastLoadingManager;
+  } else {
+    loadingManager = new LoadingManager(options);
+  }
+  lastLoadingManager = loadingManager;
+  lastLoadingOptions = options;
+  return loadingManager.loadCharData(character);
+};
+
+HanziWriter.getScalingTransform = (width, height, padding = 0) => {
+  const positioner = new Positioner({ width, height, padding });
+  return {
+    x: positioner.getXOffset(),
+    y: positioner.getYOffset(),
+    scale: positioner.getScale(),
+    transform: trim(`
+translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
+scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
+    `),
+  };
+};
 
 // ------ public API ------ //
 
@@ -156,7 +186,7 @@ HanziWriter.prototype.setCharacter = function(char) {
 
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
-    this._positioner = new Positioner(this._character, this._options);
+    this._positioner = new Positioner(this._options);
     this._hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       this._hanziWriterRenderer.render(nextState);

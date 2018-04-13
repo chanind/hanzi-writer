@@ -1,5 +1,4 @@
 const Positioner = require('../Positioner');
-const CharDataParser = require('../CharDataParser');
 
 
 describe('Positioner', () => {

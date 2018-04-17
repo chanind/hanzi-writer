@@ -283,9 +283,9 @@ HanziWriter.getScalingTransform = (width, height, padding = 0) => {
     y: positioner.getYOffset(),
     scale: positioner.getScale(),
     transform: trim(`
-translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
-scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
-    `),
+      translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
+      scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
+    `).replace(/\s+/g, ' '),
   };
 };
 

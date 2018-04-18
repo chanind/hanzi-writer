@@ -1,5 +1,7 @@
-function Positioner(character, options) {
-  this._character = character;
+// All makemeahanzi characters have the same bounding box
+const CHARACTER_BOUNDS = [{x: 0, y: -124}, {x: 1024, y: 900}];
+
+function Positioner(options) {
   this._options = options;
   this._calculateScaleAndOffset();
 }
@@ -16,7 +18,7 @@ Positioner.prototype.getScale = function() { return this._scale; };
 Positioner.prototype.getHeight = function() { return this._options.height; };
 
 Positioner.prototype._calculateScaleAndOffset = function() {
-  const bounds = this._character.getBounds();
+  const bounds = CHARACTER_BOUNDS;
   const preScaledWidth = bounds[1].x - bounds[0].x;
   const preScaledHeight = bounds[1].y - bounds[0].y;
   const effectiveWidth = this._options.width - 2 * this._options.padding;

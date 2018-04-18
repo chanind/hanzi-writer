@@ -7,7 +7,7 @@ const CharDataParser = require('../../CharDataParser');
 
 
 const char = new CharDataParser().generateCharacter('人', ren);
-const positioner = new Positioner(char, {
+const positioner = new Positioner({
   width: 100,
   height: 100,
   padding: 10,

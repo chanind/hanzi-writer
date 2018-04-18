@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.10.1
+ * Hanzi Writer v0.11.0
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -172,6 +172,10 @@ function timeout() {
   });
 }
 
+var trim = function trim(string) {
+  return string.replace(/^\s+/, '').replace(/\s+$/, '');
+};
+
 // return a new array-like object with int keys where each key is item
 // ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
 var objRepeat = function objRepeat(item, times) {
@@ -196,7 +200,8 @@ module.exports = {
   objRepeat: objRepeat,
   performanceNow: performanceNow,
   requestAnimationFrame: requestAnimationFrame,
-  timeout: timeout
+  timeout: timeout,
+  trim: trim
 };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
@@ -695,7 +700,8 @@ var characterActions = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
     assign = _require.assign,
-    callIfExists = _require.callIfExists;
+    callIfExists = _require.callIfExists,
+    trim = _require.trim;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -856,7 +862,7 @@ HanziWriter.prototype.setCharacter = function (char) {
 
     var charDataParser = new CharDataParser();
     _this8._character = charDataParser.generateCharacter(char, pathStrings);
-    _this8._positioner = new Positioner(_this8._character, _this8._options);
+    _this8._positioner = new Positioner(_this8._options);
     _this8._hanziWriterRenderer = new HanziWriterRenderer(_this8._character, _this8._positioner);
     _this8._renderState = new RenderState(_this8._character, _this8._options, function (nextState) {
       _this8._hanziWriterRenderer.render(nextState);
@@ -975,6 +981,37 @@ HanziWriter.prototype._getTouchPoint = function (evt) {
   var x = evt.touches[0].clientX - box.left;
   var y = evt.touches[0].clientY - box.top;
   return { x: x, y: y };
+};
+
+// --- Static Public API --- //
+
+var lastLoadingManager = null;
+var lastLoadingOptions = null;
+
+HanziWriter.loadCharacterData = function (character) {
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  var loadingManager = void 0;
+  if (lastLoadingManager && lastLoadingOptions === options) {
+    loadingManager = lastLoadingManager;
+  } else {
+    loadingManager = new LoadingManager(assign({}, defaultOptions, options));
+  }
+  lastLoadingManager = loadingManager;
+  lastLoadingOptions = options;
+  return loadingManager.loadCharData(character);
+};
+
+HanziWriter.getScalingTransform = function (width, height) {
+  var padding = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : 0;
+
+  var positioner = new Positioner({ width: width, height: height, padding: padding });
+  return {
+    x: positioner.getXOffset(),
+    y: positioner.getYOffset(),
+    scale: positioner.getScale(),
+    transform: trim('\n      translate(' + positioner.getXOffset() + ', ' + (positioner.getHeight() - positioner.getYOffset()) + ')\n      scale(' + positioner.getScale() + ', ' + -1 * positioner.getScale() + ')\n    ').replace(/\s+/g, ' ')
+  };
 };
 
 // set up window.HanziWriter if we're in the browser
@@ -1513,10 +1550,6 @@ function Character(symbol, strokes) {
   this.strokes = strokes;
 }
 
-Character.prototype.getBounds = function () {
-  return [{ x: 0, y: -124 }, { x: 1024, y: 900 }];
-};
-
 module.exports = Character;
 
 /***/ }),
@@ -1526,8 +1559,10 @@ module.exports = Character;
 "use strict";
 
 
-function Positioner(character, options) {
-  this._character = character;
+// All makemeahanzi characters have the same bounding box
+var CHARACTER_BOUNDS = [{ x: 0, y: -124 }, { x: 1024, y: 900 }];
+
+function Positioner(options) {
   this._options = options;
   this._calculateScaleAndOffset();
 }
@@ -1552,7 +1587,7 @@ Positioner.prototype.getHeight = function () {
 };
 
 Positioner.prototype._calculateScaleAndOffset = function () {
-  var bounds = this._character.getBounds();
+  var bounds = CHARACTER_BOUNDS;
   var preScaledWidth = bounds[1].x - bounds[0].x;
   var preScaledHeight = bounds[1].y - bounds[0].y;
   var effectiveWidth = this._options.width - 2 * this._options.padding;

@@ -54,7 +54,7 @@ js: docs.js
                 <a href="#loading-character-data-link">Loading character data</a>
               </li>
               <li>
-                <a href="#use-data-directly">Raw character SVG</a>
+                <a href="#raw-character-svg">Raw character SVG</a>
               </li>
             </ul>
           </li>
@@ -600,7 +600,7 @@ var writer = new HanziWriter('target', '人', {
 });
       {% endhighlight %}
 
-      <h2 id="use-data-directly">Raw Character SVG</h2>
+      <h2 id="raw-character-svg">Raw Character SVG</h2>
       <p>
         Sometimes you may want to render Hanzi writer character data but don't need stroke animations or stroke quizzes. Hanzi writer provides 2 static helper methods which make it easy to load and render raw character data.
       </p>
@@ -644,7 +644,7 @@ HanziWriter.loadCharacterData('六').then(function(charData) {
     var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
     path.setAttributeNS(null, 'd', strokePath);
     // style the character paths
-    path.style.fill = '#AAAAFF';
+    path.style.fill = '#555';
     group.appendChild(path);
   });
 });
@@ -670,12 +670,89 @@ HanziWriter.loadCharacterData('六').then(function(charData) {
               var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
               path.setAttributeNS(null, 'd', strokePath);
               // style the character paths
-              path.style.fill = '#AAAAFF';
+              path.style.fill = '#555';
               group.appendChild(path);
             });
           });
         })();
       </script>
+
+      <p>
+        Using raw character data gives you the full power of SVG to implement visualizations that don't require stroke animation or quizzing. For example, below is an example of using raw character data to implement a stroke fanning visualization of the character <b>是</b>:
+      </p>
+
+      {% highlight javascript %}
+function renderFanningStrokes(target, strokes) {
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.style.width = '75px';
+  svg.style.height = '75px';
+  svg.style.border = '1px solid #EEE'
+  svg.style.marginRight = '3px'
+  target.appendChild(svg);
+  var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+  // set the transform property on the g element so the character renders at 75x75
+  var transformData = HanziWriter.getScalingTransform(75, 75);
+  group.setAttributeNS(null, 'transform', transformData.transform);
+  svg.appendChild(group);
+
+  strokes.forEach(function(strokePath) {
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, 'd', strokePath);
+    // style the character paths
+    path.style.fill = '#555';
+    group.appendChild(path);
+  });
+}
+
+HanziWriter.loadCharacterData('是').then(function(charData) {
+  var target = document.getElementById('target');
+  for (var i = 0; i < charData.strokes.length; i++) {
+    var strokesPortion = charData.strokes.slice(0, i + 1);
+    renderFanningStrokes(target, strokesPortion);
+  }
+});
+      {% endhighlight %}
+
+      <div id="docs-target-11" class="borderless-horiz-demo"></div>
+      <script>
+        (function() {
+          function renderFanningStrokes(target, strokes) {
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.style.width = '75px';
+            svg.style.height = '75px';
+            svg.style.border = '1px solid #EEE'
+            svg.style.marginRight = '3px'
+            target.appendChild(svg);
+            var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+            // set the transform property on the g element so the character renders at 75x75
+            var transformData = HanziWriter.getScalingTransform(75, 75);
+            group.setAttributeNS(null, 'transform', transformData.transform);
+            svg.appendChild(group);
+
+            strokes.forEach(function(strokePath) {
+              var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              path.setAttributeNS(null, 'd', strokePath);
+              // style the character paths
+              path.style.fill = '#555';
+              group.appendChild(path);
+            });
+          }
+
+          HanziWriter.loadCharacterData('是').then(function(charData) {
+            var target = document.getElementById('docs-target-11');
+            for (var i = 0; i < charData.strokes.length; i++) {
+              var strokesPortion = charData.strokes.slice(0, i + 1);
+              renderFanningStrokes(target, strokesPortion);
+            }
+          });
+        })();
+      </script>
+
+      <p>
+        The examples above use raw javascript browser APIs for SVG rendering, but the code would be even simpler using a library to help manage SVG, like <a target="_blank" href="http://svgjs.com/">svg.js</a> or <a target="_blank" href="http://dmitrybaranovskiy.github.io/raphael/">raphael.js</a>.
+      </p>
 
       <h1 id="api-link">API</h1>
 
@@ -832,6 +909,43 @@ HanziWriter.loadCharacterData('六').then(function(charData) {
       <h4>writer.cancelQuiz()</h4>
       <p>Cancel the quiz currently in progress</p>
 
+      <h3>Class methods</h3>
+      <h4>HanziWriter.loadCharacterData(character, options = {})</h4>
+      <p>
+        Load raw character data from the Hanzi Writer CDN. Returns a promise which resolves when loading is complete.
+      </p>
+      <p>
+        <code>character</code> The character to draw, ex '你'.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options available include:
+        <ul>
+          <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
+          <li><code>onLoadCharDataSuccess:</code> function. Callback for when character data is loaded successfully. This function is passed the data that was loaded</li>
+          <li><code>onLoadCharDataError:</code> function. Callback for when character data loading fails. This function is passed whatever the failure reason is from <i>charDataLoader</i>.</li>
+        </ul>
+      </p>
+
+      <h4>HanziWriter.getScalingTransform(width, height, padding = 0)</h4>
+      <p>
+        Return an object containing scaling info which can be used when rendering raw character data in SVG.
+      </p>
+      <p>
+        <code>width</code> number, the width of the character to be rendered in px.
+      </p>
+      <p>
+        <code>height</code> number, height of the character to be rendered in px.
+      </p>
+      <p>
+        <code>padding</code> number, extra padding around the character. default 0.
+      </p>
+      <b>return value</b> object, containing the following keys:
+      <ul>
+        <li><code>x:</code> number. The x offset used in translate.</li>
+        <li><code>y:</code> number. The y offset used in translate.</li>
+        <li><code>scale:</code> number. The scale used in the scale part of the transform.</li>
+        <li><code>transform:</code> string. The SVG transform string which can be directly used in the <code>transform</code> attribute of a <code>&lt;g&gt;</code> element to scale and position character path strings in SVG.</li>
+      </ul>
     </div>
   </div>
 </div>

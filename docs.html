@@ -53,6 +53,9 @@ js: docs.js
               <li>
                 <a href="#loading-character-data-link">Loading character data</a>
               </li>
+              <li>
+                <a href="#use-data-directly">Raw character SVG</a>
+              </li>
             </ul>
           </li>
           <li>
@@ -67,7 +70,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.10/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.11/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -596,6 +599,83 @@ var writer = new HanziWriter('target', '人', {
   }
 });
       {% endhighlight %}
+
+      <h2 id="use-data-directly">Raw Character SVG</h2>
+      <p>
+        Sometimes you may want to render Hanzi writer character data but don't need stroke animations or stroke quizzes. Hanzi writer provides 2 static helper methods which make it easy to load and render raw character data.
+      </p>
+      <p>
+        You can load character data from the Hanzi writer CDN using the static method <code>HanziWriter.loadCharacterData(character, options = {})</code>. This method will return a promise containing the loaded data for the character, but you can also pass <code>onLoadCharDataSuccess</code> and <code>onLoadCharDataError</code> callbacks as options if you prefer. The character data that's loaded will be the same as what's in the <a href="https://github.com/chanind/hanzi-writer-data/tree/master/data">hanzi-writer-data</a> repo, which are all parsed out from <a href="https://github.com/skishore/makemeahanzi">makemeahanzi</a>.
+      </p>
+      <p>
+        The trickest part about rendering the SVG paths for Hanzi writer data is that the characters must be transformed to appear on the screen at the desired size, usually in a <code>&lt;g&gt;</code> tag. For example, to render the SVG for a character at size 128 x 128, the SVG would look something like this:
+      </p>
+
+      {% highlight html %}
+<svg>
+  <g transform="translate(0, 112.5) scale(0.125, -0.125)">
+    <path d="...path from hanzi writer data..."></path>
+    <path d="...path from hanzi writer data..."></path>
+    <path d="...path from hanzi writer data..."></path>
+    ...
+  </g>
+</svg>
+      {% endhighlight %}
+
+      <p>
+        Fortunately, there's a static method <code>HanziWriter.getScalingTransform(width, height, padding = 0)</code> which makes this easy. This method returns transform data which you can use in SVG to draw the character at the specified size. Below is an example of loading data for the character <b>六</b> and rendering the character SVG at size 150 x 150 inside a div with ID <code>target</code>:
+      </p>
+
+      {% highlight javascript %}
+HanziWriter.loadCharacterData('六').then(function(charData) {
+  var target = document.getElementById('target');
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.style.width = '150px';
+  svg.style.height = '150px';
+  target.appendChild(svg);
+  var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+  // set the transform property on the g element so the character renders at 150x150
+  var transformData = HanziWriter.getScalingTransform(150, 150);
+  group.setAttributeNS(null, 'transform', transformData.transform);
+  svg.appendChild(group);
+
+  charData.strokes.forEach(function(strokePath) {
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, 'd', strokePath);
+    // style the character paths
+    path.style.fill = '#AAAAFF';
+    group.appendChild(path);
+  });
+});
+      {% endhighlight %}
+
+      <div id="docs-target-10" class="inline-demo medium-demo"></div>
+      <script>
+        (function() {
+          HanziWriter.loadCharacterData('六').then(function(charData) {
+            var target = document.getElementById('docs-target-10');
+            var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+            svg.style.width = '150px';
+            svg.style.height = '150px';
+            target.appendChild(svg);
+            var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+            // set the transform property on the g element so the character renders at 150x150
+            var transformData = HanziWriter.getScalingTransform(150, 150);
+            group.setAttributeNS(null, 'transform', transformData.transform);
+            svg.appendChild(group);
+
+            charData.strokes.forEach(function(strokePath) {
+              var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+              path.setAttributeNS(null, 'd', strokePath);
+              // style the character paths
+              path.style.fill = '#AAAAFF';
+              group.appendChild(path);
+            });
+          });
+        })();
+      </script>
 
       <h1 id="api-link">API</h1>
 

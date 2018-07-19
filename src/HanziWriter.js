@@ -265,7 +265,6 @@ HanziWriter.prototype._getMousePoint = function(evt) {
 };
 
 HanziWriter.prototype._getTouchPoint = function(evt) {
-
   if (this._pt) {
     this._pt.x = evt.touches[0].clientX;
     this._pt.y = evt.touches[0].clientY;

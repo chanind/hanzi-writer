@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.11.0
+ * Hanzi Writer v0.11.1
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -752,6 +752,9 @@ function HanziWriter(element, character) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   this._canvas = svg.Canvas.init(element);
+  if (this._canvas.svg.createSVGPoint) {
+    this._pt = this._canvas.svg.createSVGPoint();
+  }
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this.setCharacter(character);
@@ -972,11 +975,27 @@ HanziWriter.prototype._forwardToQuiz = function (method) {
 };
 
 HanziWriter.prototype._getMousePoint = function (evt) {
+  if (this._pt) {
+    this._pt.x = evt.clientX;
+    this._pt.y = evt.clientY;
+    var localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
+    return { x: localPt.x, y: localPt.y };
+  }
+  // fallback in case SVG matrix transforms aren't supported
   var box = this._canvas.svg.getBoundingClientRect();
-  return { x: evt.clientX - box.left, y: evt.clientY - box.top };
+  var x = evt.clientX - box.left;
+  var y = evt.clientY - box.top;
+  return { x: x, y: y };
 };
 
 HanziWriter.prototype._getTouchPoint = function (evt) {
+  if (this._pt) {
+    this._pt.x = evt.touches[0].clientX;
+    this._pt.y = evt.touches[0].clientY;
+    var localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
+    return { x: localPt.x, y: localPt.y };
+  }
+  // fallback in case SVG matrix transforms aren't supported
   var box = this._canvas.svg.getBoundingClientRect();
   var x = evt.touches[0].clientX - box.left;
   var y = evt.touches[0].clientY - box.top;

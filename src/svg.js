@@ -42,7 +42,7 @@ Canvas.prototype.createSubCanvas = function() {
   return new Canvas(group, this.defs);
 };
 
-Canvas.init = function(elmOrId, _width = '100%', _height = '100%') {
+Canvas.init = (elmOrId, _width = '100%', _height = '100%') => {
   let svg;
   let elm = elmOrId;
   if (typeof elmOrId === 'string') {

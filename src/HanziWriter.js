@@ -56,7 +56,7 @@ const defaultOptions = {
 };
 
 function HanziWriter(element, character, options = {}) {
-  this._canvas = svg.Canvas.init(element);
+  this._canvas = svg.Canvas.init(element, options.width, options.height);
   if (this._canvas.svg.createSVGPoint) {
     this._pt = this._canvas.svg.createSVGPoint();
   }

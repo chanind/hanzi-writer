@@ -42,7 +42,7 @@ Canvas.prototype.createSubCanvas = function() {
   return new Canvas(group, this.defs);
 };
 
-Canvas.init = elmOrId => {
+Canvas.init = (elmOrId, width = '100%', height = '100%') => {
   let svg;
   let elm = elmOrId;
   if (typeof elmOrId === 'string') {
@@ -55,7 +55,7 @@ Canvas.init = elmOrId => {
     svg = createElm('svg');
     elm.appendChild(svg);
   }
-  attrs(svg, {width: '100%', height: '100%'});
+  attrs(svg, {width, height});
   const defs = createElm('defs');
   svg.appendChild(defs);
   return new Canvas(svg, defs);

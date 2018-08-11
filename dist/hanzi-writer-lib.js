@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.11.1
+ * Hanzi Writer v0.12.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -262,6 +262,9 @@ Canvas.prototype.createSubCanvas = function () {
 };
 
 Canvas.init = function (elmOrId) {
+  var width = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '100%';
+  var height = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : '100%';
+
   var svg = void 0;
   var elm = elmOrId;
   if (typeof elmOrId === 'string') {
@@ -274,7 +277,7 @@ Canvas.init = function (elmOrId) {
     svg = createElm('svg');
     elm.appendChild(svg);
   }
-  attrs(svg, { width: '100%', height: '100%' });
+  attrs(svg, { width: width, height: height });
   var defs = createElm('defs');
   svg.appendChild(defs);
   return new Canvas(svg, defs);
@@ -752,7 +755,7 @@ var defaultOptions = {
 function HanziWriter(element, character) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
-  this._canvas = svg.Canvas.init(element);
+  this._canvas = svg.Canvas.init(element, options.width, options.height);
   if (this._canvas.svg.createSVGPoint) {
     this._pt = this._canvas.svg.createSVGPoint();
   }

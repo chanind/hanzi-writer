@@ -19,10 +19,53 @@ describe('HanziWriter', () => {
   });
 
   describe('constructor', () => {
-    it('loads data and builds an instance in a dom element', async () => {
+    it('can optionally run init() if element and options are passed in', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+
+      const writer = new HanziWriter('target', { charDataLoader });
+      await writer.setCharacter('人');
+
+      expect(document.querySelectorAll('#target svg').length).toBe(1);
+      const svg = document.querySelector('#target svg');
+      expect(svg.childNodes.length).toBe(2);
+      expect(svg.childNodes[0].nodeName).toBe('defs');
+      expect(svg.childNodes[1].nodeName).toBe('g');
+      // the characters are repeated 3 times - one for outline, character, and highlight
+      expect(svg.childNodes[1].childNodes.length).toBe(3);
+      svg.childNodes[1].childNodes.forEach(charNode => {
+        expect(charNode.nodeName).toBe('g');
+        // 2 strokes per character
+        expect(charNode.childNodes.length).toBe(2);
+      });
+    });
+
+    it('[deprecated] loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const writer = new HanziWriter('target', '人', { charDataLoader });
+
+      await writer._withDataPromise;
+
+      expect(document.querySelectorAll('#target svg').length).toBe(1);
+      const svg = document.querySelector('#target svg');
+      expect(svg.childNodes.length).toBe(2);
+      expect(svg.childNodes[0].nodeName).toBe('defs');
+      expect(svg.childNodes[1].nodeName).toBe('g');
+      // the characters are repeated 3 times - one for outline, character, and highlight
+      expect(svg.childNodes[1].childNodes.length).toBe(3);
+      svg.childNodes[1].childNodes.forEach(charNode => {
+        expect(charNode.nodeName).toBe('g');
+        // 2 strokes per character
+        expect(charNode.childNodes.length).toBe(2);
+      });
+    });
+  });
+
+  describe('HanziWriter.create', () => {
+    it('loads data and builds an instance in a dom element', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
 
       await writer._withDataPromise;
 

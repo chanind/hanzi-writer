@@ -55,21 +55,46 @@ const defaultOptions = {
   outlineWidth: 2,
 };
 
-function HanziWriter(element, character, options = {}) {
+function HanziWriter(...args) {
+  this._hasRunInit = false;
+  if (args.length > 0) {
+    let character;
+    let options = {};
+    const element = args[0];
+    if (args.length > 1) {
+      if (typeof args[1] === 'string') {
+        console.warn('Using new HanziWriter() to set a character is deprecated. Use HanziWriter.create() instead');
+        character = args[1];
+        options = args[2] || {};
+      } else {
+        options = args[1];
+      }
+    }
+    this.init(element, options);
+    if (character) {
+      this.setCharacter(character);
+    }
+  }
+}
+
+// ------ public API ------ //
+
+HanziWriter.prototype.init = function(element, options) {
+  if (this._hasRunInit) throw new Error('init() was already called. Cannot run init() twice.');
+  this._hasRunInit = true;
   this._canvas = svg.Canvas.init(element, options.width, options.height);
   if (this._canvas.svg.createSVGPoint) {
     this._pt = this._canvas.svg.createSVGPoint();
   }
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
-  this.setCharacter(character);
   this._setupListeners();
   this._quiz = null;
-}
-
-// ------ public API ------ //
+  return this;
+};
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
+  if (!this._hasRunInit) throw new Error('you must run init() before running setCharacter()');
   return this._withData(() => (
     this._renderState.run(characterActions.showCharacter(
       'main',
@@ -279,6 +304,13 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
 };
 
 // --- Static Public API --- //
+
+HanziWriter.create = (element, character, options = {}) => {
+  const writer = new HanziWriter();
+  writer.init(element, options);
+  writer.setCharacter(character);
+  return writer;
+};
 
 let lastLoadingManager = null;
 let lastLoadingOptions = null;

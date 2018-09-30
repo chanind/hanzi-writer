@@ -80,6 +80,34 @@ function timeout(duration = 0) {
   });
 }
 
+function colorStringToVals(colorString) {
+  const normalizedColor = colorString.toUpperCase().trim();
+  // based on https://stackoverflow.com/a/21648508
+  if (/^#([A-F0-9]{3}){1,2}$/.test(normalizedColor)) {
+    let hexParts = normalizedColor.substring(1).split('');
+    if (hexParts.length === 3) {
+      hexParts = [hexParts[0], hexParts[0], hexParts[1], hexParts[1], hexParts[2], hexParts[2]];
+    }
+    const hexStr = `${hexParts.join('')}`;
+    return {
+      r: parseInt(hexStr.slice(0, 2), 16),
+      g: parseInt(hexStr.slice(2, 4), 16),
+      b: parseInt(hexStr.slice(4, 6), 16),
+      a: 1,
+    };
+  }
+  const rgbMatch = normalizedColor.match(/^RGBA?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d*\.?\d+))?\)$/);
+  if (rgbMatch) {
+    return {
+      r: parseInt(rgbMatch[1], 10),
+      g: parseInt(rgbMatch[2], 10),
+      b: parseInt(rgbMatch[3], 10),
+      a: parseFloat(rgbMatch[4] || 1, 10),
+    };
+  }
+  throw new Error(`Invalid color: ${colorString}`);
+}
+
 const trim = (string) => string.replace(/^\s+/, '').replace(/\s+$/, '');
 
 // return a new array-like object with int keys where each key is item
@@ -99,6 +127,7 @@ module.exports = {
   average,
   callIfExists,
   cancelAnimationFrame,
+  colorStringToVals,
   copyAndMergeDeep,
   counter,
   emptyFunc,

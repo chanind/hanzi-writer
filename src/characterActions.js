@@ -26,6 +26,10 @@ const hideCharacter = (charName, character, duration) => {
   ].concat(showStrokes(charName, character, 0));
 };
 
+const updateColor = (charName, colorName, colorVal, duration) => {
+  return [new Mutation(`character.${charName}.${colorName}`, colorVal, { duration, force: true })];
+};
+
 const animateStroke = (charName, stroke, speed) => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
@@ -80,4 +84,5 @@ module.exports = {
   animateCharacterLoop,
   animateStroke,
   showStroke,
+  updateColor,
 };

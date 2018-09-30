@@ -143,6 +143,24 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
   ));
 };
 
+['strokeColor', 'radicalColor', 'highlightColor', 'outlineColor', 'drawingColor']
+HanziWriter.prototype.updateColors = function(newColors, options = {}) {
+  return this._withData(() => {
+    const mutationChains = [];
+    const duration = typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration;
+    if ('strokeColor' in newColors) {
+      mutationChains.push(characterActions.updateColor('main', 'strokeColor', newColors.strokeColor))
+    }
+    this._renderState.run(characterActions.hideCharacter(
+      'outline',
+      this._character,
+      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
+    )).then(res => callIfExists(options.onComplete, res))
+  });
+};
+
+
+
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
   this._withData(() => {
     this.cancelQuiz();

@@ -51,6 +51,10 @@ RenderState.prototype.updateState = function(stateChanges) {
   this.state = nextState;
 };
 
+RenderState.prototype.runAll = function(mutationChains, options = {}) {
+  return Promise.all(mutationChains.map(chain => this.run(chain, options)));
+};
+
 RenderState.prototype.run = function(mutations, options = {}) {
   const scopes = mutations.map(mut => mut.scope).filter(x => x);
   this.cancelMutations(scopes);

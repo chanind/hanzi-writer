@@ -56,7 +56,6 @@ const defaultOptions = {
 };
 
 function HanziWriter(...args) {
-  this._hasRunInit = false;
   if (args.length > 0) {
     let character;
     let options = {};
@@ -70,7 +69,7 @@ function HanziWriter(...args) {
         options = args[1];
       }
     }
-    this.init(element, options);
+    this._init(element, options);
     if (character) {
       this.setCharacter(character);
     }
@@ -79,22 +78,7 @@ function HanziWriter(...args) {
 
 // ------ public API ------ //
 
-HanziWriter.prototype.init = function(element, options) {
-  if (this._hasRunInit) throw new Error('init() was already called. Cannot run init() twice.');
-  this._hasRunInit = true;
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
-  if (this._canvas.svg.createSVGPoint) {
-    this._pt = this._canvas.svg.createSVGPoint();
-  }
-  this._options = this._assignOptions(options);
-  this._loadingManager = new LoadingManager(this._options);
-  this._setupListeners();
-  this._quiz = null;
-  return this;
-};
-
 HanziWriter.prototype.showCharacter = function(options = {}) {
-  if (!this._hasRunInit) throw new Error('you must run init() before running setCharacter()');
   return this._withData(() => (
     this._renderState.run(characterActions.showCharacter(
       'main',
@@ -196,6 +180,18 @@ HanziWriter.prototype.setCharacter = function(char) {
 };
 
 // ------------- //
+
+HanziWriter.prototype._init = function(element, options) {
+  this._canvas = svg.Canvas.init(element, options.width, options.height);
+  if (this._canvas.svg.createSVGPoint) {
+    this._pt = this._canvas.svg.createSVGPoint();
+  }
+  this._options = this._assignOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
+  this._setupListeners();
+  this._quiz = null;
+  return this;
+};
 
 HanziWriter.prototype._assignOptions = function(options) {
   const mergedOptions = assign({}, defaultOptions, options);
@@ -306,8 +302,7 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
 // --- Static Public API --- //
 
 HanziWriter.create = (element, character, options = {}) => {
-  const writer = new HanziWriter();
-  writer.init(element, options);
+  const writer = new HanziWriter(element, options);
   writer.setCharacter(character);
   return writer;
 };

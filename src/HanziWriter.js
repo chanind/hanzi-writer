@@ -55,16 +55,25 @@ const defaultOptions = {
   outlineWidth: 2,
 };
 
-function HanziWriter(element, character, options = {}) {
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
-  if (this._canvas.svg.createSVGPoint) {
-    this._pt = this._canvas.svg.createSVGPoint();
+function HanziWriter(...args) {
+  if (args.length > 0) {
+    let character;
+    let options = {};
+    const element = args[0];
+    if (args.length > 1) {
+      if (typeof args[1] === 'string') {
+        console.warn('Using new HanziWriter() to set a character is deprecated. Use HanziWriter.create() instead');
+        character = args[1];
+        options = args[2] || {};
+      } else {
+        options = args[1];
+      }
+    }
+    this._init(element, options);
+    if (character) {
+      this.setCharacter(character);
+    }
   }
-  this._options = this._assignOptions(options);
-  this._loadingManager = new LoadingManager(this._options);
-  this.setCharacter(character);
-  this._setupListeners();
-  this._quiz = null;
 }
 
 // ------ public API ------ //
@@ -171,6 +180,18 @@ HanziWriter.prototype.setCharacter = function(char) {
 };
 
 // ------------- //
+
+HanziWriter.prototype._init = function(element, options) {
+  this._canvas = svg.Canvas.init(element, options.width, options.height);
+  if (this._canvas.svg.createSVGPoint) {
+    this._pt = this._canvas.svg.createSVGPoint();
+  }
+  this._options = this._assignOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
+  this._setupListeners();
+  this._quiz = null;
+  return this;
+};
 
 HanziWriter.prototype._assignOptions = function(options) {
   const mergedOptions = assign({}, defaultOptions, options);
@@ -279,6 +300,12 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
 };
 
 // --- Static Public API --- //
+
+HanziWriter.create = (element, character, options = {}) => {
+  const writer = new HanziWriter(element, options);
+  writer.setCharacter(character);
+  return writer;
+};
 
 let lastLoadingManager = null;
 let lastLoadingOptions = null;

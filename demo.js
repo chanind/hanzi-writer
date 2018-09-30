@@ -10,13 +10,13 @@ function updateCharacter() {
 
   var character = $('#character-select').val();
   $('.char-symbol').text(character);
-  animationWriter = new HanziWriter('animation-target', character, {
+  animationWriter = HanziWriter.create('animation-target', character, {
     width: 300,
     height: 300,
     showOutline: shouldShowOutline('animation'),
     showCharacter: false
   });
-  quizWriter = new HanziWriter('quiz-target', character, {
+  quizWriter = HanziWriter.create('quiz-target', character, {
     width: 300,
     height: 300,
     showOutline: shouldShowOutline('quiz'),

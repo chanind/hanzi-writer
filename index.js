@@ -1,7 +1,7 @@
 window.onload = function() {
 	var size = $('#ni').width();
 
-	window.ni = new HanziWriter('ni', '你', {
+	window.ni = HanziWriter.create('ni', '你', {
 		width: size,
 		height: size,
 		padding: 0,
@@ -9,7 +9,7 @@ window.onload = function() {
 		showOutline: true
 	});
 
-	window.hao = new HanziWriter('hao', '好', {
+	window.hao = HanziWriter.create('hao', '好', {
 		width: size,
 		height: size,
 		padding: 0,

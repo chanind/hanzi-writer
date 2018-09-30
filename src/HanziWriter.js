@@ -62,6 +62,7 @@ function HanziWriter(...args) {
     const element = args[0];
     if (args.length > 1) {
       if (typeof args[1] === 'string') {
+        // eslint-disable-next-line
         console.warn('Using new HanziWriter() to set a character is deprecated. Use HanziWriter.create() instead');
         character = args[1];
         options = args[2] || {};

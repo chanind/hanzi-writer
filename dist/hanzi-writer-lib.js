@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v0.12.0
+ * Hanzi Writer v1.0.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -752,18 +752,26 @@ var defaultOptions = {
   outlineWidth: 2
 };
 
-function HanziWriter(element, character) {
-  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
-
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
-  if (this._canvas.svg.createSVGPoint) {
-    this._pt = this._canvas.svg.createSVGPoint();
+function HanziWriter() {
+  if (arguments.length > 0) {
+    var character = void 0;
+    var options = {};
+    var element = arguments.length <= 0 ? undefined : arguments[0];
+    if (arguments.length > 1) {
+      if (typeof (arguments.length <= 1 ? undefined : arguments[1]) === 'string') {
+        // eslint-disable-next-line
+        console.warn('Using new HanziWriter() to set a character is deprecated. Use HanziWriter.create() instead');
+        character = arguments.length <= 1 ? undefined : arguments[1];
+        options = (arguments.length <= 2 ? undefined : arguments[2]) || {};
+      } else {
+        options = arguments.length <= 1 ? undefined : arguments[1];
+      }
+    }
+    this._init(element, options);
+    if (character) {
+      this.setCharacter(character);
+    }
   }
-  this._options = this._assignOptions(options);
-  this._loadingManager = new LoadingManager(this._options);
-  this.setCharacter(character);
-  this._setupListeners();
-  this._quiz = null;
 }
 
 // ------ public API ------ //
@@ -881,6 +889,18 @@ HanziWriter.prototype.setCharacter = function (char) {
 };
 
 // ------------- //
+
+HanziWriter.prototype._init = function (element, options) {
+  this._canvas = svg.Canvas.init(element, options.width, options.height);
+  if (this._canvas.svg.createSVGPoint) {
+    this._pt = this._canvas.svg.createSVGPoint();
+  }
+  this._options = this._assignOptions(options);
+  this._loadingManager = new LoadingManager(this._options);
+  this._setupListeners();
+  this._quiz = null;
+  return this;
+};
 
 HanziWriter.prototype._assignOptions = function (options) {
   var mergedOptions = assign({}, defaultOptions, options);
@@ -1007,6 +1027,14 @@ HanziWriter.prototype._getTouchPoint = function (evt) {
 };
 
 // --- Static Public API --- //
+
+HanziWriter.create = function (element, character) {
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  var writer = new HanziWriter(element, options);
+  writer.setCharacter(character);
+  return writer;
+};
 
 var lastLoadingManager = null;
 var lastLoadingOptions = null;

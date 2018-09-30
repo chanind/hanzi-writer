@@ -70,7 +70,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@0.12/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.0/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -114,7 +114,7 @@ const HanziWriter = require('hanzi-writer');
       {% endhighlight %}
       <p>Then, in Javascript:</p>
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '我', {
+var writer = HanziWriter.create('character-target-div', '我', {
   width: 100,
   height: 100,
   padding: 5
@@ -125,7 +125,7 @@ var writer = new HanziWriter('character-target-div', '我', {
       <div id="docs-target-1" class="inline-demo"></div>
       <script>
         (function() {
-          new HanziWriter('docs-target-1', '我', {
+          HanziWriter.create('docs-target-1', '我', {
             width: 100,
             height: 100,
             padding: 5
@@ -137,7 +137,7 @@ var writer = new HanziWriter('character-target-div', '我', {
       <p>
 
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '爽', {
+var writer = HanziWriter.create('character-target-div', '爽', {
   width: 150,
   height: 150,
   padding: 20,
@@ -148,7 +148,7 @@ var writer = new HanziWriter('character-target-div', '爽', {
       <div id="docs-target-2" class="inline-demo medium-demo"></div>
       <script>
         (function() {
-          new HanziWriter('docs-target-2', '爽', {
+          HanziWriter.create('docs-target-2', '爽', {
             width: 150,
             height: 150,
             padding: 20,
@@ -162,7 +162,7 @@ var writer = new HanziWriter('character-target-div', '爽', {
       </p>
 
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '草', {
+var writer = HanziWriter.create('character-target-div', '草', {
   width: 150,
   height: 150,
   padding: 5,
@@ -173,7 +173,7 @@ var writer = new HanziWriter('character-target-div', '草', {
       <div id="docs-target-2-1" class="inline-demo medium-demo"></div>
       <script>
         (function() {
-          new HanziWriter('docs-target-2-1', '草', {
+          HanziWriter.create('docs-target-2-1', '草', {
             width: 150,
             height: 150,
             padding: 5,
@@ -193,7 +193,7 @@ var writer = new HanziWriter('character-target-div', '草', {
 
       <p>Then, the corresponding javascript:</p>
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '国', {
+var writer = HanziWriter.create('character-target-div', '国', {
   width: 100,
   height: 100,
   padding: 5,
@@ -208,7 +208,7 @@ document.getElementById('animate-button').addEventListener('click', function() {
       <button class="btn btn-primary inline-demo-btn" id="docs-target-3-button" type="submit">Animate</button>
       <script>
           (function() {
-            var writer = new HanziWriter('docs-target-3', '国', {
+            var writer = HanziWriter.create('docs-target-3', '国', {
               width: 100,
               height: 100,
               padding: 5,
@@ -223,7 +223,7 @@ document.getElementById('animate-button').addEventListener('click', function() {
       <p>There are also a number of options you can configure with animations to control things like the speed of the animation and whether or not the character outline is visible. You can also set a radical color if you'd like to show the character radical while animating. Below is another example of animating with different animation options:</p>
 
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '激', {
+var writer = HanziWriter.create('character-target-div', '激', {
   width: 100,
   height: 100,
   padding: 5,
@@ -240,7 +240,7 @@ document.getElementById('animate-button').addEventListener('click', function() {
       <button class="btn btn-primary inline-demo-btn" id="docs-target-4-button" type="submit">Fast</button>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-4', '激', {
+          var writer = HanziWriter.create('docs-target-4', '激', {
             width: 100,
             height: 100,
             padding: 5,
@@ -257,11 +257,11 @@ document.getElementById('animate-button').addEventListener('click', function() {
 
       <h2 id="looping-animation-link">Looping Animations</h2>
       <p>
-        It's common to repeat an animation over and over. You can call 
+        It's common to repeat an animation over and over. You can call
         <code>loopCharacterAnimation()</code> to start and animation that will keep looping. There's a configuration option <code>delayBetweenLoops</code> you can use to control how much time there is between each animation loop (default 2000 ms). In the example below, the character will wait 3 seconds and then redraw itself forever:
       </p>
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '轮', {
+var writer = HanziWriter.create('character-target-div', '轮', {
   width: 100,
   height: 100,
   padding: 5,
@@ -273,7 +273,7 @@ writer.loopCharacterAnimation();
       <div id="docs-target-5" class="inline-demo"></div>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-5', '轮', {
+          var writer = HanziWriter.create('docs-target-5', '轮', {
             width: 100,
             height: 100,
             padding: 5,
@@ -296,13 +296,13 @@ writer.loopCharacterAnimation();
       {% endhighlight %}
       <p>And the javascript:</p>
       {% highlight javascript %}
-var char1 = new HanziWriter('character-target-1', '很', {
+var char1 = HanziWriter.create('character-target-1', '很', {
   width: 100,
   height: 100,
   padding: 5,
   showCharacter: false
 });
-var char2 = new HanziWriter('character-target-2', '爽', {
+var char2 = HanziWriter.create('character-target-2', '爽', {
   width: 100,
   height: 100,
   padding: 5,
@@ -332,13 +332,13 @@ document.getElementById('animate-button').addEventListener('click', chainAnimati
       <button class="btn btn-primary inline-demo-btn" id="docs-target-6-button" type="submit">Start</button>
       <script>
         (function() {
-          var char1 = new HanziWriter('docs-target-6-1', '很', {
+          var char1 = HanziWriter.create('docs-target-6-1', '很', {
             width: 100,
             height: 100,
             padding: 5,
             showCharacter: false
           });
-          var char2 = new HanziWriter('docs-target-6-2', '爽', {
+          var char2 = HanziWriter.create('docs-target-6-2', '爽', {
             width: 100,
             height: 100,
             padding: 5,
@@ -370,7 +370,7 @@ document.getElementById('animate-button').addEventListener('click', chainAnimati
         You can start a quiz by calling the <code>quiz()</code> method. We can set up a simple quiz with the code below:
       </p>
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '测', {
+var writer = HanziWriter.create('character-target-div', '测', {
   width: 150,
   height: 150,
   showCharacter: false,
@@ -383,7 +383,7 @@ writer.quiz();
       <button id="docs-target-7-button" class="btn btn-primary inline-demo-btn">Reset</button>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-7', '测', {
+          var writer = HanziWriter.create('docs-target-7', '测', {
             width: 150,
             height: 150,
             showCharacter: false,
@@ -399,7 +399,7 @@ writer.quiz();
         Try drawing the character 测 above to get a feel for how quizzes work. If you miss a stroke 3 times it will give you a hint by highlighting the correct stroke. You can configure this behavior by setting the <code>showHintAfterMisses</code> option to a different number, or you can set <code>showHintAfterMisses: false</code> to disable it entirely. After a quiz is completed successfully it will flash briefly. You can disable this by setting <code>highlightOnComplete: false</code>. Below is an example with some of these options changed. The example below also sets <code>showOutline: false</code> to make it more challenging.
       </p>
       {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '鬼', {
+var writer = HanziWriter.create('character-target-div', '鬼', {
   width: 150,
   height: 150,
   showCharacter: false,
@@ -416,7 +416,7 @@ writer.quiz();
       <p>Try drawing the character 鬼 above.</p>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-8', '鬼', {
+          var writer = HanziWriter.create('docs-target-8', '鬼', {
             width: 150,
             height: 150,
             showCharacter: false,
@@ -435,7 +435,7 @@ writer.quiz();
       <p>
         Quizzes on their own are good practice, but they become really poweful when they interact with the rest of your code. The <code>quiz()</code> method can be passed callbacks that you can use to run code when events happen in the quiz, like getting a stroke right or wrong, or the quiz finishing. The callbacks are called <code>onCorrectStroke</code>, <code>onMistake</code> and <code>onComplete</code>. These callbacks get passed an object containing info about the current state of the quiz. Below is an example of how you can integrate these callbacks:
         {% highlight javascript %}
-var writer = new HanziWriter('character-target-div', '码', {
+var writer = HanziWriter.create('character-target-div', '码', {
   width: 150,
   height: 150,
   showCharacter: false,
@@ -468,7 +468,7 @@ writer.quiz({
       <button id="docs-target-9-button" class="btn btn-primary inline-demo-btn">Reset</button>
       <script>
         (function() {
-          var writer = new HanziWriter('docs-target-9', '码', {
+          var writer = HanziWriter.create('docs-target-9', '码', {
             width: 150,
             height: 150,
             showCharacter: false,
@@ -554,7 +554,7 @@ writer.quiz({
       </p>
 
       {% highlight javascript %}
-var writer = new HanziWriter('target', '我', {
+var writer = HanziWriter.create('target', '我', {
   charDataLoader: function(char, onComplete) {
     $.getJSON("/my/server/" + char + ".json", function(charData) {
       onComplete(charData);
@@ -575,7 +575,7 @@ var writer = new HanziWriter('target', '我', {
         {% highlight javascript %}
 var ren = require('hanzi-writer-data/人');
 
-var writer = new HanziWriter('target', '人', {
+var writer = HanziWriter.create('target', '人', {
   charDataLoader: function() {
     return ren;
   }
@@ -590,7 +590,7 @@ var writer = new HanziWriter('target', '人', {
       {% highlight javascript %}
 var ren = require('hanzi-writer-data/人');
 
-var writer = new HanziWriter('target', '人', {
+var writer = HanziWriter.create('target', '人', {
   onLoadCharDataSuccess: function(data) {
     console.log('Success!');
   },
@@ -759,7 +759,7 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
       <h2>HanziWriter</h2>
       <p>This is the core class you will interact with.</p>
 
-      <h4>new HanziWriter(element, character, options)</h4>
+      <h4>HanziWriter.create(element, character, options)</h4>
       <p>Set up a new HanziWriter instance the specified DOM element</p>
       <p>
         <code>element</code> DOM node or ID of the element to render into.

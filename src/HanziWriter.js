@@ -148,18 +148,20 @@ HanziWriter.prototype.updateColors = function(newColors, options = {}) {
     // stroke color must go before radical color, since if radicalColor is null we use strokeColor instead
     const colorProps = ['strokeColor', 'radicalColor', 'highlightColor', 'outlineColor', 'drawingColor'];
     const duration = typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration;
-    const mutationChains = [];
+    const mappedColors = {};
     colorProps.forEach(colorProp => {
       if (colorProp in newColors) {
         let newColorVal = newColors[colorProp];
         if (colorProp === 'radicalColor' && !newColorVal) {
           newColorVal = this._options.strokeColor;
         }
-        mutationChains.push(characterActions.updateColor(colorProp, colorStringToVals(newColorVal), duration));
+        mappedColors[colorProp] = colorStringToVals(newColorVal);
         this._options[colorProp] = newColors[colorProp];
       }
     });
-    return this._renderState.runAll(mutationChains);
+    return this._renderState
+      .run(characterActions.updateColors(mappedColors, duration))
+      .then(res => callIfExists(options.onComplete, res));
   });
 };
 

@@ -446,6 +446,86 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('updateColors', () => {
+    it('animates and returns promise that resolves when finished', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        strokeColor: '#123',
+        outlineColor: '#EEE',
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.updateColors({
+        strokeColor: 'rgba(30, 30, 30, 0.8)',
+        outlineColor: '#CC32AB',
+      }, { onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.options.strokeColor).toEqual({r: 17, g: 34, b: 51, a: 1});
+      expect(writer._renderState.state.options.outlineColor).toEqual({r: 238, g: 238, b: 238, a: 1});
+      expect(isResolved).toBe(false);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.options.strokeColor).toEqual({r: 30, g: 30, b: 30, a: 0.8});
+      expect(writer._renderState.state.options.outlineColor).toEqual({r: 204, g: 50, b: 171, a: 1});
+
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+
+    it('uses strokeColor for the tween if radicalColor is set to null', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        strokeColor: '#123',
+        radicalColor: '#EEE',
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.updateColors({
+        radicalColor: null,
+        strokeColor: 'rgba(30, 30, 30, 0.8)',
+      }, { onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.options.strokeColor).toEqual({r: 17, g: 34, b: 51, a: 1});
+      expect(writer._renderState.state.options.radicalColor).toEqual({r: 238, g: 238, b: 238, a: 1});
+      expect(isResolved).toBe(false);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.options.strokeColor).toEqual({r: 30, g: 30, b: 30, a: 0.8});
+      expect(writer._renderState.state.options.radicalColor).toEqual({r: 30, g: 30, b: 30, a: 0.8});;
+
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+  });
+
   describe('quiz', () => {
     it('sets up and starts the quiz', async () => {
       document.body.innerHTML = '<div id="target"></div>';

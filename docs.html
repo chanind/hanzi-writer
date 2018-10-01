@@ -70,13 +70,13 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.0/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.1/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
         You can also download a copy of the Hanzi Writer javascript here:<br />
-        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (25 kb)<br />
-        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (56 kb)<br />
+        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> - minified for production (30 kb, 9kb gzipped)<br />
+        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js">hanzi-writer.js</a></strong> - unminified for development (70 kb)<br />
       </p>
       <p>
         The above scripts will make a global <code>HanziWriter</code> variable available after the script loads.
@@ -537,6 +537,10 @@ writer.quiz({
           Hide the character outline if it's currently shown
         </li>
         <li>
+          <code>writer.updateColor(colorName, newValue)</code>
+          Change the value of any color option. For example: <code>writer.updateColor('strokeColor', '#AA12CD')</code>
+        </li>
+        <li>
           <code>writer.cancelQuiz()</code>
           Immediately cancel the currently running quiz
         </li>
@@ -759,13 +763,10 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
       <h2>HanziWriter</h2>
       <p>This is the core class you will interact with.</p>
 
-      <h4>HanziWriter.create(element, character, options)</h4>
+      <h4>new HanziWriter(element, options)</h4>
       <p>Set up a new HanziWriter instance the specified DOM element</p>
       <p>
         <code>element</code> DOM node or ID of the element to render into.
-      </p>
-      <p>
-        <code>character</code> The character to draw, ex '你'.
       </p>
       <p>
         <code>options</code> object containing additional configuration options. Full options available include:
@@ -832,6 +833,22 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
         <ul>
           <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
           <li><code>duration:</code> number, optional. How long the hiding animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
+        </ul>
+      </p>
+
+      <h4>writer.updateColor(colorName, colorVal, options = {})</h4>
+      <p>Update a color setting.</p>
+      <p>
+        <code>colorName</code> string. One of 'strokeColor', 'radicalColor', 'outlineColor', 'highlightColor', or 'drawingColor'.
+      </p>
+      <p>
+        <code>colorVal</code> string. A CSS color string like '#AA9913' or 'rgba(255, 255, 10, 0.7)'
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
+          <li><code>duration:</code> number, optional. How long the animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
         </ul>
       </p>
 
@@ -910,6 +927,41 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
       <p>Cancel the quiz currently in progress</p>
 
       <h3>Class methods</h3>
+      <h4>HanziWriter.create(element, character, options)</h4>
+      <p>Set up a new HanziWriter instance the specified DOM element</p>
+      <p>
+        <code>element</code> DOM node or ID of the element to render into.
+      </p>
+      <p>
+        <code>character</code> The character to draw, ex '你'.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options available include:
+        <ul>
+          <li><code>showOutline:</code> boolean, default true. Controls whether the outline is shown or hidden on the first render.</li>
+          <li><code>showCharacter:</code> boolean, default true. Controls whether the character is shown or hidden on the first render.</li>
+          <li><code>width:</code> number. Width of the canvas in px.</li>
+          <li><code>height:</code> number. height of the canvas in px.</li>
+          <li><code>padding:</code> number, default 20. padding between the character and edge of the canvas in px.</li>
+          <li><code>strokeAnimationSpeed:</code> number, default 1. Speed at which to draw each stroke, must be greater than 0. Increase this number to draw strokes faster, decrease to draw strokes slower.</li>
+          <li><code>strokeHighlightSpeed:</code> number, default 2. Speed at whch to highlight each stroke when givings hints in a quiz, must be greater than 0. Increase this number to highlight faster, decrease to highlight slower.</li>
+          <li><code>strokeFadeDuration:</code> number, default 400. Time in milliseconds to transition between showing and hiding strokes when calling <code>writer.show()</code> and <code>writer.hide()</code></li>
+          <li><code>delayBetweenStrokes:</code> number, default 1000. Time in milliseconds between each stroke when animating.</li>
+          <li><code>delayBetweenLoops:</code> number, default 2000. Time in milliseconds between each animation loop when looping animations.</li>
+          <li><code>strokeColor:</code> hex string, default '#555'. The color to draw each stroke.</li>
+          <li><code>radicalColor:</code> hex string, default null. The color to draw the radical in the stroke, if radical data is present. Radicals will be drawn the same color as other strokes if this is not set.</li>
+          <li><code>highlightColor:</code> hex string, default '#AAF'. The color to use for highlighting in quizzes.</li>
+          <li><code>outlineColor:</code> hex string, default '#DDD'. The color of the character outline.</li>
+          <li><code>drawingColor:</code> hex string, default '#333'. The color of the lines drawn by users during quizzing.</li>
+          <li><code>drawingWidth:</code> number, default 4. The width of the lines drawn by users during quizzing in px.</li>
+          <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
+          <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
+          <li><code>highlightCompleteColor:</code> hex string, default null. The color to use when highlighting the character on complete in quizzes. If not set, <code>highlightColor</code> will be used instead. Only relevant if <code>highlightOnComplete</code> is <code>true</code>.</li>
+          <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
+          <li><code>onLoadCharDataSuccess:</code> function. Callback for when character data is loaded successfully. This function is called with the data that was loaded. This can be used to implement a loading spinner.</li>
+          <li><code>onLoadCharDataError:</code> function. Callback for when character data loading fails. This function is passed whatever the failure reason is from <i>charDataLoader</i>.</li>
+        </ul>
+      </p>
       <h4>HanziWriter.loadCharacterData(character, options = {})</h4>
       <p>
         Load raw character data from the Hanzi Writer CDN. Returns a promise which resolves when loading is complete.

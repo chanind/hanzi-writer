@@ -92,6 +92,11 @@ describe('utils', () => {
       expect(utils.colorStringToVals('  RgBa(10 ,  99 ,  193, 0.1) ')).toEqual({r: 10, g: 99, b: 193, a: 0.1});
       expect(utils.colorStringToVals('RGB(10,99,193)')).toEqual({r: 10, g: 99, b: 193, a: 1});
     });
+    it('errors on invalid colors', () => {
+      expect(() => utils.colorStringToVals('#DC00')).toThrow();
+      expect(() => utils.colorStringToVals('#DCQ')).toThrow();
+      expect(() => utils.colorStringToVals('RBB(10,10,10)')).toThrow();
+    });
   });
 
   describe('inflate', () => {

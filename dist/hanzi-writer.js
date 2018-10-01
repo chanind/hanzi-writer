@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.0.0
+ * Hanzi Writer v1.1.0
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -172,6 +172,34 @@ function timeout() {
   });
 }
 
+function colorStringToVals(colorString) {
+  var normalizedColor = colorString.toUpperCase().trim();
+  // based on https://stackoverflow.com/a/21648508
+  if (/^#([A-F0-9]{3}){1,2}$/.test(normalizedColor)) {
+    var hexParts = normalizedColor.substring(1).split('');
+    if (hexParts.length === 3) {
+      hexParts = [hexParts[0], hexParts[0], hexParts[1], hexParts[1], hexParts[2], hexParts[2]];
+    }
+    var hexStr = '' + hexParts.join('');
+    return {
+      r: parseInt(hexStr.slice(0, 2), 16),
+      g: parseInt(hexStr.slice(2, 4), 16),
+      b: parseInt(hexStr.slice(4, 6), 16),
+      a: 1
+    };
+  }
+  var rgbMatch = normalizedColor.match(/^RGBA?\((\d+)\s*,\s*(\d+)\s*,\s*(\d+)(?:\s*,\s*(\d*\.?\d+))?\)$/);
+  if (rgbMatch) {
+    return {
+      r: parseInt(rgbMatch[1], 10),
+      g: parseInt(rgbMatch[2], 10),
+      b: parseInt(rgbMatch[3], 10),
+      a: parseFloat(rgbMatch[4] || 1, 10)
+    };
+  }
+  throw new Error('Invalid color: ' + colorString);
+}
+
 var trim = function trim(string) {
   return string.replace(/^\s+/, '').replace(/\s+$/, '');
 };
@@ -193,6 +221,7 @@ module.exports = {
   average: average,
   callIfExists: callIfExists,
   cancelAnimationFrame: cancelAnimationFrame,
+  colorStringToVals: colorStringToVals,
   copyAndMergeDeep: copyAndMergeDeep,
   counter: counter,
   emptyFunc: emptyFunc,
@@ -505,6 +534,10 @@ var hideCharacter = function hideCharacter(charName, character, duration) {
   return [new Mutation('character.' + charName + '.opacity', 0, { duration: duration, force: true })].concat(showStrokes(charName, character, 0));
 };
 
+var updateColor = function updateColor(colorName, colorVal, duration) {
+  return [new Mutation('options.' + colorName, colorVal, { duration: duration })];
+};
+
 var animateStroke = function animateStroke(charName, stroke, speed) {
   var strokeNum = stroke.strokeNum;
   var duration = (stroke.getLength() + 600) / (3 * speed);
@@ -551,7 +584,8 @@ module.exports = {
   animateCharacter: animateCharacter,
   animateCharacterLoop: animateCharacterLoop,
   animateStroke: animateStroke,
-  showStroke: showStroke
+  showStroke: showStroke,
+  updateColor: updateColor
 };
 
 /***/ }),
@@ -704,7 +738,8 @@ var characterActions = __webpack_require__(4);
 var _require = __webpack_require__(0),
     assign = _require.assign,
     callIfExists = _require.callIfExists,
-    trim = _require.trim;
+    trim = _require.trim,
+    colorStringToVals = _require.colorStringToVals;
 
 var defaultOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -844,15 +879,40 @@ HanziWriter.prototype.hideOutline = function () {
   });
 };
 
-HanziWriter.prototype.quiz = function () {
+HanziWriter.prototype.updateColor = function (colorName, colorVal) {
   var _this7 = this;
+
+  var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
+
+  return this._withData(function () {
+    var duration = typeof options.duration === 'number' ? options.duration : _this7._options.strokeFadeDuration;
+    var fixedColorVal = colorVal;
+    // If we're removing radical color, tween it to the stroke color
+    if (colorName === 'radicalColor' && !colorVal) {
+      fixedColorVal = _this7._options.strokeColor;
+    }
+    var mappedColor = colorStringToVals(fixedColorVal);
+    _this7._options[colorName] = colorVal;
+    var mutation = characterActions.updateColor(colorName, mappedColor, duration);
+    // make sure to set radicalColor back to null after the transition finishes if val == null
+    if (colorName === 'radicalColor' && !colorVal) {
+      mutation = mutation.concat(characterActions.updateColor(colorName, null, 0));
+    }
+    return _this7._renderState.run(mutation).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+
+HanziWriter.prototype.quiz = function () {
+  var _this8 = this;
 
   var quizOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   this._withData(function () {
-    _this7.cancelQuiz();
-    _this7._quiz = new Quiz(_this7._character, _this7._renderState, _this7._positioner);
-    _this7._quiz.startQuiz(assign({}, _this7._options, quizOptions));
+    _this8.cancelQuiz();
+    _this8._quiz = new Quiz(_this8._character, _this8._renderState, _this8._positioner);
+    _this8._quiz.startQuiz(assign({}, _this8._options, quizOptions));
   });
 };
 
@@ -864,7 +924,7 @@ HanziWriter.prototype.cancelQuiz = function () {
 };
 
 HanziWriter.prototype.setCharacter = function (char) {
-  var _this8 = this;
+  var _this9 = this;
 
   this.cancelQuiz();
   this._char = char;
@@ -872,17 +932,17 @@ HanziWriter.prototype.setCharacter = function (char) {
   if (this._renderState) this._renderState.cancelAll();
   this._hanziWriterRenderer = null;
   this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
-    if (_this8._loadingManager.loadingFailed) return;
+    if (_this9._loadingManager.loadingFailed) return;
 
     var charDataParser = new CharDataParser();
-    _this8._character = charDataParser.generateCharacter(char, pathStrings);
-    _this8._positioner = new Positioner(_this8._options);
-    _this8._hanziWriterRenderer = new HanziWriterRenderer(_this8._character, _this8._positioner);
-    _this8._renderState = new RenderState(_this8._character, _this8._options, function (nextState) {
-      _this8._hanziWriterRenderer.render(nextState);
+    _this9._character = charDataParser.generateCharacter(char, pathStrings);
+    _this9._positioner = new Positioner(_this9._options);
+    _this9._hanziWriterRenderer = new HanziWriterRenderer(_this9._character, _this9._positioner);
+    _this9._renderState = new RenderState(_this9._character, _this9._options, function (nextState) {
+      _this9._hanziWriterRenderer.render(nextState);
     });
-    _this8._hanziWriterRenderer.mount(_this8._canvas, _this8._renderState.state);
-    _this8._hanziWriterRenderer.render(_this8._renderState.state);
+    _this9._hanziWriterRenderer.mount(_this9._canvas, _this9._renderState.state);
+    _this9._hanziWriterRenderer.render(_this9._renderState.state);
   });
   return this._withDataPromise;
 };
@@ -939,49 +999,49 @@ HanziWriter.prototype._fillWidthAndHeight = function (options) {
 };
 
 HanziWriter.prototype._withData = function (func) {
-  var _this9 = this;
+  var _this10 = this;
 
   // if this._loadingManager.loadingFailed, then loading failed before this method was called
   if (this._loadingManager.loadingFailed) {
     throw Error('Failed to load character data. Call setCharacter and try again.');
   }
   return this._withDataPromise.then(function () {
-    if (!_this9._loadingManager.loadingFailed) {
+    if (!_this10._loadingManager.loadingFailed) {
       return func();
     }
   });
 };
 
 HanziWriter.prototype._setupListeners = function () {
-  var _this10 = this;
+  var _this11 = this;
 
   this._canvas.svg.addEventListener('mousedown', function (evt) {
-    if (_this10.isLoadingCharData || !_this10._quiz) return;
+    if (_this11.isLoadingCharData || !_this11._quiz) return;
     evt.preventDefault();
-    _this10._forwardToQuiz('startUserStroke', _this10._getMousePoint(evt));
+    _this11._forwardToQuiz('startUserStroke', _this11._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchstart', function (evt) {
-    if (_this10.isLoadingCharData || !_this10._quiz) return;
+    if (_this11.isLoadingCharData || !_this11._quiz) return;
     evt.preventDefault();
-    _this10._forwardToQuiz('startUserStroke', _this10._getTouchPoint(evt));
+    _this11._forwardToQuiz('startUserStroke', _this11._getTouchPoint(evt));
   });
   this._canvas.svg.addEventListener('mousemove', function (evt) {
-    if (_this10.isLoadingCharData || !_this10._quiz) return;
+    if (_this11.isLoadingCharData || !_this11._quiz) return;
     evt.preventDefault();
-    _this10._forwardToQuiz('continueUserStroke', _this10._getMousePoint(evt));
+    _this11._forwardToQuiz('continueUserStroke', _this11._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchmove', function (evt) {
-    if (_this10.isLoadingCharData || !_this10._quiz) return;
+    if (_this11.isLoadingCharData || !_this11._quiz) return;
     evt.preventDefault();
-    _this10._forwardToQuiz('continueUserStroke', _this10._getTouchPoint(evt));
+    _this11._forwardToQuiz('continueUserStroke', _this11._getTouchPoint(evt));
   });
 
   // TODO: fix
   global.document.addEventListener('mouseup', function () {
-    return _this10._forwardToQuiz('endUserStroke');
+    return _this11._forwardToQuiz('endUserStroke');
   });
   global.document.addEventListener('touchend', function () {
-    return _this10._forwardToQuiz('endUserStroke');
+    return _this11._forwardToQuiz('endUserStroke');
   });
 };
 
@@ -1121,9 +1181,22 @@ HanziWriterRenderer.prototype.mount = function (canvas) {
 HanziWriterRenderer.prototype.render = function (props) {
   var _this = this;
 
-  this._outlineCharRenderer.render(props.character.outline);
-  this._mainCharRenderer.render(props.character.main);
-  this._highlightCharRenderer.render(props.character.highlight);
+  this._outlineCharRenderer.render({
+    opacity: props.character.outline.opacity,
+    strokes: props.character.outline.strokes,
+    strokeColor: props.options.outlineColor
+  });
+  this._mainCharRenderer.render({
+    opacity: props.character.main.opacity,
+    strokes: props.character.main.strokes,
+    strokeColor: props.options.strokeColor,
+    radicalColor: props.options.radicalColor
+  });
+  this._highlightCharRenderer.render({
+    opacity: props.character.highlight.opacity,
+    strokes: props.character.highlight.strokes,
+    strokeColor: props.options.highlightColor
+  });
 
   var userStrokes = props.userStrokes || {};
   Object.keys(this._userStrokeRenderers).forEach(function (userStrokeId) {
@@ -1191,13 +1264,17 @@ CharacterRenderer.prototype.render = function (props) {
       this._group.style.display = 'initial';
     }
   }
-  for (var i = 0; i < this.strokeRenderers.length; i++) {
-    this.strokeRenderers[i].render({
-      strokeColor: props.strokeColor,
-      radicalColor: props.radicalColor,
-      opacity: props.strokes[i].opacity,
-      displayPortion: props.strokes[i].displayPortion
-    });
+  var colorsChanged = !this._oldProps || props.strokeColor !== this._oldProps.strokeColor || props.radicalColor !== this._oldProps.radicalColor;
+  if (colorsChanged || props.strokes !== this._oldProps.strokes) {
+    for (var i = 0; i < this.strokeRenderers.length; i++) {
+      if (!colorsChanged && this._oldProps.strokes && props.strokes[i] === this._oldProps.strokes[i]) continue;
+      this.strokeRenderers[i].render({
+        strokeColor: props.strokeColor,
+        radicalColor: props.radicalColor,
+        opacity: props.strokes[i].opacity,
+        displayPortion: props.strokes[i].displayPortion
+      });
+    }
   }
   this._oldProps = props;
 };
@@ -1276,7 +1353,12 @@ StrokeRenderer.prototype.render = function (props) {
 
   var color = this._getColor(props);
   if (color !== this._getColor(this._oldProps)) {
-    svg.attrs(this._animationPath, { stroke: color });
+    var r = color.r,
+        g = color.g,
+        b = color.b,
+        a = color.a;
+
+    svg.attrs(this._animationPath, { stroke: 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')' });
   }
 
   if (props.opacity !== this._oldProps.opacity) {
@@ -1319,9 +1401,15 @@ UserStrokeRenderer.prototype.mount = function (canvas) {
 UserStrokeRenderer.prototype.render = function (props) {
   if (props === this._oldProps) return;
   if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
+    var _props$strokeColor = props.strokeColor,
+        r = _props$strokeColor.r,
+        g = _props$strokeColor.g,
+        b = _props$strokeColor.b,
+        a = _props$strokeColor.a;
+
     svg.attrs(this._path, {
       fill: 'none',
-      stroke: props.strokeColor,
+      stroke: 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')',
       'stroke-width': props.strokeWidth,
       'stroke-linecap': 'round',
       'stroke-linejoin': 'round'
@@ -1350,7 +1438,8 @@ module.exports = UserStrokeRenderer;
 
 
 var _require = __webpack_require__(0),
-    copyAndMergeDeep = _require.copyAndMergeDeep;
+    copyAndMergeDeep = _require.copyAndMergeDeep,
+    colorStringToVals = _require.colorStringToVals;
 
 function RenderState(character, options, onStateChange) {
   this._onStateChange = onStateChange;
@@ -1359,22 +1448,22 @@ function RenderState(character, options, onStateChange) {
     options: {
       drawingFadeDuration: options.drawingFadeDuration,
       drawingWidth: options.drawingWidth,
-      drawingColor: options.drawingColor
+      drawingColor: colorStringToVals(options.drawingColor),
+      strokeColor: colorStringToVals(options.strokeColor),
+      outlineColor: colorStringToVals(options.outlineColor),
+      radicalColor: colorStringToVals(options.radicalColor || options.strokeColor),
+      highlightColor: colorStringToVals(options.highlightColor)
     },
     character: {
       main: {
-        strokeColor: options.strokeColor,
-        radicalColor: options.radicalColor,
         opacity: options.showCharacter ? 1 : 0,
         strokes: {}
       },
       outline: {
-        strokeColor: options.outlineColor,
         opacity: options.showOutline ? 1 : 0,
         strokes: {}
       },
       highlight: {
-        strokeColor: options.highlightColor,
         opacity: 1,
         strokes: {}
       }

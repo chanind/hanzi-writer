@@ -143,24 +143,17 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
   ));
 };
 
-HanziWriter.prototype.updateColors = function(newColors, options = {}) {
+HanziWriter.prototype.updateColor = function(colorName, colorVal, options = {}) {
   return this._withData(() => {
-    // stroke color must go before radical color, since if radicalColor is null we use strokeColor instead
-    const colorProps = ['strokeColor', 'radicalColor', 'highlightColor', 'outlineColor', 'drawingColor'];
     const duration = typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration;
-    const mappedColors = {};
-    colorProps.forEach(colorProp => {
-      if (colorProp in newColors) {
-        let newColorVal = newColors[colorProp];
-        if (colorProp === 'radicalColor' && !newColorVal) {
-          newColorVal = this._options.strokeColor;
-        }
-        mappedColors[colorProp] = colorStringToVals(newColorVal);
-        this._options[colorProp] = newColors[colorProp];
-      }
-    });
+    let fixedColorVal = colorVal;
+    if (colorName === 'radicalColor' && !colorVal) {
+      fixedColorVal = this._options.strokeColor;
+    }
+    const mappedColor = colorStringToVals(fixedColorVal);
+    this._options[colorName] = colorVal;
     return this._renderState
-      .run(characterActions.updateColors(mappedColors, duration))
+      .run(characterActions.updateColor(colorName, mappedColor, duration))
       .then(res => callIfExists(options.onComplete, res));
   });
 };

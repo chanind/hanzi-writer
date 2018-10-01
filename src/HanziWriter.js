@@ -7,7 +7,7 @@ const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, callIfExists, trim } = require('./utils');
+const { assign, callIfExists, trim, colorStringToVals } = require('./utils');
 
 
 const defaultOptions = {
@@ -141,6 +141,25 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
       typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
     )).then(res => callIfExists(options.onComplete, res))
   ));
+};
+
+HanziWriter.prototype.updateColor = function(colorName, colorVal, options = {}) {
+  return this._withData(() => {
+    const duration = typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration;
+    let fixedColorVal = colorVal;
+    // If we're removing radical color, tween it to the stroke color
+    if (colorName === 'radicalColor' && !colorVal) {
+      fixedColorVal = this._options.strokeColor;
+    }
+    const mappedColor = colorStringToVals(fixedColorVal);
+    this._options[colorName] = colorVal;
+    let mutation = characterActions.updateColor(colorName, mappedColor, duration);
+    // make sure to set radicalColor back to null after the transition finishes if val == null
+    if (colorName === 'radicalColor' && !colorVal) {
+      mutation = mutation.concat(characterActions.updateColor(colorName, null, 0));
+    }
+    return this._renderState.run(mutation).then(res => callIfExists(options.onComplete, res));
+  });
 };
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {

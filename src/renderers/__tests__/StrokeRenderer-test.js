@@ -17,7 +17,7 @@ describe('StrokeRenderer', () => {
 
   it('renders a path and clipPath', () => {
     const props = {
-      strokeColor: '#123',
+      strokeColor: {r: 12, g: 101, b: 20, a: 0.3},
       radicalColor: null,
       strokeWidth: 2,
       opacity: 0.7,
@@ -35,7 +35,7 @@ describe('StrokeRenderer', () => {
     const maskId = canvas.defs.childNodes[0].getAttribute('id');
     expect(canvas.svg.childNodes.length).toBe(2); // defs and path
     expect(canvas.svg.childNodes[1].nodeName).toBe('path');
-    expect(canvas.svg.childNodes[1].getAttribute('stroke')).toBe('#123');
+    expect(canvas.svg.childNodes[1].getAttribute('stroke')).toBe('rgba(12,101,20,0.3)');
     expect(canvas.svg.childNodes[1].getAttribute('clip-path')).toBe(`url(#${maskId})`);
 
     expect(maskPath).toMatchSnapshot();

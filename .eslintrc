@@ -5,11 +5,12 @@
     "no-for-of-loops"
   ],
   "rules": {
-    "id-length": [2, {"exceptions": ["x", "y", "i", "j"]}],
+    "id-length": [2, {"exceptions": ["x", "y", "i", "j", "r", "g", "b", "a"]}],
     "no-unused-vars": [2, {"vars": "all", "args": "none"}],
     "max-len":[0],
     "no-loop-func": [0],
     "no-plusplus": [0],
+    "no-continue": [0],
     "no-prototype-builtins": [0],
     "no-underscore-dangle": [0],
     "jsx-a11y/href-no-hash": [0],

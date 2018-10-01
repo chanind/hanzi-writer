@@ -26,9 +26,22 @@ HanziWriterRenderer.prototype.mount = function(canvas) {
 };
 
 HanziWriterRenderer.prototype.render = function(props) {
-  this._outlineCharRenderer.render(props.character.outline);
-  this._mainCharRenderer.render(props.character.main);
-  this._highlightCharRenderer.render(props.character.highlight);
+  this._outlineCharRenderer.render({
+    opacity: props.character.outline.opacity,
+    strokes: props.character.outline.strokes,
+    strokeColor: props.options.outlineColor,
+  });
+  this._mainCharRenderer.render({
+    opacity: props.character.main.opacity,
+    strokes: props.character.main.strokes,
+    strokeColor: props.options.strokeColor,
+    radicalColor: props.options.radicalColor,
+  });
+  this._highlightCharRenderer.render({
+    opacity: props.character.highlight.opacity,
+    strokes: props.character.highlight.strokes,
+    strokeColor: props.options.highlightColor,
+  });
 
   const userStrokes = props.userStrokes || {};
   Object.keys(this._userStrokeRenderers).forEach(userStrokeId => {

@@ -13,9 +13,10 @@ UserStrokeRenderer.prototype.mount = function(canvas) {
 UserStrokeRenderer.prototype.render = function(props) {
   if (props === this._oldProps) return;
   if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
+    const {r, g, b, a} = props.strokeColor;
     svg.attrs(this._path, {
       fill: 'none',
-      stroke: props.strokeColor,
+      stroke: `rgba(${r},${g},${b},${a})`,
       'stroke-width': props.strokeWidth,
       'stroke-linecap': 'round',
       'stroke-linejoin': 'round',

@@ -61,7 +61,8 @@ StrokeRenderer.prototype.render = function(props) {
 
   const color = this._getColor(props);
   if (color !== this._getColor(this._oldProps)) {
-    svg.attrs(this._animationPath, { stroke: color });
+    const {r, g, b, a} = color;
+    svg.attrs(this._animationPath, { stroke: `rgba(${r},${g},${b},${a})` });
   }
 
   if (props.opacity !== this._oldProps.opacity) {

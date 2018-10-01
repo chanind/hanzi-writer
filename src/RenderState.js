@@ -1,4 +1,4 @@
-const { copyAndMergeDeep } = require('./utils');
+const { copyAndMergeDeep, colorStringToVals } = require('./utils');
 
 function RenderState(character, options, onStateChange) {
   this._onStateChange = onStateChange;
@@ -7,22 +7,22 @@ function RenderState(character, options, onStateChange) {
     options: {
       drawingFadeDuration: options.drawingFadeDuration,
       drawingWidth: options.drawingWidth,
-      drawingColor: options.drawingColor,
+      drawingColor: colorStringToVals(options.drawingColor),
+      strokeColor: colorStringToVals(options.strokeColor),
+      outlineColor: colorStringToVals(options.outlineColor),
+      radicalColor: colorStringToVals(options.radicalColor || options.strokeColor),
+      highlightColor: colorStringToVals(options.highlightColor),
     },
     character: {
       main: {
-        strokeColor: options.strokeColor,
-        radicalColor: options.radicalColor,
         opacity: options.showCharacter ? 1 : 0,
         strokes: {},
       },
       outline: {
-        strokeColor: options.outlineColor,
         opacity: options.showOutline ? 1 : 0,
         strokes: {},
       },
       highlight: {
-        strokeColor: options.highlightColor,
         opacity: 1,
         strokes: {},
       },

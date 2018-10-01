@@ -25,7 +25,6 @@ describe('HanziWriterRenderer', () => {
   it('adds and removes user stroke renderers as needed', () => {
     const charProps = {
       opacity: 0.7,
-      strokeColor: '#123',
       strokes: {
         0: {
           opacity: 1,
@@ -42,7 +41,7 @@ describe('HanziWriterRenderer', () => {
       options: {
         strokeWidth: 2,
         drawingWidth: 4,
-        drawingColor: '#456',
+        drawingColor: {r: 255, g: 255, b: 0, a: 0.1},
       },
       character: {
         outline: charProps,
@@ -68,7 +67,7 @@ describe('HanziWriterRenderer', () => {
     expect(userStrokes.length).toBe(1);
     expect(userStrokes[0].getAttribute('opacity')).toBe('0.9');
     expect(userStrokes[0].getAttribute('stroke-width')).toBe('4');
-    expect(userStrokes[0].getAttribute('stroke')).toBe('#456');
+    expect(userStrokes[0].getAttribute('stroke')).toBe('rgba(255,255,0,0.1)');
     expect(userStrokes[0].getAttribute('d')).toBe('M 0 0 L 1 3');
 
     renderer.render(props2);

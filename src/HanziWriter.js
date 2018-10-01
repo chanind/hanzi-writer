@@ -7,7 +7,7 @@ const svg = require('./svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, callIfExists, trim } = require('./utils');
+const { assign, callIfExists, trim, colorStringToVals } = require('./utils');
 
 
 const defaultOptions = {
@@ -143,23 +143,25 @@ HanziWriter.prototype.hideOutline = function(options = {}) {
   ));
 };
 
-['strokeColor', 'radicalColor', 'highlightColor', 'outlineColor', 'drawingColor']
 HanziWriter.prototype.updateColors = function(newColors, options = {}) {
   return this._withData(() => {
-    const mutationChains = [];
+    // stroke color must go before radical color, since if radicalColor is null we use strokeColor instead
+    const colorProps = ['strokeColor', 'radicalColor', 'highlightColor', 'outlineColor', 'drawingColor'];
     const duration = typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration;
-    if ('strokeColor' in newColors) {
-      mutationChains.push(characterActions.updateColor('main', 'strokeColor', newColors.strokeColor))
-    }
-    this._renderState.run(characterActions.hideCharacter(
-      'outline',
-      this._character,
-      typeof options.duration === 'number' ? options.duration : this._options.strokeFadeDuration,
-    )).then(res => callIfExists(options.onComplete, res))
+    const mutationChains = [];
+    colorProps.forEach(colorProp => {
+      if (colorProp in newColors) {
+        let newColorVal = newColors[colorProp];
+        if (colorProp === 'radicalColor' && !newColorVal) {
+          newColorVal = this._options.strokeColor;
+        }
+        mutationChains.push(characterActions.updateColor(colorProp, colorStringToVals(newColorVal), duration));
+        this._options[colorProp] = newColors[colorProp];
+      }
+    });
+    return this._renderState.runAll(mutationChains);
   });
 };
-
-
 
 HanziWriter.prototype.quiz = function(quizOptions = {}) {
   this._withData(() => {

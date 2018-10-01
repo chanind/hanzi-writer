@@ -25,13 +25,21 @@ CharacterRenderer.prototype.render = function(props) {
       this._group.style.display = 'initial';
     }
   }
-  for (let i = 0; i < this.strokeRenderers.length; i++) {
-    this.strokeRenderers[i].render({
-      strokeColor: props.strokeColor,
-      radicalColor: props.radicalColor,
-      opacity: props.strokes[i].opacity,
-      displayPortion: props.strokes[i].displayPortion,
-    });
+  const colorsChanged = (
+    !this._oldProps ||
+    props.strokeColor !== this._oldProps.strokeColor ||
+    props.radicalColor !== this._oldProps.radicalColor
+  );
+  if (colorsChanged || props.strokes !== this._oldProps.strokes) {
+    for (let i = 0; i < this.strokeRenderers.length; i++) {
+      if (!colorsChanged && this._oldProps.strokes && props.strokes[i] === this._oldProps.strokes[i]) continue;
+      this.strokeRenderers[i].render({
+        strokeColor: props.strokeColor,
+        radicalColor: props.radicalColor,
+        opacity: props.strokes[i].opacity,
+        displayPortion: props.strokes[i].displayPortion,
+      });
+    }
   }
   this._oldProps = props;
 };

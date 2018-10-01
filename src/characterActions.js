@@ -26,8 +26,8 @@ const hideCharacter = (charName, character, duration) => {
   ].concat(showStrokes(charName, character, 0));
 };
 
-const updateColor = (charName, colorName, colorVal, duration) => {
-  return [new Mutation(`character.${charName}.${colorName}`, colorVal, { duration, force: true })];
+const updateColor = (colorName, colorVal, duration) => {
+  return [new Mutation(`options.${colorName}`, colorVal, { duration, force: true })];
 };
 
 const animateStroke = (charName, stroke, speed) => {

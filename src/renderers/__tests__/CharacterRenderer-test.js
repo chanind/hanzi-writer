@@ -18,7 +18,7 @@ describe('CharacterRenderer', () => {
 
   it('renders a g element and puts strokes inside', () => {
     const props = {
-      strokeColor: '#123',
+      strokeColor: {r: 120, g: 17, b: 101, a: 0.3},
       radicalColor: null,
       strokeWidth: 2,
       opacity: 0.7,
@@ -45,13 +45,13 @@ describe('CharacterRenderer', () => {
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach(node => {
       expect(node.nodeName).toBe('path');
-      expect(node.getAttribute('stroke')).toBe('#123');
+      expect(node.getAttribute('stroke')).toBe('rgba(120,17,101,0.3)');
     });
   });
 
   it('updates opacity and updates passed-through props', () => {
     const props1 = {
-      strokeColor: '#123',
+      strokeColor: {r: 120, g: 17, b: 101, a: 0.3},
       radicalColor: null,
       strokeWidth: 2,
       opacity: 0.7,
@@ -68,7 +68,7 @@ describe('CharacterRenderer', () => {
     };
 
     const props2 = copyAndMergeDeep(props1, {
-      strokeColor: '#456',
+      strokeColor: {r: 255, g: 255, b: 0, a: 0.1},
       opacity: 0.9,
     });
 
@@ -85,13 +85,13 @@ describe('CharacterRenderer', () => {
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach(node => {
       expect(node.nodeName).toBe('path');
-      expect(node.getAttribute('stroke')).toBe('#456');
+      expect(node.getAttribute('stroke')).toBe('rgba(255,255,0,0.1)');
     });
   });
 
   it('sets display: none if opacity is 0', () => {
     const props1 = {
-      strokeColor: '#123',
+      strokeColor: {r: 101, g: 101, b: 101, a: 1},
       radicalColor: null,
       strokeWidth: 2,
       opacity: 0,
@@ -108,7 +108,7 @@ describe('CharacterRenderer', () => {
     };
 
     const props2 = copyAndMergeDeep(props1, {
-      strokeColor: '#456',
+      strokeColor: {r: 255, g: 255, b: 0, a: 0.1},
       opacity: 0.9,
     });
 

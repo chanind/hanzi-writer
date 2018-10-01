@@ -27,12 +27,14 @@ describe('RenderState', () => {
       options: {
         drawingFadeDuration: 300,
         drawingWidth: 4,
-        drawingColor: '#333',
+        drawingColor: {r: 51, g: 51, b: 51, a: 1},
+        strokeColor: {r: 85, g: 85, b: 85, a: 1},
+        radicalColor: {r: 17, g: 34, b: 51, a: 1},
+        highlightColor: {r: 170, g: 170, b: 255, a: 1},
+        outlineColor: {r: 221, g: 221, b: 221, a: 1},
       },
       character: {
         main: {
-          strokeColor: '#555',
-          radicalColor: '#123',
           opacity: 1,
           strokes: {
             0: {
@@ -46,7 +48,6 @@ describe('RenderState', () => {
           },
         },
         outline: {
-          strokeColor: '#DDD',
           opacity: 0,
           strokes: {
             0: {
@@ -60,7 +61,6 @@ describe('RenderState', () => {
           },
         },
         highlight: {
-          strokeColor: '#AAF',
           opacity: 1,
           strokes: {
             0: {

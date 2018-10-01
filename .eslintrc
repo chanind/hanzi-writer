@@ -10,6 +10,7 @@
     "max-len":[0],
     "no-loop-func": [0],
     "no-plusplus": [0],
+    "no-continue": [0],
     "no-prototype-builtins": [0],
     "no-underscore-dangle": [0],
     "jsx-a11y/href-no-hash": [0],

@@ -493,7 +493,7 @@ describe('HanziWriter', () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      writer.updateColor('radicalColor', null, { onComplete }).then(result => {
+      writer.updateColor('radicalColor', null, { onComplete, duration: 1000 }).then(result => {
         isResolved = true;
         resolvedVal = result;
       });
@@ -503,10 +503,16 @@ describe('HanziWriter', () => {
       expect(writer._renderState.state.options.radicalColor).toEqual({r: 238, g: 238, b: 238, a: 1});
       expect(isResolved).toBe(false);
 
-      clock.tick(1000);
+      clock.tick(999);
+      await resolvePromises();
+      expect(writer._renderState.state.options.radicalColor.r).toBeCloseTo(30, 0);
+      expect(writer._renderState.state.options.radicalColor.g).toBeCloseTo(30, 0);
+      expect(writer._renderState.state.options.radicalColor.b).toBeCloseTo(30, 0);
+      expect(writer._renderState.state.options.radicalColor.a).toBeCloseTo(1, 0);
+      clock.tick(10);
       await resolvePromises();
 
-      expect(writer._renderState.state.options.radicalColor).toEqual({r: 30, g: 30, b: 30, a: 0.8});
+      expect(writer._renderState.state.options.radicalColor).toBeNull();
 
       expect(isResolved).toBe(true);
       expect(resolvedVal).toEqual({ canceled: false });

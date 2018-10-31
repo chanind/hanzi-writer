@@ -9,16 +9,16 @@ const getChar = (charStr) => {
   return new CharDataParser().generateCharacter(charStr, charJson);
 };
 
-const assertMatches = (charStr, strokeNum, points, isOutlineVisible = false) => {
+const assertMatches = (charStr, strokeNum, points, options = {}) => {
   const char = getChar(charStr);
   const userStroke = { points };
-  expect(strokeMatches(userStroke, char, strokeNum, { isOutlineVisible })).toBe(true);
+  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(true);
 };
 
-const assertNotMatches = (charStr, strokeNum, points, isOutlineVisible = false) => {
+const assertNotMatches = (charStr, strokeNum, points, options = {}) => {
   const char = getChar(charStr);
   const userStroke = { points };
-  expect(strokeMatches(userStroke, char, strokeNum, { isOutlineVisible })).toBe(false);
+  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(false);
 };
 
 describe('strokeMatches', () => {
@@ -100,10 +100,10 @@ describe('strokeMatches', () => {
 
   it('matches using real data 6', () => {
     const points = [{x: 412.3, y: 423.4}, {x: 463.5, y: 423.4}, {x: 501.1, y: 423.4}, {x: 518.1, y: 423.4}, {x: 528.4, y: 423.4}, {x: 562.5, y: 423.4}, {x: 576.2, y: 423.4}];
-    assertNotMatches('国', 2, points, true);
-    assertMatches('国', 3, points, true);
-    assertNotMatches('国', 4, points, true);
-    assertNotMatches('国', 5, points, true);
+    assertNotMatches('国', 2, points, { isOutlineVisible: true });
+    assertMatches('国', 3, points, { isOutlineVisible: true });
+    assertNotMatches('国', 4, points, { isOutlineVisible: true });
+    assertNotMatches('国', 5, points, { isOutlineVisible: true });
   });
 
   it('matches using real data 7', () => {
@@ -207,5 +207,12 @@ describe('strokeMatches', () => {
     assertNotMatches('吗', 0, points);
     assertNotMatches('吗', 1, points);
     assertNotMatches('吗', 2, points);
+  });
+
+  it('matches using real data 21', () => {
+    const points = [{x: 496.6, y: 555.4}, {x: 500.1, y: 551.9}, {x: 513.7, y: 558.8}, {x: 534.2, y: 569}, {x: 551.3, y: 575.8}, {x: 571.7, y: 586.1}, {x: 592.2, y: 589.5}, {x: 609.3, y: 592.9}, {x: 633.2, y: 603.1}, {x: 640, y: 603.1}, {x: 643.4, y: 603.1}];
+    assertNotMatches('得', 5, points);
+    assertMatches('得', 5, points, { leniency: 10 });
+    assertMatches('得', 6, points);
   });
 });

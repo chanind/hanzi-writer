@@ -212,7 +212,7 @@ describe('strokeMatches', () => {
   it('matches using real data 22', () => {
     const points = [{x: 496.6, y: 555.4}, {x: 500.1, y: 551.9}, {x: 513.7, y: 558.8}, {x: 534.2, y: 569}, {x: 551.3, y: 575.8}, {x: 571.7, y: 586.1}, {x: 592.2, y: 589.5}, {x: 609.3, y: 592.9}, {x: 633.2, y: 603.1}, {x: 640, y: 603.1}, {x: 643.4, y: 603.1}];
     assertNotMatches('得', 5, points);
-    assertMatches('得', 5, points, { leniency: 10 });
+    assertMatches('得', 5, points, { leniency: 2 });
     assertMatches('得', 6, points);
   });
 });

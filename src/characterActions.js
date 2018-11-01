@@ -47,6 +47,25 @@ const animateStroke = (charName, stroke, speed) => {
   ];
 };
 
+const animateSingleStroke = (charName, character, strokeNum, speed) => {
+  const mutationStateFunc = (state) => {
+    const curCharState = state.character[charName];
+    const mutationState = {
+      opacity: 1,
+      strokes: {},
+    };
+    for (let i = 0; i < character.strokes.length; i++) {
+      mutationState.strokes[i] = {
+        opacity: curCharState.opacity * curCharState.strokes[i].opacity,
+      };
+    }
+    return mutationState;
+  };
+  return [new Mutation(`character.${charName}`, mutationStateFunc)].concat(
+    animateStroke(charName, character.strokes[strokeNum], speed),
+  );
+};
+
 const showStroke = (charName, strokeNum, duration) => {
   return [
     new Mutation(`character.${charName}.strokes.${strokeNum}`, {
@@ -83,6 +102,7 @@ module.exports = {
   animateCharacter,
   animateCharacterLoop,
   animateStroke,
+  animateSingleStroke,
   showStroke,
   updateColor,
 };

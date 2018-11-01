@@ -109,6 +109,17 @@ HanziWriter.prototype.animateCharacter = function(options = {}) {
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };
+HanziWriter.prototype.animateStroke = function(strokeNum, options = {}) {
+  this.cancelQuiz();
+  return this._withData(() => (
+    this._renderState.run(characterActions.animateSingleStroke(
+      'main',
+      this._character,
+      strokeNum,
+      this._options.strokeAnimationSpeed,
+    )).then(res => callIfExists(options.onComplete, res))
+  ));
+};
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   this.cancelQuiz();
   return this._withData(() => (

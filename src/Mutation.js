@@ -41,15 +41,17 @@ const isAlreadyAtEnd = function(startValues, endValues) {
 // from https://github.com/maxwellito/vivus
 const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
-function Mutation(scope, values, options = {}) {
+function Mutation(scope, valuesOrCallable, options = {}) {
   this.scope = scope;
-  this._values = inflate(scope, values);
+  this._valuesOrCallable = valuesOrCallable;
   this._duration = options.duration || 0;
   this._force = options.force;
   this._tickBound = this._tick.bind(this);
 }
 
+
 Mutation.prototype.run = function(renderState) {
+  if (!this._values) this._inflateValues(renderState);
   if (this._duration === 0) renderState.updateState(this._values);
   if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
     return Promise.resolve();
@@ -76,12 +78,23 @@ Mutation.prototype._tick = function(timing) {
   }
 };
 
+Mutation.prototype._inflateValues = function(renderState) {
+  let values = this._valuesOrCallable;
+  if (typeof this._valuesOrCallable === 'function') {
+    values = this._valuesOrCallable(renderState.state);
+  }
+  this._values = inflate(this.scope, values);
+};
+
 Mutation.prototype.cancel = function(renderState) {
   if (this._resolve) this._resolve();
   this._resolve = null;
   if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
   this._frameHandle = null;
-  if (this._force) renderState.updateState(this._values);
+  if (this._force) {
+    if (!this._values) this._inflateValues(renderState);
+    renderState.updateState(this._values);
+  }
 };
 
 // ------ Mutation.Pause Class --------

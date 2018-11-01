@@ -70,7 +70,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.1/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.2/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -858,7 +858,18 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
         <code>options</code> object containing additional configuration options. Full options include:
         <ul>
           <li><code>onComplete:</code> function. Called when the animation is complete.</li>
+        </ul>
+      </p>
 
+      <h4>writer.animateStroke(strokeNum, options = {})</h4>
+      <p>Animate a single stroke</p>
+      <p>
+        <code>strokeNum</code> number. The stroke number to animate, starting at 0.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the animation is complete.</li>
         </ul>
       </p>
 

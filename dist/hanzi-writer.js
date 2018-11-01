@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.1.0
+ * Hanzi Writer v1.2.0
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -550,6 +550,23 @@ var animateStroke = function animateStroke(charName, stroke, speed) {
   }), new Mutation('character.' + charName + '.strokes.' + strokeNum + '.displayPortion', 1, { duration: duration })];
 };
 
+var animateSingleStroke = function animateSingleStroke(charName, character, strokeNum, speed) {
+  var mutationStateFunc = function mutationStateFunc(state) {
+    var curCharState = state.character[charName];
+    var mutationState = {
+      opacity: 1,
+      strokes: {}
+    };
+    for (var i = 0; i < character.strokes.length; i++) {
+      mutationState.strokes[i] = {
+        opacity: curCharState.opacity * curCharState.strokes[i].opacity
+      };
+    }
+    return mutationState;
+  };
+  return [new Mutation('character.' + charName, mutationStateFunc)].concat(animateStroke(charName, character.strokes[strokeNum], speed));
+};
+
 var showStroke = function showStroke(charName, strokeNum, duration) {
   return [new Mutation('character.' + charName + '.strokes.' + strokeNum, {
     displayPortion: 1,
@@ -584,6 +601,7 @@ module.exports = {
   animateCharacter: animateCharacter,
   animateCharacterLoop: animateCharacterLoop,
   animateStroke: animateStroke,
+  animateSingleStroke: animateSingleStroke,
   showStroke: showStroke,
   updateColor: updateColor
 };
@@ -640,11 +658,11 @@ var ease = function ease(x) {
   return -Math.cos(x * Math.PI) / 2 + 0.5;
 };
 
-function Mutation(scope, values) {
+function Mutation(scope, valuesOrCallable) {
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   this.scope = scope;
-  this._values = inflate(scope, values);
+  this._valuesOrCallable = valuesOrCallable;
   this._duration = options.duration || 0;
   this._force = options.force;
   this._tickBound = this._tick.bind(this);
@@ -653,6 +671,7 @@ function Mutation(scope, values) {
 Mutation.prototype.run = function (renderState) {
   var _this = this;
 
+  if (!this._values) this._inflateValues(renderState);
   if (this._duration === 0) renderState.updateState(this._values);
   if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
     return Promise.resolve();
@@ -679,12 +698,23 @@ Mutation.prototype._tick = function (timing) {
   }
 };
 
+Mutation.prototype._inflateValues = function (renderState) {
+  var values = this._valuesOrCallable;
+  if (typeof this._valuesOrCallable === 'function') {
+    values = this._valuesOrCallable(renderState.state);
+  }
+  this._values = inflate(this.scope, values);
+};
+
 Mutation.prototype.cancel = function (renderState) {
   if (this._resolve) this._resolve();
   this._resolve = null;
   if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
   this._frameHandle = null;
-  if (this._force) renderState.updateState(this._values);
+  if (this._force) {
+    if (!this._values) this._inflateValues(renderState);
+    renderState.updateState(this._values);
+  }
 };
 
 // ------ Mutation.Pause Class --------
@@ -844,75 +874,87 @@ HanziWriter.prototype.animateCharacter = function () {
     });
   });
 };
-HanziWriter.prototype.loopCharacterAnimation = function () {
+HanziWriter.prototype.animateStroke = function (strokeNum) {
   var _this4 = this;
+
+  var options = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+
+  this.cancelQuiz();
+  return this._withData(function () {
+    return _this4._renderState.run(characterActions.animateSingleStroke('main', _this4._character, strokeNum, _this4._options.strokeAnimationSpeed)).then(function (res) {
+      return callIfExists(options.onComplete, res);
+    });
+  });
+};
+HanziWriter.prototype.loopCharacterAnimation = function () {
+  var _this5 = this;
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   this.cancelQuiz();
   return this._withData(function () {
-    return _this4._renderState.run(characterActions.animateCharacterLoop('main', _this4._character, _this4._options.strokeFadeDuration, _this4._options.strokeAnimationSpeed, _this4._options.delayBetweenStrokes, _this4._options.delayBetweenLoops), { loop: true });
+    return _this5._renderState.run(characterActions.animateCharacterLoop('main', _this5._character, _this5._options.strokeFadeDuration, _this5._options.strokeAnimationSpeed, _this5._options.delayBetweenStrokes, _this5._options.delayBetweenLoops), { loop: true });
   });
 };
 
 HanziWriter.prototype.showOutline = function () {
-  var _this5 = this;
+  var _this6 = this;
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this5._renderState.run(characterActions.showCharacter('outline', _this5._character, typeof options.duration === 'number' ? options.duration : _this5._options.strokeFadeDuration)).then(function (res) {
+    return _this6._renderState.run(characterActions.showCharacter('outline', _this6._character, typeof options.duration === 'number' ? options.duration : _this6._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
 };
 
 HanziWriter.prototype.hideOutline = function () {
-  var _this6 = this;
+  var _this7 = this;
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   return this._withData(function () {
-    return _this6._renderState.run(characterActions.hideCharacter('outline', _this6._character, typeof options.duration === 'number' ? options.duration : _this6._options.strokeFadeDuration)).then(function (res) {
+    return _this7._renderState.run(characterActions.hideCharacter('outline', _this7._character, typeof options.duration === 'number' ? options.duration : _this7._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
 };
 
 HanziWriter.prototype.updateColor = function (colorName, colorVal) {
-  var _this7 = this;
+  var _this8 = this;
 
   var options = arguments.length > 2 && arguments[2] !== undefined ? arguments[2] : {};
 
   return this._withData(function () {
-    var duration = typeof options.duration === 'number' ? options.duration : _this7._options.strokeFadeDuration;
+    var duration = typeof options.duration === 'number' ? options.duration : _this8._options.strokeFadeDuration;
     var fixedColorVal = colorVal;
     // If we're removing radical color, tween it to the stroke color
     if (colorName === 'radicalColor' && !colorVal) {
-      fixedColorVal = _this7._options.strokeColor;
+      fixedColorVal = _this8._options.strokeColor;
     }
     var mappedColor = colorStringToVals(fixedColorVal);
-    _this7._options[colorName] = colorVal;
+    _this8._options[colorName] = colorVal;
     var mutation = characterActions.updateColor(colorName, mappedColor, duration);
     // make sure to set radicalColor back to null after the transition finishes if val == null
     if (colorName === 'radicalColor' && !colorVal) {
       mutation = mutation.concat(characterActions.updateColor(colorName, null, 0));
     }
-    return _this7._renderState.run(mutation).then(function (res) {
+    return _this8._renderState.run(mutation).then(function (res) {
       return callIfExists(options.onComplete, res);
     });
   });
 };
 
 HanziWriter.prototype.quiz = function () {
-  var _this8 = this;
+  var _this9 = this;
 
   var quizOptions = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
   this._withData(function () {
-    _this8.cancelQuiz();
-    _this8._quiz = new Quiz(_this8._character, _this8._renderState, _this8._positioner);
-    _this8._quiz.startQuiz(assign({}, _this8._options, quizOptions));
+    _this9.cancelQuiz();
+    _this9._quiz = new Quiz(_this9._character, _this9._renderState, _this9._positioner);
+    _this9._quiz.startQuiz(assign({}, _this9._options, quizOptions));
   });
 };
 
@@ -924,7 +966,7 @@ HanziWriter.prototype.cancelQuiz = function () {
 };
 
 HanziWriter.prototype.setCharacter = function (char) {
-  var _this9 = this;
+  var _this10 = this;
 
   this.cancelQuiz();
   this._char = char;
@@ -932,17 +974,17 @@ HanziWriter.prototype.setCharacter = function (char) {
   if (this._renderState) this._renderState.cancelAll();
   this._hanziWriterRenderer = null;
   this._withDataPromise = this._loadingManager.loadCharData(char).then(function (pathStrings) {
-    if (_this9._loadingManager.loadingFailed) return;
+    if (_this10._loadingManager.loadingFailed) return;
 
     var charDataParser = new CharDataParser();
-    _this9._character = charDataParser.generateCharacter(char, pathStrings);
-    _this9._positioner = new Positioner(_this9._options);
-    _this9._hanziWriterRenderer = new HanziWriterRenderer(_this9._character, _this9._positioner);
-    _this9._renderState = new RenderState(_this9._character, _this9._options, function (nextState) {
-      _this9._hanziWriterRenderer.render(nextState);
+    _this10._character = charDataParser.generateCharacter(char, pathStrings);
+    _this10._positioner = new Positioner(_this10._options);
+    _this10._hanziWriterRenderer = new HanziWriterRenderer(_this10._character, _this10._positioner);
+    _this10._renderState = new RenderState(_this10._character, _this10._options, function (nextState) {
+      _this10._hanziWriterRenderer.render(nextState);
     });
-    _this9._hanziWriterRenderer.mount(_this9._canvas, _this9._renderState.state);
-    _this9._hanziWriterRenderer.render(_this9._renderState.state);
+    _this10._hanziWriterRenderer.mount(_this10._canvas, _this10._renderState.state);
+    _this10._hanziWriterRenderer.render(_this10._renderState.state);
   });
   return this._withDataPromise;
 };
@@ -999,49 +1041,49 @@ HanziWriter.prototype._fillWidthAndHeight = function (options) {
 };
 
 HanziWriter.prototype._withData = function (func) {
-  var _this10 = this;
+  var _this11 = this;
 
   // if this._loadingManager.loadingFailed, then loading failed before this method was called
   if (this._loadingManager.loadingFailed) {
     throw Error('Failed to load character data. Call setCharacter and try again.');
   }
   return this._withDataPromise.then(function () {
-    if (!_this10._loadingManager.loadingFailed) {
+    if (!_this11._loadingManager.loadingFailed) {
       return func();
     }
   });
 };
 
 HanziWriter.prototype._setupListeners = function () {
-  var _this11 = this;
+  var _this12 = this;
 
   this._canvas.svg.addEventListener('mousedown', function (evt) {
-    if (_this11.isLoadingCharData || !_this11._quiz) return;
+    if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this11._forwardToQuiz('startUserStroke', _this11._getMousePoint(evt));
+    _this12._forwardToQuiz('startUserStroke', _this12._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchstart', function (evt) {
-    if (_this11.isLoadingCharData || !_this11._quiz) return;
+    if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this11._forwardToQuiz('startUserStroke', _this11._getTouchPoint(evt));
+    _this12._forwardToQuiz('startUserStroke', _this12._getTouchPoint(evt));
   });
   this._canvas.svg.addEventListener('mousemove', function (evt) {
-    if (_this11.isLoadingCharData || !_this11._quiz) return;
+    if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this11._forwardToQuiz('continueUserStroke', _this11._getMousePoint(evt));
+    _this12._forwardToQuiz('continueUserStroke', _this12._getMousePoint(evt));
   });
   this._canvas.svg.addEventListener('touchmove', function (evt) {
-    if (_this11.isLoadingCharData || !_this11._quiz) return;
+    if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this11._forwardToQuiz('continueUserStroke', _this11._getTouchPoint(evt));
+    _this12._forwardToQuiz('continueUserStroke', _this12._getTouchPoint(evt));
   });
 
   // TODO: fix
   global.document.addEventListener('mouseup', function () {
-    return _this11._forwardToQuiz('endUserStroke');
+    return _this12._forwardToQuiz('endUserStroke');
   });
   global.document.addEventListener('touchend', function () {
-    return _this11._forwardToQuiz('endUserStroke');
+    return _this12._forwardToQuiz('endUserStroke');
   });
 };
 
@@ -1894,7 +1936,8 @@ module.exports = Quiz;
 
 
 var _require = __webpack_require__(0),
-    average = _require.average;
+    average = _require.average,
+    assign = _require.assign;
 
 var _require2 = __webpack_require__(2),
     cosineSimilarity = _require2.cosineSimilarity,
@@ -2006,9 +2049,22 @@ var strokeMatches = function strokeMatches(userStroke, character, strokeNum) {
 
   // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
   var laterStrokes = character.strokes.slice(strokeNum + 1);
+  var closestMatchDist = strokeMatchData.avgDist;
   for (var i = 0; i < laterStrokes.length; i++) {
     var laterMatchData = getMatchData(points, laterStrokes[i], options);
-    if (laterMatchData.isMatch && laterMatchData.avgDist < strokeMatchData.avgDist) return false;
+    if (laterMatchData.isMatch && laterMatchData.avgDist < closestMatchDist) {
+      closestMatchDist = laterMatchData.avgDist;
+    }
+  }
+  // if there's a better match, rather that returning false automatically, try reducing leniency instead
+  // if leniency is already really high we can allow some similar strokes to pass
+  if (closestMatchDist < strokeMatchData.avgDist) {
+    // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
+    var leniencyAdjustment = 0.6 * (closestMatchDist + strokeMatchData.avgDist) / (2 * strokeMatchData.avgDist);
+    var newLeniency = (options.leniency || 1) * leniencyAdjustment;
+    var adjustedOptions = assign({}, options, { leniency: newLeniency });
+    var adjustedStrokeMatchData = getMatchData(points, character.strokes[strokeNum], adjustedOptions);
+    return adjustedStrokeMatchData.isMatch;
   }
   return true;
 };

@@ -122,8 +122,8 @@ const strokeMatches = (userStroke, character, strokeNum, options = {}) => {
   // if there's a better match, rather that returning false automatically, try reducing leniency instead
   // if leniency is already really high we can allow some similar strokes to pass
   if (closestMatchDist < strokeMatchData.avgDist) {
-    // adjust leniency between 0.25 and 0.5 depending on how much of a better match the new match is
-    const leniencyAdjustment = 0.5 * (closestMatchDist + strokeMatchData.avgDist) / (2 * strokeMatchData.avgDist);
+    // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
+    const leniencyAdjustment = 0.6 * (closestMatchDist + strokeMatchData.avgDist) / (2 * strokeMatchData.avgDist);
     const newLeniency = (options.leniency || 1) * leniencyAdjustment;
     const adjustedOptions = assign({}, options, { leniency: newLeniency });
     const adjustedStrokeMatchData = getMatchData(points, character.strokes[strokeNum], adjustedOptions);

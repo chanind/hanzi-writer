@@ -93,12 +93,41 @@ const subdivideCurve = (curve, maxLen = 0.05) => {
   return newCurve;
 };
 
+// redraw the curve using numPoints equally spaced out along the length of the curve
+const outlineCurve = (curve, numPoints = 30) => {
+  const curveLen = length(curve);
+  const segmentLen = curveLen / (numPoints - 1);
+  const outlinePoints = [curve[0]];
+  const endPoint = arrLast(curve);
+  const remainingCurvePoints = curve.slice(1);
+  for (let i = 0; i < numPoints - 2; i++) {
+    let lastPoint = arrLast(outlinePoints);
+    let remainingDist = segmentLen;
+    let outlinePointFound = false;
+    while (!outlinePointFound) {
+      const nextPointDist = distance(lastPoint, remainingCurvePoints[0]);
+      if (nextPointDist < remainingDist) {
+        remainingDist -= nextPointDist;
+        lastPoint = remainingCurvePoints.shift();
+      } else {
+        const nextPoint = extendPointOnLine(lastPoint, remainingCurvePoints[0], remainingDist - nextPointDist);
+        outlinePoints.push(nextPoint);
+        outlinePointFound = true;
+      }
+    }
+
+  }
+  outlinePoints.push(endPoint);
+  return outlinePoints;
+};
+
 // translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
 const normalizeCurve = (curve) => {
-  const meanX = average([curve[0].x, arrLast(curve).x]);
-  const meanY = average([curve[0].y, arrLast(curve).y]);
+  const outlinedCurve = outlineCurve(curve);
+  const meanX = average(outlinedCurve.map(point => point.x));
+  const meanY = average(outlinedCurve.map(point => point.y));
   const mean = { x: meanX, y: meanY };
-  const translatedCurve = curve.map(point => subtract(point, mean));
+  const translatedCurve = outlinedCurve.map(point => subtract(point, mean));
   const scale = Math.sqrt(average([
     Math.pow(translatedCurve[0].x, 2) + Math.pow(translatedCurve[0].y, 2),
     Math.pow(arrLast(translatedCurve).x, 2) + Math.pow(arrLast(translatedCurve).y, 2),
@@ -142,6 +171,7 @@ module.exports = {
   rotate,
   subtract,
   cosineSimilarity,
+  outlineCurve,
   extendPointOnLine,
   filterParallelPoints,
   subdivideCurve,

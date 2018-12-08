@@ -2,14 +2,22 @@ var writer;
 var isCharVisible;
 var isOutlineVisible;
 
+function printStrokePoints(data) {
+	var pointStrs = data.drawnPath.points.map(point => `{x: ${point.x}, y: ${point.y}}`);
+	console.log(`[${pointStrs.join(', ')}]`);
+}
+
 function updateCharacter() {
 	document.querySelector('#target').innerHTML = '';
 
-	var character = document.querySelector('.js-char').value
-	writer = new HanziWriter('target', character, {
+	var character = document.querySelector('.js-char').value;
+	window.location.hash = character;
+	writer = HanziWriter.create('target', character, {
 		width: 400,
 		height: 400,
 		radicalColor: '#166E16',
+		onCorrectStroke: printStrokePoints,
+		onMistake: printStrokePoints,
 	});
 	isCharVisible = true;
 	isOutlineVisible = true;
@@ -17,6 +25,11 @@ function updateCharacter() {
 }
 
 window.onload = function() {
+	var char = decodeURIComponent(window.location.hash.slice(1));
+	if (char) {
+		document.querySelector('.js-char').value = char;
+	}
+
 	updateCharacter();
 
 	document.querySelector('.js-char-form').addEventListener('submit', function(evt) {

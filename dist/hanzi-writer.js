@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.2.0
+ * Hanzi Writer v1.2.1
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -420,12 +420,46 @@ var subdivideCurve = function subdivideCurve(curve) {
   return newCurve;
 };
 
+// redraw the curve using numPoints equally spaced out along the length of the curve
+var outlineCurve = function outlineCurve(curve) {
+  var numPoints = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : 30;
+
+  var curveLen = length(curve);
+  var segmentLen = curveLen / (numPoints - 1);
+  var outlinePoints = [curve[0]];
+  var endPoint = arrLast(curve);
+  var remainingCurvePoints = curve.slice(1);
+  for (var i = 0; i < numPoints - 2; i++) {
+    var lastPoint = arrLast(outlinePoints);
+    var remainingDist = segmentLen;
+    var outlinePointFound = false;
+    while (!outlinePointFound) {
+      var nextPointDist = distance(lastPoint, remainingCurvePoints[0]);
+      if (nextPointDist < remainingDist) {
+        remainingDist -= nextPointDist;
+        lastPoint = remainingCurvePoints.shift();
+      } else {
+        var nextPoint = extendPointOnLine(lastPoint, remainingCurvePoints[0], remainingDist - nextPointDist);
+        outlinePoints.push(nextPoint);
+        outlinePointFound = true;
+      }
+    }
+  }
+  outlinePoints.push(endPoint);
+  return outlinePoints;
+};
+
 // translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
 var normalizeCurve = function normalizeCurve(curve) {
-  var meanX = average([curve[0].x, arrLast(curve).x]);
-  var meanY = average([curve[0].y, arrLast(curve).y]);
+  var outlinedCurve = outlineCurve(curve);
+  var meanX = average(outlinedCurve.map(function (point) {
+    return point.x;
+  }));
+  var meanY = average(outlinedCurve.map(function (point) {
+    return point.y;
+  }));
   var mean = { x: meanX, y: meanY };
-  var translatedCurve = curve.map(function (point) {
+  var translatedCurve = outlinedCurve.map(function (point) {
     return subtract(point, mean);
   });
   var scale = Math.sqrt(average([Math.pow(translatedCurve[0].x, 2) + Math.pow(translatedCurve[0].y, 2), Math.pow(arrLast(translatedCurve).x, 2) + Math.pow(arrLast(translatedCurve).y, 2)]));
@@ -472,6 +506,7 @@ module.exports = {
   rotate: rotate,
   subtract: subtract,
   cosineSimilarity: cosineSimilarity,
+  outlineCurve: outlineCurve,
   extendPointOnLine: extendPointOnLine,
   filterParallelPoints: filterParallelPoints,
   subdivideCurve: subdivideCurve,
@@ -1952,7 +1987,7 @@ var _require2 = __webpack_require__(2),
 var AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
-var FRECHET_THRESHOLD = 0.75; // bigger = more lenient
+var FRECHET_THRESHOLD = 0.40; // bigger = more lenient
 var MIN_LEN_THRESHOLD = 0.35; // smalled = more lenient
 
 var startAndEndMatches = function startAndEndMatches(points, closestStroke, leniency) {

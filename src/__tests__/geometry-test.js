@@ -83,6 +83,21 @@ describe('geometry', () => {
     });
   });
 
+  describe('outlineCurve', () => {
+    it('divides a curve into equally spaced segments', () => {
+      const curve1 = [{x: 0, y: 0}, {x: 4, y: 6}];
+      expect(geometry.outlineCurve(curve1, 3)).toEqual([{x: 0, y: 0}, {x: 2, y: 3}, {x: 4, y: 6}]);
+
+      const curve2 = [{x: 0, y: 0}, {x: 9, y: 12}, {x: 0, y: 24}];
+      expect(geometry.outlineCurve(curve2, 4)).toEqual([
+        {x: 0, y: 0},
+        {x: 6, y: 8},
+        {x: 6, y: 16},
+        {x: 0, y: 24},
+      ]);
+    });
+  });
+
   describe('filterParallelPoints', () => {
     it('removes internal points that are on the line connecting the points on either side', () => {
       const points = [

@@ -1,4 +1,5 @@
-const HanziWriterRenderer = require('./renderers/HanziWriterRenderer');
+const HanziWriterRenderer = require('./renderers/svg/HanziWriterRenderer');
+const RenderTarget = require('./renderers/svg/RenderTarget');
 const RenderState = require('./RenderState');
 const CharDataParser = require('./CharDataParser');
 const Positioner = require('./Positioner');
@@ -16,6 +17,7 @@ const defaultOptions = {
   onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
+  renderer: 'svg',
 
   // positioning options
 
@@ -204,7 +206,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       this._hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this._canvas, this._renderState.state);
+    this._hanziWriterRenderer.mount(this._target, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;
@@ -213,10 +215,7 @@ HanziWriter.prototype.setCharacter = function(char) {
 // ------------- //
 
 HanziWriter.prototype._init = function(element, options) {
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
-  if (this._canvas.svg.createSVGPoint) {
-    this._pt = this._canvas.svg.createSVGPoint();
-  }
+  this._target = RenderTarget.init(element, options.width, options.height);
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
@@ -250,7 +249,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._canvas.svg.getBoundingClientRect();
+    const { width, height } = this._target.node.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -271,22 +270,22 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._canvas.svg.addEventListener('mousedown', (evt) => {
+  this._target.node.addEventListener('mousedown', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchstart', (evt) => {
+  this._target.node.addEventListener('touchstart', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
   });
-  this._canvas.svg.addEventListener('mousemove', (evt) => {
+  this._target.node.addEventListener('mousemove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchmove', (evt) => {
+  this._target.node.addEventListener('touchmove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
@@ -303,31 +302,11 @@ HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
 };
 
 HanziWriter.prototype._getMousePoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.clientX;
-    this._pt.y = evt.clientY;
-    const localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._canvas.svg.getBoundingClientRect();
-  const x = evt.clientX - box.left;
-  const y = evt.clientY - box.top;
-  return {x, y};
+  return this._target.getLocalPoint({ x: evt.clientX, y: evt.clientY });
 };
 
 HanziWriter.prototype._getTouchPoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.touches[0].clientX;
-    this._pt.y = evt.touches[0].clientY;
-    const localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._canvas.svg.getBoundingClientRect();
-  const x = evt.touches[0].clientX - box.left;
-  const y = evt.touches[0].clientY - box.top;
-  return {x, y};
+  return this._target.getLocalPoint({ x: evt.touches[0].clientX, y: evt.touches[0].clientY });
 };
 
 // --- Static Public API --- //

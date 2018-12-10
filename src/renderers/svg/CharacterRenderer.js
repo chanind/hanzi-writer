@@ -7,22 +7,22 @@ function CharacterRenderer(character) {
   this.strokeRenderers = this.character.strokes.map((stroke) => new StrokeRenderer(stroke));
 }
 
-CharacterRenderer.prototype.mount = function(canvas) {
-  const subCanvas = canvas.createSubCanvas();
-  this._group = subCanvas.svg;
+CharacterRenderer.prototype.mount = function(group) {
+  const subGroup = group.createSubGroup();
+  this._node = subGroup.node;
   this.strokeRenderers.forEach((strokeRenderer, i) => {
-    strokeRenderer.mount(subCanvas);
+    strokeRenderer.mount(subGroup);
   });
 };
 
 CharacterRenderer.prototype.render = function(props) {
   if (props === this._oldProps) return;
   if (props.opacity !== this._oldProps.opacity) {
-    this._group.style.opacity = props.opacity;
+    this._node.style.opacity = props.opacity;
     if (props.opacity === 0) {
-      this._group.style.display = 'none';
+      this._node.style.display = 'none';
     } else if (this._oldProps.opacity === 0) {
-      this._group.style.display = 'initial';
+      this._node.style.display = 'initial';
     }
   }
   const colorsChanged = (

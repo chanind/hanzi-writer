@@ -1,13 +1,13 @@
-const svg = require('../svg');
+const svg = require('../../svg');
 
 
 function UserStrokeRenderer() {
   this._oldProps = {};
 }
 
-UserStrokeRenderer.prototype.mount = function(canvas) {
+UserStrokeRenderer.prototype.mount = function(group) {
   this._path = svg.createElm('path');
-  canvas.svg.appendChild(this._path);
+  group.node.appendChild(this._path);
 };
 
 UserStrokeRenderer.prototype.render = function(props) {

@@ -1,7 +1,7 @@
 const CharacterRenderer = require('./CharacterRenderer');
 const UserStrokeRenderer = require('./UserStrokeRenderer');
-const {assign} = require('../utils');
-const svg = require('../svg');
+const {assign} = require('../../utils');
+const svg = require('../../svg');
 
 function HanziWriterRenderer(character, positioner) {
   this._character = character;
@@ -12,17 +12,16 @@ function HanziWriterRenderer(character, positioner) {
   this._userStrokeRenderers = {};
 }
 
-HanziWriterRenderer.prototype.mount = function(canvas) {
-  const positionedCanvas = canvas.createSubCanvas();
-  const group = positionedCanvas.svg;
-  svg.attr(group, 'transform', `
+HanziWriterRenderer.prototype.mount = function(renderTarget) {
+  const positionedGroup = renderTarget.group.createSubGroup();
+  svg.attr(positionedGroup.node, 'transform', `
     translate(${this._positioner.getXOffset()}, ${this._positioner.getHeight() - this._positioner.getYOffset()})
     scale(${this._positioner.getScale()}, ${-1 * this._positioner.getScale()})
   `);
-  this._outlineCharRenderer.mount(positionedCanvas);
-  this._mainCharRenderer.mount(positionedCanvas);
-  this._highlightCharRenderer.mount(positionedCanvas);
-  this._positionedCanvas = positionedCanvas;
+  this._outlineCharRenderer.mount(positionedGroup);
+  this._mainCharRenderer.mount(positionedGroup);
+  this._highlightCharRenderer.mount(positionedGroup);
+  this._positionedGroup = positionedGroup;
 };
 
 HanziWriterRenderer.prototype.render = function(props) {
@@ -60,7 +59,7 @@ HanziWriterRenderer.prototype.render = function(props) {
     let strokeRenderer = this._userStrokeRenderers[userStrokeId];
     if (!strokeRenderer) {
       strokeRenderer = new UserStrokeRenderer();
-      strokeRenderer.mount(this._positionedCanvas, userStrokeProps);
+      strokeRenderer.mount(this._positionedGroup, userStrokeProps);
       this._userStrokeRenderers[userStrokeId] = strokeRenderer;
     }
     strokeRenderer.render(userStrokeProps);
@@ -68,8 +67,8 @@ HanziWriterRenderer.prototype.render = function(props) {
 };
 
 HanziWriterRenderer.prototype.destroy = function() {
-  svg.removeElm(this._positionedCanvas.svg);
-  this._positionedCanvas.defs.innerHTML = '';
+  svg.removeElm(this._positionedGroup.node);
+  this._positionedGroup.defs.innerHTML = '';
 };
 
 module.exports = HanziWriterRenderer;

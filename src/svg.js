@@ -31,34 +31,15 @@ function removeElm(elm) {
 
 // -------- CANVAS CLASS --------
 
-function Canvas(svg, defs) {
-  this.svg = svg;
+function Group(node, defs) {
+  this.node = node;
   this.defs = defs;
 }
 
-Canvas.prototype.createSubCanvas = function() {
+Group.prototype.createSubGroup = function() {
   const group = createElm('g');
-  this.svg.appendChild(group);
-  return new Canvas(group, this.defs);
+  this.node.appendChild(group);
+  return new Group(group, this.defs);
 };
 
-Canvas.init = (elmOrId, width = '100%', height = '100%') => {
-  let svg;
-  let elm = elmOrId;
-  if (typeof elmOrId === 'string') {
-    elm = global.document.getElementById(elmOrId);
-  }
-  const nodeType = elm.nodeName.toUpperCase();
-  if (nodeType === 'SVG' || nodeType === 'G') {
-    svg = elm;
-  } else {
-    svg = createElm('svg');
-    elm.appendChild(svg);
-  }
-  attrs(svg, {width, height});
-  const defs = createElm('defs');
-  svg.appendChild(defs);
-  return new Canvas(svg, defs);
-};
-
-module.exports = { createElm, attrs, attr, Canvas, getPathString, removeElm };
+module.exports = { createElm, attrs, attr, Group, getPathString, removeElm };

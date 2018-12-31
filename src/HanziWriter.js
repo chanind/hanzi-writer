@@ -80,6 +80,7 @@ function HanziWriter(...args) {
 // ------ public API ------ //
 
 HanziWriter.prototype.showCharacter = function(options = {}) {
+  this._options.showCharacter = true;
   return this._withData(() => (
     this._renderState.run(characterActions.showCharacter(
       'main',
@@ -89,6 +90,7 @@ HanziWriter.prototype.showCharacter = function(options = {}) {
   ));
 };
 HanziWriter.prototype.hideCharacter = function(options = {}) {
+  this._options.showCharacter = false;
   return this._withData(() => (
     this._renderState.run(characterActions.hideCharacter(
       'main',
@@ -135,6 +137,7 @@ HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
 };
 
 HanziWriter.prototype.showOutline = function(options = {}) {
+  this._options.showOutline = true;
   return this._withData(() => (
     this._renderState.run(characterActions.showCharacter(
       'outline',
@@ -145,6 +148,7 @@ HanziWriter.prototype.showOutline = function(options = {}) {
 };
 
 HanziWriter.prototype.hideOutline = function(options = {}) {
+  this._options.showOutline = false;
   return this._withData(() => (
     this._renderState.run(characterActions.hideCharacter(
       'outline',
@@ -200,9 +204,10 @@ HanziWriter.prototype.setCharacter = function(char) {
     const charDataParser = new CharDataParser();
     this._character = charDataParser.generateCharacter(char, pathStrings);
     this._positioner = new Positioner(this._options);
-    this._hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
+    const hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
+    this._hanziWriterRenderer = hanziWriterRenderer;
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
-      this._hanziWriterRenderer.render(nextState);
+      hanziWriterRenderer.render(nextState);
     });
     this._hanziWriterRenderer.mount(this._canvas, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);

@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.2.1
+ * Hanzi Writer v1.3.0
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -881,6 +881,7 @@ HanziWriter.prototype.showCharacter = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
+  this._options.showCharacter = true;
   return this._withData(function () {
     return _this._renderState.run(characterActions.showCharacter('main', _this._character, typeof options.duration === 'number' ? options.duration : _this._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
@@ -892,6 +893,7 @@ HanziWriter.prototype.hideCharacter = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
+  this._options.showCharacter = false;
   return this._withData(function () {
     return _this2._renderState.run(characterActions.hideCharacter('main', _this2._character, typeof options.duration === 'number' ? options.duration : _this2._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
@@ -938,6 +940,7 @@ HanziWriter.prototype.showOutline = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
+  this._options.showOutline = true;
   return this._withData(function () {
     return _this6._renderState.run(characterActions.showCharacter('outline', _this6._character, typeof options.duration === 'number' ? options.duration : _this6._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
@@ -950,6 +953,7 @@ HanziWriter.prototype.hideOutline = function () {
 
   var options = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : {};
 
+  this._options.showOutline = false;
   return this._withData(function () {
     return _this7._renderState.run(characterActions.hideCharacter('outline', _this7._character, typeof options.duration === 'number' ? options.duration : _this7._options.strokeFadeDuration)).then(function (res) {
       return callIfExists(options.onComplete, res);
@@ -1015,9 +1019,10 @@ HanziWriter.prototype.setCharacter = function (char) {
     var charDataParser = new CharDataParser();
     _this10._character = charDataParser.generateCharacter(char, pathStrings);
     _this10._positioner = new Positioner(_this10._options);
-    _this10._hanziWriterRenderer = new HanziWriterRenderer(_this10._character, _this10._positioner);
+    var hanziWriterRenderer = new HanziWriterRenderer(_this10._character, _this10._positioner);
+    _this10._hanziWriterRenderer = hanziWriterRenderer;
     _this10._renderState = new RenderState(_this10._character, _this10._options, function (nextState) {
-      _this10._hanziWriterRenderer.render(nextState);
+      hanziWriterRenderer.render(nextState);
     });
     _this10._hanziWriterRenderer.mount(_this10._canvas, _this10._renderState.state);
     _this10._hanziWriterRenderer.render(_this10._renderState.state);

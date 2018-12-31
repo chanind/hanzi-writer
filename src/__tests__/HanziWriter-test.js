@@ -149,6 +149,59 @@ describe('HanziWriter', () => {
       expect(document.querySelector('#target svg g').childNodes.length).toBe(3);
       expect(document.querySelector('#target svg defs *')).not.toBe(null);
     });
+
+    it('maintains the visibility of the character from the last character rendered', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        charDataLoader: (char) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      });
+      await writer._withDataPromise;
+
+      writer.hideOutline();
+      writer.setCharacter('一');
+      await writer._withDataPromise;
+      expect(writer._renderState.state.character.main.opacity).toBe(1);
+      expect(writer._renderState.state.character.outline.opacity).toBe(0);
+    });
+
+    it('maintains the visibility of the outline from the last character rendered', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        charDataLoader: (char) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      });
+      await writer._withDataPromise;
+
+      writer.hideCharacter();
+      writer.setCharacter('一');
+      await writer._withDataPromise;
+      expect(writer._renderState.state.character.main.opacity).toBe(0);
+      expect(writer._renderState.state.character.outline.opacity).toBe(1);
+    });
+
+    it('maintains colors from the last character rendered', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', {
+        charDataLoader: (char) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      });
+      await writer._withDataPromise;
+
+      writer.updateColor('strokeColor', 'rgba(30, 30, 30, 0.8)');
+      writer.updateColor('outlineColor', 'rgba(10, 20, 30, 0.1)');
+      writer.setCharacter('一');
+      await writer._withDataPromise;
+      expect(writer._renderState.state.options.strokeColor).toEqual({
+        r: 30,
+        g: 30,
+        b: 30,
+        a: 0.8,
+      });
+      expect(writer._renderState.state.options.outlineColor).toEqual({
+        r: 10,
+        g: 20,
+        b: 30,
+        a: 0.1,
+      });
+    });
   });
 
   describe('animateCharacter', () => {

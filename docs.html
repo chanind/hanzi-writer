@@ -56,6 +56,9 @@ js: docs.js
               <li>
                 <a href="#raw-character-svg">Raw character SVG</a>
               </li>
+              <li>
+                <a href="#custom-backgrounds">Custom backgrounds</a>
+              </li>
             </ul>
           </li>
           <li>
@@ -757,6 +760,58 @@ HanziWriter.loadCharacterData('是').then(function(charData) {
       <p>
         The examples above use raw javascript browser APIs for SVG rendering, but the code would be even simpler using a library to help manage SVG, like <a target="_blank" href="http://svgjs.com/">svg.js</a> or <a target="_blank" href="http://dmitrybaranovskiy.github.io/raphael/">raphael.js</a>.
       </p>
+
+      <h1 id="custom-backgrounds">Custom backgrounds</h1>
+
+      <p>
+        If you already have an <code>&lt;SVG&gt;</code> or <code>&lt;G&gt;</code> element on the page, you can render a HanziWriter instance into that instead of using a DIV.
+        This makes it easy to add custom backgrounds like a grid directly in SVG. For example, we can draw a simple grid in SVG like below:
+      </p>
+
+      {% highlight html %}
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="grid-background-target">
+  <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+  <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+  <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+  <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+</svg>
+      {% endhighlight %}
+      <div class="inline-demo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+          <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+          <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+        </svg>
+      </div>
+
+      <p>Then, we can render into this SVG by using its ID, just like we can with a normal div:</p>
+
+      {% highlight javascript %}
+var writer = HanziWriter.create('grid-background-target', '酷', {
+  width: 100,
+  height: 100,
+  padding: 5,
+});
+      {% endhighlight %}
+      <div class="inline-demo">
+        <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="docs-target-12">
+          <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+          <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+          <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+          <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+        </svg>
+      </div>
+
+      <script>
+        (function() {
+          var writer = HanziWriter.create('docs-target-12', '酷', {
+            width: 100,
+            height: 100,
+            padding: 5,
+          });
+        })()
+      </script>
 
       <h1 id="api-link">API</h1>
 

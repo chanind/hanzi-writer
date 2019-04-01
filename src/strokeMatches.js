@@ -72,8 +72,8 @@ const SHAPE_FIT_ROTATIONS = [
 ];
 
 const shapeFit = (curve1, curve2, leniency) => {
-  const normCurve1 = normalizeCurve(curve1, 2);
-  const normCurve2 = normalizeCurve(curve2, 2);
+  const normCurve1 = normalizeCurve(curve1);
+  const normCurve2 = normalizeCurve(curve2);
   let minDist = Infinity;
   SHAPE_FIT_ROTATIONS.forEach(theta => {
     const dist = frechetDist(normCurve1, rotate(normCurve2, theta));

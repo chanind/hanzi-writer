@@ -36,7 +36,7 @@ describe('StrokeRenderer', () => {
     expect(canvas.svg.childNodes.length).toBe(2); // defs and path
     expect(canvas.svg.childNodes[1].nodeName).toBe('path');
     expect(canvas.svg.childNodes[1].getAttribute('stroke')).toBe('rgba(12,101,20,0.3)');
-    expect(canvas.svg.childNodes[1].getAttribute('clip-path')).toBe(`url(#${maskId})`);
+    expect(canvas.svg.childNodes[1].getAttribute('clip-path')).toBe(`url(https://test.com/url#${maskId})`);
 
     expect(maskPath).toMatchSnapshot();
   });

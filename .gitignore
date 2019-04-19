@@ -4,5 +4,6 @@ node_modules
 coverage
 .DS_Store
 .sass-cache
+.vscode
 cdn
 _site

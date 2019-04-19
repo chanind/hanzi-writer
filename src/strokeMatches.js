@@ -14,7 +14,7 @@ const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.40; // bigger = more lenient
-const MIN_LEN_THRESHOLD = 0.35; // smalled = more lenient
+const MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
 
 const startAndEndMatches = function(points, closestStroke, leniency) {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);

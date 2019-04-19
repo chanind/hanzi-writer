@@ -13,6 +13,15 @@ function attrs(elm, attrsMap) {
   Object.keys(attrsMap).forEach(attrName => attr(elm, attrName, attrsMap[attrName]));
 }
 
+// inspired by https://talk.observablehq.com/t/hanzi-writer-renders-incorrectly-inside-an-observable-notebook-on-a-mobile-browser/1898
+function urlIdRef(id) {
+  let prefix = '';
+  if (global.location && global.location.href) {
+    prefix = global.location.href.replace(/#[^#]*$/, '');
+  }
+  return `url(${prefix}#${id})`;
+}
+
 function getPathString(points, close = false) {
   const start = round(points[0]);
   const remainingPoints = points.slice(1);
@@ -61,4 +70,4 @@ Canvas.init = (elmOrId, width = '100%', height = '100%') => {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm, attrs, attr, Canvas, getPathString, removeElm };
+module.exports = { createElm, attrs, attr, Canvas, getPathString, removeElm, urlIdRef };

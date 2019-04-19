@@ -34,7 +34,7 @@ StrokeRenderer.prototype.mount = function(canvas) {
 
   svg.attr(this._strokePath, 'd', this._stroke.path);
   this._animationPath.style.opacity = 0;
-  svg.attr(this._animationPath, 'clip-path', `url(#${maskId})`);
+  svg.attr(this._animationPath, 'clip-path', svg.urlIdRef(maskId));
 
   const extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
   svg.attr(this._animationPath, 'd', svg.getPathString(extendedMaskPoints));

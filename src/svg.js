@@ -17,7 +17,7 @@ function attrs(elm, attrsMap) {
 function urlIdRef(id) {
   let prefix = '';
   if (global.location && global.location.href) {
-    prefix = global.location.href;
+    prefix = global.location.href.replace(/#[^#]*$/, '');
   }
   return `url(${prefix}#${id})`;
 }

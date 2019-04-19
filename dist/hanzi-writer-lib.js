@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.3.0
+ * Hanzi Writer v1.3.1
  * https://chanind.github.io/hanzi-writer
  */
 module.exports =
@@ -259,6 +259,15 @@ function attrs(elm, attrsMap) {
   });
 }
 
+// inspired by https://talk.observablehq.com/t/hanzi-writer-renders-incorrectly-inside-an-observable-notebook-on-a-mobile-browser/1898
+function urlIdRef(id) {
+  var prefix = '';
+  if (global.location && global.location.href) {
+    prefix = global.location.href.replace(/#[^#]*$/, '');
+  }
+  return 'url(' + prefix + '#' + id + ')';
+}
+
 function getPathString(points) {
   var close = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : false;
 
@@ -312,7 +321,7 @@ Canvas.init = function (elmOrId) {
   return new Canvas(svg, defs);
 };
 
-module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, getPathString: getPathString, removeElm: removeElm };
+module.exports = { createElm: createElm, attrs: attrs, attr: attr, Canvas: Canvas, getPathString: getPathString, removeElm: removeElm, urlIdRef: urlIdRef };
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(3)))
 
 /***/ }),
@@ -1409,7 +1418,7 @@ StrokeRenderer.prototype.mount = function (canvas) {
 
   svg.attr(this._strokePath, 'd', this._stroke.path);
   this._animationPath.style.opacity = 0;
-  svg.attr(this._animationPath, 'clip-path', 'url(#' + maskId + ')');
+  svg.attr(this._animationPath, 'clip-path', svg.urlIdRef(maskId));
 
   var extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
   svg.attr(this._animationPath, 'd', svg.getPathString(extendedMaskPoints));
@@ -1994,7 +2003,7 @@ var AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 var COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 var START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 var FRECHET_THRESHOLD = 0.40; // bigger = more lenient
-var MIN_LEN_THRESHOLD = 0.35; // smalled = more lenient
+var MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
 
 var startAndEndMatches = function startAndEndMatches(points, closestStroke, leniency) {
   var startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -2044,8 +2053,8 @@ var stripDuplicates = function stripDuplicates(points) {
 var SHAPE_FIT_ROTATIONS = [Math.PI / 16, Math.PI / 32, 0, -1 * Math.PI / 32, -1 * Math.PI / 16];
 
 var shapeFit = function shapeFit(curve1, curve2, leniency) {
-  var normCurve1 = normalizeCurve(curve1, 2);
-  var normCurve2 = normalizeCurve(curve2, 2);
+  var normCurve1 = normalizeCurve(curve1);
+  var normCurve2 = normalizeCurve(curve2);
   var minDist = Infinity;
   SHAPE_FIT_ROTATIONS.forEach(function (theta) {
     var dist = frechetDist(normCurve1, rotate(normCurve2, theta));

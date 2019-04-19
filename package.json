@@ -44,7 +44,7 @@
     "transform": {
       ".*": "<rootDir>/../babel-jest-processor.js"
     },
-    "testURL": "https://test.com/url",
+    "testURL": "https://test.com/url#tag",
     "rootDir": "src",
     "coverageDirectory": "../coverage/",
     "collectCoverage": true

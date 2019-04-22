@@ -1,12 +1,12 @@
 const strokeMatches = require('../strokeMatches');
 const Stroke = require('../models/Stroke');
 const UserStroke = require('../models/UserStroke');
-const CharDataParser = require('../CharDataParser');
+const parseCharData = require('../parseCharData');
 
 
 const getChar = (charStr) => {
   const charJson = require(`hanzi-writer-data/${charStr}.json`);
-  return new CharDataParser().generateCharacter(charStr, charJson);
+  return parseCharData(charStr, charJson);
 };
 
 const assertMatches = (charStr, strokeNum, points, options = {}) => {

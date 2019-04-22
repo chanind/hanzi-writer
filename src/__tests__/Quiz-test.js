@@ -3,7 +3,7 @@ jest.mock('../Positioner');
 
 const ren = require('hanzi-writer-data/人.json');
 const Quiz = require('../Quiz');
-const CharDataParser = require('../CharDataParser');
+const parseCharData = require('../parseCharData');
 const RenderState = require('../RenderState');
 const Positioner = require('../Positioner');
 const { resolvePromises } = require('../testUtils');
@@ -21,7 +21,7 @@ beforeEach(() => {
 });
 
 
-const char = new CharDataParser().generateCharacter('人', ren);
+const char = parseCharData('人', ren);
 const opts = {
   onLoadCharDataError: null,
   onLoadCharDataSuccess: null,

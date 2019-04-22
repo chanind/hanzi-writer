@@ -2,10 +2,10 @@ const ren = require('hanzi-writer-data/人.json');
 const CharacterRenderer = require('../CharacterRenderer');
 const svg = require('../../svg');
 const { copyAndMergeDeep } = require('../../utils');
-const CharDataParser = require('../../CharDataParser');
+const parseCharData = require('../../parseCharData');
 
 
-const char = new CharDataParser().generateCharacter('人', ren);
+const char = parseCharData('人', ren);
 
 describe('CharacterRenderer', () => {
 

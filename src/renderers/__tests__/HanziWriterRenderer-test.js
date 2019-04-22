@@ -3,10 +3,10 @@ const HanziWriterRenderer = require('../HanziWriterRenderer');
 const svg = require('../../svg');
 const { copyAndMergeDeep } = require('../../utils');
 const Positioner = require('../../Positioner');
-const CharDataParser = require('../../CharDataParser');
+const parseCharData = require('../../parseCharData');
 
 
-const char = new CharDataParser().generateCharacter('人', ren);
+const char = parseCharData('人', ren);
 const positioner = new Positioner({
   width: 100,
   height: 100,

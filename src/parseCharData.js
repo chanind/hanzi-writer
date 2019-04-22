@@ -1,14 +1,7 @@
 const Stroke = require('./models/Stroke');
 const Character = require('./models/Character');
 
-function CharDataParser() {}
-
-CharDataParser.prototype.generateCharacter = function(symbol, charJson) {
-  const strokes = this.generateStrokes(charJson);
-  return new Character(symbol, strokes);
-};
-
-CharDataParser.prototype.generateStrokes = function(charJson) {
+const generateStrokes = function(charJson) {
   const isInRadical = strokeNum => charJson.radStrokes && charJson.radStrokes.indexOf(strokeNum) >= 0;
 
   return charJson.strokes.map((path, index) => {
@@ -20,4 +13,9 @@ CharDataParser.prototype.generateStrokes = function(charJson) {
   });
 };
 
-module.exports = CharDataParser;
+const parseCharData = function(symbol, charJson) {
+  const strokes = generateStrokes(charJson);
+  return new Character(symbol, strokes);
+};
+
+module.exports = parseCharData;

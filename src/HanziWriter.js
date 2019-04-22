@@ -1,6 +1,6 @@
 const HanziWriterRenderer = require('./renderers/HanziWriterRenderer');
 const RenderState = require('./RenderState');
-const CharDataParser = require('./CharDataParser');
+const parseCharData = require('./parseCharData');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
 const svg = require('./svg');
@@ -201,8 +201,7 @@ HanziWriter.prototype.setCharacter = function(char) {
   this._withDataPromise = this._loadingManager.loadCharData(char).then(pathStrings => {
     if (this._loadingManager.loadingFailed) return;
 
-    const charDataParser = new CharDataParser();
-    this._character = charDataParser.generateCharacter(char, pathStrings);
+    this._character = parseCharData(char, pathStrings);
     this._positioner = new Positioner(this._options);
     const hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
     this._hanziWriterRenderer = hanziWriterRenderer;

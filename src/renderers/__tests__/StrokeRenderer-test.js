@@ -1,10 +1,10 @@
 const yi = require('hanzi-writer-data/一.json');
 const StrokeRenderer = require('../StrokeRenderer');
 const svg = require('../../svg');
-const CharDataParser = require('../../CharDataParser');
+const parseCharData = require('../../parseCharData');
 
 
-const char = new CharDataParser().generateCharacter('一', yi);
+const char = parseCharData('一', yi);
 
 describe('StrokeRenderer', () => {
 

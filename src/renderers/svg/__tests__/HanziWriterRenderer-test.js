@@ -20,7 +20,6 @@ describe('HanziWriterRenderer', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
     canvas = RenderTarget.init('target');
-    console.log(canvas);
   });
 
   it('adds and removes user stroke renderers as needed', () => {
@@ -60,7 +59,6 @@ describe('HanziWriterRenderer', () => {
     const props2 = copyAndMergeDeep(props1, { userStrokes: null });
 
     const renderer = new HanziWriterRenderer(char, positioner);
-    console.log({ canvas })
     renderer.mount(canvas);
     renderer.render(props1);
 

@@ -15,6 +15,7 @@ function updateCharacter() {
 	writer = HanziWriter.create('target', character, {
 		width: 400,
 		height: 400,
+		renderer: 'canvas',
 		radicalColor: '#166E16',
 		onCorrectStroke: printStrokePoints,
 		onMistake: printStrokePoints,

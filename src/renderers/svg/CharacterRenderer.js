@@ -3,14 +3,13 @@ const StrokeRenderer = require('./StrokeRenderer');
 
 function CharacterRenderer(character) {
   this._oldProps = {};
-  this.character = character;
-  this.strokeRenderers = this.character.strokes.map((stroke) => new StrokeRenderer(stroke));
+  this._strokeRenderers = character.strokes.map((stroke) => new StrokeRenderer(stroke));
 }
 
 CharacterRenderer.prototype.mount = function(canvas) {
   const subCanvas = canvas.createSubRenderTarget();
   this._group = subCanvas.svg;
-  this.strokeRenderers.forEach((strokeRenderer, i) => {
+  this._strokeRenderers.forEach((strokeRenderer, i) => {
     strokeRenderer.mount(subCanvas);
   });
 };
@@ -31,9 +30,9 @@ CharacterRenderer.prototype.render = function(props) {
     props.radicalColor !== this._oldProps.radicalColor
   );
   if (colorsChanged || props.strokes !== this._oldProps.strokes) {
-    for (let i = 0; i < this.strokeRenderers.length; i++) {
+    for (let i = 0; i < this._strokeRenderers.length; i++) {
       if (!colorsChanged && this._oldProps.strokes && props.strokes[i] === this._oldProps.strokes[i]) continue;
-      this.strokeRenderers[i].render({
+      this._strokeRenderers[i].render({
         strokeColor: props.strokeColor,
         radicalColor: props.radicalColor,
         opacity: props.strokes[i].opacity,

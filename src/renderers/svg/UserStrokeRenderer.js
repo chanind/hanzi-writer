@@ -1,4 +1,5 @@
-const svg = require('./svg');
+const svg = require('./svgUtils');
+const { getPathString } = require('../../geometry');
 
 
 function UserStrokeRenderer() {
@@ -26,7 +27,7 @@ UserStrokeRenderer.prototype.render = function(props) {
     svg.attr(this._path, 'opacity', props.opacity);
   }
   if (props.points !== this._oldProps.points) {
-    svg.attr(this._path, 'd', svg.getPathString(props.points));
+    svg.attr(this._path, 'd', getPathString(props.points));
   }
   this._oldProps = props;
 };

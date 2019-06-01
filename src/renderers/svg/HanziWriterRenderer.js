@@ -1,7 +1,7 @@
 const CharacterRenderer = require('./CharacterRenderer');
 const UserStrokeRenderer = require('./UserStrokeRenderer');
 const {assign} = require('../../utils');
-const svg = require('./svg');
+const svg = require('./svgUtils');
 
 function HanziWriterRenderer(character, positioner) {
   this._character = character;

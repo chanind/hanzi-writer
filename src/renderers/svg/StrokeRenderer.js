@@ -1,22 +1,11 @@
 const {counter} = require('../../utils');
-const svg = require('./svg');
+const svg = require('./svgUtils');
 const {
-  extendPointOnLine,
-  filterParallelPoints,
+  extendStart,
+  getPathString,
 } = require('../../geometry');
 
 const STROKE_WIDTH = 200;
-
-// take points on a path and move their start point backwards by distance
-const extendStart = (points, distance) => {
-  if (points.length < 2) return points;
-  const p1 = points[1];
-  const p2 = points[0];
-  const newStart = extendPointOnLine(p1, p2, distance);
-  const extendedPoints = points.slice(1);
-  extendedPoints.unshift(newStart);
-  return extendedPoints;
-};
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
@@ -36,8 +25,8 @@ StrokeRenderer.prototype.mount = function(canvas) {
   this._animationPath.style.opacity = 0;
   svg.attr(this._animationPath, 'clip-path', svg.urlIdRef(maskId));
 
-  const extendedMaskPoints = extendStart(filterParallelPoints(this._stroke.points), STROKE_WIDTH / 2);
-  svg.attr(this._animationPath, 'd', svg.getPathString(extendedMaskPoints));
+  const extendedMaskPoints = extendStart(this._stroke.points, STROKE_WIDTH / 2);
+  svg.attr(this._animationPath, 'd', getPathString(extendedMaskPoints));
   svg.attrs(this._animationPath, {
     stroke: '#FFFFFF',
     'stroke-width': STROKE_WIDTH,

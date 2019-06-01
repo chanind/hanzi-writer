@@ -1,8 +1,9 @@
-const { createElm, attrs } = require('./svg');
+const { createElm, attrs } = require('./svgUtils');
 
 function RenderTarget(svg, defs) {
   this.svg = svg;
   this.defs = defs;
+  this.node = svg;
 }
 
 RenderTarget.prototype.createSubRenderTarget = function() {

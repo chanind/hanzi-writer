@@ -16,6 +16,7 @@ Positioner.prototype.getXOffset = function() { return this._xOffset; };
 Positioner.prototype.getYOffset = function() { return this._yOffset; };
 Positioner.prototype.getScale = function() { return this._scale; };
 Positioner.prototype.getHeight = function() { return this._options.height; };
+Positioner.prototype.getWidth = function() { return this._options.width; };
 
 Positioner.prototype._calculateScaleAndOffset = function() {
   const bounds = CHARACTER_BOUNDS;

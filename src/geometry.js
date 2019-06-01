@@ -162,14 +162,40 @@ const filterParallelPoints = (points) => {
   return filteredPoints;
 };
 
+function getPathString(points, close = false) {
+  const start = round(points[0]);
+  const remainingPoints = points.slice(1);
+  let pathString = `M ${start.x} ${start.y}`;
+  remainingPoints.forEach(point => {
+    const roundedPoint = round(point);
+    pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
+  });
+  if (close) pathString += 'Z';
+  return pathString;
+}
+
+// take points on a path and move their start point backwards by distance
+const extendStart = (points, dist) => {
+  const filteredPoints = filterParallelPoints(points);
+  if (filteredPoints.length < 2) return filteredPoints;
+  const p1 = filteredPoints[1];
+  const p2 = filteredPoints[0];
+  const newStart = extendPointOnLine(p1, p2, dist);
+  const extendedPoints = filteredPoints.slice(1);
+  extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
+
 module.exports = {
   round,
   equals,
   distance,
+  getPathString,
   frechetDist,
   length,
   rotate,
   subtract,
+  extendStart,
   cosineSimilarity,
   outlineCurve,
   extendPointOnLine,

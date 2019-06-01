@@ -60,7 +60,6 @@ describe('HanziWriterRenderer', () => {
     const props2 = copyAndMergeDeep(props1, { userStrokes: null });
 
     const renderer = new HanziWriterRenderer(char, positioner);
-    console.log({ canvas })
     renderer.mount(canvas);
     renderer.render(props1);
 

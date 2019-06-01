@@ -1,7 +1,7 @@
 const CharacterRenderer = require('./CharacterRenderer');
 const UserStrokeRenderer = require('./UserStrokeRenderer');
-const {assign} = require('../utils');
-const svg = require('../svg');
+const {assign} = require('../../utils');
+const svg = require('./svg');
 
 function HanziWriterRenderer(character, positioner) {
   this._character = character;
@@ -13,7 +13,7 @@ function HanziWriterRenderer(character, positioner) {
 }
 
 HanziWriterRenderer.prototype.mount = function(canvas) {
-  const positionedCanvas = canvas.createSubCanvas();
+  const positionedCanvas = canvas.createSubRenderTarget();
   const group = positionedCanvas.svg;
   svg.attr(group, 'transform', `
     translate(${this._positioner.getXOffset()}, ${this._positioner.getHeight() - this._positioner.getYOffset()})

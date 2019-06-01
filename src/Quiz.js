@@ -2,7 +2,7 @@ const strokeMatches = require('./strokeMatches');
 const UserStroke = require('./models/UserStroke');
 const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
-const svg = require('./svg');
+const svg = require('./renderers/svg/svg');
 const geometry = require('./geometry');
 const characterActions = require('./characterActions');
 

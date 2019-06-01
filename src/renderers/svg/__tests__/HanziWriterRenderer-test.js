@@ -1,9 +1,9 @@
 const ren = require('hanzi-writer-data/人.json');
 const HanziWriterRenderer = require('../HanziWriterRenderer');
-const svg = require('../../svg');
-const { copyAndMergeDeep } = require('../../utils');
-const Positioner = require('../../Positioner');
-const parseCharData = require('../../parseCharData');
+const RenderTarget = require('../RenderTarget');
+const { copyAndMergeDeep } = require('../../../utils');
+const Positioner = require('../../../Positioner');
+const parseCharData = require('../../../parseCharData');
 
 
 const char = parseCharData('人', ren);
@@ -19,7 +19,8 @@ describe('HanziWriterRenderer', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    canvas = svg.Canvas.init('target');
+    canvas = RenderTarget.init('target');
+    console.log(canvas);
   });
 
   it('adds and removes user stroke renderers as needed', () => {
@@ -59,6 +60,7 @@ describe('HanziWriterRenderer', () => {
     const props2 = copyAndMergeDeep(props1, { userStrokes: null });
 
     const renderer = new HanziWriterRenderer(char, positioner);
+    console.log({ canvas })
     renderer.mount(canvas);
     renderer.render(props1);
 

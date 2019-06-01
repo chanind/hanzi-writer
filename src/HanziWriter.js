@@ -1,9 +1,9 @@
-const HanziWriterRenderer = require('./renderers/HanziWriterRenderer');
+const HanziWriterRenderer = require('./renderers/svg/HanziWriterRenderer');
 const RenderState = require('./RenderState');
 const parseCharData = require('./parseCharData');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
-const svg = require('./svg');
+const { RenderTarget } = require('./renderers/svg');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
@@ -217,7 +217,7 @@ HanziWriter.prototype.setCharacter = function(char) {
 // ------------- //
 
 HanziWriter.prototype._init = function(element, options) {
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
+  this._canvas = RenderTarget.init(element, options.width, options.height);
   if (this._canvas.svg.createSVGPoint) {
     this._pt = this._canvas.svg.createSVGPoint();
   }

@@ -1,4 +1,4 @@
-const svg = require('../svg');
+const svg = require('./svg');
 
 
 function UserStrokeRenderer() {

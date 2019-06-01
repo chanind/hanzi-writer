@@ -1,9 +1,9 @@
-const {counter} = require('../utils');
-const svg = require('../svg');
+const {counter} = require('../../utils');
+const svg = require('./svg');
 const {
   extendPointOnLine,
   filterParallelPoints,
-} = require('../geometry');
+} = require('../../geometry');
 
 const STROKE_WIDTH = 200;
 

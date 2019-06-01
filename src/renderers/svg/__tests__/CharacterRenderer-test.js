@@ -1,8 +1,8 @@
 const ren = require('hanzi-writer-data/人.json');
 const CharacterRenderer = require('../CharacterRenderer');
-const svg = require('../../svg');
-const { copyAndMergeDeep } = require('../../utils');
-const parseCharData = require('../../parseCharData');
+const RenderTarget = require('../RenderTarget');
+const { copyAndMergeDeep } = require('../../../utils');
+const parseCharData = require('../../../parseCharData');
 
 
 const char = parseCharData('人', ren);
@@ -13,7 +13,7 @@ describe('CharacterRenderer', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    canvas = svg.Canvas.init('target');
+    canvas = RenderTarget.init('target');
   });
 
   it('renders a g element and puts strokes inside', () => {

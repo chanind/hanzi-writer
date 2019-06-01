@@ -8,7 +8,7 @@ function CharacterRenderer(character) {
 }
 
 CharacterRenderer.prototype.mount = function(canvas) {
-  const subCanvas = canvas.createSubCanvas();
+  const subCanvas = canvas.createSubRenderTarget();
   this._group = subCanvas.svg;
   this.strokeRenderers.forEach((strokeRenderer, i) => {
     strokeRenderer.mount(subCanvas);

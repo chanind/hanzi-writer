@@ -1,7 +1,7 @@
 const yi = require('hanzi-writer-data/一.json');
 const StrokeRenderer = require('../StrokeRenderer');
-const svg = require('../../svg');
-const parseCharData = require('../../parseCharData');
+const RenderTarget = require('../RenderTarget');
+const parseCharData = require('../../../parseCharData');
 
 
 const char = parseCharData('一', yi);
@@ -12,7 +12,7 @@ describe('StrokeRenderer', () => {
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    canvas = svg.Canvas.init('target');
+    canvas = RenderTarget.init('target');
   });
 
   it('renders a path and clipPath', () => {

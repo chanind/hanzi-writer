@@ -1,6 +1,5 @@
 const ren = require('hanzi-writer-data/人.json');
 const CharacterRenderer = require('../CharacterRenderer');
-const { copyAndMergeDeep } = require('../../../utils');
 const parseCharData = require('../../../parseCharData');
 
 
@@ -57,7 +56,7 @@ describe('CharacterRenderer', () => {
 
     const charRenderer = new CharacterRenderer(char);
     charRenderer.render(ctx, props);
-    expect(ctx.__getEvents()).toEqual([]);    
+    expect(ctx.__getEvents()).toEqual([]);
   });
 
 });

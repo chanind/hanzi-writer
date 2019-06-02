@@ -8,11 +8,12 @@ dist/data/
 !dist/hanzi-writer.min.js
 vendor/
 .circleci
+.codecov.yml
 .vscode
 .sass-cache
 .eslintrc
 .eslintrc-jest
-babel-jest-preprocessor.js
+babel-jest-processor.js
 Gruntfile.js
 jest-setup.js
 yarn.lock

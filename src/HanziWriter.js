@@ -1,9 +1,9 @@
-const HanziWriterRenderer = require('./renderers/HanziWriterRenderer');
 const RenderState = require('./RenderState');
 const parseCharData = require('./parseCharData');
 const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
-const svg = require('./svg');
+const svgRenderer = require('./renderers/svg');
+const canvasRenderer = require('./renderers/canvas');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
@@ -16,6 +16,7 @@ const defaultOptions = {
   onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
+  renderer: 'svg',
 
   // positioning options
 
@@ -203,12 +204,12 @@ HanziWriter.prototype.setCharacter = function(char) {
 
     this._character = parseCharData(char, pathStrings);
     this._positioner = new Positioner(this._options);
-    const hanziWriterRenderer = new HanziWriterRenderer(this._character, this._positioner);
+    const hanziWriterRenderer = new this._renderer.HanziWriterRenderer(this._character, this._positioner);
     this._hanziWriterRenderer = hanziWriterRenderer;
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this._canvas, this._renderState.state);
+    this._hanziWriterRenderer.mount(this._target, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;
@@ -217,9 +218,10 @@ HanziWriter.prototype.setCharacter = function(char) {
 // ------------- //
 
 HanziWriter.prototype._init = function(element, options) {
-  this._canvas = svg.Canvas.init(element, options.width, options.height);
-  if (this._canvas.svg.createSVGPoint) {
-    this._pt = this._canvas.svg.createSVGPoint();
+  this._renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
+  this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
+  if (options.renderer !== 'canvas' && this._target.node.createSVGPoint) {
+    this._pt = this._target.node.createSVGPoint();
   }
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
@@ -254,7 +256,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._canvas.svg.getBoundingClientRect();
+    const { width, height } = this._target.node.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -275,22 +277,22 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._canvas.svg.addEventListener('mousedown', (evt) => {
+  this._target.node.addEventListener('mousedown', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchstart', (evt) => {
+  this._target.node.addEventListener('touchstart', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
   });
-  this._canvas.svg.addEventListener('mousemove', (evt) => {
+  this._target.node.addEventListener('mousemove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
   });
-  this._canvas.svg.addEventListener('touchmove', (evt) => {
+  this._target.node.addEventListener('touchmove', (evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
@@ -310,11 +312,11 @@ HanziWriter.prototype._getMousePoint = function(evt) {
   if (this._pt) {
     this._pt.x = evt.clientX;
     this._pt.y = evt.clientY;
-    const localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
+    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
     return {x: localPt.x, y: localPt.y};
   }
   // fallback in case SVG matrix transforms aren't supported
-  const box = this._canvas.svg.getBoundingClientRect();
+  const box = this._target.node.getBoundingClientRect();
   const x = evt.clientX - box.left;
   const y = evt.clientY - box.top;
   return {x, y};
@@ -324,11 +326,11 @@ HanziWriter.prototype._getTouchPoint = function(evt) {
   if (this._pt) {
     this._pt.x = evt.touches[0].clientX;
     this._pt.y = evt.touches[0].clientY;
-    const localPt = this._pt.matrixTransform(this._canvas.svg.getScreenCTM().inverse());
+    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
     return {x: localPt.x, y: localPt.y};
   }
   // fallback in case SVG matrix transforms aren't supported
-  const box = this._canvas.svg.getBoundingClientRect();
+  const box = this._target.node.getBoundingClientRect();
   const x = evt.touches[0].clientX - box.left;
   const y = evt.touches[0].clientY - box.top;
   return {x, y};
@@ -360,12 +362,12 @@ HanziWriter.loadCharacterData = (character, options = {}) => {
 HanziWriter.getScalingTransform = (width, height, padding = 0) => {
   const positioner = new Positioner({ width, height, padding });
   return {
-    x: positioner.getXOffset(),
-    y: positioner.getYOffset(),
-    scale: positioner.getScale(),
+    x: positioner.xOffset,
+    y: positioner.yOffset,
+    scale: positioner.scale,
     transform: trim(`
-      translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
-      scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
+      translate(${positioner.xOffset}, ${positioner.height - positioner.yOffset})
+      scale(${positioner.scale}, ${-1 * positioner.scale})
     `).replace(/\s+/g, ' '),
   };
 };

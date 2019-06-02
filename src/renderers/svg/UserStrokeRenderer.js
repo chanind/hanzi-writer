@@ -1,13 +1,14 @@
-const svg = require('../svg');
+const svg = require('./svgUtils');
+const { getPathString } = require('../../geometry');
 
 
 function UserStrokeRenderer() {
   this._oldProps = {};
 }
 
-UserStrokeRenderer.prototype.mount = function(canvas) {
+UserStrokeRenderer.prototype.mount = function(target) {
   this._path = svg.createElm('path');
-  canvas.svg.appendChild(this._path);
+  target.svg.appendChild(this._path);
 };
 
 UserStrokeRenderer.prototype.render = function(props) {
@@ -26,7 +27,7 @@ UserStrokeRenderer.prototype.render = function(props) {
     svg.attr(this._path, 'opacity', props.opacity);
   }
   if (props.points !== this._oldProps.points) {
-    svg.attr(this._path, 'd', svg.getPathString(props.points));
+    svg.attr(this._path, 'd', getPathString(props.points));
   }
   this._oldProps = props;
 };

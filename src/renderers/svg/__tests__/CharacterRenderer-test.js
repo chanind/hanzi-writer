@@ -1,19 +1,19 @@
 const ren = require('hanzi-writer-data/人.json');
 const CharacterRenderer = require('../CharacterRenderer');
-const svg = require('../../svg');
-const { copyAndMergeDeep } = require('../../utils');
-const parseCharData = require('../../parseCharData');
+const RenderTarget = require('../RenderTarget');
+const { copyAndMergeDeep } = require('../../../utils');
+const parseCharData = require('../../../parseCharData');
 
 
 const char = parseCharData('人', ren);
 
 describe('CharacterRenderer', () => {
 
-  let canvas;
+  let target;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    canvas = svg.Canvas.init('target');
+    target = RenderTarget.init('target');
   });
 
   it('renders a g element and puts strokes inside', () => {
@@ -35,10 +35,10 @@ describe('CharacterRenderer', () => {
     };
 
     const charRenderer = new CharacterRenderer(char);
-    charRenderer.mount(canvas);
+    charRenderer.mount(target);
     charRenderer.render(props);
 
-    const subCanvas = canvas.svg.childNodes[1];
+    const subCanvas = target.svg.childNodes[1];
     expect(subCanvas.nodeName).toBe('g');
     expect(subCanvas.style.opacity).toBe('0.7');
     // 2 strokes of 人
@@ -73,12 +73,12 @@ describe('CharacterRenderer', () => {
     });
 
     const charRenderer = new CharacterRenderer(char);
-    charRenderer.mount(canvas);
+    charRenderer.mount(target);
     charRenderer.render(props1);
     charRenderer.render(props2);
 
 
-    const subCanvas = canvas.svg.childNodes[1];
+    const subCanvas = target.svg.childNodes[1];
     expect(subCanvas.nodeName).toBe('g');
     expect(subCanvas.style.opacity).toBe('0.9');
     // 2 strokes of 人
@@ -113,9 +113,9 @@ describe('CharacterRenderer', () => {
     });
 
     const charRenderer = new CharacterRenderer(char);
-    charRenderer.mount(canvas);
+    charRenderer.mount(target);
     charRenderer.render(props1);
-    const subCanvas = canvas.svg.childNodes[1];
+    const subCanvas = target.svg.childNodes[1];
 
     expect(subCanvas.style.opacity).toBe('0');
     expect(subCanvas.style.display).toBe('none');

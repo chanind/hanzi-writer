@@ -82,6 +82,18 @@ describe('HanziWriter', () => {
         expect(charNode.childNodes.length).toBe(2);
       });
     });
+
+    it('can optionally use a canvas for rendering instead of SVG', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+
+      const writer = HanziWriter.create('target', '人', { charDataLoader, renderer: 'canvas' });
+
+      await writer._withDataPromise;
+
+      expect(document.querySelectorAll('#target canvas').length).toBe(1);
+      const canvas = document.querySelector('#target canvas');
+      expect(canvas.getContext('2d')).toMatchSnapshot();
+    });
   });
 
   describe('data loading', () => {

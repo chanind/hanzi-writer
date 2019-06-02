@@ -31,7 +31,7 @@ const cosineSimilarity = (point1, point2) => {
 
 // return a new point, p3, which is on the same line as p1 and p2, but distance away
 // from p2. p1, p2, p3 will always lie on the line in that order
-const extendPointOnLine = (p1, p2, dist) => {
+const _extendPointOnLine = (p1, p2, dist) => {
   const vect = subtract(p2, p1);
   const norm = dist / magnitude(vect);
   return {x: p2.x + norm * vect.x, y: p2.y + norm * vect.y};
@@ -84,7 +84,7 @@ const subdivideCurve = (curve, maxLen = 0.05) => {
       const numNewPoints = Math.ceil(segLen / maxLen);
       const newSegLen = segLen / numNewPoints;
       for (let i = 0; i < numNewPoints; i++) {
-        newCurve.push(extendPointOnLine(point, prevPoint, -1 * newSegLen * (i + 1)));
+        newCurve.push(_extendPointOnLine(point, prevPoint, -1 * newSegLen * (i + 1)));
       }
     } else {
       newCurve.push(point);
@@ -110,7 +110,7 @@ const outlineCurve = (curve, numPoints = 30) => {
         remainingDist -= nextPointDist;
         lastPoint = remainingCurvePoints.shift();
       } else {
-        const nextPoint = extendPointOnLine(lastPoint, remainingCurvePoints[0], remainingDist - nextPointDist);
+        const nextPoint = _extendPointOnLine(lastPoint, remainingCurvePoints[0], remainingDist - nextPointDist);
         outlinePoints.push(nextPoint);
         outlinePointFound = true;
       }
@@ -145,7 +145,7 @@ const rotate = (curve, theta) => {
 };
 
 // remove intermediate points that are on the same line as the points to either side
-const filterParallelPoints = (points) => {
+const _filterParallelPoints = (points) => {
   if (points.length < 3) return points;
   const filteredPoints = [points[0], points[1]];
   points.slice(2).forEach((point, i) => {
@@ -162,18 +162,44 @@ const filterParallelPoints = (points) => {
   return filteredPoints;
 };
 
+function getPathString(points, close = false) {
+  const start = round(points[0]);
+  const remainingPoints = points.slice(1);
+  let pathString = `M ${start.x} ${start.y}`;
+  remainingPoints.forEach(point => {
+    const roundedPoint = round(point);
+    pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
+  });
+  if (close) pathString += 'Z';
+  return pathString;
+}
+
+// take points on a path and move their start point backwards by distance
+const extendStart = (points, dist) => {
+  const filteredPoints = _filterParallelPoints(points);
+  if (filteredPoints.length < 2) return filteredPoints;
+  const p1 = filteredPoints[1];
+  const p2 = filteredPoints[0];
+  const newStart = _extendPointOnLine(p1, p2, dist);
+  const extendedPoints = filteredPoints.slice(1);
+  extendedPoints.unshift(newStart);
+  return extendedPoints;
+};
+
 module.exports = {
   round,
   equals,
   distance,
+  getPathString,
   frechetDist,
   length,
   rotate,
   subtract,
+  extendStart,
   cosineSimilarity,
   outlineCurve,
-  extendPointOnLine,
-  filterParallelPoints,
+  _extendPointOnLine,
+  _filterParallelPoints,
   subdivideCurve,
   normalizeCurve,
 };

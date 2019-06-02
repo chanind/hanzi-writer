@@ -5,10 +5,10 @@ describe('Positioner', () => {
   it('calculates scale and offset to transform characters to fix in the box on screen', () => {
     const positioner = new Positioner({ width: 400, height: 400, padding: 20 });
 
-    expect(positioner.getXOffset()).toBe(20);
-    expect(positioner.getYOffset()).toBe(63.59375);
-    expect(positioner.getScale()).toBe(0.3515625);
-    expect(positioner.getHeight()).toBe(400);
+    expect(positioner.xOffset).toBe(20);
+    expect(positioner.yOffset).toBe(63.59375);
+    expect(positioner.scale).toBe(0.3515625);
+    expect(positioner.height).toBe(400);
   });
 
   it('converts points from the external reference frame to the character reference frame', () => {

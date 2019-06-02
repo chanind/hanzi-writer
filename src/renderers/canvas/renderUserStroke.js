@@ -1,8 +1,6 @@
 const { drawPath } = require('./canvasUtils');
 
-function UserStrokeRenderer() {}
-
-UserStrokeRenderer.prototype.render = function(ctx, props) {
+module.exports = function(ctx, props) {
   if (props.opacity < 0.05) return;
   const {r, g, b, a} = props.strokeColor;
 
@@ -15,5 +13,3 @@ UserStrokeRenderer.prototype.render = function(ctx, props) {
   drawPath(ctx, props.points);
   ctx.restore();
 };
-
-module.exports = UserStrokeRenderer;

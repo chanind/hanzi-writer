@@ -362,12 +362,12 @@ HanziWriter.loadCharacterData = (character, options = {}) => {
 HanziWriter.getScalingTransform = (width, height, padding = 0) => {
   const positioner = new Positioner({ width, height, padding });
   return {
-    x: positioner.getXOffset(),
-    y: positioner.getYOffset(),
-    scale: positioner.getScale(),
+    x: positioner.xOffset,
+    y: positioner.yOffset,
+    scale: positioner.scale,
     transform: trim(`
-      translate(${positioner.getXOffset()}, ${positioner.getHeight() - positioner.getYOffset()})
-      scale(${positioner.getScale()}, ${-1 * positioner.getScale()})
+      translate(${positioner.xOffset}, ${positioner.height - positioner.yOffset})
+      scale(${positioner.scale}, ${-1 * positioner.scale})
     `).replace(/\s+/g, ' '),
   };
 };

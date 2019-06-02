@@ -14,7 +14,7 @@ function StrokeRenderer(stroke) {
   this._pathLength = stroke.getLength() + (STROKE_WIDTH / 2);
 }
 
-StrokeRenderer.prototype.mount = function(canvas) {
+StrokeRenderer.prototype.mount = function(target) {
   this._animationPath = svg.createElm('path');
   this._clip = svg.createElm('clipPath');
   this._strokePath = svg.createElm('path');
@@ -37,8 +37,8 @@ StrokeRenderer.prototype.mount = function(canvas) {
   });
 
   this._clip.appendChild(this._strokePath);
-  canvas.defs.appendChild(this._clip);
-  canvas.svg.appendChild(this._animationPath);
+  target.defs.appendChild(this._clip);
+  target.svg.appendChild(this._animationPath);
   return this;
 };
 

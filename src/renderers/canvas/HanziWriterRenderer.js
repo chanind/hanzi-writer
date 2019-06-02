@@ -1,5 +1,5 @@
 const CharacterRenderer = require('./CharacterRenderer');
-const UserStrokeRenderer = require('./UserStrokeRenderer');
+const renderUserStroke = require('./renderUserStroke');
 const {assign} = require('../../utils');
 
 function HanziWriterRenderer(character, positioner) {
@@ -8,12 +8,6 @@ function HanziWriterRenderer(character, positioner) {
   this._mainCharRenderer = new CharacterRenderer(character);
   this._outlineCharRenderer = new CharacterRenderer(character);
   this._highlightCharRenderer = new CharacterRenderer(character);
-
-  this._width = this._positioner.getWidth();
-  this._height = this._positioner.getHeight();
-  this._transX = this._positioner.getXOffset();
-  this._transY = this._positioner.getHeight() - this._positioner.getYOffset();
-  this._scale = this._positioner.getScale();
 }
 
 HanziWriterRenderer.prototype.mount = function(target) {
@@ -22,11 +16,11 @@ HanziWriterRenderer.prototype.mount = function(target) {
 
 HanziWriterRenderer.prototype._animationFrame = function(func) {
   const ctx = this._target.node.getContext('2d');
-  ctx.clearRect(0, 0, this._width, this._height);
+  ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
 
   ctx.save();
-  ctx.translate(this._transX, this._transY);
-  ctx.scale(this._scale, -1 * this._scale);
+  ctx.translate(this._positioner.xOffset, this._positioner.height - this._positioner.yOffset);
+  ctx.scale(this._positioner.scale, -1 * this._positioner.scale);
   func(ctx);
   ctx.restore();
 };
@@ -57,8 +51,7 @@ HanziWriterRenderer.prototype.render = function(props) {
           strokeWidth: props.options.drawingWidth,
           strokeColor: props.options.drawingColor,
         }, userStrokes[userStrokeId]);
-        const strokeRenderer = new UserStrokeRenderer();
-        strokeRenderer.render(ctx, userStrokeProps);
+        renderUserStroke(ctx, userStrokeProps);
       }
     });
   });

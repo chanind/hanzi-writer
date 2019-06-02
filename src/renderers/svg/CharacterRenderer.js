@@ -6,11 +6,11 @@ function CharacterRenderer(character) {
   this._strokeRenderers = character.strokes.map((stroke) => new StrokeRenderer(stroke));
 }
 
-CharacterRenderer.prototype.mount = function(canvas) {
-  const subCanvas = canvas.createSubRenderTarget();
-  this._group = subCanvas.svg;
+CharacterRenderer.prototype.mount = function(target) {
+  const subTarget = target.createSubRenderTarget();
+  this._group = subTarget.svg;
   this._strokeRenderers.forEach((strokeRenderer, i) => {
-    strokeRenderer.mount(subCanvas);
+    strokeRenderer.mount(subTarget);
   });
 };
 

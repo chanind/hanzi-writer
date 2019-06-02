@@ -15,11 +15,11 @@ const positioner = new Positioner({
 
 describe('HanziWriterRenderer', () => {
 
-  let canvas;
+  let target;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    canvas = RenderTarget.init('target');
+    target = RenderTarget.init('target');
   });
 
   it('adds and removes user stroke renderers as needed', () => {
@@ -59,7 +59,7 @@ describe('HanziWriterRenderer', () => {
     const props2 = copyAndMergeDeep(props1, { userStrokes: null });
 
     const renderer = new HanziWriterRenderer(char, positioner);
-    renderer.mount(canvas);
+    renderer.mount(target);
     renderer.render(props1);
 
     expect(Object.keys(renderer._userStrokeRenderers)).toEqual(['17']);

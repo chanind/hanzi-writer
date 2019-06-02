@@ -6,9 +6,9 @@ function UserStrokeRenderer() {
   this._oldProps = {};
 }
 
-UserStrokeRenderer.prototype.mount = function(canvas) {
+UserStrokeRenderer.prototype.mount = function(target) {
   this._path = svg.createElm('path');
-  canvas.svg.appendChild(this._path);
+  target.svg.appendChild(this._path);
 };
 
 UserStrokeRenderer.prototype.render = function(props) {

@@ -6,6 +6,10 @@ function RenderTarget(svg, defs) {
   this.node = svg;
 }
 
+RenderTarget.prototype.addEventListener = function(name, callback) {
+  this.node.addEventListener(name, callback);
+};
+
 RenderTarget.prototype.createSubRenderTarget = function() {
   const group = createElm('g');
   this.svg.appendChild(group);

@@ -15,7 +15,7 @@ HanziWriterRenderer.prototype.mount = function(target) {
 };
 
 HanziWriterRenderer.prototype._animationFrame = function(func) {
-  const ctx = this._target.node.getContext('2d');
+  const ctx = this._target.getContext();
   ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
 
   ctx.save();
@@ -23,6 +23,7 @@ HanziWriterRenderer.prototype._animationFrame = function(func) {
   ctx.scale(this._positioner.scale, -1 * this._positioner.scale);
   func(ctx);
   ctx.restore();
+  if (ctx.draw) ctx.draw();
 };
 
 HanziWriterRenderer.prototype.render = function(props) {

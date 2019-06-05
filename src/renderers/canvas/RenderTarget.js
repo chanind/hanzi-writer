@@ -2,6 +2,14 @@ function RenderTarget(canvas) {
   this.node = canvas;
 }
 
+RenderTarget.prototype.addEventListener = function(name, callback) {
+  this.node.addEventListener(name, callback);
+};
+
+RenderTarget.prototype.getContext = function() {
+  return this.node.getContext('2d');
+};
+
 RenderTarget.init = (elmOrId, width = '100%', height = '100%') => {
   let canvas;
   let elm = elmOrId;

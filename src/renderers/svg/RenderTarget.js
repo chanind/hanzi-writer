@@ -5,6 +5,10 @@ function RenderTarget(svg, defs) {
   this.svg = svg;
   this.defs = defs;
   this.node = svg;
+
+  if (this.node.createSVGPoint) {
+    this._pt = this.node.createSVGPoint();
+  }
 }
 RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
 
@@ -12,6 +16,26 @@ RenderTarget.prototype.createSubRenderTarget = function() {
   const group = createElm('g');
   this.svg.appendChild(group);
   return new RenderTarget(group, this.defs);
+};
+
+RenderTarget.prototype._getMousePoint = function(evt) {
+  if (this._pt) {
+    this._pt.x = evt.clientX;
+    this._pt.y = evt.clientY;
+    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    return {x: localPt.x, y: localPt.y};
+  }
+  return RenderTargetBase.prototype._getMousePoint.call(this, evt);
+};
+
+RenderTarget.prototype._getTouchPoint = function(evt) {
+  if (this._pt) {
+    this._pt.x = evt.touches[0].clientX;
+    this._pt.y = evt.touches[0].clientY;
+    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    return {x: localPt.x, y: localPt.y};
+  }
+  return RenderTargetBase.prototype._getTouchPoint.call(this, evt);
 };
 
 RenderTarget.init = (elmOrId, width = '100%', height = '100%') => {

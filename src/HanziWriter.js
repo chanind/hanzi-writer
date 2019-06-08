@@ -227,9 +227,6 @@ HanziWriter.prototype._init = function(element, options) {
   };
   this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
   this._options = this._assignOptions(options);
-  if (options.renderer !== 'canvas' && this._target.node.createSVGPoint) {
-    this._pt = this._target.node.createSVGPoint();
-  }
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
   this._quiz = null;
@@ -262,7 +259,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._target.node.getBoundingClientRect();
+    const { width, height } = this._target.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -283,63 +280,22 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._target.addEventListener('mousedown', (evt) => {
+  this._target.addPointerStartListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
-    this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
+    this._forwardToQuiz('startUserStroke', evt.getPoint());
   });
-  this._target.addEventListener('touchstart', (evt) => {
+  this._target.addPointerMoveListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
-    this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
+    this._forwardToQuiz('continueUserStroke', evt.getPoint());
   });
-  this._target.addEventListener('mousemove', (evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
-    evt.preventDefault();
-    this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
-  });
-  this._target.addEventListener('touchmove', (evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
-    evt.preventDefault();
-    this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
-  });
-
-  // TODO: find a way to not need global listeners
-  this._target.addGlobalListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
-  this._target.addGlobalListener('touchend', () => this._forwardToQuiz('endUserStroke'));
+  this._target.addPointerEndListener(() => this._forwardToQuiz('endUserStroke'));
 };
 
 HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
   if (!this._quiz) return;
   this._quiz[method](...args);
-};
-
-HanziWriter.prototype._getMousePoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.clientX;
-    this._pt.y = evt.clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._target.node.getBoundingClientRect();
-  const x = evt.clientX - box.left;
-  const y = evt.clientY - box.top;
-  return {x, y};
-};
-
-HanziWriter.prototype._getTouchPoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.touches[0].clientX;
-    this._pt.y = evt.touches[0].clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._target.node.getBoundingClientRect();
-  const x = evt.touches[0].clientX - box.left;
-  const y = evt.touches[0].clientY - box.top;
-  return {x, y};
 };
 
 // --- Static Public API --- //

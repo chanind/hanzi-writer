@@ -4,11 +4,10 @@ const Positioner = require('./Positioner');
 const Quiz = require('./Quiz');
 const svgRenderer = require('./renderers/svg');
 const canvasRenderer = require('./renderers/canvas');
-const wechatRenderer = require('./renderers/wechat');
 const defaultCharDataLoader = require('./defaultCharDataLoader');
 const LoadingManager = require('./LoadingManager');
 const characterActions = require('./characterActions');
-const { assign, callIfExists, trim, colorStringToVals, isWechat } = require('./utils');
+const { assign, callIfExists, trim, colorStringToVals } = require('./utils');
 
 
 const defaultOptions = {
@@ -55,6 +54,7 @@ const defaultOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
+  rendererOverride: {},
 };
 
 function HanziWriter(...args) {
@@ -219,13 +219,17 @@ HanziWriter.prototype.setCharacter = function(char) {
 // ------------- //
 
 HanziWriter.prototype._init = function(element, options) {
-  this._renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
-  if (isWechat) this._renderer = wechatRenderer;
+  const renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
+  const rendererOverride = options.rendererOverride || {};
+  this._renderer = {
+    HanziWriterRenderer: rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
+    RenderTarget: rendererOverride.RenderTarget || renderer.RenderTarget,
+  };
   this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
-  if (options.renderer !== 'canvas' && !isWechat && this._target.node.createSVGPoint) {
+  this._options = this._assignOptions(options);
+  if (options.renderer !== 'canvas' && this._target.node.createSVGPoint) {
     this._pt = this._target.node.createSVGPoint();
   }
-  this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
   this._quiz = null;
@@ -300,11 +304,9 @@ HanziWriter.prototype._setupListeners = function() {
     this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
   });
 
-  if (!isWechat) {
-    // TODO: fix
-    global.document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
-    global.document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
-  }
+  // TODO: find a way to not need global listeners
+  this._target.addGlobalListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
+  this._target.addGlobalListener('touchend', () => this._forwardToQuiz('endUserStroke'));
 };
 
 HanziWriter.prototype._forwardToQuiz = function(method, ...args) {

@@ -120,22 +120,11 @@ const objRepeat = (item, times) => {
   return obj;
 };
 
-let isWechat = false;
-try {
-  // wechat doesn't handle setting `global` properly for some reason. sigh...
-  // eslint-disable-next-line no-undef
-  if (wx && wx.version && !global.document && !global.window) {
-    isWechat = true;
-  }
-// eslint-disable-next-line no-empty
-} catch (err) {}
-
 module.exports = {
   _assign,
   arrLast,
   assign,
   average,
-  isWechat,
   callIfExists,
   cancelAnimationFrame,
   colorStringToVals,

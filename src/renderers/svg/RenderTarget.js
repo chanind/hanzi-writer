@@ -1,14 +1,12 @@
 const { createElm, attrs } = require('./svgUtils');
+const RenderTargetBase = require('../RenderTargetBase');
 
 function RenderTarget(svg, defs) {
   this.svg = svg;
   this.defs = defs;
   this.node = svg;
 }
-
-RenderTarget.prototype.addEventListener = function(name, callback) {
-  this.node.addEventListener(name, callback);
-};
+RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
 
 RenderTarget.prototype.createSubRenderTarget = function() {
   const group = createElm('g');

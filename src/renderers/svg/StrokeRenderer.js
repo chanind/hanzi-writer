@@ -4,6 +4,7 @@ const {
   extendStart,
   getPathString,
 } = require('../../geometry');
+const StrokeRendererBase = require('../StrokeRendererBase');
 
 const STROKE_WIDTH = 200;
 
@@ -13,6 +14,7 @@ function StrokeRenderer(stroke) {
   this._stroke = stroke;
   this._pathLength = stroke.getLength() + (STROKE_WIDTH / 2);
 }
+StrokeRenderer.prototype = Object.create(StrokeRendererBase.prototype);
 
 StrokeRenderer.prototype.mount = function(target) {
   this._animationPath = svg.createElm('path');
@@ -58,14 +60,6 @@ StrokeRenderer.prototype.render = function(props) {
     this._animationPath.style.opacity = props.opacity;
   }
   this._oldProps = props;
-};
-
-StrokeRenderer.prototype._getStrokeDashoffset = function(displayPortion) {
-  return this._pathLength * 0.999 * (1 - displayPortion);
-};
-
-StrokeRenderer.prototype._getColor = function({ strokeColor, radicalColor }) {
-  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
 module.exports = StrokeRenderer;

@@ -1,10 +1,9 @@
+const RenderTargetBase = require('../RenderTargetBase');
+
 function RenderTarget(canvas) {
   this.node = canvas;
 }
-
-RenderTarget.prototype.addEventListener = function(name, callback) {
-  this.node.addEventListener(name, callback);
-};
+RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
 
 RenderTarget.prototype.getContext = function() {
   return this.node.getContext('2d');

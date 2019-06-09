@@ -54,6 +54,7 @@ const defaultOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
+  rendererOverride: {},
 };
 
 function HanziWriter(...args) {
@@ -209,7 +210,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this._target, this._renderState.state);
+    this._hanziWriterRenderer.mount(this.target, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;
@@ -218,11 +219,14 @@ HanziWriter.prototype.setCharacter = function(char) {
 // ------------- //
 
 HanziWriter.prototype._init = function(element, options) {
-  this._renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
-  this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
-  if (options.renderer !== 'canvas' && this._target.node.createSVGPoint) {
-    this._pt = this._target.node.createSVGPoint();
-  }
+  const renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
+  const rendererOverride = options.rendererOverride || {};
+  this._renderer = {
+    HanziWriterRenderer: rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
+    createRenderTarget: rendererOverride.createRenderTarget || renderer.createRenderTarget,
+  };
+  // wechat miniprogram component needs direct access to the render target, so this is public
+  this.target = this._renderer.createRenderTarget(element, options.width, options.height);
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
@@ -256,7 +260,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._target.node.getBoundingClientRect();
+    const { width, height } = this.target.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -277,63 +281,22 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._target.node.addEventListener('mousedown', (evt) => {
+  this.target.addPointerStartListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
-    this._forwardToQuiz('startUserStroke', this._getMousePoint(evt));
+    this._forwardToQuiz('startUserStroke', evt.getPoint());
   });
-  this._target.node.addEventListener('touchstart', (evt) => {
+  this.target.addPointerMoveListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
-    this._forwardToQuiz('startUserStroke', this._getTouchPoint(evt));
+    this._forwardToQuiz('continueUserStroke', evt.getPoint());
   });
-  this._target.node.addEventListener('mousemove', (evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
-    evt.preventDefault();
-    this._forwardToQuiz('continueUserStroke', this._getMousePoint(evt));
-  });
-  this._target.node.addEventListener('touchmove', (evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
-    evt.preventDefault();
-    this._forwardToQuiz('continueUserStroke', this._getTouchPoint(evt));
-  });
-
-  // TODO: fix
-  global.document.addEventListener('mouseup', () => this._forwardToQuiz('endUserStroke'));
-  global.document.addEventListener('touchend', () => this._forwardToQuiz('endUserStroke'));
+  this.target.addPointerEndListener(() => this._forwardToQuiz('endUserStroke'));
 };
 
 HanziWriter.prototype._forwardToQuiz = function(method, ...args) {
   if (!this._quiz) return;
   this._quiz[method](...args);
-};
-
-HanziWriter.prototype._getMousePoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.clientX;
-    this._pt.y = evt.clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._target.node.getBoundingClientRect();
-  const x = evt.clientX - box.left;
-  const y = evt.clientY - box.top;
-  return {x, y};
-};
-
-HanziWriter.prototype._getTouchPoint = function(evt) {
-  if (this._pt) {
-    this._pt.x = evt.touches[0].clientX;
-    this._pt.y = evt.touches[0].clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return {x: localPt.x, y: localPt.y};
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  const box = this._target.node.getBoundingClientRect();
-  const x = evt.touches[0].clientX - box.left;
-  const y = evt.touches[0].clientY - box.top;
-  return {x, y};
 };
 
 // --- Static Public API --- //

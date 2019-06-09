@@ -3,5 +3,5 @@ const RenderTarget = require('./RenderTarget');
 
 module.exports = {
   HanziWriterRenderer,
-  RenderTarget,
+  createRenderTarget: RenderTarget.init,
 };

@@ -1,5 +1,5 @@
 /*!
- * Hanzi Writer v1.4.1
+ * Hanzi Writer v1.4.2
  * https://chanind.github.io/hanzi-writer
  */
 /******/ (function(modules) { // webpackBootstrap
@@ -64,7 +64,7 @@
 /******/ 	__webpack_require__.p = "";
 /******/
 /******/ 	// Load entry module and return exports
-/******/ 	return __webpack_require__(__webpack_require__.s = 7);
+/******/ 	return __webpack_require__(__webpack_require__.s = 9);
 /******/ })
 /************************************************************************/
 /******/ ([
@@ -775,6 +775,101 @@ module.exports = Mutation;
 "use strict";
 
 
+function StrokeRendererBase() {}
+
+StrokeRendererBase.prototype._getStrokeDashoffset = function (displayPortion) {
+  return this._pathLength * 0.999 * (1 - displayPortion);
+};
+
+StrokeRendererBase.prototype._getColor = function (_ref) {
+  var strokeColor = _ref.strokeColor,
+      radicalColor = _ref.radicalColor;
+
+  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
+};
+
+module.exports = StrokeRendererBase;
+
+/***/ }),
+/* 7 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+/* WEBPACK VAR INJECTION */(function(global) {
+
+function RenderTargetBase() {}
+
+RenderTargetBase.prototype.addPointerStartListener = function (callback) {
+  var _this = this;
+
+  this.node.addEventListener('mousedown', function (evt) {
+    callback(_this._eventify(evt, _this._getMousePoint));
+  });
+  this.node.addEventListener('touchstart', function (evt) {
+    callback(_this._eventify(evt, _this._getTouchPoint));
+  });
+};
+
+RenderTargetBase.prototype.addPointerMoveListener = function (callback) {
+  var _this2 = this;
+
+  this.node.addEventListener('mousemove', function (evt) {
+    callback(_this2._eventify(evt, _this2._getMousePoint));
+  });
+  this.node.addEventListener('touchmove', function (evt) {
+    callback(_this2._eventify(evt, _this2._getTouchPoint));
+  });
+};
+
+RenderTargetBase.prototype.addPointerEndListener = function (callback) {
+  // TODO: find a way to not need global listeners
+  global.document.addEventListener('mouseup', callback);
+  global.document.addEventListener('touchend', callback);
+};
+
+RenderTargetBase.prototype.getBoundingClientRect = function () {
+  return this.node.getBoundingClientRect();
+};
+
+RenderTargetBase.prototype._eventify = function (evt, pointFunc) {
+  var _this3 = this;
+
+  return {
+    getPoint: function getPoint() {
+      return pointFunc.call(_this3, evt);
+    },
+    preventDefault: function preventDefault() {
+      return evt.preventDefault();
+    }
+  };
+};
+
+RenderTargetBase.prototype._getMousePoint = function (evt) {
+  var box = this.getBoundingClientRect();
+  var x = evt.clientX - box.left;
+  var y = evt.clientY - box.top;
+  return { x: x, y: y };
+};
+
+RenderTargetBase.prototype._getTouchPoint = function (evt) {
+  var box = this.getBoundingClientRect();
+  var x = evt.touches[0].clientX - box.left;
+  var y = evt.touches[0].clientY - box.top;
+  return { x: x, y: y };
+};
+
+module.exports = RenderTargetBase;
+/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+
+/***/ }),
+/* 8 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+function _toArray(arr) { return Array.isArray(arr) ? arr : Array.from(arr); }
+
 var drawPath = function drawPath(ctx, points) {
   ctx.beginPath();
   var start = points[0];
@@ -786,23 +881,68 @@ var drawPath = function drawPath(ctx, points) {
   ctx.stroke();
 };
 
-module.exports = { drawPath: drawPath };
+// break a path string into a series of canvas path commands
+// only works with the subset of SVG paths used by MakeMeAHanzi data
+var pathStringToCanvas = function pathStringToCanvas(pathString) {
+  var pathParts = pathString.split(/(^|\s+)(?=[A-Z])/).filter(function (part) {
+    return part !== ' ';
+  });
+  var commands = [function (ctx) {
+    return ctx.beginPath();
+  }];
+  pathParts.forEach(function (part) {
+    var _part$split = part.split(/\s+/),
+        _part$split2 = _toArray(_part$split),
+        cmd = _part$split2[0],
+        rawParams = _part$split2.slice(1);
+
+    var params = rawParams.map(function (param) {
+      return parseFloat(param);
+    });
+    if (cmd === 'M') {
+      commands.push(function (ctx) {
+        return ctx.moveTo.apply(ctx, params);
+      });
+    } else if (cmd === 'L') {
+      commands.push(function (ctx) {
+        return ctx.lineTo.apply(ctx, params);
+      });
+    } else if (cmd === 'C') {
+      commands.push(function (ctx) {
+        return ctx.bezierCurveTo.apply(ctx, params);
+      });
+    } else if (cmd === 'Q') {
+      commands.push(function (ctx) {
+        return ctx.quadraticCurveTo.apply(ctx, params);
+      });
+    } else if (cmd === 'Z') {
+      // commands.push((ctx) => ctx.closePath());
+    }
+  });
+  return function (ctx) {
+    return commands.forEach(function (cmd) {
+      return cmd(ctx);
+    });
+  };
+};
+
+module.exports = { drawPath: drawPath, pathStringToCanvas: pathStringToCanvas };
 
 /***/ }),
-/* 7 */
+/* 9 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-var RenderState = __webpack_require__(8);
-var parseCharData = __webpack_require__(9);
-var Positioner = __webpack_require__(12);
-var Quiz = __webpack_require__(13);
-var svgRenderer = __webpack_require__(17);
-var canvasRenderer = __webpack_require__(23);
-var defaultCharDataLoader = __webpack_require__(29);
-var LoadingManager = __webpack_require__(30);
+var RenderState = __webpack_require__(10);
+var parseCharData = __webpack_require__(11);
+var Positioner = __webpack_require__(14);
+var Quiz = __webpack_require__(15);
+var svgRenderer = __webpack_require__(19);
+var canvasRenderer = __webpack_require__(25);
+var defaultCharDataLoader = __webpack_require__(31);
+var LoadingManager = __webpack_require__(32);
 var characterActions = __webpack_require__(4);
 
 var _require = __webpack_require__(0),
@@ -854,7 +994,8 @@ var defaultOptions = {
   drawingFadeDuration: 300,
   drawingWidth: 4,
   strokeWidth: 2,
-  outlineWidth: 2
+  outlineWidth: 2,
+  rendererOverride: {}
 };
 
 function HanziWriter() {
@@ -1028,7 +1169,7 @@ HanziWriter.prototype.setCharacter = function (char) {
     _this10._renderState = new RenderState(_this10._character, _this10._options, function (nextState) {
       hanziWriterRenderer.render(nextState);
     });
-    _this10._hanziWriterRenderer.mount(_this10._target, _this10._renderState.state);
+    _this10._hanziWriterRenderer.mount(_this10.target, _this10._renderState.state);
     _this10._hanziWriterRenderer.render(_this10._renderState.state);
   });
   return this._withDataPromise;
@@ -1037,11 +1178,14 @@ HanziWriter.prototype.setCharacter = function (char) {
 // ------------- //
 
 HanziWriter.prototype._init = function (element, options) {
-  this._renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
-  this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
-  if (options.renderer !== 'canvas' && this._target.node.createSVGPoint) {
-    this._pt = this._target.node.createSVGPoint();
-  }
+  var renderer = options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
+  var rendererOverride = options.rendererOverride || {};
+  this._renderer = {
+    HanziWriterRenderer: rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
+    createRenderTarget: rendererOverride.createRenderTarget || renderer.createRenderTarget
+  };
+  // wechat miniprogram component needs direct access to the render target, so this is public
+  this.target = this._renderer.createRenderTarget(element, options.width, options.height);
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
@@ -1075,9 +1219,9 @@ HanziWriter.prototype._fillWidthAndHeight = function (options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    var _target$node$getBound = this._target.node.getBoundingClientRect(),
-        width = _target$node$getBound.width,
-        height = _target$node$getBound.height;
+    var _target$getBoundingCl = this.target.getBoundingClientRect(),
+        width = _target$getBoundingCl.width,
+        height = _target$getBoundingCl.height;
 
     var minDim = Math.min(width, height);
     filledOpts.width = minDim;
@@ -1103,32 +1247,17 @@ HanziWriter.prototype._withData = function (func) {
 HanziWriter.prototype._setupListeners = function () {
   var _this12 = this;
 
-  this._target.node.addEventListener('mousedown', function (evt) {
+  this.target.addPointerStartListener(function (evt) {
     if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this12._forwardToQuiz('startUserStroke', _this12._getMousePoint(evt));
+    _this12._forwardToQuiz('startUserStroke', evt.getPoint());
   });
-  this._target.node.addEventListener('touchstart', function (evt) {
+  this.target.addPointerMoveListener(function (evt) {
     if (_this12.isLoadingCharData || !_this12._quiz) return;
     evt.preventDefault();
-    _this12._forwardToQuiz('startUserStroke', _this12._getTouchPoint(evt));
+    _this12._forwardToQuiz('continueUserStroke', evt.getPoint());
   });
-  this._target.node.addEventListener('mousemove', function (evt) {
-    if (_this12.isLoadingCharData || !_this12._quiz) return;
-    evt.preventDefault();
-    _this12._forwardToQuiz('continueUserStroke', _this12._getMousePoint(evt));
-  });
-  this._target.node.addEventListener('touchmove', function (evt) {
-    if (_this12.isLoadingCharData || !_this12._quiz) return;
-    evt.preventDefault();
-    _this12._forwardToQuiz('continueUserStroke', _this12._getTouchPoint(evt));
-  });
-
-  // TODO: fix
-  global.document.addEventListener('mouseup', function () {
-    return _this12._forwardToQuiz('endUserStroke');
-  });
-  global.document.addEventListener('touchend', function () {
+  this.target.addPointerEndListener(function () {
     return _this12._forwardToQuiz('endUserStroke');
   });
 };
@@ -1143,34 +1272,6 @@ HanziWriter.prototype._forwardToQuiz = function (method) {
   }
 
   (_quiz = this._quiz)[method].apply(_quiz, args);
-};
-
-HanziWriter.prototype._getMousePoint = function (evt) {
-  if (this._pt) {
-    this._pt.x = evt.clientX;
-    this._pt.y = evt.clientY;
-    var localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return { x: localPt.x, y: localPt.y };
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  var box = this._target.node.getBoundingClientRect();
-  var x = evt.clientX - box.left;
-  var y = evt.clientY - box.top;
-  return { x: x, y: y };
-};
-
-HanziWriter.prototype._getTouchPoint = function (evt) {
-  if (this._pt) {
-    this._pt.x = evt.touches[0].clientX;
-    this._pt.y = evt.touches[0].clientY;
-    var localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
-    return { x: localPt.x, y: localPt.y };
-  }
-  // fallback in case SVG matrix transforms aren't supported
-  var box = this._target.node.getBoundingClientRect();
-  var x = evt.touches[0].clientX - box.left;
-  var y = evt.touches[0].clientY - box.top;
-  return { x: x, y: y };
 };
 
 // --- Static Public API --- //
@@ -1233,7 +1334,7 @@ if (true) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 8 */
+/* 10 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1381,7 +1482,7 @@ RenderState.prototype._cancelMutationChain = function (mutationChain) {
 module.exports = RenderState;
 
 /***/ }),
-/* 9 */
+/* 11 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1389,8 +1490,8 @@ module.exports = RenderState;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var Stroke = __webpack_require__(10);
-var Character = __webpack_require__(11);
+var Stroke = __webpack_require__(12);
+var Character = __webpack_require__(13);
 
 var generateStrokes = function generateStrokes(charJson) {
   var isInRadical = function isInRadical(strokeNum) {
@@ -1417,7 +1518,7 @@ var parseCharData = function parseCharData(symbol, charJson) {
 module.exports = parseCharData;
 
 /***/ }),
-/* 10 */
+/* 12 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1478,7 +1579,7 @@ Stroke.prototype.getAverageDistance = function (points) {
 module.exports = Stroke;
 
 /***/ }),
-/* 11 */
+/* 13 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1492,7 +1593,7 @@ function Character(symbol, strokes) {
 module.exports = Character;
 
 /***/ }),
-/* 12 */
+/* 14 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1535,20 +1636,20 @@ Positioner.prototype._calculateScaleAndOffset = function () {
 module.exports = Positioner;
 
 /***/ }),
-/* 13 */
+/* 15 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var strokeMatches = __webpack_require__(14);
-var UserStroke = __webpack_require__(15);
+var strokeMatches = __webpack_require__(16);
+var UserStroke = __webpack_require__(17);
 
 var _require = __webpack_require__(0),
     callIfExists = _require.callIfExists,
     counter = _require.counter;
 
-var quizActions = __webpack_require__(16);
+var quizActions = __webpack_require__(18);
 var geometry = __webpack_require__(2);
 var characterActions = __webpack_require__(4);
 
@@ -1676,7 +1777,7 @@ Quiz.prototype._getCurrentStroke = function () {
 module.exports = Quiz;
 
 /***/ }),
-/* 14 */
+/* 16 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1819,7 +1920,7 @@ var strokeMatches = function strokeMatches(userStroke, character, strokeNum) {
 module.exports = strokeMatches;
 
 /***/ }),
-/* 15 */
+/* 17 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1839,7 +1940,7 @@ UserStroke.prototype.appendPoint = function (point, externalPoint) {
 module.exports = UserStroke;
 
 /***/ }),
-/* 16 */
+/* 18 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1907,29 +2008,29 @@ module.exports = {
 };
 
 /***/ }),
-/* 17 */
+/* 19 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var HanziWriterRenderer = __webpack_require__(18);
-var RenderTarget = __webpack_require__(22);
+var HanziWriterRenderer = __webpack_require__(20);
+var RenderTarget = __webpack_require__(24);
 
 module.exports = {
   HanziWriterRenderer: HanziWriterRenderer,
-  RenderTarget: RenderTarget
+  createRenderTarget: RenderTarget.init
 };
 
 /***/ }),
-/* 18 */
+/* 20 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var CharacterRenderer = __webpack_require__(19);
-var UserStrokeRenderer = __webpack_require__(21);
+var CharacterRenderer = __webpack_require__(21);
+var UserStrokeRenderer = __webpack_require__(23);
 
 var _require = __webpack_require__(0),
     assign = _require.assign;
@@ -2007,13 +2108,13 @@ HanziWriterRenderer.prototype.destroy = function () {
 module.exports = HanziWriterRenderer;
 
 /***/ }),
-/* 19 */
+/* 21 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeRenderer = __webpack_require__(20);
+var StrokeRenderer = __webpack_require__(22);
 
 function CharacterRenderer(character) {
   this._oldProps = {};
@@ -2058,7 +2159,7 @@ CharacterRenderer.prototype.render = function (props) {
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 20 */
+/* 22 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2073,6 +2174,8 @@ var _require2 = __webpack_require__(2),
     extendStart = _require2.extendStart,
     getPathString = _require2.getPathString;
 
+var StrokeRendererBase = __webpack_require__(6);
+
 var STROKE_WIDTH = 200;
 
 // this is a stroke composed of several stroke parts
@@ -2081,6 +2184,7 @@ function StrokeRenderer(stroke) {
   this._stroke = stroke;
   this._pathLength = stroke.getLength() + STROKE_WIDTH / 2;
 }
+StrokeRenderer.prototype = Object.create(StrokeRendererBase.prototype);
 
 StrokeRenderer.prototype.mount = function (target) {
   this._animationPath = svg.createElm('path');
@@ -2132,21 +2236,10 @@ StrokeRenderer.prototype.render = function (props) {
   this._oldProps = props;
 };
 
-StrokeRenderer.prototype._getStrokeDashoffset = function (displayPortion) {
-  return this._pathLength * 0.999 * (1 - displayPortion);
-};
-
-StrokeRenderer.prototype._getColor = function (_ref) {
-  var strokeColor = _ref.strokeColor,
-      radicalColor = _ref.radicalColor;
-
-  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
-};
-
 module.exports = StrokeRenderer;
 
 /***/ }),
-/* 21 */
+/* 23 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2199,7 +2292,7 @@ UserStrokeRenderer.prototype.destroy = function () {
 module.exports = UserStrokeRenderer;
 
 /***/ }),
-/* 22 */
+/* 24 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2209,16 +2302,43 @@ var _require = __webpack_require__(3),
     createElm = _require.createElm,
     attrs = _require.attrs;
 
+var RenderTargetBase = __webpack_require__(7);
+
 function RenderTarget(svg, defs) {
   this.svg = svg;
   this.defs = defs;
   this.node = svg;
+
+  if (this.node.createSVGPoint) {
+    this._pt = this.node.createSVGPoint();
+  }
 }
+RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
 
 RenderTarget.prototype.createSubRenderTarget = function () {
   var group = createElm('g');
   this.svg.appendChild(group);
   return new RenderTarget(group, this.defs);
+};
+
+RenderTarget.prototype._getMousePoint = function (evt) {
+  if (this._pt) {
+    this._pt.x = evt.clientX;
+    this._pt.y = evt.clientY;
+    var localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    return { x: localPt.x, y: localPt.y };
+  }
+  return RenderTargetBase.prototype._getMousePoint.call(this, evt);
+};
+
+RenderTarget.prototype._getTouchPoint = function (evt) {
+  if (this._pt) {
+    this._pt.x = evt.touches[0].clientX;
+    this._pt.y = evt.touches[0].clientY;
+    var localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    return { x: localPt.x, y: localPt.y };
+  }
+  return RenderTargetBase.prototype._getTouchPoint.call(this, evt);
 };
 
 RenderTarget.init = function (elmOrId) {
@@ -2247,29 +2367,29 @@ module.exports = RenderTarget;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 23 */
+/* 25 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var HanziWriterRenderer = __webpack_require__(24);
-var RenderTarget = __webpack_require__(28);
+var HanziWriterRenderer = __webpack_require__(26);
+var RenderTarget = __webpack_require__(30);
 
 module.exports = {
   HanziWriterRenderer: HanziWriterRenderer,
-  RenderTarget: RenderTarget
+  createRenderTarget: RenderTarget.init
 };
 
 /***/ }),
-/* 24 */
+/* 26 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var CharacterRenderer = __webpack_require__(25);
-var renderUserStroke = __webpack_require__(27);
+var CharacterRenderer = __webpack_require__(27);
+var renderUserStroke = __webpack_require__(29);
 
 var _require = __webpack_require__(0),
     assign = _require.assign;
@@ -2287,7 +2407,7 @@ HanziWriterRenderer.prototype.mount = function (target) {
 };
 
 HanziWriterRenderer.prototype._animationFrame = function (func) {
-  var ctx = this._target.node.getContext('2d');
+  var ctx = this._target.getContext();
   ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
 
   ctx.save();
@@ -2295,6 +2415,7 @@ HanziWriterRenderer.prototype._animationFrame = function (func) {
   ctx.scale(this._positioner.scale, -1 * this._positioner.scale);
   func(ctx);
   ctx.restore();
+  if (ctx.draw) ctx.draw();
 };
 
 HanziWriterRenderer.prototype.render = function (props) {
@@ -2336,13 +2457,13 @@ HanziWriterRenderer.prototype.destroy = function () {};
 module.exports = HanziWriterRenderer;
 
 /***/ }),
-/* 25 */
+/* 27 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var StrokeRenderer = __webpack_require__(26);
+var StrokeRenderer = __webpack_require__(28);
 
 function CharacterRenderer(character) {
   this._strokeRenderers = character.strokes.map(function (stroke) {
@@ -2365,7 +2486,7 @@ CharacterRenderer.prototype.render = function (ctx, props) {
 module.exports = CharacterRenderer;
 
 /***/ }),
-/* 26 */
+/* 28 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -2374,24 +2495,42 @@ module.exports = CharacterRenderer;
 var _require = __webpack_require__(2),
     extendStart = _require.extendStart;
 
-var _require2 = __webpack_require__(6),
-    drawPath = _require2.drawPath;
+var _require2 = __webpack_require__(8),
+    drawPath = _require2.drawPath,
+    pathStringToCanvas = _require2.pathStringToCanvas;
+
+var StrokeRendererBase = __webpack_require__(6);
 
 var STROKE_WIDTH = 200;
 
 // this is a stroke composed of several stroke parts
 function StrokeRenderer(stroke) {
+  var usePath2D = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : true;
+
   this._stroke = stroke;
   this._pathLength = stroke.getLength() + STROKE_WIDTH / 2;
-  this._path2D = new global.Path2D(this._stroke.path);
+  if (usePath2D && global.Path2D) {
+    this._path2D = new global.Path2D(this._stroke.path);
+  } else {
+    this._pathCmd = pathStringToCanvas(this._stroke.path);
+  }
   this._extendedMaskPoints = extendStart(this._stroke.points, STROKE_WIDTH / 2);
 }
+StrokeRenderer.prototype = Object.create(StrokeRendererBase.prototype);
 
 StrokeRenderer.prototype.render = function (ctx, props) {
   if (props.opacity < 0.05) return;
 
   ctx.save();
-  ctx.clip(this._path2D);
+  if (this._path2D) {
+    ctx.clip(this._path2D);
+  } else {
+    this._pathCmd(ctx);
+    // wechat bugs out if the clip path isn't stroked or filled
+    ctx.globalAlpha = 0;
+    ctx.stroke();
+    ctx.clip();
+  }
 
   var _getColor = this._getColor(props),
       r = _getColor.r,
@@ -2399,42 +2538,33 @@ StrokeRenderer.prototype.render = function (ctx, props) {
       b = _getColor.b,
       a = _getColor.a;
 
-  var color = 'rgba(' + r + ',' + g + ',' + b + ',' + a + ')';
+  var color = a === 1 ? 'rgb(' + r + ',' + g + ',' + b + ')' : 'rgb(' + r + ',' + g + ',' + b + ',' + a + ')';
+  var dashOffset = this._getStrokeDashoffset(props.displayPortion);
   ctx.globalAlpha = props.opacity;
   ctx.strokeStyle = color;
   ctx.fillStyle = color;
   ctx.lineWidth = STROKE_WIDTH;
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
-  ctx.setLineDash([this._pathLength, this._pathLength]);
-  ctx.lineDashOffset = this._getStrokeDashoffset(props.displayPortion);
+  // wechat sets dashOffset as a second param here. Should be harmless for browsers to add here too
+  ctx.setLineDash([this._pathLength, this._pathLength], dashOffset);
+  ctx.lineDashOffset = dashOffset;
   drawPath(ctx, this._extendedMaskPoints);
 
   ctx.restore();
-};
-
-StrokeRenderer.prototype._getStrokeDashoffset = function (displayPortion) {
-  return this._pathLength * 0.999 * (1 - displayPortion);
-};
-
-StrokeRenderer.prototype._getColor = function (_ref) {
-  var strokeColor = _ref.strokeColor,
-      radicalColor = _ref.radicalColor;
-
-  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
 };
 
 module.exports = StrokeRenderer;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 27 */
+/* 29 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 
 
-var _require = __webpack_require__(6),
+var _require = __webpack_require__(8),
     drawPath = _require.drawPath;
 
 module.exports = function (ctx, props) {
@@ -2457,15 +2587,22 @@ module.exports = function (ctx, props) {
 };
 
 /***/ }),
-/* 28 */
+/* 30 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
+var RenderTargetBase = __webpack_require__(7);
+
 function RenderTarget(canvas) {
   this.node = canvas;
 }
+RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
+
+RenderTarget.prototype.getContext = function () {
+  return this.node.getContext('2d');
+};
 
 RenderTarget.init = function (elmOrId) {
   var width = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : '100%';
@@ -2492,15 +2629,12 @@ module.exports = RenderTarget;
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 29 */
+/* 31 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
 /* WEBPACK VAR INJECTION */(function(global) {
 
-// corresponds to the integer in the gh-pages branch under the cdn folder
-// make sure to check out a new version of the master branch in gh-pages when changing the data format
-// otherwise this may break any existing hanzi-writer deploys in the wild
 var VERSION = '2.0';
 var getCharDataUrl = function getCharDataUrl(char) {
   return 'https://cdn.jsdelivr.net/npm/hanzi-writer-data@' + VERSION + '/' + char + '.json';
@@ -2532,7 +2666,7 @@ module.exports = function (char, onLoad, onError) {
 /* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
 
 /***/ }),
-/* 30 */
+/* 32 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";

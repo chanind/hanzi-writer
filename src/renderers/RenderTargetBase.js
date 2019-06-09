@@ -1,13 +1,5 @@
 function RenderTargetBase() {}
 
-RenderTargetBase.prototype.addEventListener = function(name, callback) {
-  this.node.addEventListener(name, callback);
-};
-
-RenderTargetBase.prototype.addGlobalListener = function(name, callback) {
-  global.document.addEventListener(name, callback);
-};
-
 RenderTargetBase.prototype.addPointerStartListener = function(callback) {
   this.node.addEventListener('mousedown', (evt) => {
     callback(this._eventify(evt, this._getMousePoint));

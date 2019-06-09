@@ -210,7 +210,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this._target, this._renderState.state);
+    this._hanziWriterRenderer.mount(this.target, this._renderState.state);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;
@@ -223,9 +223,10 @@ HanziWriter.prototype._init = function(element, options) {
   const rendererOverride = options.rendererOverride || {};
   this._renderer = {
     HanziWriterRenderer: rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
-    RenderTarget: rendererOverride.RenderTarget || renderer.RenderTarget,
+    createRenderTarget: rendererOverride.createRenderTarget || renderer.createRenderTarget,
   };
-  this._target = this._renderer.RenderTarget.init(element, options.width, options.height);
+  // wechat miniprogram component needs direct access to the render target, so this is public
+  this.target = this._renderer.createRenderTarget(element, options.width, options.height);
   this._options = this._assignOptions(options);
   this._loadingManager = new LoadingManager(this._options);
   this._setupListeners();
@@ -259,7 +260,7 @@ HanziWriter.prototype._fillWidthAndHeight = function(options) {
   } else if (filledOpts.height && !filledOpts.width) {
     filledOpts.width = filledOpts.height;
   } else if (!filledOpts.width && !filledOpts.height) {
-    const { width, height } = this._target.getBoundingClientRect();
+    const { width, height } = this.target.getBoundingClientRect();
     const minDim = Math.min(width, height);
     filledOpts.width = minDim;
     filledOpts.height = minDim;
@@ -280,17 +281,17 @@ HanziWriter.prototype._withData = function(func) {
 };
 
 HanziWriter.prototype._setupListeners = function() {
-  this._target.addPointerStartListener((evt) => {
+  this.target.addPointerStartListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', evt.getPoint());
   });
-  this._target.addPointerMoveListener((evt) => {
+  this.target.addPointerMoveListener((evt) => {
     if (this.isLoadingCharData || !this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', evt.getPoint());
   });
-  this._target.addPointerEndListener(() => this._forwardToQuiz('endUserStroke'));
+  this.target.addPointerEndListener(() => this._forwardToQuiz('endUserStroke'));
 };
 
 HanziWriter.prototype._forwardToQuiz = function(method, ...args) {

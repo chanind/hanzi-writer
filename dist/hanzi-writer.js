@@ -2,7 +2,17 @@
  * Hanzi Writer v1.4.2
  * https://chanind.github.io/hanzi-writer
  */
-/******/ (function(modules) { // webpackBootstrap
+(function webpackUniversalModuleDefinition(root, factory) {
+	if(typeof exports === 'object' && typeof module === 'object')
+		module.exports = factory();
+	else if(typeof define === 'function' && define.amd)
+		define([], factory);
+	else if(typeof exports === 'object')
+		exports["HanziWriter"] = factory();
+	else
+		root["HanziWriter"] = factory();
+})(typeof self !== 'undefined' ? self : this, function() {
+return /******/ (function(modules) { // webpackBootstrap
 /******/ 	// The module cache
 /******/ 	var installedModules = {};
 /******/
@@ -933,7 +943,7 @@ module.exports = { drawPath: drawPath, pathStringToCanvas: pathStringToCanvas };
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
-/* WEBPACK VAR INJECTION */(function(global) {
+
 
 var RenderState = __webpack_require__(10);
 var parseCharData = __webpack_require__(11);
@@ -1313,25 +1323,7 @@ HanziWriter.getScalingTransform = function (width, height) {
   };
 };
 
-// set up window.HanziWriter if we're in the browser
-if (typeof global.window !== 'undefined') {
-  // store whatever used to be called HanziWriter in case of a conflict
-  var previousHanziWriter = global.window.HanziWriter;
-
-  // add a jQuery-esque noConflict method to restore the previous global.window.HanziWriter if necessary
-  HanziWriter.noConflict = function () {
-    global.window.HanziWriter = previousHanziWriter;
-    return HanziWriter;
-  };
-
-  global.window.HanziWriter = HanziWriter;
-}
-
-// set up module.exports if we're in node/webpack
-if (true) {
-  module.exports = HanziWriter;
-}
-/* WEBPACK VAR INJECTION */}.call(exports, __webpack_require__(1)))
+module.exports = HanziWriter;
 
 /***/ }),
 /* 10 */
@@ -2740,3 +2732,4 @@ module.exports = LoadingManager;
 
 /***/ })
 /******/ ]);
+});

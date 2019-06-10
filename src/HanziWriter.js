@@ -335,21 +335,4 @@ HanziWriter.getScalingTransform = (width, height, padding = 0) => {
   };
 };
 
-// set up window.HanziWriter if we're in the browser
-if (typeof global.window !== 'undefined') {
-  // store whatever used to be called HanziWriter in case of a conflict
-  const previousHanziWriter = global.window.HanziWriter;
-
-  // add a jQuery-esque noConflict method to restore the previous global.window.HanziWriter if necessary
-  HanziWriter.noConflict = () => {
-    global.window.HanziWriter = previousHanziWriter;
-    return HanziWriter;
-  };
-
-  global.window.HanziWriter = HanziWriter;
-}
-
-// set up module.exports if we're in node/webpack
-if (typeof module !== 'undefined') {
-  module.exports = HanziWriter;
-}
+module.exports = HanziWriter;

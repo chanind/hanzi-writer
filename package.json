@@ -31,13 +31,15 @@
     "jest-cli": "^24.8.0",
     "lolex": "2.3.2",
     "nise": "^1.2.5",
+    "semantic-release": "^15.13.12",
     "webpack": "^3.6.0"
   },
   "scripts": {
     "test": "jest",
     "lint-test": "eslint -c .eslintrc-jest src",
     "build": "grunt",
-    "prepublishOnly": "grunt"
+    "prepublishOnly": "grunt",
+    "semantic-release": "semantic-release"
   },
   "jest": {
     "setupFiles": [

@@ -26,3 +26,4 @@ jobs:
       - run: yarn lint-test
       - run: yarn test
       - run: yarn codecov
+      - run: if [ "$CIRCLE_BRANCH" = "master" ]; then yarn semantic-release; fi

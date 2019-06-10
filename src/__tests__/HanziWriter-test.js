@@ -784,14 +784,6 @@ describe('HanziWriter', () => {
     });
   });
 
-  describe('noConflict', () => {
-    it('resets whatever was previously in the global HanziWriter namespace', () => {
-      expect(global.HanziWriter).toBe(HanziWriter);
-      HanziWriter.noConflict();
-      expect(global.HanziWriter).toBe(oldGlobal);
-    });
-  });
-
   describe('loadCharacterData', () => {
     it('calls onLoadCharDataError if provided on loading failure', async () => {
       const onLoadCharDataError = jest.fn();

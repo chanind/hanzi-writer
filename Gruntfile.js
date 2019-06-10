@@ -61,8 +61,8 @@ module.exports = function(grunt) {
         entry: './src/HanziWriter.js',
         output: {
           filename: 'dist/hanzi-writer-lib.js',
-          library: 'hanzi-writer',
-          libraryTarget: 'commonjs2'
+          library: 'hanziWriter',
+          libraryTarget: 'umd'
         }
       }
     },

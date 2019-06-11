@@ -22,7 +22,7 @@ RenderTarget.prototype._getMousePoint = function(evt) {
   if (this._pt) {
     this._pt.x = evt.clientX;
     this._pt.y = evt.clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    const localPt = this._pt.matrixTransform(this.node.getScreenCTM().inverse());
     return {x: localPt.x, y: localPt.y};
   }
   return RenderTargetBase.prototype._getMousePoint.call(this, evt);
@@ -32,7 +32,7 @@ RenderTarget.prototype._getTouchPoint = function(evt) {
   if (this._pt) {
     this._pt.x = evt.touches[0].clientX;
     this._pt.y = evt.touches[0].clientY;
-    const localPt = this._pt.matrixTransform(this._target.node.getScreenCTM().inverse());
+    const localPt = this._pt.matrixTransform(this.node.getScreenCTM().inverse());
     return {x: localPt.x, y: localPt.y};
   }
   return RenderTargetBase.prototype._getTouchPoint.call(this, evt);

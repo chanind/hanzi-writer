@@ -868,8 +868,12 @@ Page({
       {% endhighlight %}
 
       <p>
-        This method requires the id from the hanzi-writer-view component in wxml, the current page, and a charDataLoader.
-        Unfortunately, network access is restricted inside of miniprograms, so you'll need to handle loading character data yourself.
+        This method requires the id from the hanzi-writer-view component in wxml, and the current page.
+      </p>
+      <p>
+        By default, character data is loaded from the hanzi-writer CDN, so you'll need to add <code>https://cdn.jsdelivr.net</code> to your
+        <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html"></a>list of approved domain names</a>.
+        Otherwise, you can provide your own <code>charDataLoader</code> function and load character data however you like. 
         You can read more about <a href="#loading-character-data-link">loading character data here</a>.
       </p>
       <p>

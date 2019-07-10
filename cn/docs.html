@@ -76,7 +76,7 @@ js: ../docs.js
       <p>
         最简单选项是直接从 jsdelivr CDN 加载 Hanzi Writer JS 。只需将以下内容放入你的网页的头部:
         {% highlight html %}
-        <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.3/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.3/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -95,7 +95,7 @@ js: ../docs.js
         如果你想在 webpack 或 node.js 中包含 Hanzi Writer，你可以从 <code>npm install hanzi-writer</code> 安装。然后，你可以在你的代码中包含 Hanzi
         Writer
         {% highlight javascript %}
-        const HanziWriter = require('hanzi-writer');
+const HanziWriter = require('hanzi-writer');
         {% endhighlight %}
       </p>
       <br /><br />
@@ -105,7 +105,7 @@ js: ../docs.js
           如果你想在旧版本 IE10/IE11 使用 Hanzi Writer，你需要为 Promise api 提供一个填充工具
           <br /><br />
           {% highlight html %}
-          <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
           {% endhighlight %}
         </div>
       </div>
@@ -116,15 +116,15 @@ js: ../docs.js
         创建一个新的 <code>HanziWriter</code> 实例需要传入一个目标 div （ID 或者 DOM 引用）,你要渲染的汉字, 配置选项. 下面举例说明一个简单的例子。在 HTML 中声明以下内容:
       </p>
       {% highlight html %}
-      <div id="character-target-div"></div>
+<div id="character-target-div"></div>
       {% endhighlight %}
       <p>然后, 在 Javascript:</p>
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '我', {
-      width: 100,
-      height: 100,
-      padding: 5
-      });
+var writer = HanziWriter.create('character-target-div', '我', {
+  width: 100,
+  height: 100,
+  padding: 5
+});
       {% endhighlight %}
 
       <p>你能看到以下结果:</p>
@@ -144,12 +144,12 @@ js: ../docs.js
       </p>
 
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '爽', {
-      width: 150,
-      height: 150,
-      padding: 20,
-      strokeColor: '#EE00FF' // pink
-      });
+var writer = HanziWriter.create('character-target-div', '爽', {
+  width: 150,
+  height: 150,
+  padding: 20,
+  strokeColor: '#EE00FF' // pink
+});
       {% endhighlight %}
 
       <div id="docs-target-2" class="inline-demo medium-demo"></div>
@@ -169,12 +169,12 @@ js: ../docs.js
       </p>
 
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '草', {
-      width: 150,
-      height: 150,
-      padding: 5,
-      radicalColor: '#168F16' // green
-      });
+var writer = HanziWriter.create('character-target-div', '草', {
+  width: 150,
+  height: 150,
+  padding: 5,
+  radicalColor: '#168F16' // green
+});
       {% endhighlight %}
 
       <div id="docs-target-2-1" class="inline-demo medium-demo"></div>
@@ -193,21 +193,21 @@ js: ../docs.js
       <p>当你创建了一个 Hanzi Writer 实例后，你可以调用 <code>animateCharacter()</code> 方法来让它运动. 在下面的例子中,
         点击按钮可以让汉字运动。这个 HTML 代码看起来是下面这个样子:</p>
       {% highlight html %}
-      <div id="character-target-div"></div>
-      <button id="animate-button">动画</button>
+<div id="character-target-div"></div>
+<button id="animate-button">动画</button>
       {% endhighlight %}
 
       <p>Then, the corresponding javascript:</p>
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '国', {
-      width: 100,
-      height: 100,
-      padding: 5,
-      showOutline: true
-      });
-      document.getElementById('animate-button').addEventListener('click', function() {
-      writer.animateCharacter();
-      });
+var writer = HanziWriter.create('character-target-div', '国', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showOutline: true
+});
+document.getElementById('animate-button').addEventListener('click', function() {
+  writer.animateCharacter();
+});
       {% endhighlight %}
 
       <div id="docs-target-3" class="inline-demo"></div>
@@ -229,18 +229,18 @@ js: ../docs.js
       <p>你还可以使用动画配置许多选项来控制动画的速度以及角色轮廓是否可见等内容。 如果你想在汉字动画播放时展示偏旁部首的颜色你可以给偏旁部首设置颜色。下面是使用不同动画选项制作动画的另一个示例：</p>
 
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '激', {
-      width: 100,
-      height: 100,
-      padding: 5,
-      showOutline: false,
-      strokeAnimationSpeed: 5, // 5x normal speed
-      delayBetweenStrokes: 10, // milliseconds
-      radicalColor: '#337ab7' // blue
-      });
-      document.getElementById('animate-button').addEventListener('click', function() {
-      writer.animateCharacter();
-      });
+var writer = HanziWriter.create('character-target-div', '激', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showOutline: false,
+  strokeAnimationSpeed: 5, // 5x normal speed
+  delayBetweenStrokes: 10, // milliseconds
+  radicalColor: '#337ab7' // blue
+});
+document.getElementById('animate-button').addEventListener('click', function() {
+  writer.animateCharacter();
+});
       {% endhighlight %}
       <div id="docs-target-4" class="inline-demo"></div>
       <button class="btn btn-primary inline-demo-btn" id="docs-target-4-button" type="submit">快速</button>
@@ -268,14 +268,14 @@ js: ../docs.js
         你可以用来控制动画循环的时间 (默认 2000 ms). 在下面的例子中, 这个汉字会等待 3 秒然后永远重复播放:
       </p>
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '轮', {
-      width: 100,
-      height: 100,
-      padding: 5,
-      delayBetweenLoops: 3000
-      });
+var writer = HanziWriter.create('character-target-div', '轮', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  delayBetweenLoops: 3000
+});
 
-      writer.loopCharacterAnimation();
+writer.loopCharacterAnimation();
       {% endhighlight %}
       <div id="docs-target-5" class="inline-demo"></div>
       <script>
@@ -304,40 +304,40 @@ js: ../docs.js
         HTML 代码:
       </p>
       {% highlight html %}
-      <div id="character-target-1"></div>
-      <div id="character-target-2"></div>
-      <button id="animate-button">Start</button>
+<div id="character-target-1"></div>
+<div id="character-target-2"></div>
+<button id="animate-button">Start</button>
       {% endhighlight %}
       <p>javascript 代码:</p>
       {% highlight javascript %}
-      var char1 = HanziWriter.create('character-target-1', '很', {
-      width: 100,
-      height: 100,
-      padding: 5,
-      showCharacter: false
-      });
-      var char2 = HanziWriter.create('character-target-2', '爽', {
-      width: 100,
-      height: 100,
-      padding: 5,
-      showCharacter: false
-      });
+var char1 = HanziWriter.create('character-target-1', '很', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showCharacter: false
+});
+var char2 = HanziWriter.create('character-target-2', '爽', {
+  width: 100,
+  height: 100,
+  padding: 5,
+  showCharacter: false
+});
 
-      function chainAnimations() {
-      var delayBetweenAnimations = 1000; // milliseconds
-      char1.hideCharacter();
-      char2.hideCharacter();
+function chainAnimations() {
+  var delayBetweenAnimations = 1000; // milliseconds
+  char1.hideCharacter();
+  char2.hideCharacter();
 
-      char1.animateCharacter({
-      onComplete: function() {
+  char1.animateCharacter({
+    onComplete: function() {
       setTimeout(function() {
-      char2.animateCharacter();
+        char2.animateCharacter();
       }, delayBetweenAnimations);
-      }
-      });
-      }
+    }
+  });
+}
 
-      document.getElementById('animate-button').addEventListener('click', chainAnimations);
+document.getElementById('animate-button').addEventListener('click', chainAnimations);
       {% endhighlight %}
       <div class="inline-demo-flex">
         <div id="docs-target-6-1" class="inline-demo"></div>
@@ -384,13 +384,13 @@ js: ../docs.js
         开始测试你可以调用 <code>quiz()</code> 方法. 我们用一段设置一个简单测试:
       </p>
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '测', {
-      width: 150,
-      height: 150,
-      showCharacter: false,
-      padding: 5
-      });
-      writer.quiz();
+var writer = HanziWriter.create('character-target-div', '测', {
+  width: 150,
+  height: 150,
+  showCharacter: false,
+  padding: 5
+});
+writer.quiz();
       {% endhighlight %}
 
       <div id="docs-target-7" class="inline-demo medium-demo"></div>
@@ -419,16 +419,16 @@ js: ../docs.js
         下面的示例还设置了 <code>showOutline: false</code> e以使其更具挑战性。
       </p>
       {% highlight javascript %}
-      var writer = HanziWriter.create('character-target-div', '鬼', {
-      width: 150,
-      height: 150,
-      showCharacter: false,
-      showOutline: false,
-      showHintAfterMisses: 1,
-      highlightOnComplete: false,
-      padding: 5
-      });
-      writer.quiz();
+var writer = HanziWriter.create('character-target-div', '鬼', {
+  width: 150,
+  height: 150,
+  showCharacter: false,
+  showOutline: false,
+  showHintAfterMisses: 1,
+  highlightOnComplete: false,
+  padding: 5
+});
+writer.quiz();
       {% endhighlight %}
 
       <div id="docs-target-8" class="inline-demo medium-demo"></div>
@@ -461,30 +461,30 @@ js: ../docs.js
         这些回调函数由包含有关测验当前状态的信息的对象得到。
         下面的例子展示怎么整合这些回调函数：
         {% highlight javascript %}
-        var writer = HanziWriter.create('character-target-div', '码', {
-        width: 150,
-        height: 150,
-        showCharacter: false,
-        padding: 5
-        });
-        writer.quiz({
-        onMistake: function(strokeData) {
-        console.log('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
-        console.log("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
-        console.log("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
-        console.log("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
-        },
-        onCorrectStroke: function(strokeData) {
-        console.log('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
-        console.log('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
-        console.log("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
-        console.log('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
-        },
-        onComplete: function(summaryData) {
-        console.log('You did it! You finished drawing ' + summaryData.character);
-        console.log('You made ' + summaryData.totalMistakes + ' total mistakes on this quiz');
-        }
-        });
+var writer = HanziWriter.create('character-target-div', '码', {
+  width: 150,
+  height: 150,
+  showCharacter: false,
+  padding: 5
+});
+writer.quiz({
+  onMistake: function(strokeData) {
+    console.log('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
+    console.log("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
+    console.log("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
+    console.log("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
+  },
+  onCorrectStroke: function(strokeData) {
+    console.log('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
+    console.log('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
+    console.log("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
+    console.log('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
+  },
+  onComplete: function(summaryData) {
+    console.log('You did it! You finished drawing ' + summaryData.character);
+    console.log('You made ' + summaryData.totalMistakes + ' total mistakes on this quiz');
+  }
+});
         {% endhighlight %}
 
         <div class="inline-demo-flex">
@@ -596,13 +596,13 @@ js: ../docs.js
         </p>
 
         {% highlight javascript %}
-        var writer = HanziWriter.create('target', '我', {
-        charDataLoader: function(char, onComplete) {
-        $.getJSON("/my/server/" + char + ".json", function(charData) {
-        onComplete(charData);
-        });
-        }
-        });
+var writer = HanziWriter.create('target', '我', {
+  charDataLoader: function(char, onComplete) {
+    $.getJSON("/my/server/" + char + ".json", function(charData) {
+      onComplete(charData);
+    });
+  }
+});
         {% endhighlight %}
 
         <p>
@@ -623,13 +623,13 @@ js: ../docs.js
           模块。
           <p>
             {% highlight javascript %}
-            var ren = require('hanzi-writer-data/人');
+var ren = require('hanzi-writer-data/人');
 
-            var writer = HanziWriter.create('target', '人', {
-            charDataLoader: function() {
-            return ren;
-            }
-            });
+var writer = HanziWriter.create('target', '人', {
+  charDataLoader: function() {
+    return ren;
+  }
+});
             {% endhighlight %}
           </p>
 
@@ -641,16 +641,16 @@ js: ../docs.js
           </p>
 
           {% highlight javascript %}
-          var ren = require('hanzi-writer-data/人');
+var ren = require('hanzi-writer-data/人');
 
-          var writer = HanziWriter.create('target', '人', {
-          onLoadCharDataSuccess: function(data) {
-          console.log('Success!');
-          },
-          onLoadCharDataError: function(reason) {
-          console.log('Oh No! Something went wrong :(');
-          }
-          });
+var writer = HanziWriter.create('target', '人', {
+  onLoadCharDataSuccess: function(data) {
+    console.log('Success!');
+  },
+  onLoadCharDataError: function(reason) {
+    console.log('Oh No! Something went wrong :(');
+  }
+});
           {% endhighlight %}
 
           <h2 id="raw-character-svg">原生汉字 SVG</h2>
@@ -678,14 +678,14 @@ js: ../docs.js
           </p>
 
           {% highlight html %}
-          <svg>
-            <g transform="translate(0, 112.5) scale(0.125, -0.125)">
-              <path d="...path from hanzi writer data..."></path>
-              <path d="...path from hanzi writer data..."></path>
-              <path d="...path from hanzi writer data..."></path>
-              ...
-            </g>
-          </svg>
+<svg>
+  <g transform="translate(0, 112.5) scale(0.125, -0.125)">
+    <path d="...path from hanzi writer data..."></path>
+    <path d="...path from hanzi writer data..."></path>
+    <path d="...path from hanzi writer data..."></path>
+    ...
+  </g>
+</svg>
           {% endhighlight %}
 
           <p>
@@ -697,27 +697,27 @@ js: ../docs.js
           </p>
 
           {% highlight javascript %}
-          HanziWriter.loadCharacterData('六').then(function(charData) {
-          var target = document.getElementById('target');
-          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svg.style.width = '150px';
-          svg.style.height = '150px';
-          target.appendChild(svg);
-          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+HanziWriter.loadCharacterData('六').then(function(charData) {
+  var target = document.getElementById('target');
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.style.width = '150px';
+  svg.style.height = '150px';
+  target.appendChild(svg);
+  var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-          // set the transform property on the g element so the character renders at 150x150
-          var transformData = HanziWriter.getScalingTransform(150, 150);
-          group.setAttributeNS(null, 'transform', transformData.transform);
-          svg.appendChild(group);
+  // set the transform property on the g element so the character renders at 150x150
+  var transformData = HanziWriter.getScalingTransform(150, 150);
+  group.setAttributeNS(null, 'transform', transformData.transform);
+  svg.appendChild(group);
 
-          charData.strokes.forEach(function(strokePath) {
-          var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path.setAttributeNS(null, 'd', strokePath);
-          // style the character paths
-          path.style.fill = '#555';
-          group.appendChild(path);
-          });
-          });
+  charData.strokes.forEach(function(strokePath) {
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, 'd', strokePath);
+    // style the character paths
+    path.style.fill = '#555';
+    group.appendChild(path);
+  });
+});
           {% endhighlight %}
 
           <div id="docs-target-10" class="inline-demo medium-demo"></div>
@@ -752,35 +752,38 @@ js: ../docs.js
             例如，下面是使用原始字符数据实现汉字<b>是</b>的描边扇形可视化的示例
           </p>
           {% highlight javascript %}
-          function renderFanningStrokes(target, strokes) {
-          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
-          svg.style.width = '75px';
-          svg.style.height = '75px';
-          svg.style.border = '1px solid #EEE'
-          svg.style.marginRight = '3px'
-          target.appendChild(svg);
-          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+function renderFanningStrokes(target, strokes) {
+  var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+  svg.style.width = '75px';
+  svg.style.height = '75px';
+  svg.style.border = '1px solid #EEE'
+  svg.style.marginRight = '3px'
+  target.appendChild(svg);
+  var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
 
-          // set the transform property on the g element so the character renders at 75x75
-          var transformData = HanziWriter.getScalingTransform(75, 75);
-          group.setAttributeNS(null, 'transform', transformData.transform);
-          svg.appendChild(group);
+  // set the transform property on the g element so the character renders at 75x75
+  var transformData = HanziWriter.getScalingTransform(75, 75);
+  group.setAttributeNS(null, 'transform', transformData.transform);
+  svg.appendChild(group);
 
-          strokes.forEach(function(strokePath) {
-          var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
-          path.setAttributeNS(null, 'd', strokePath);
-          // style the character paths
-          path.style.fill = '#555';
-          group.appendChild(path);
-          });
-          }
+  strokes.forEach(function(strokePath) {
+    var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    path.setAttributeNS(null, 'd', strokePath);
+    // style the character paths
+    path.style.fill = '#555';
+    group.appendChild(path);
+  });
+}
 
-          HanziWriter.loadCharacterData('是').then(function(charData) {
-          var target = document.getElementById('target');
-          for (var i = 0; i < charData.strokes.length; i++) { var strokesPortion=charData.strokes.slice(0, i + 1);
-            renderFanningStrokes(target, strokesPortion); } }); {% endhighlight %} <div id="docs-target-11"
-            class="borderless-horiz-demo">
-    </div>
+HanziWriter.loadCharacterData('是').then(function(charData) {
+  var target = document.getElementById('target');
+  for (var i = 0; i < charData.strokes.length; i++) {
+    var strokesPortion = charData.strokes.slice(0, i + 1);
+    renderFanningStrokes(target, strokesPortion);
+  }
+});
+          {% endhighlight %}
+          <div id="docs-target-11" class="borderless-horiz-demo"></div>
     <script>
       (function () {
         function renderFanningStrokes(target, strokes) {
@@ -832,12 +835,12 @@ js: ../docs.js
     </p>
 
     {% highlight html %}
-    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="grid-background-target">
-      <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
-      <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
-      <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
-      <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
-    </svg>
+<svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="grid-background-target">
+  <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+  <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+  <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+  <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+</svg>
     {% endhighlight %}
     <div class="inline-demo">
       <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
@@ -851,11 +854,11 @@ js: ../docs.js
     <p>然后，我们可以使用它的 ID 渲染到这个 SVG，就像我们可以使用普通div一样：</p>
 
     {% highlight javascript %}
-    var writer = HanziWriter.create('grid-background-target', '酷', {
-    width: 100,
-    height: 100,
-    padding: 5,
-    });
+var writer = HanziWriter.create('grid-background-target', '酷', {
+  width: 100,
+  height: 100,
+  padding: 5,
+});
     {% endhighlight %}
     <div class="inline-demo">
       <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="docs-target-12">
@@ -890,11 +893,11 @@ js: ../docs.js
     </p>
 
     {% highlight javascript %}
-    {
-    "usingComponents": {
+{
+  "usingComponents": {
     "hanzi-writer-view": "hanzi-writer-miniprogram/hanzi-writer-view"
-    }
-    }
+  }
+}
     {% endhighlight %}
 
     <p>
@@ -904,7 +907,7 @@ js: ../docs.js
     </p>
 
     {% highlight html %}
-    <hanzi-writer-view id="hz-writer" width="300" height="300" />
+<hanzi-writer-view id="hz-writer" width="300" height="300" />
     {% endhighlight %}
 
     <p>
@@ -912,21 +915,21 @@ js: ../docs.js
     </p>
 
     {% highlight javascript %}
-    import createHanziWriterContext from 'hanzi-writer-miniprogram';
+import createHanziWriterContext from 'hanzi-writer-miniprogram';
 
-    Page({
-    onLoad: function() {
+Page({
+  onLoad: function() {
     this.writerCtx = createHanziWriterContext({
-    id: 'hz-writer',
-    character: '你',
-    page: this,
-    charDataLoader: (char) => { /* char data loading logic here */ },
+      id: 'hz-writer',
+      character: '你',
+      page: this,
+      charDataLoader: (char) => { /* char data loading logic here */ },
     });
 
     // You can call any normal HanziWriter method here
     this.writerCtx.loopCharacterAnimation();
-    }
-    });
+  }
+});
     {% endhighlight %}
 
     <p>

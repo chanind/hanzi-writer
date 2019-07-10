@@ -18,4 +18,3 @@ exclude:
   - cdn/*/all.json
   - vendor
   - cdn/*/vendor
-  

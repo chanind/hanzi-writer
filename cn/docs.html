@@ -1,0 +1,1351 @@
+---
+layout: default.cn
+js: ../docs.js
+---
+
+<div class="container docs">
+  <div class="row">
+    <div class="col-sm-3">
+      <div class="toc" id="toc" data-spy="affix" data-offset-top="95" data-offset-bottom="155">
+        <ul class="nav">
+          <li>
+            <a href="#installation-link">
+              安装
+            </a>
+            <ul class="nav">
+              <li>
+                <a href="#script-loading-link">使用 script 标签</a>
+              </li>
+              <li>
+                <a href="#npm-loading-link">使用 npm</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="#basic-usage-link">基本用法</a>
+            <ul class="nav">
+              <li>
+                <a href="#rendering-link">渲染</a>
+              </li>
+              <li>
+                <a href="#animation-link">动画</a>
+              </li>
+              <li>
+                <a href="#looping-animation-link">循环动画</a>
+              </li>
+              <li>
+                <a href="#chaining-animation-link">链接动画</a>
+              </li>
+              <li>
+                <a href="#quizzing-link">测试</a>
+              </li>
+              <li>
+                <a href="#integrating-quizzes-link">整合测验</a>
+              </li>
+              <li>
+                <a href="#other-methods-link">其他方法</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="#advanced-usage-link">高级用法</a>
+            <ul class="nav">
+              <li>
+                <a href="#loading-character-data-link">加载汉字数据</a>
+              </li>
+              <li>
+                <a href="#raw-character-svg">原生汉字 SVG</a>
+              </li>
+              <li>
+                <a href="#custom-backgrounds">自定义背景</a>
+              </li>
+              <li>
+                <a href="#wechat-miniprograms">Wechat / 微信小程序</a>
+              </li>
+            </ul>
+          </li>
+          <li>
+            <a href="#api-link">API</a>
+          </li>
+        </ul>
+      </div>
+    </div>
+    <div class="col-sm-9 content">
+      <h1 id="installation-link">安装</h1>
+      <h2 id="script-loading-link">在 script 标签加载 Hanzi Writer</h2>
+      <p>
+        最简单选项是直接从 jsdelivr CDN 加载 Hanzi Writer JS 。只需将以下内容放入你的网页的头部:
+        {% highlight html %}
+        <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.3/dist/hanzi-writer.min.js"></script>
+        {% endhighlight %}
+      </p>
+      <p>
+        你也可以拷贝一个下载 Hanzi Writer javascript 文件:<br />
+        <strong><a
+            href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.min.js">hanzi-writer.min.js</a></strong> -
+        生产压缩版 (30 kb, 9kb 压缩后的)<br />
+        <strong><a href="https://cdn.jsdelivr.net/npm/hanzi-writer/dist/hanzi-writer.js">hanzi-writer.js</a></strong> -
+        开发未压缩版本 (70 kb)<br />
+      </p>
+      <p>
+        上面的脚本将在脚本加载后使全局 <code>HanziWriter</code> 变量可用。
+      </p>
+      <h2 id="npm-loading-link">通过 npm 加载 Hanzi Writer</h2>
+      <p>
+        如果你想在 webpack 或 node.js 中包含 Hanzi Writer，你可以从 <code>npm install hanzi-writer</code> 安装。然后，你可以在你的代码中包含 Hanzi
+        Writer
+        {% highlight javascript %}
+        const HanziWriter = require('hanzi-writer');
+        {% endhighlight %}
+      </p>
+      <br /><br />
+      <div class="panel panel-warning">
+        <div class="panel-heading">注意: 兼容旧浏览器</div>
+        <div class="panel-body">
+          如果你想在旧版本 IE10/IE11 使用 Hanzi Writer，你需要为 Promise api 提供一个填充工具
+          <br /><br />
+          {% highlight html %}
+          <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+          {% endhighlight %}
+        </div>
+      </div>
+
+      <h1 id="basic-usage-link">基本使用</h1>
+      <h2 id="rendering-link">在屏幕上渲染</h2>
+      <p>
+        创建一个新的 <code>HanziWriter</code> 实例需要传入一个目标 div （ID 或者 DOM 引用）,你要渲染的汉字, 配置选项. 下面举例说明一个简单的例子。在 HTML 中声明以下内容:
+      </p>
+      {% highlight html %}
+      <div id="character-target-div"></div>
+      {% endhighlight %}
+      <p>然后, 在 Javascript:</p>
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '我', {
+      width: 100,
+      height: 100,
+      padding: 5
+      });
+      {% endhighlight %}
+
+      <p>你能看到以下结果:</p>
+      <div id="docs-target-1" class="inline-demo"></div>
+      <script>
+        (function () {
+          HanziWriter.create('docs-target-1', '我', {
+            width: 100,
+            height: 100,
+            padding: 5
+          });
+        })();
+      </script>
+      <p>
+        在上面的示例中，width和height是包含字符的框的大小（以像素为单位），padding是字符和框边缘之间的空格，也以像素为单位
+        你也可以配置其他选项，例如角色的颜色。下面是使用不同尺寸和颜色绘制的示例：
+      </p>
+
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '爽', {
+      width: 150,
+      height: 150,
+      padding: 20,
+      strokeColor: '#EE00FF' // pink
+      });
+      {% endhighlight %}
+
+      <div id="docs-target-2" class="inline-demo medium-demo"></div>
+      <script>
+        (function () {
+          HanziWriter.create('docs-target-2', '爽', {
+            width: 150,
+            height: 150,
+            padding: 20,
+            strokeColor: '#EE00FF' // pink
+          });
+        })();
+      </script>
+
+      <p>
+        Hanzi Writer 也支持给汉字的偏旁部首上设置不同的颜色。 你可以用 <code>radicalColor</code> 选项来设置来展示的部手颜色. 下面的以 草 字为例给偏旁部首添加绿色。
+      </p>
+
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '草', {
+      width: 150,
+      height: 150,
+      padding: 5,
+      radicalColor: '#168F16' // green
+      });
+      {% endhighlight %}
+
+      <div id="docs-target-2-1" class="inline-demo medium-demo"></div>
+      <script>
+        (function () {
+          HanziWriter.create('docs-target-2-1', '草', {
+            width: 150,
+            height: 150,
+            padding: 5,
+            radicalColor: '#168F16', // green，
+          });
+        })();
+      </script>
+
+      <h2 id="animation-link">动画</h2>
+      <p>当你创建了一个 Hanzi Writer 实例后，你可以调用 <code>animateCharacter()</code> 方法来让它运动. 在下面的例子中,
+        点击按钮可以让汉字运动。这个 HTML 代码看起来是下面这个样子:</p>
+      {% highlight html %}
+      <div id="character-target-div"></div>
+      <button id="animate-button">动画</button>
+      {% endhighlight %}
+
+      <p>Then, the corresponding javascript:</p>
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '国', {
+      width: 100,
+      height: 100,
+      padding: 5,
+      showOutline: true
+      });
+      document.getElementById('animate-button').addEventListener('click', function() {
+      writer.animateCharacter();
+      });
+      {% endhighlight %}
+
+      <div id="docs-target-3" class="inline-demo"></div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-3-button" type="submit">动画</button>
+      <script>
+        (function () {
+          var writer = HanziWriter.create('docs-target-3', '国', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showOutline: true
+          });
+          document.getElementById('docs-target-3-button').addEventListener('click', function () {
+            writer.animateCharacter();
+          });
+        })();
+      </script>
+
+      <p>你还可以使用动画配置许多选项来控制动画的速度以及角色轮廓是否可见等内容。 如果你想在汉字动画播放时展示偏旁部首的颜色你可以给偏旁部首设置颜色。下面是使用不同动画选项制作动画的另一个示例：</p>
+
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '激', {
+      width: 100,
+      height: 100,
+      padding: 5,
+      showOutline: false,
+      strokeAnimationSpeed: 5, // 5x normal speed
+      delayBetweenStrokes: 10, // milliseconds
+      radicalColor: '#337ab7' // blue
+      });
+      document.getElementById('animate-button').addEventListener('click', function() {
+      writer.animateCharacter();
+      });
+      {% endhighlight %}
+      <div id="docs-target-4" class="inline-demo"></div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-4-button" type="submit">快速</button>
+      <script>
+        (function () {
+          var writer = HanziWriter.create('docs-target-4', '激', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showOutline: false,
+            strokeAnimationSpeed: 5, // 5x normal speed
+            delayBetweenStrokes: 10, // milliseconds
+            radicalColor: '#337ab7' // blue
+          });
+          document.getElementById('docs-target-4-button').addEventListener('click', function () {
+            writer.animateCharacter();
+          });
+        })();
+      </script>
+
+      <h2 id="looping-animation-link">循环动画</h2>
+      <p>
+        循环动画是很常见的一种. 你可以调用
+        <code>loopCharacterAnimation()</code> 来开启一个循环动画. 这里有几个配置选项 <code>delayBetweenLoops</code>
+        你可以用来控制动画循环的时间 (默认 2000 ms). 在下面的例子中, 这个汉字会等待 3 秒然后永远重复播放:
+      </p>
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '轮', {
+      width: 100,
+      height: 100,
+      padding: 5,
+      delayBetweenLoops: 3000
+      });
+
+      writer.loopCharacterAnimation();
+      {% endhighlight %}
+      <div id="docs-target-5" class="inline-demo"></div>
+      <script>
+        (function () {
+          var writer = HanziWriter.create('docs-target-5', '轮', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            delayBetweenLoops: 3000
+          });
+
+          writer.loopCharacterAnimation();
+        })();
+      </script>
+
+      <h2 id="chaining-animation-link">词组动画</h2>
+      <p>
+        你可以在一个汉字动画完成之后来开始运行下一个汉字的动画，
+        在汉字执行下面代码
+        <code>animateCharacter({ onComplete: function() { ... }})</code>
+        当它动画运行完以后，在 onComplete 回调函数运行下一个汉字的动画。
+        如果你准备正在使用 promises，当这个动画完成以后
+        <code>animateCharacter()</code> 方法也将会返回一个 promise 的 resolve。
+        下面这个例子就是两个汉字按照顺序播放动画，一个汉字动画完成之后的一秒再绘制另一个汉字的动画。
+        这个例子使用第一个汉字完成 <code>onComplete</code> 去触发下一个汉字的开始动画。
+        HTML 代码:
+      </p>
+      {% highlight html %}
+      <div id="character-target-1"></div>
+      <div id="character-target-2"></div>
+      <button id="animate-button">Start</button>
+      {% endhighlight %}
+      <p>javascript 代码:</p>
+      {% highlight javascript %}
+      var char1 = HanziWriter.create('character-target-1', '很', {
+      width: 100,
+      height: 100,
+      padding: 5,
+      showCharacter: false
+      });
+      var char2 = HanziWriter.create('character-target-2', '爽', {
+      width: 100,
+      height: 100,
+      padding: 5,
+      showCharacter: false
+      });
+
+      function chainAnimations() {
+      var delayBetweenAnimations = 1000; // milliseconds
+      char1.hideCharacter();
+      char2.hideCharacter();
+
+      char1.animateCharacter({
+      onComplete: function() {
+      setTimeout(function() {
+      char2.animateCharacter();
+      }, delayBetweenAnimations);
+      }
+      });
+      }
+
+      document.getElementById('animate-button').addEventListener('click', chainAnimations);
+      {% endhighlight %}
+      <div class="inline-demo-flex">
+        <div id="docs-target-6-1" class="inline-demo"></div>
+        <div id="docs-target-6-2" class="inline-demo"></div>
+      </div>
+      <button class="btn btn-primary inline-demo-btn" id="docs-target-6-button" type="submit">开始</button>
+      <script>
+        (function () {
+          var char1 = HanziWriter.create('docs-target-6-1', '很', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showCharacter: false
+          });
+          var char2 = HanziWriter.create('docs-target-6-2', '爽', {
+            width: 100,
+            height: 100,
+            padding: 5,
+            showCharacter: false
+
+          });
+
+          function chainAnimations() {
+            var delayBetweenAnimations = 1000; // milliseconds
+            char1.hideCharacter();
+            char2.hideCharacter();
+
+            char1.animateCharacter({
+              onComplete: function () {
+                setTimeout(function () {
+                  char2.animateCharacter();
+                }, delayBetweenAnimations);
+              }
+            });
+          }
+
+          document.getElementById('docs-target-6-button').addEventListener('click', chainAnimations);
+        })();
+      </script>
+
+      <h2 id="quizzing-link">测试</h2>
+
+      <p>
+        开始测试你可以调用 <code>quiz()</code> 方法. 我们用一段设置一个简单测试:
+      </p>
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '测', {
+      width: 150,
+      height: 150,
+      showCharacter: false,
+      padding: 5
+      });
+      writer.quiz();
+      {% endhighlight %}
+
+      <div id="docs-target-7" class="inline-demo medium-demo"></div>
+      <button id="docs-target-7-button" class="btn btn-primary inline-demo-btn">重置</button>
+      <script>
+        (function () {
+          var writer = HanziWriter.create('docs-target-7', '测', {
+            width: 150,
+            height: 150,
+            showCharacter: false,
+            padding: 5
+          });
+          writer.quiz();
+          document.getElementById('docs-target-7-button').addEventListener('click', function () {
+            writer.quiz();
+          });
+        })();
+      </script>
+      <p>
+        尝试绘制上面的汉字 <strong>测</strong>，以了解测验的工作原理。如果你描错了3次它会给你一个提示通过用高亮笔记正确描写汉字。
+        你可以通过将 <code>showHintAfterMisses</code> 选项设置为其他数字来配置此行为，
+        或者设置 <code>showHintAfterMisses: false</code> 来完全禁用它。
+        测验成功完成后，它会短暂闪烁。
+        你可以设置 <code>highlightOnComplete: false</code> 来完全禁用它。
+        下面是一些示例，其中一些选项已更改。
+        下面的示例还设置了 <code>showOutline: false</code> e以使其更具挑战性。
+      </p>
+      {% highlight javascript %}
+      var writer = HanziWriter.create('character-target-div', '鬼', {
+      width: 150,
+      height: 150,
+      showCharacter: false,
+      showOutline: false,
+      showHintAfterMisses: 1,
+      highlightOnComplete: false,
+      padding: 5
+      });
+      writer.quiz();
+      {% endhighlight %}
+
+      <div id="docs-target-8" class="inline-demo medium-demo"></div>
+      <button id="docs-target-8-button" class="btn btn-primary inline-demo-btn">重置</button>
+      <p>尝试在上面绘制<strong>鬼</strong>字</p>
+      <script>
+        (function () {
+          var writer = HanziWriter.create('docs-target-8', '鬼', {
+            width: 150,
+            height: 150,
+            showCharacter: false,
+            showOutline: false,
+            showHintAfterMisses: 1,
+            padding: 5
+          });
+          writer.quiz();
+          document.getElementById('docs-target-8-button').addEventListener('click', function () {
+            writer.quiz();
+          });
+        })();
+      </script>
+
+      <h2 id="integrating-quizzes-link">整合测验</h2>
+      <p>
+        测试本身就是一种很好的实践，如果它们与其余代码进行交互时，它们会变得非常强大。
+        quiz（）方法可以传递回调，你可以使用它来在测验中或者测验结束发生事件时运行代码，例如获得正确或错误的笔画。
+        The callbacks are called
+        调用回调函数
+        <code>onCorrectStroke</code>, <code>onMistake</code> and <code>onComplete</code>.
+        这些回调函数由包含有关测验当前状态的信息的对象得到。
+        下面的例子展示怎么整合这些回调函数：
+        {% highlight javascript %}
+        var writer = HanziWriter.create('character-target-div', '码', {
+        width: 150,
+        height: 150,
+        showCharacter: false,
+        padding: 5
+        });
+        writer.quiz({
+        onMistake: function(strokeData) {
+        console.log('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
+        console.log("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
+        console.log("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
+        console.log("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
+        },
+        onCorrectStroke: function(strokeData) {
+        console.log('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
+        console.log('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
+        console.log("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
+        console.log('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
+        },
+        onComplete: function(summaryData) {
+        console.log('You did it! You finished drawing ' + summaryData.character);
+        console.log('You made ' + summaryData.totalMistakes + ' total mistakes on this quiz');
+        }
+        });
+        {% endhighlight %}
+
+        <div class="inline-demo-flex">
+          <div id="docs-target-9" class="inline-demo medium-demo"></div>
+          <div id="docs-target-9-console" class="inline-demo-console"></div>
+        </div>
+        <button id="docs-target-9-button" class="btn btn-primary inline-demo-btn">重置</button>
+        <script>
+          (function () {
+            var writer = HanziWriter.create('docs-target-9', '码', {
+              width: 150,
+              height: 150,
+              showCharacter: false,
+              padding: 5
+            });
+
+            var consoleLog = function (str) {
+              var fakeConsole = document.getElementById('docs-target-9-console');
+              fakeConsole.innerHTML += '<br />' + str;
+              fakeConsole.scrollTop = fakeConsole.scrollHeight;
+            }
+
+            var opts = {
+              onMistake: function (strokeData) {
+                consoleLog('Oh no! you made a mistake on stroke ' + strokeData.strokeNum);
+                consoleLog("You've made " + strokeData.mistakesOnStroke + " mistakes on this stroke so far");
+                consoleLog("You've made " + strokeData.totalMistakes + " total mistakes on this quiz");
+                consoleLog("There are " + strokeData.strokesRemaining + " strokes remaining in this character");
+                consoleLog("");
+              },
+              onCorrectStroke: function (strokeData) {
+                consoleLog('Yes!!! You got stroke ' + strokeData.strokeNum + ' correct!');
+                consoleLog('You made ' + strokeData.mistakesOnStroke + ' mistakes on this stroke');
+                consoleLog("You've made " + strokeData.totalMistakes + ' total mistakes on this quiz');
+                consoleLog('There are ' + strokeData.strokesRemaining + ' strokes remaining in this character');
+                consoleLog("");
+              },
+              onComplete: function (summaryData) {
+                consoleLog('You did it! You finished drawing ' + summaryData.character);
+                consoleLog('You made ' + summaryData.totalMistakes + ' total mistakes on this quiz');
+                consoleLog("");
+              }
+            };
+            writer.quiz(opts);
+            document.getElementById('docs-target-9-button').addEventListener('click', function () {
+              writer.quiz(opts);
+            });
+          })();
+        </script>
+        <p>尝试绘制上面的汉字 码, 查看右侧日志输出。</p>
+
+        <h2 id="other-methods-link">其他方法</h2>
+
+        <p>
+          除了动画和测验的核心功能，还提供了其他方法来控制汉字的渲染。
+        </p>
+        <ul>
+          <li>
+            <code>writer.setCharacter(newCharacter)</code>
+            加载一个新的汉字并渲染.
+          </li>
+          <li>
+            <code>writer.showCharacter()</code>
+            显示当前隐藏的汉字。
+          </li>
+          <li>
+            <code>writer.hideCharacter()</code>
+            隐藏当前显示的汉字。
+          </li>
+          <li>
+            <code>writer.showOutline()</code>
+            显示当前隐藏汉字的轮廓。
+          </li>
+          <li>
+            <code>writer.hideOutline()</code>
+            隐藏当前汉字显示的轮廓。
+          </li>
+          <li>
+            <code>writer.updateColor(colorName, newValue)</code>
+            更改任何颜色选项的值。 例如:
+            <code>writer.updateColor('strokeColor', '#AA12CD')</code>
+          </li>
+          <li>
+            <code>writer.cancelQuiz()</code>
+            立即取消当前运行的测验
+          </li>
+        </ul>
+
+        <h1 id="advanced-usage-link">高级用法</h1>
+        <h2 id="loading-character-data-link">加载汉字数据</h2>
+
+        <p>
+          Hanzi Writer 需要加载笔画渲染数据才能绘制汉字。
+          默认的 Hanzi Writer 数据用 ajax 加载来的
+          <a href="https://www.jsdelivr.com/package/npm/hanzi-writer-data">jsdelivr CDN</a>。
+          这种将 Hanzi Writer 嵌入到网站中可能是好的，
+          但是根据你使用 Hanzi Writer 加载汉字数据可能会有更好的方式。
+          例如,
+          假如你要在构建手机 app 应用中嵌入 Hanzi Writer 加载本地汉字数据是最好的方式，因为汉字数据已经被立刻加载并且不需要请求网络。
+        </p>
+        <p>
+          有一个名为
+          <a href="https://github.com/chanind/hanzi-writer-data">hanzi-writer-data</a>
+          的姐妹仓库，它包含每个单独字符的数据作为单独的 JSON 文件。
+          你可以从服务器托管这些文件，然后通过 AJAX 在 Hanzi Writer 中加载它们，但是你要认为这是合适的。
+          你也可以在 JS 中用 NPM 包裹到你自己的汉字数据中。
+          通过将自定义闭包传递给 <i>charDataLoader</i> 选项来完成加载字符数据。
+          下面例子用 jQuery 来展示:
+        </p>
+
+        {% highlight javascript %}
+        var writer = HanziWriter.create('target', '我', {
+        charDataLoader: function(char, onComplete) {
+        $.getJSON("/my/server/" + char + ".json", function(charData) {
+        onComplete(charData);
+        });
+        }
+        });
+        {% endhighlight %}
+
+        <p>
+          repo 还包含 all.json，其中包含1个文件中的所有字符，但这些文件非常大（28mb），因此它们可能不适合生产使用。
+        </p>
+
+        <p>
+          If you know in advance which character you'd like to render you can hardcode just the data for that
+          character into the <i>charDataLoader</i> closure.
+          如果你优先知道要渲染哪个字符，则可以将该字符的数据硬编码到 <i>charDataLoader</i> 闭包中。
+          为此，你可以使用
+          <a href="https://www.npmjs.com/package/hanzi-writer-data">hanzi-writer-data</a>
+          NPM模块并直接要求内联字符数据。
+          这种技术确保 Hanzi Writer 能够立即呈现汉字，而无需等待 AJAX 请求完成。
+          下面是通过 hanzi-writer-data NPM 模块为汉字 <b>人</b> 加载汉字数据的示例。
+          首先，通过运行：<code>npm install hanzi-writer-data</code> 确保安装
+          <a href="https://www.npmjs.com/package/hanzi-writer-data">hanzi-writer-data</a>
+          模块。
+          <p>
+            {% highlight javascript %}
+            var ren = require('hanzi-writer-data/人');
+
+            var writer = HanziWriter.create('target', '人', {
+            charDataLoader: function() {
+            return ren;
+            }
+            });
+            {% endhighlight %}
+          </p>
+
+          <p>
+            如果你希望在加载数据成功或失败收到通知（例如实现加载微调器或者显示错误信息），
+            你可以通过在创建一个 Hanzi Writer 实例的回调函数
+            <code>onLoadCharDataSuccess</code> 和 <code>onLoadCharDataError</code> 。
+            例如:
+          </p>
+
+          {% highlight javascript %}
+          var ren = require('hanzi-writer-data/人');
+
+          var writer = HanziWriter.create('target', '人', {
+          onLoadCharDataSuccess: function(data) {
+          console.log('Success!');
+          },
+          onLoadCharDataError: function(reason) {
+          console.log('Oh No! Something went wrong :(');
+          }
+          });
+          {% endhighlight %}
+
+          <h2 id="raw-character-svg">原生汉字 SVG</h2>
+          <p>
+            有时你可能会想渲染 Hanzi writer 汉字数据，但是不需要笔画动画或测验。
+            Hanzi writer 提供两种静态辅助方法来容易的加载和渲染原生汉字。
+          </p>
+          <p>
+            Hanzi writer CDN 使用静态方法 <code>HanziWriter.loadCharacterData(character, options = {})</code>
+            加载汉字数据。
+            这个方法返回一个含有加载好的汉字数据的 promise ，
+            你也可以传递回调函数
+            <code>onLoadCharDataSuccess</code>
+            和 <code>onLoadCharDataError</code>
+            作为选项。
+            加载的字符数据将与
+            <a href="https://github.com/chanind/hanzi-writer-data/tree/master/data">hanzi-writer-data</a>
+            repo中的字符数据相同，这些数据都是从
+            <a href="https://github.com/skishore/makemeahanzi">makemeahanzi</a>.
+            中解析出来的。
+          </p>
+          <p>
+            关于为汉字作者数据渲染SVG路径的最重要部分是必须将字符转换为以所需大小显示在屏幕上，通常使用 <code>&lt;g&gt;</code> 标签。
+            例如，渲染一个大小 128 x 128 的 SVG，这个 SVG 看起来像这样：
+          </p>
+
+          {% highlight html %}
+          <svg>
+            <g transform="translate(0, 112.5) scale(0.125, -0.125)">
+              <path d="...path from hanzi writer data..."></path>
+              <path d="...path from hanzi writer data..."></path>
+              <path d="...path from hanzi writer data..."></path>
+              ...
+            </g>
+          </svg>
+          {% endhighlight %}
+
+          <p>
+            幸运的是，
+            有一个静态方法
+            <code>HanziWriter.getScalingTransform(width, height, padding = 0)</code> 可以容易的做到。
+            他的方法返回变换数据，你可以在 SVG 中使用它来绘制指定大小的字符。
+            下面示例是加载汉字<b>六</b>的数据并在 ID 为 <code>target</code> 的 div 内渲染大小为150 x 150的字符 SVG：
+          </p>
+
+          {% highlight javascript %}
+          HanziWriter.loadCharacterData('六').then(function(charData) {
+          var target = document.getElementById('target');
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.style.width = '150px';
+          svg.style.height = '150px';
+          target.appendChild(svg);
+          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          // set the transform property on the g element so the character renders at 150x150
+          var transformData = HanziWriter.getScalingTransform(150, 150);
+          group.setAttributeNS(null, 'transform', transformData.transform);
+          svg.appendChild(group);
+
+          charData.strokes.forEach(function(strokePath) {
+          var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttributeNS(null, 'd', strokePath);
+          // style the character paths
+          path.style.fill = '#555';
+          group.appendChild(path);
+          });
+          });
+          {% endhighlight %}
+
+          <div id="docs-target-10" class="inline-demo medium-demo"></div>
+          <script>
+            (function () {
+              HanziWriter.loadCharacterData('六').then(function (charData) {
+                var target = document.getElementById('docs-target-10');
+                var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+                svg.style.width = '150px';
+                svg.style.height = '150px';
+                target.appendChild(svg);
+                var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+                // set the transform property on the g element so the character renders at 150x150
+                var transformData = HanziWriter.getScalingTransform(150, 150);
+                group.setAttributeNS(null, 'transform', transformData.transform);
+                svg.appendChild(group);
+
+                charData.strokes.forEach(function (strokePath) {
+                  var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                  path.setAttributeNS(null, 'd', strokePath);
+                  // style the character paths
+                  path.style.fill = '#555';
+                  group.appendChild(path);
+                });
+              });
+            })();
+          </script>
+
+          <p>
+            使用原始字符数据为您提供SVG的全部功能，以实现不需要笔画动画或测验的可视化。
+            例如，下面是使用原始字符数据实现汉字<b>是</b>的描边扇形可视化的示例
+          </p>
+          {% highlight javascript %}
+          function renderFanningStrokes(target, strokes) {
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.style.width = '75px';
+          svg.style.height = '75px';
+          svg.style.border = '1px solid #EEE'
+          svg.style.marginRight = '3px'
+          target.appendChild(svg);
+          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          // set the transform property on the g element so the character renders at 75x75
+          var transformData = HanziWriter.getScalingTransform(75, 75);
+          group.setAttributeNS(null, 'transform', transformData.transform);
+          svg.appendChild(group);
+
+          strokes.forEach(function(strokePath) {
+          var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+          path.setAttributeNS(null, 'd', strokePath);
+          // style the character paths
+          path.style.fill = '#555';
+          group.appendChild(path);
+          });
+          }
+
+          HanziWriter.loadCharacterData('是').then(function(charData) {
+          var target = document.getElementById('target');
+          for (var i = 0; i < charData.strokes.length; i++) { var strokesPortion=charData.strokes.slice(0, i + 1);
+            renderFanningStrokes(target, strokesPortion); } }); {% endhighlight %} <div id="docs-target-11"
+            class="borderless-horiz-demo">
+    </div>
+    <script>
+      (function () {
+        function renderFanningStrokes(target, strokes) {
+          var svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+          svg.style.width = '75px';
+          svg.style.height = '75px';
+          svg.style.border = '1px solid #EEE'
+          svg.style.marginRight = '3px'
+          target.appendChild(svg);
+          var group = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+
+          // set the transform property on the g element so the character renders at 75x75
+          var transformData = HanziWriter.getScalingTransform(75, 75);
+          group.setAttributeNS(null, 'transform', transformData.transform);
+          svg.appendChild(group);
+
+          strokes.forEach(function (strokePath) {
+            var path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+            path.setAttributeNS(null, 'd', strokePath);
+            // style the character paths
+            path.style.fill = '#555';
+            group.appendChild(path);
+          });
+        }
+
+        HanziWriter.loadCharacterData('是').then(function (charData) {
+          var target = document.getElementById('docs-target-11');
+          for (var i = 0; i < charData.strokes.length; i++) {
+            var strokesPortion = charData.strokes.slice(0, i + 1);
+            renderFanningStrokes(target, strokesPortion);
+          }
+        });
+      })();
+    </script>
+
+    <p>
+      上面的示例使用原始 javascript 浏览器 API 进行 SVG 渲染，
+      但使用库来帮助管理 SVG（如<a target="_blank" href="http://svgjs.com/">svg.js</a>或<a target="_blank"
+        href="http://dmitrybaranovskiy.github.io/raphael/">raphael.js</a>）的代码更简单。
+    </p>
+
+    <h1 id="custom-backgrounds">自定义背景</h1>
+
+    <p>
+      如果页面上已经有<code>&lt;SVG&gt;</code>或<code>&lt;G&gt;</code>元素，
+      则可以将 Hanzi Writer 实例渲染到该元素而不是使用 DIV。
+      这样可以轻松地在 SVG 中直接添加网格等自定义背景。
+      例如，我们可以在SVG中绘制一个简单的网格，如下所示：
+    </p>
+
+    {% highlight html %}
+    <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="grid-background-target">
+      <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+      <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+      <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+      <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+    </svg>
+    {% endhighlight %}
+    <div class="inline-demo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100">
+        <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+        <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+        <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+        <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+      </svg>
+    </div>
+
+    <p>然后，我们可以使用它的 ID 渲染到这个 SVG，就像我们可以使用普通div一样：</p>
+
+    {% highlight javascript %}
+    var writer = HanziWriter.create('grid-background-target', '酷', {
+    width: 100,
+    height: 100,
+    padding: 5,
+    });
+    {% endhighlight %}
+    <div class="inline-demo">
+      <svg xmlns="http://www.w3.org/2000/svg" width="100" height="100" id="docs-target-12">
+        <line x1="0" y1="0" x2="100" y2="100" stroke="#DDD" />
+        <line x1="100" y1="0" x2="0" y2="100" stroke="#DDD" />
+        <line x1="50" y1="0" x2="50" y2="100" stroke="#DDD" />
+        <line x1="0" y1="50" x2="100" y2="50" stroke="#DDD" />
+      </svg>
+    </div>
+
+    <script>
+      (function () {
+        var writer = HanziWriter.create('docs-target-12', '酷', {
+          width: 100,
+          height: 100,
+          padding: 5,
+        });
+      })()
+    </script>
+
+
+    <h1 id="wechat-miniprograms">Wechat miniprograms / 微信小程序</h1>
+
+    <p>
+      <a href="https://github.com/chanind/hanzi-writer-miniprogram">微信小程序组件插件</a>
+      在微信小程序中使用。 可以使用npm安装此插件，如下所示：
+    </p>
+
+    <code>npm install hanzi-writer-miniprogram</code>
+    <p>
+      在 page.json中，首先添加以下内容以启用 hanzi-writer-view组件：
+    </p>
+
+    {% highlight javascript %}
+    {
+    "usingComponents": {
+    "hanzi-writer-view": "hanzi-writer-miniprogram/hanzi-writer-view"
+    }
+    }
+    {% endhighlight %}
+
+    <p>
+      然后，在页面中添加<code>hanzi-writer-view</code></code>组件。 你必须添加<code>id</code>，
+      <code>width</code>和<code>height</code>，如下所示：
+
+    </p>
+
+    {% highlight html %}
+    <hanzi-writer-view id="hz-writer" width="300" height="300" />
+    {% endhighlight %}
+
+    <p>
+      然后在您的页面中，你可以通过<code>createHanziWriterContext(options)</code>控制视图，如下所示：
+    </p>
+
+    {% highlight javascript %}
+    import createHanziWriterContext from 'hanzi-writer-miniprogram';
+
+    Page({
+    onLoad: function() {
+    this.writerCtx = createHanziWriterContext({
+    id: 'hz-writer',
+    character: '你',
+    page: this,
+    charDataLoader: (char) => { /* char data loading logic here */ },
+    });
+
+    // You can call any normal HanziWriter method here
+    this.writerCtx.loopCharacterAnimation();
+    }
+    });
+    {% endhighlight %}
+
+    <p>
+      此方法需要来自 <code>wxml</code> 中 <code>hanzi-writer-view</code> 组件的id和当前页面。
+    </p>
+    <p>
+      默认情况下，字符数据是从 hanzi-writer CDN 加载的，因此您需要将
+      <code>https://cdn.jsdelivr.net</code>
+      添加到已批准的
+      <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html">
+        域名列表中
+      </a>。
+      否则，你可以提供自己的<code>charDataLoader</code>函数并加载你喜欢的字符数据。
+      你可以在此处阅读有关<a href="#loading-character-data-link">加载字符数据</a>的更多信息。
+    </p>
+    <p>
+      您还可以将任何其他正常的 Hanzi Writer 选项传递给
+      <code>createHanziWriterContext</code>，但在<code>hanzi-writer-view</code>组件中设置的<code>宽度</code>和
+      <code>高度</code>除外。
+    </p>
+
+    <h1 id="api-link">API</h1>
+
+    <h2>HanziWriter</h2>
+    <p>这是你将与之互动的核心课程。</p>
+
+    <h4>新建 HanziWriter(element, options)</h4>
+    <p>设置一个新的 HanziWriter 实例指定的 DOM 元素t</p>
+    <p>
+      <code>element</code> DOM 节点或要渲染的元素的 ID。
+    </p>
+    <p>
+      <code>options</code> 对象包含其他配置选项。 完整选项包括：
+      <ul>
+        <li><code>showOutline:</code> 布尔值， default true. Controls whether the outline is shown or hidden on the
+          first render.</li>
+        <li><code>showCharacter:</code>
+          布尔值，默认为 true。 控制是否在第一个渲染上显示或隐藏轮廓。
+        </li>
+        <li><code>width:</code> 数值。 画布的宽度。</li>
+        <li><code>height:</code> 数值。画布的高度</li>
+        <li><code>padding:</code> 数值, 默认 20。 画布的汉字和边缘之间的填充</li>
+        <li><code>strokeAnimationSpeed:</code> 数值, 默认 1。
+          绘制每个笔划的速度必须大于0。增加此数字可以更快地绘制笔划，减少绘制笔划的速度更慢。
+        </li>
+        <li><code>strokeHighlightSpeed:</code> 数值, 默认 20。
+          在测验中给出提示时突出显示每个笔划的速度必须大于0。增加此数字以突出显示更快，减少以突出显示更慢。
+        </li>
+        <li><code>strokeFadeDuration:</code> 数值, 默认 400。
+          调用 <code>writer.show()</code> 和 <code>writer.hide()</code> 时在显示和隐藏笔划之间转换的时间（以毫秒为单位）
+        </li>
+        <li>
+          <code>delayBetweenStrokes:</code> 数值, 默认 1000。
+          动画进行中每个笔画之间的间隔时间（以毫秒为单位）。
+        </li>
+        <li><code>delayBetweenLoops:</code> 数值, 默认 2000。
+          循环动画时每个动画循环之间的时间（以毫秒为单位）。
+        </li>
+        <li><code>strokeColor:</code> 十六进制字符, 默认 '#555'。绘制每个笔划的颜色。</li>
+        <li><code>radicalColor:</code> 十六进制字符, 默认 null。
+          如果存在偏旁部首数据，则在笔划中绘制偏旁部首的颜色。 如果没有设置，激光将绘制与其他笔划相同的颜色。
+        </li>
+        <li><code>highlightColor:</code> 十六进制字符, 默认 '#AAF'。
+          用于在测验中突出显示的颜色。
+        </li>
+        <li><code>outlineColor:</code> 十六进制字符, 默认 '#DDD'。 字符轮廓的颜色。</li>
+        <li><code>drawingColor:</code> 十六进制字符, 默认 '#333'。
+          测验期间绘制的线条颜色。
+        </li>
+        <li><code>drawingWidth:</code> 数值, 默认 4。
+          进行测验时绘制的线条宽度。
+        </li>
+        <li><code>showHintAfterMisses:</code> 整数, 默认 3
+          中风高亮提示之前的未命中数被给予用户。 设置为 false 以禁用。 创建测验时也可以设置此项。
+        </li>
+        <li><code>highlightOnComplete:</code> 布尔值, 默认 true。
+          控制当用户完成绘制整个字符时，测验是否会短暂突出显示字符。 创建测验时也可以设置此项。
+        </li>
+        <li><code>highlightCompleteColor:</code> 十六进制字符, 默认 null。
+          在测验中突出显示字符时使用的颜色。 如果未设置，则将使用<code>highlightColor</code>。
+          仅当<code>highlightOnComplete</code>为<code>true</code>时才相关。
+        </li>
+        <li><code>charDataLoader:</code> 函数。
+          自定义函数
+          <a href="#loading-character-data-link">加载字符数据</a>
+          。 有关使用的更多信息，请参阅加载字符数据部分。
+        </li>
+        <li><code>onLoadCharDataSuccess:</code> 函数。
+          成功加载字符数据时的回调。 使用已加载的数据调用此函数。 这可以用于实现加载微调器。
+        </li>
+        <li><code>onLoadCharDataError:</code> 函数。
+          字符数据加载失败时的回调。 无论故障原因来自<i>charDataLoader</i>，都会传递此函数。
+        </li>
+      </ul>
+    </p>
+    <h3>实例方法</h3>
+    <h4>writer.showCharacter(options = {})</h4>
+    <p>显示当前隐藏的字符。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括:
+      <ul>
+        <li><code>onComplete:</code> 函数。
+          显示动画完成时调用。
+        </li>
+        <li><code>duration:</code> 数值, 可选。
+          当显示a显示动画应该完成时多长时间调用。 如果未提供，则使用<code>strokeFadeDuration</code>。 传递0将使操作即时。动画完成。
+        </li>
+      </ul>
+    </p>
+
+    <h4>writer.hideCharacter(options = {})</h4>
+    <p>隐藏当前显示的字符。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 隐藏动画完成时调用。</li>
+        <li><code>duration:</code> 数值, 可选。
+          隐藏动画需要多长时间才能完成。 如果未提供，则使用<code>strokeFadeDuration</code> 。 传递0将使操作立即进行。
+      </ul>
+    </p>
+
+    <h4>writer.showOutline(options = {})</h4>
+    <p>显示当前隐藏的轮廓。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 隐藏动画完成时调用。</li>
+        <li><code>duration:</code> 数值， 可选。
+          显示动画需要多长时间才能完成。
+          如果未提供，则使用
+          <code>strokeFadeDuration</code>。
+          传递0将使操作立即进行。</li>
+      </ul>
+    </p>
+
+    <h4>writer.hideOutline(options = {})</h4>
+    <p>隐藏当前显示的轮廓。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 隐藏动画完成时调用。</li>
+        <li><code>duration:</code> 数值， 可选。
+          隐藏动画需要多长时间才能完成。
+          如果未提供，则使用
+          <code>strokeFadeDuration</code>。
+          传递0将使操作立即进行。</li>
+      </ul>
+    </p>
+
+    <h4>writer.updateColor(colorName, colorVal, options = {})</h4>
+    <p>颜色设置更新</p>
+    <p>
+      <code>colorName</code> 字符串。 'strokeColor', 'radicalColor', 'outlineColor', 'highlightColor', 或
+      'drawingColor'。
+    </p>
+    <p>
+      <code>colorVal</code> 字符串。
+      CSS 颜色字符串，如'＃AA9913'或'rgba（255,255,10,0.7）'。
+    </p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 隐藏动画完成时调用。</li>
+        <li><code>duration:</code> 数值， 可选。
+          动画完成需要多长时间。
+          如果未提供，则使用
+          <code>strokeFadeDuration</code> 。 传递0将使操作立即进行。</li>
+      </ul>
+    </p>
+
+    <h4>writer.animateCharacter(options = {})</h4>
+    <p>按顺序为汉字的笔划设置动画。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。动画完成时调用。</li>
+      </ul>
+    </p>
+
+    <h4>writer.animateStroke(strokeNum, options = {})</h4>
+    <p>单笔画动画</p>
+    <p>
+      <code>strokeNum</code> 数值。 笔画数做动画，从 0 开始。
+    </p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 动画完成时调用</li>
+      </ul>
+    </p>
+
+    <h4>writer.loopCharacterAnimation()</h4>
+    <p>
+      Animate the strokes of the character in order, and then restart the animation after it finishes forever.</p>
+    <h4>writer.setCharacter(character)</h4>
+    <P>
+      按顺序为汉字的笔划设置动画，然后在动画永久完成后重新启动动画。
+    </P>
+    <p>
+      <code>character</code> 绘制汉字, '你'.
+    </p>
+
+    <h4>writer.quiz(options)</h4>
+    <p>开始测验。</p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> function(data)。
+          测验完成后调用。 使用包含 <code>totalMistakes</code> 的对象调用该函数，该对象是测验期间发生的总错误。
+        </li>
+        <li>
+          <code>onCorrectStroke:</code> function(data)。
+          当用户正确绘制笔划时调用。 使用包含以下内容的对象调用该函数：
+          <ul>
+            <li>
+              <code>totalMistakes</code> 到目前为止在测验期间犯的总错误。
+            </li>
+            <li>
+              <code>strokeNum</code> 当前笔画数。
+            </li>
+            <li>
+              <code>mistakesOnStroke</code>
+              到目前为止用户绘制此笔划所犯的错误数。
+            </li>
+            <li>
+              <code>strokesRemaining</code>
+              测验完成前剩余的笔画数。
+            </li>
+            <li>
+              <code>drawnPath</code>
+              对象包含用户绘制的 <code>pathString</code> ，用于评分的分数。
+            </li>
+          </ul>
+        </li>
+        <li>
+          <code>onMistake:</code> function(data)。
+          当用户绘制笔划时出错。 使用包含以下内容的对象调用该函数：
+          <ul>
+            <li>
+              <code>totalMistakes</code>
+              到目前为止测试期间错误总数。
+            </li>
+            <li>
+              <code>strokeNum</code> 当前笔画数。
+            </li>
+            <li>
+              <code>mistakesOnStroke</code>
+              到目前为止用户绘制的笔划所犯的错误数。
+            </li>
+            <li>
+              <code>strokesRemaining</code>
+              测验完成前剩余的笔画数。
+            </li>
+            <li>
+              <code>drawnPath</code>
+              对象包含用户绘制的 <code>pathString</code> ，用于评分的分数。
+            </li>
+          </ul>
+        </li>
+        <li><code>showHintAfterMisses:</code> 整数， 默认 3。
+          给用户的笔画高亮提示数错误数
+          设置 false 禁用。
+          这也可以在创建编写器实例时设置。
+        </li>
+        <li><code>leniency:</code> 浮点数, 默认 1.0。
+          这可以设置为使笔划分级或多或少地宽松。 越接近于0，测验的评分就越严格。
+        </li>
+        <li><code>highlightOnComplete:</code> 布尔值, 默认 true。
+          控制当用户完成绘制整个角色时，测验是否会短暂突出显示角色。 这也可以在创建编写器实例时设置。
+        </li>
+      </ul>
+    </p>
+
+    <h4>writer.cancelQuiz()</h4>
+    <p>取消当前测验的进度</p>
+
+    <h3>类方法</h3>
+    <h4>HanziWriter.create(element, character, options)</h4>
+    <p>设置一个新的 HanziWriter 实例指定的 DOM 元素</p>
+    <p>
+      <code>element</code> DOM 节点或要渲染的元素的ID。
+    </p>
+    <p>
+      <code>character</code> 绘制汉字， '你'.
+    </p>
+    <p>
+      <code>options</code>
+      包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>showOutline:</code> 布尔值， 默认 true。
+          控制第一次渲染显示还是隐藏轮廓。
+        </li>
+        <li><code>showCharacter:</code> 布尔值， 默认 true。
+          控制第一次渲染显示还是隐藏汉字。
+        </li>
+        <li><code>width:</code> 数值。 画布的宽度单位像素）。</li>
+        <li><code>height:</code> 数值。 画布的高度（单位像素）。</li>
+        <li><code>padding:</code> 数值， 默认 20。
+          画布的角色和边缘之间的填充（单位像素）。
+        </li>
+        <li><code>strokeAnimationSpeed:</code> 数值， 默认 1。
+          绘制每个笔划的速度必须大于0.增加此数字可以更快地绘制笔划，减少绘制笔划的速度更慢。
+        </li>
+        <li><code>strokeHighlightSpeed:</code> 数值， 默认 2。
+          在测验中给出提示时突出显示每个笔划的速度必须大于0.增加此数字以突出显示更快，减少以突出显示更慢。
+        </li>
+        <li><code>strokeFadeDuration:</code> 数值， 默认 400。
+          调用
+          <code>writer.show()</code> 和 <code>writer.hide()</code>
+          时在显示和隐藏笔划之间转换的时间（以毫秒为单位）。
+        </li>
+        <li><code>delayBetweenStrokes:</code> 数值， 默认 1000。
+          动画时每个笔画之间的时间（以毫秒为单位）。
+        </li>
+        <li><code>delayBetweenLoops:</code> 数值， 默认 2000。
+          循环动画时每个动画循环之间的时间（以毫秒为单位）。
+        </li>
+        <li><code>strokeColor:</code> 十六进制字符, 默认 '#555'。
+          每个笔画的颜色。
+        </li>
+        <li><code>radicalColor:</code> 十六进制字符, 默认 null。
+          如果存在偏旁部首数据，则在笔划中绘制偏旁部首的颜色。 如果没有设置，激光将绘制与其他笔划相同的颜色。
+        </li>
+        <li><code>highlightColor:</code> 十六进制字符, 默认 '#AAF'。
+          用于在测验中突出显示的颜色。
+        </li>
+        <li><code>outlineColor:</code> 十六进制字符, 默认 '#DDD'。
+          汉字轮廓颜色。
+        </li>
+        <li><code>drawingColor:</code> 十六进制字符, 默认 '#333'。
+          用户测验时绘制线条的颜色。
+        </li>
+        <li><code>drawingWidth:</code> 数值， 默认 400。
+          用户测验时绘制线条的宽度。
+        </li>
+        <li><code>showHintAfterMisses:</code> 整数， 默认 3。
+          中风高亮提示之前的未命中数被给予用户。 设置为 false 以禁用。 创建测验时也可以设置此项。
+        </li>
+        <li><code>highlightOnComplete:</code> 布尔值， 默认 true。
+          控制当用户完成绘制整个角色时，测验是否会短暂突出显示角色。 创建测验时也可以设置此项。
+        </li>
+        <li><code>highlightCompleteColor:</code> 十六进制字符, 默认 null。
+          在测验中突出显示角色时使用的颜色。 如果未设置，则将使用<code>highlightColor</code>。
+          仅当<code>highlightOnComplete</code>为<code>true</code>时才相关。
+        </li>
+        <li><code>charDataLoader:</code> 函数。
+          Custom function to load charater data. See the section on
+          <a href="#loading-character-data-link">Loading character data</a>
+          for more info on usage.
+          自定义函数
+          <a href="#loading-character-data-link">加载字符数据</a>
+          。 有关使用的更多信息，请参阅加载字符数据部分。
+        </li>
+        <li><code>onLoadCharDataSuccess:</code> 函数。
+          成功加载字符数据时的回调。 使用已加载的数据调用此函数。 这可以用于实现加载微调器。
+        </li>
+        <li><code>onLoadCharDataError:</code> 函数。
+          字符数据加载失败时的回调。 无论故障原因来自<i>charDataLoader</i>，都会传递此函数。
+        </li>
+      </ul>
+    </p>
+    <h4>HanziWriter.loadCharacterData(character, options = {})</h4>
+    <p>
+      从 Hanzi Writer CDN 加载原始字符数据。 加载完成时返回 promise 的 resolves。
+    </p>
+    <p>
+      <code>character</code> 绘制汉字, '你'。
+    </p>
+    <p>
+      <code>options</code>
+      包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>charDataLoader:</code> 函数。
+          自定义函数加载字符数据。 有关使用的更多信息，请参阅
+          <a href="#loading-character-data-link">加载字符数据</a>
+          部分。
+        </li>
+        <li><code>onLoadCharDataSuccess:</code> 函数。
+          当汉字数据加载成功后回调。
+          这个函数传递已加载的数据。
+        </li>
+        <li><code>onLoadCharDataError:</code> 函数。
+          当汉字数据加载失败后回调。
+          无论调用 <i>charDataLoader</i> 出现什么错误都会传递这个函数。
+        </li>
+      </ul>
+    </p>
+
+    <h4>HanziWriter.getScalingTransform(width, height, padding = 0)</h4>
+    <p>
+      返回包含缩放信息的对象，该对象可在 SVG 中渲染原始字符数据时使用。
+    </p>
+    <p>
+      <code>width</code> 数值，
+      汉字渲染后的宽度（单位像素）。
+    </p>
+    <p>
+      <code>height</code> 数值，
+      汉字渲染后的高度（单位像素）。
+    </p>
+    <p>
+      <code>padding</code> 数值，
+      汉字周围额外填充。默认 0.
+    </p>
+    <b>return value</b> 对象, 包含一下关键字:
+    <ul>
+      <li><code>x:</code> 数值。
+        翻译中使用的 x 偏移量。
+      </li>
+      <li><code>y:</code> 数值。
+        翻译中使用的 y 偏移量。
+      </li>
+      <li><code>scale:</code> 数值。
+        变换的比例部分中使用的比例。
+      </li>
+      <li><code>transform:</code> 字符串。
+        SVG 变换字符串，可直接用于<code>&lt;g&gt;</code>元素的<code>transform</code>属性，以在 SVG 中缩放和定位字符路径字符串。
+      </li>
+    </ul>
+  </div>
+</div>
+</div>

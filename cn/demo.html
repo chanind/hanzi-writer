@@ -1,0 +1,50 @@
+---
+layout: default.cn
+js: ../demo.js
+---
+<div class="demo container">
+  <h1>Hanzi Writer 案例</h1>
+  <form class="form-inline char-select-form js-char-form">
+    <div class="form-group">
+      <label for="character-select">
+        汉字
+      </label>
+      <input type="text" class="form-control character-select" id="character-select" size="1" maxlength="1" value="我" />
+    </div>
+    <button type="submit" class="btn btn-default">更新案例</button>
+  </form>
+
+  <hr class="demo-divider" />
+
+  <h4>汉字动画</h4>
+  <div class="demo-target" id="animation-target"></div>
+  <div class="demo-controls">
+    <form class="form-inline">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" checked="checked" id="animation-show-outline" /> 展示轮廓
+        </label>
+        <button class="btn btn-primary" id="animate">动画!</button>
+      </div>
+    </form>
+  </div>
+  <a href="docs.html#animation-link" class="demo-docs-link">了解更多关于动画知识</a>
+
+  <hr class="demo-divider" />
+
+  <h4>描写测试</h4>
+  <p>通过用鼠标或手指绘制汉字 <strong class="char-symbol"></strong> 来测验自己的书写正确错误</p>
+
+  <div class="demo-target" id="quiz-target"></div>
+  <div class="demo-controls">
+    <form class="form-inline">
+      <div class="checkbox">
+        <label>
+          <input type="checkbox" checked="checked" id="quiz-show-outline" /> 展示轮廓
+        </label>
+        <button class="btn btn-primary" id="quiz-reset">重置</button>
+      </div>
+    </form>
+  </div>
+  <a href="docs.html#quizzing-link" class="demo-docs-link">学习更多测试</a>
+</div>

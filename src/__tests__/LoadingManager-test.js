@@ -94,15 +94,21 @@ describe('LoadingManager', () => {
 
       const loadPromise1 = manager.loadCharData('人');
       const loadPromise2 = manager.loadCharData('他');
-      // it should return the same promise for both since loading isn't complete
-      expect(loadPromise1).toBe(loadPromise2);
+      expect(loadPromise1).not.toBe(loadPromise2);
+
+      let hasPromise1Resolved = false;
+      loadPromise1.then(() => {
+        hasPromise1Resolved = true;
+      });
 
       onCompleteFns[0].call(null, ren);
       onCompleteFns[1].call(null, ta);
 
-      const data = await loadPromise1;
+      const data = await loadPromise2;
 
-      // ren should be ignored. It's like it was never requested at all
+      // ren should not resolve, since we requested something else before it finished loading
+      expect(hasPromise1Resolved).toBe(false);
+
       expect(data).toBe(ta);
       expect(onLoadCharDataSuccess.mock.calls.length).toBe(1);
       expect(onLoadCharDataSuccess.mock.calls[0][0]).toBe(ta);

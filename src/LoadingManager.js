@@ -5,7 +5,6 @@ function LoadingManager(options) {
   this._loadCounter = 0;
   this._options = options;
   this._isLoading = false;
-  this._loadingPromise = null;
 
   // use this to attribute to determine if there was a problem with loading
   this.loadingFailed = false;
@@ -25,7 +24,7 @@ LoadingManager.prototype._debouncedLoad = function(char, count) {
 };
 
 LoadingManager.prototype._setupLoadingPromise = function() {
-  this._loadingPromise = new Promise((resolve, reject) => {
+  return new Promise((resolve, reject) => {
     this._resolve = resolve;
     this._reject = reject;
   }).then((data) => {
@@ -48,14 +47,12 @@ LoadingManager.prototype._setupLoadingPromise = function() {
 
 LoadingManager.prototype.loadCharData = function(char) {
   this._loadingChar = char;
-  if (!this._isLoading) {
-    this._setupLoadingPromise();
-  }
+  const promise = this._setupLoadingPromise();
   this.loadingFailed = false;
   this._isLoading = true;
   this._loadCounter++;
   this._debouncedLoad(char, this._loadCounter);
-  return this._loadingPromise;
+  return promise;
 };
 
 module.exports = LoadingManager;

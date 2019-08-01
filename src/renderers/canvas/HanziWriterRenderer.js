@@ -21,7 +21,7 @@ HanziWriterRenderer.prototype._animationFrame = function(func) {
   ctx.save();
   ctx.translate(this._positioner.xOffset, this._positioner.height - this._positioner.yOffset);
   ctx.transform(1, 0, 0, -1, 0, 0);
-  ctx.scale(this._positioner.scale,  this._positioner.scale);
+  ctx.scale(this._positioner.scale, this._positioner.scale);
   func(ctx);
   ctx.restore();
   if (ctx.draw) ctx.draw();

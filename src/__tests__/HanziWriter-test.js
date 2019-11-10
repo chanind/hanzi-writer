@@ -347,6 +347,50 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('highlightStroke', () => {
+    it('highlights a single stroke', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.highlightStroke(1, { onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.highlight.opacity).toBe(1);
+      expect(writer._renderState.state.character.highlight.strokes[0].opacity).toBe(0);
+      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(0);
+
+      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(0);
+      expect(isResolved).toBe(false);
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(1);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(0);
+
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+  });
+
   describe('loopCharacterAnimation', () => {
     it('animates and then repeats until something else stops it', async () => {
       document.body.innerHTML = '<div id="target"></div>';

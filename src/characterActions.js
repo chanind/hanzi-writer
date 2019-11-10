@@ -30,6 +30,28 @@ const updateColor = (colorName, colorVal, duration) => {
   return [new Mutation(`options.${colorName}`, colorVal, { duration })];
 };
 
+const highlightStroke = (stroke, color, speed) => {
+  const strokeNum = stroke.strokeNum;
+  const duration = (stroke.getLength() + 600) / (3 * speed);
+  return [
+    new Mutation('character.highlight.strokeColor', color),
+    new Mutation('character.highlight', {
+      opacity: 1,
+      strokes: {
+        [strokeNum]: {
+          displayPortion: 0,
+          opacity: 0,
+        },
+      },
+    }),
+    new Mutation(`character.highlight.strokes.${strokeNum}`, {
+      displayPortion: 1,
+      opacity: 1,
+    }, { duration }),
+    new Mutation(`character.highlight.strokes.${strokeNum}.opacity`, 0, { duration }),
+  ];
+};
+
 const animateStroke = (charName, stroke, speed) => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
@@ -99,6 +121,7 @@ module.exports = {
   showStrokes,
   showCharacter,
   hideCharacter,
+  highlightStroke,
   animateCharacter,
   animateCharacterLoop,
   animateStroke,

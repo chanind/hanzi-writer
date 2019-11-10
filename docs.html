@@ -76,7 +76,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.0.2/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.1/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -988,6 +988,18 @@ Page({
       <p>Animate a single stroke</p>
       <p>
         <code>strokeNum</code> number. The stroke number to animate, starting at 0.
+      </p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>onComplete:</code> function. Called when the animation is complete.</li>
+        </ul>
+      </p>
+
+      <h4>writer.highlightStroke(strokeNum, options = {})</h4>
+      <p>Highlight a single stroke</p>
+      <p>
+        <code>strokeNum</code> number. The stroke number to highlight, starting at 0.
       </p>
       <p>
         <code>options</code> object containing additional configuration options. Full options include:

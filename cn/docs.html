@@ -76,7 +76,7 @@ js: ../docs.js
       <p>
         最简单选项是直接从 jsdelivr CDN 加载 Hanzi Writer JS 。只需将以下内容放入你的网页的头部:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@1.3/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.1/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -1112,6 +1112,18 @@ Page({
     <p>单笔画动画</p>
     <p>
       <code>strokeNum</code> 数值。 笔画数做动画，从 0 开始。
+    </p>
+    <p>
+      <code>options</code> 包含其他配置选项的对象。 完整选项包括：
+      <ul>
+        <li><code>onComplete:</code> 函数。 动画完成时调用</li>
+      </ul>
+    </p>
+
+    <h4>writer.highlightStroke(strokeNum, options = {})</h4>
+    <p>单笔突出画动画</p>
+    <p>
+      <code>strokeNum</code> 数值。 笔画数做突出，从 0 开始。
     </p>
     <p>
       <code>options</code> 包含其他配置选项的对象。 完整选项包括：

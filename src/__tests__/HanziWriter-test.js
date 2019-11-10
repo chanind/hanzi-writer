@@ -389,7 +389,7 @@ describe('HanziWriter', () => {
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
-  })
+  });
 
   describe('loopCharacterAnimation', () => {
     it('animates and then repeats until something else stops it', async () => {

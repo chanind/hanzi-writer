@@ -124,6 +124,15 @@ HanziWriter.prototype.animateStroke = function(strokeNum, options = {}) {
     )).then(res => callIfExists(options.onComplete, res))
   ));
 };
+HanziWriter.prototype.highlightStroke = function(strokeNum, options = {}) {
+  return this._withData(() => (
+    this._renderState.run(characterActions.highlightStroke(
+      this._character.strokes[strokeNum],
+      this._options.highlightColor,
+      this._options.strokeHighlightSpeed,
+    )).then(res => callIfExists(options.onComplete, res))
+  ));
+};
 HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   this.cancelQuiz();
   return this._withData(() => (

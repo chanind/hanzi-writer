@@ -105,7 +105,7 @@ const animateCharacter = (charName, character, fadeDuration, speed, delayBetween
     strokes: objRepeat({ opacity: 0 }, character.strokes.length),
   }, { force: true }));
   character.strokes.forEach((stroke, i) => {
-    if (i > 0) mutations.push(new Mutation.Pause(delayBetweenStrokes));
+    if (i > 0) mutations.push(new Mutation.Delay(delayBetweenStrokes));
     mutations = mutations.concat(animateStroke(charName, stroke, speed));
   });
   return mutations;
@@ -113,7 +113,7 @@ const animateCharacter = (charName, character, fadeDuration, speed, delayBetween
 
 const animateCharacterLoop = (charName, character, fadeDuration, speed, delayBetweenStrokes, delayBetweenLoops) => {
   const mutations = animateCharacter(charName, character, fadeDuration, speed, delayBetweenStrokes);
-  mutations.push(new Mutation.Pause(delayBetweenLoops));
+  mutations.push(new Mutation.Delay(delayBetweenLoops));
   return mutations;
 };
 

@@ -89,7 +89,7 @@ describe('RenderState', () => {
       renderState.run([
         new Mutation('character.main.opacity', 0.3),
         new Mutation('character.main.opacity', 0.9, { duration: 50 }),
-        new Mutation.Pause(100),
+        new Mutation.Delay(100),
         new Mutation('character.main.opacity', 0, { duration: 50 }),
       ]).then(result => {
         isResolved = true;
@@ -137,7 +137,7 @@ describe('RenderState', () => {
       renderState.run([
         new Mutation('character.main.opacity', 0.3),
         new Mutation('character.main.opacity', 0.9, { duration: 50 }),
-        new Mutation.Pause(100),
+        new Mutation.Delay(100),
         new Mutation('character.main.opacity', 0, { duration: 50 }),
       ]).then(result => {
         isResolved = true;

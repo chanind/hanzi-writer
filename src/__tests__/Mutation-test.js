@@ -76,6 +76,57 @@ describe('Mutation', () => {
     expect(isResolved).toBe(true);
   });
 
+  it('can pause and resume during the tween', async () => {
+    const renderState = {
+      state: {a: {b: 10 } },
+      updateState: jest.fn(),
+    };
+
+    const mut = new Mutation('a.b', 20, { duration: 50 });
+    let isResolved = false;
+
+    mut.run(renderState).then(() => {
+      isResolved = true;
+    });
+
+    await Promise.resolve();
+    expect(isResolved).toBe(false);
+    expect(renderState.updateState).not.toHaveBeenCalled();
+
+    clock.tick(45);
+    const partialTweenVals = renderState.updateState.mock.calls.map(call => call[0].a.b);
+
+    expect(isResolved).toBe(false);
+    expect(renderState.updateState).toHaveBeenCalled();
+    renderState.updateState.mock.calls.forEach(mockCall => {
+      expect(mockCall[0].a.b).toBeGreaterThan(10);
+      expect(mockCall[0].a.b).toBeLessThan(20);
+    });
+
+    mut.pause();
+    await Promise.resolve();
+
+    clock.tick(1000);
+    await Promise.resolve();
+
+    expect(partialTweenVals.length).toBe(renderState.updateState.mock.calls.length);
+    expect(isResolved).toBe(false);
+    expect(renderState.updateState).toHaveBeenCalled();
+    renderState.updateState.mock.calls.forEach(mockCall => {
+      expect(mockCall[0].a.b).toBeGreaterThan(10);
+      expect(mockCall[0].a.b).toBeLessThan(20);
+    });
+
+    mut.resume();
+    await Promise.resolve();
+
+    clock.tick(25);
+    expect(renderState.updateState).toHaveBeenLastCalledWith({ a: { b: 20 } });
+
+    await Promise.resolve();
+    expect(isResolved).toBe(true);
+  });
+
   it('updates state on cancel if force: true', async () => {
     const renderState = {
       state: {a: {b: 7 } },
@@ -99,5 +150,48 @@ describe('Mutation', () => {
 
     mut.cancel(renderState);
     expect(renderState.updateState).not.toHaveBeenCalled();
+  });
+});
+
+describe('Mutation.Delay', () => {
+  it('can pause and resume during the delay', async () => {
+
+    const delay = new Mutation.Delay(1000);
+    let isResolved = false;
+
+    delay.run().then(() => {
+      isResolved = true;
+    });
+
+    await Promise.resolve();
+    expect(isResolved).toBe(false);
+
+    clock.tick(200);
+    await Promise.resolve();
+
+    expect(isResolved).toBe(false);
+
+    delay.pause();
+    await Promise.resolve();
+
+    clock.tick(2000);
+    await Promise.resolve();
+
+    expect(isResolved).toBe(false);
+    
+    delay.resume();
+    await Promise.resolve();
+
+    expect(isResolved).toBe(false);
+
+    clock.tick(500);
+    await Promise.resolve();
+
+    expect(isResolved).toBe(false);
+
+    clock.tick(500);
+    await Promise.resolve();
+
+    expect(isResolved).toBe(true);
   });
 });

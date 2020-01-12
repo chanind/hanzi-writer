@@ -38,6 +38,8 @@ const isAlreadyAtEnd = function(startValues, endValues) {
   return true;
 };
 
+let id = 0;
+
 // from https://github.com/maxwellito/vivus
 const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
@@ -46,7 +48,10 @@ function Mutation(scope, valuesOrCallable, options = {}) {
   this._valuesOrCallable = valuesOrCallable;
   this._duration = options.duration || 0;
   this._force = options.force;
+  this._pausedDuration = 0;
   this._tickBound = this._tick.bind(this);
+  this._startPauseTime = null;
+  this._id = id++;
 }
 
 
@@ -65,8 +70,22 @@ Mutation.prototype.run = function(renderState) {
   });
 };
 
+Mutation.prototype.pause = function() {
+  if (this._startPauseTime !== null) return;
+  if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
+  this._startPauseTime = performanceNow();
+};
+
+Mutation.prototype.resume = function() {
+  if (this._startPauseTime === null) return;
+  this._frameHandle = requestAnimationFrame(this._tickBound);
+  this._pausedDuration += performanceNow() - this._startPauseTime;
+  this._startPauseTime = null;
+};
+
 Mutation.prototype._tick = function(timing) {
-  const progress = Math.min(1, (timing - this._startTime) / this._duration);
+  if (this._startPauseTime !== null) return;
+  const progress = Math.min(1, (timing - this._startTime - this._pausedDuration) / this._duration);
   if (progress === 1) {
     this._renderState.updateState(this._values);
     this._frameHandle = null;
@@ -97,27 +116,47 @@ Mutation.prototype.cancel = function(renderState) {
   }
 };
 
-// ------ Mutation.Pause Class --------
+// ------ Mutation.Delay Class --------
 
-function Pause(duration) {
+function Delay(duration) {
   this._duration = duration;
+  this._startTime = null;
+  this._paused = false;
 }
 
-Pause.prototype.run = function() {
+Delay.prototype.pause = function() {
+  if (this._paused) return;
+  // to pause, clear the timeout and rewrite this._duration with whatever time is remaining
+  const elapsedDelay = performanceNow() - this._startTime;
+  this._duration = Math.max(0, this._duration - elapsedDelay);
+  clearTimeout(this._timeout);
+  this._paused = true;
+}
+
+Delay.prototype.resume = function() {
+  if (!this._paused) return;
+  this._startTime = performanceNow();
+  this._timeout = setTimeout(() => this.cancel(), this._duration);
+  this._paused = false;
+  
+}
+
+Delay.prototype.run = function() {
   const timeoutPromise = new Promise((resolve) => {
     this._resolve = resolve;
   });
+  this._startTime = performanceNow();
   this._timeout = setTimeout(() => this.cancel(), this._duration);
   return timeoutPromise;
 };
 
-Pause.prototype.cancel = function() {
+Delay.prototype.cancel = function() {
   clearTimeout(this._timeout);
   if (this._resolve) this._resolve();
   this._resolve = false;
 };
 
-Mutation.Pause = Pause;
+Mutation.Delay = Delay;
 
 // -------------------------------------
 

@@ -92,6 +92,20 @@ RenderState.prototype._run = function(mutationChain) {
   });
 };
 
+RenderState.prototype._getActiveMutations = function() {
+  return this._mutationChains.map(chain => {
+    return chain._mutations[chain._index];
+  });
+};
+
+RenderState.prototype.pauseAll = function() {
+  this._getActiveMutations().forEach(mutation => mutation.pause());
+};
+
+RenderState.prototype.resumeAll = function() {
+  this._getActiveMutations().forEach(mutation => mutation.resume());
+};
+
 RenderState.prototype.cancelMutations = function(scopes) {
   this._mutationChains.forEach(chain => {
     chain._scopes.forEach(chainScope => {

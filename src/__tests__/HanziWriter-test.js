@@ -347,6 +347,67 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('pauseAnimation and resumeAnimation', () => {
+    it('pauses and resumes the currently running animations', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      clock.tick(50);
+      await resolvePromises();
+
+      writer.animateStroke(1, { onComplete }).then(result => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
+
+      clock.tick(50);
+      await resolvePromises();
+
+      const pausedDisplayPortion = writer._renderState.state.character.main.strokes[1].displayPortion;
+      expect(pausedDisplayPortion).toBeGreaterThan(0);
+      expect(pausedDisplayPortion).toBeLessThan(1);
+      expect(isResolved).toBe(false);
+
+      writer.pauseAnimation();
+      await resolvePromises();
+
+      clock.tick(2000);
+      await resolvePromises();
+
+      expect(isResolved).toBe(false);
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(pausedDisplayPortion);
+
+      writer.resumeAnimation();
+      await resolvePromises();
+
+      clock.tick(50);
+      await resolvePromises();
+
+      const newDisplayPortion = writer._renderState.state.character.main.strokes[1].displayPortion;
+      expect(newDisplayPortion).not.toBe(pausedDisplayPortion);
+      expect(newDisplayPortion).toBeGreaterThan(0);
+      expect(newDisplayPortion).toBeLessThan(1);
+      expect(isResolved).toBe(false);
+
+      clock.tick(2000);
+      await resolvePromises();
+
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+  });
+
   describe('highlightStroke', () => {
     it('highlights a single stroke', async () => {
       document.body.innerHTML = '<div id="target"></div>';

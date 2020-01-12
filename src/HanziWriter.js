@@ -147,6 +147,14 @@ HanziWriter.prototype.loopCharacterAnimation = function(options = {}) {
   ));
 };
 
+HanziWriter.prototype.pauseAnimation = function() {
+  return this._withData(() => this._renderState.pauseAll());
+};
+
+HanziWriter.prototype.resumeAnimation = function() {
+  return this._withData(() => this._renderState.resumeAll());
+};
+
 HanziWriter.prototype.showOutline = function(options = {}) {
   this._options.showOutline = true;
   return this._withData(() => (

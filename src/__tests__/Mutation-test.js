@@ -178,7 +178,7 @@ describe('Mutation.Delay', () => {
     await Promise.resolve();
 
     expect(isResolved).toBe(false);
-    
+
     delay.resume();
     await Promise.resolve();
 

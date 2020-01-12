@@ -38,8 +38,6 @@ const isAlreadyAtEnd = function(startValues, endValues) {
   return true;
 };
 
-let id = 0;
-
 // from https://github.com/maxwellito/vivus
 const ease = x => -Math.cos(x * Math.PI) / 2 + 0.5;
 
@@ -51,7 +49,6 @@ function Mutation(scope, valuesOrCallable, options = {}) {
   this._pausedDuration = 0;
   this._tickBound = this._tick.bind(this);
   this._startPauseTime = null;
-  this._id = id++;
 }
 
 
@@ -131,15 +128,14 @@ Delay.prototype.pause = function() {
   this._duration = Math.max(0, this._duration - elapsedDelay);
   clearTimeout(this._timeout);
   this._paused = true;
-}
+};
 
 Delay.prototype.resume = function() {
   if (!this._paused) return;
   this._startTime = performanceNow();
   this._timeout = setTimeout(() => this.cancel(), this._duration);
   this._paused = false;
-  
-}
+};
 
 Delay.prototype.run = function() {
   const timeoutPromise = new Promise((resolve) => {

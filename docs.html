@@ -76,7 +76,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.1/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.2/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -1010,6 +1010,12 @@ Page({
 
       <h4>writer.loopCharacterAnimation()</h4>
       <p>Animate the strokes of the character in order, and then restart the animation after it finishes forever.</p>
+
+      <h4>writer.pauseAnimation()</h4>
+      <p>Pause any currently running animations.</p>
+
+      <h4>writer.resumeAnimation()</h4>
+      <p>Resume any animations that were previously paused with <code>pauseAnimation()</code>.</p>
 
       <h4>writer.setCharacter(character)</h4>
       <p>Replace the currently drawn character with a new one. This will reset any quizzes or animations in progress.</p>

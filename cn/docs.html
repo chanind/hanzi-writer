@@ -76,7 +76,7 @@ js: ../docs.js
       <p>
         最简单选项是直接从 jsdelivr CDN 加载 Hanzi Writer JS 。只需将以下内容放入你的网页的头部:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.1/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.2/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -1133,8 +1133,14 @@ Page({
     </p>
 
     <h4>writer.loopCharacterAnimation()</h4>
-    <p>
-      Animate the strokes of the character in order, and then restart the animation after it finishes forever.</p>
+    <p>Animate the strokes of the character in order, and then restart the animation after it finishes forever.</p>
+
+    <h4>writer.pauseAnimation()</h4>
+    <p>Pause any currently running animations.</p>
+
+    <h4>writer.resumeAnimation()</h4>
+    <p>Resume any animations that were previously paused with <code>pauseAnimation()</code>.</p>
+
     <h4>writer.setCharacter(character)</h4>
     <P>
       按顺序为汉字的笔划设置动画，然后在动画永久完成后重新启动动画。

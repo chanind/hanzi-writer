@@ -83,6 +83,13 @@ describe('HanziWriter', () => {
       });
     });
 
+    it("Errors if the target element can't be found", () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      expect(() => {
+        HanziWriter.create('wrong-target', '人', { charDataLoader });
+      }).toThrow('HanziWriter target element not found: wrong-target');
+    });
+
     it('can optionally use a canvas for rendering instead of SVG', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 

@@ -15,6 +15,9 @@ RenderTarget.init = (elmOrId, width = '100%', height = '100%') => {
   if (typeof elmOrId === 'string') {
     elm = global.document.getElementById(elmOrId);
   }
+  if (!elm) {
+    throw new Error(`HanziWriter target element not found: ${elmOrId}`);
+  }
   const nodeType = elm.nodeName.toUpperCase();
   if (nodeType === 'CANVAS') {
     canvas = elm;

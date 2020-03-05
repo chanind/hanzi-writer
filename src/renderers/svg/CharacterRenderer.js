@@ -1,3 +1,4 @@
+const { isMsBrowser } = require('../../utils');
 const StrokeRenderer = require('./StrokeRenderer');
 
 
@@ -18,10 +19,15 @@ CharacterRenderer.prototype.render = function(props) {
   if (props === this._oldProps) return;
   if (props.opacity !== this._oldProps.opacity) {
     this._group.style.opacity = props.opacity;
-    if (props.opacity === 0) {
-      this._group.style.display = 'none';
-    } else if (this._oldProps.opacity === 0) {
-      this._group.style.display = 'initial';
+    // MS browsers seem to have a bug where if SVG is set to display:none, it sometimes breaks.
+    // More info: https://github.com/chanind/hanzi-writer/issues/164
+    // this is just a perf improvement, so disable for MS browsers
+    if (!isMsBrowser) {
+      if (props.opacity === 0) {
+        this._group.style.display = 'none';
+      } else if (this._oldProps.opacity === 0) {
+        this._group.style.removeProperty('display');
+      }
     }
   }
   const colorsChanged = (

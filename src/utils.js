@@ -120,6 +120,9 @@ const objRepeat = (item, times) => {
   return obj;
 };
 
+const ua = (global.navigator && global.navigator.userAgent) || '';
+const isMsBrowser = ua.indexOf('MSIE ') > 0 || ua.indexOf('Trident/') > 0 || ua.indexOf('Edge/') > 0;
+
 module.exports = {
   _assign,
   arrLast,
@@ -137,4 +140,5 @@ module.exports = {
   requestAnimationFrame,
   timeout,
   trim,
+  isMsBrowser,
 };

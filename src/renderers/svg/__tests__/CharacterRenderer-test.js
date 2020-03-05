@@ -123,7 +123,7 @@ describe('CharacterRenderer', () => {
     charRenderer.render(props2);
 
     expect(subCanvas.style.opacity).toBe('0.9');
-    expect(subCanvas.style.display).toBe('initial');
+    expect(subCanvas.style.display).toBe('');
   });
 
 });

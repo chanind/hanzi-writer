@@ -69,7 +69,7 @@ Quiz.prototype.endUserStroke = function() {
     this._handleSuccess(currentStroke);
   } else {
     this._handleFailure();
-    if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
+    if (this._numRecentMistakes >= this._options.showHintAfterMisses && this._options.showHintAfterMisses !== false) {
       this._renderState.run(
         quizActions.highlightStroke(currentStroke, this._options.highlightColor, this._options.strokeHighlightSpeed),
       );

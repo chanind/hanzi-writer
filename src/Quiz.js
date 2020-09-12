@@ -25,7 +25,6 @@ Quiz.prototype.startQuiz = function(options) {
   this._currentStrokeIndex = 0;
   this._numRecentMistakes = 0;
   this._totalMistakes = 0;
-  this._drawnStrokes = [];
   this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
 };
 

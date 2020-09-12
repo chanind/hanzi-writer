@@ -433,7 +433,7 @@ describe('Quiz', () => {
       await resolvePromises();
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
     });
-    
+
     it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
       strokeMatches.mockImplementation(() => false);
 

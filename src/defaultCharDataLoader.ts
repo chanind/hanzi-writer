@@ -1,6 +1,5 @@
 const VERSION = "2.0";
-const getCharDataUrl = (char) =>
-    `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
+const getCharDataUrl = (char: any) => `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
 
 export default function defaultCharDataLoader(
     char: string,

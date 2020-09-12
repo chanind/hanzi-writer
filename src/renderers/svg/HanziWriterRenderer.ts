@@ -1,18 +1,29 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'CharacterR... Remove this comment to see the full error message
 const CharacterRenderer = require('./CharacterRenderer');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'UserStroke... Remove this comment to see the full error message
 const UserStrokeRenderer = require('./UserStrokeRenderer');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'assign'.
 const {assign} = require('../../utils');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'svg'.
 const svg = require('./svgUtils');
 
-function HanziWriterRenderer(character, positioner) {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'HanziWrite... Remove this comment to see the full error message
+function HanziWriterRenderer(character: any, positioner: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._character = character;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._positioner = positioner;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._mainCharRenderer = new CharacterRenderer(character);
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._outlineCharRenderer = new CharacterRenderer(character);
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._highlightCharRenderer = new CharacterRenderer(character);
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._userStrokeRenderers = {};
 }
 
-HanziWriterRenderer.prototype.mount = function(target) {
+HanziWriterRenderer.prototype.mount = function(target: any) {
   const positionedTarget = target.createSubRenderTarget();
   const group = positionedTarget.svg;
   svg.attr(group, 'transform', `
@@ -25,7 +36,7 @@ HanziWriterRenderer.prototype.mount = function(target) {
   this._positionedTarget = positionedTarget;
 };
 
-HanziWriterRenderer.prototype.render = function(props) {
+HanziWriterRenderer.prototype.render = function(props: any) {
   this._outlineCharRenderer.render({
     opacity: props.character.outline.opacity,
     strokes: props.character.outline.strokes,

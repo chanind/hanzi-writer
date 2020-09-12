@@ -1,11 +1,14 @@
+// @ts-expect-error ts-migrate(6200) FIXME: Definitions of the following identifiers conflict ... Remove this comment to see the full error message
 const { average, arrLast } = require('./utils');
 
 
-const subtract = (p1, p2) => ({x: p1.x - p2.x, y: p1.y - p2.y});
-const magnitude = (point) => Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
-const distance = (point1, point2) => magnitude(subtract(point1, point2));
-const equals = (point1, point2) => point1.x === point2.x && point1.y === point2.y;
-const round = (point, precision = 1) => {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'subtract'.
+const subtract = (p1: any, p2: any) => ({x: p1.x - p2.x, y: p1.y - p2.y});
+const magnitude = (point: any) => Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'distance'.
+const distance = (point1: any, point2: any) => magnitude(subtract(point1, point2));
+const equals = (point1: any, point2: any) => point1.x === point2.x && point1.y === point2.y;
+const round = (point: any, precision = 1) => {
   const multiplier = precision * 10;
   return {
     x: Math.round(multiplier * point.x) / multiplier,
@@ -13,17 +16,18 @@ const round = (point, precision = 1) => {
   };
 };
 
-const length = (points) => {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'length'.
+const length = (points: any) => {
   let lastPoint = points[0];
   const pointsSansFirst = points.slice(1);
-  return pointsSansFirst.reduce((acc, point) => {
+  return pointsSansFirst.reduce((acc: any, point: any) => {
     const dist = distance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
   }, 0);
 };
 
-const cosineSimilarity = (point1, point2) => {
+const cosineSimilarity = (point1: any, point2: any) => {
   const rawDotProduct = point1.x * point2.x + point1.y * point2.y;
   return rawDotProduct / magnitude(point1) / magnitude(point2);
 };
@@ -31,7 +35,7 @@ const cosineSimilarity = (point1, point2) => {
 
 // return a new point, p3, which is on the same line as p1 and p2, but distance away
 // from p2. p1, p2, p3 will always lie on the line in that order
-const _extendPointOnLine = (p1, p2, dist) => {
+const _extendPointOnLine = (p1: any, p2: any, dist: any) => {
   const vect = subtract(p2, p1);
   const norm = dist / magnitude(vect);
   return {x: p2.x + norm * vect.x, y: p2.y + norm * vect.y};
@@ -39,8 +43,8 @@ const _extendPointOnLine = (p1, p2, dist) => {
 
 
 // based on http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf
-const frechetDist = (curve1, curve2) => {
-  const results = [];
+const frechetDist = (curve1: any, curve2: any) => {
+  const results: any = [];
   for (let i = 0; i < curve1.length; i++) {
     results.push([]);
     for (let j = 0; j < curve2.length; j++) {
@@ -48,7 +52,7 @@ const frechetDist = (curve1, curve2) => {
     }
   }
 
-  const recursiveCalc = (i, j) => {
+  const recursiveCalc = (i: any, j: any) => {
     if (results[i][j] > -1) return results[i][j];
     if (i === 0 && j === 0) {
       results[i][j] = distance(curve1[0], curve2[0]);
@@ -75,9 +79,9 @@ const frechetDist = (curve1, curve2) => {
 };
 
 // break up long segments in the curve into smaller segments of len maxLen or smaller
-const subdivideCurve = (curve, maxLen = 0.05) => {
+const subdivideCurve = (curve: any, maxLen = 0.05) => {
   const newCurve = curve.slice(0, 1);
-  curve.slice(1).forEach(point => {
+  curve.slice(1).forEach((point: any) => {
     const prevPoint = newCurve[newCurve.length - 1];
     const segLen = distance(point, prevPoint);
     if (segLen > maxLen) {
@@ -94,7 +98,8 @@ const subdivideCurve = (curve, maxLen = 0.05) => {
 };
 
 // redraw the curve using numPoints equally spaced out along the length of the curve
-const outlineCurve = (curve, numPoints = 30) => {
+const outlineCurve = (curve: any, numPoints = 30) => {
+  // @ts-expect-error ts-migrate(2349) FIXME: Type 'Number' has no call signatures.
   const curveLen = length(curve);
   const segmentLen = curveLen / (numPoints - 1);
   const outlinePoints = [curve[0]];
@@ -122,7 +127,7 @@ const outlineCurve = (curve, numPoints = 30) => {
 };
 
 // translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis
-const normalizeCurve = (curve) => {
+const normalizeCurve = (curve: any) => {
   const outlinedCurve = outlineCurve(curve);
   const meanX = average(outlinedCurve.map(point => point.x));
   const meanY = average(outlinedCurve.map(point => point.y));
@@ -137,18 +142,18 @@ const normalizeCurve = (curve) => {
 };
 
 // rotate around the origin
-const rotate = (curve, theta) => {
-  return curve.map(point => ({
+const rotate = (curve: any, theta: any) => {
+  return curve.map((point: any) => ({
     x: Math.cos(theta) * point.x - Math.sin(theta) * point.y,
-    y: Math.sin(theta) * point.x + Math.cos(theta) * point.y,
+    y: Math.sin(theta) * point.x + Math.cos(theta) * point.y
   }));
 };
 
 // remove intermediate points that are on the same line as the points to either side
-const _filterParallelPoints = (points) => {
+const _filterParallelPoints = (points: any) => {
   if (points.length < 3) return points;
   const filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach((point, i) => {
+  points.slice(2).forEach((point: any, i: any) => {
     const numFilteredPoints = filteredPoints.length;
     const curVect = subtract(point, filteredPoints[numFilteredPoints - 1]);
     const prevVect = subtract(filteredPoints[numFilteredPoints - 1], filteredPoints[numFilteredPoints - 2]);
@@ -162,11 +167,12 @@ const _filterParallelPoints = (points) => {
   return filteredPoints;
 };
 
-function getPathString(points, close = false) {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'getPathStr... Remove this comment to see the full error message
+function getPathString(points: any, close = false) {
   const start = round(points[0]);
   const remainingPoints = points.slice(1);
   let pathString = `M ${start.x} ${start.y}`;
-  remainingPoints.forEach(point => {
+  remainingPoints.forEach((point: any) => {
     const roundedPoint = round(point);
     pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
   });
@@ -175,7 +181,8 @@ function getPathString(points, close = false) {
 }
 
 // take points on a path and move their start point backwards by distance
-const extendStart = (points, dist) => {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'extendStar... Remove this comment to see the full error message
+const extendStart = (points: any, dist: any) => {
   const filteredPoints = _filterParallelPoints(points);
   if (filteredPoints.length < 2) return filteredPoints;
   const p1 = filteredPoints[1];

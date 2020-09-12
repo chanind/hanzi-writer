@@ -1,17 +1,21 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'svg'.
 const svg = require('./svgUtils');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'getPathStr... Remove this comment to see the full error message
 const { getPathString } = require('../../geometry');
 
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'UserStroke... Remove this comment to see the full error message
 function UserStrokeRenderer() {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._oldProps = {};
 }
 
-UserStrokeRenderer.prototype.mount = function(target) {
+UserStrokeRenderer.prototype.mount = function(target: any) {
   this._path = svg.createElm('path');
   target.svg.appendChild(this._path);
 };
 
-UserStrokeRenderer.prototype.render = function(props) {
+UserStrokeRenderer.prototype.render = function(props: any) {
   if (props === this._oldProps) return;
   if (props.strokeColor !== this._oldProps.strokeColor || props.strokeWidth !== this._oldProps.strokeWidth) {
     const {r, g, b, a} = props.strokeColor;

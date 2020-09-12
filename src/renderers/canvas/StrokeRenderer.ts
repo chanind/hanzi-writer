@@ -1,23 +1,35 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'extendStar... Remove this comment to see the full error message
 const { extendStart } = require('../../geometry');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'drawPath'.
 const { drawPath, pathStringToCanvas } = require('./canvasUtils');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'StrokeRend... Remove this comment to see the full error message
 const StrokeRendererBase = require('../StrokeRendererBase');
 
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'STROKE_WID... Remove this comment to see the full error message
 const STROKE_WIDTH = 200;
 
 // this is a stroke composed of several stroke parts
-function StrokeRenderer(stroke, usePath2D = true) {
+// @ts-expect-error ts-migrate(2393) FIXME: Duplicate function implementation.
+function StrokeRenderer(stroke: any, usePath2D = true) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._stroke = stroke;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._pathLength = stroke.getLength() + (STROKE_WIDTH / 2);
+  // @ts-expect-error ts-migrate(2339) FIXME: Property 'Path2D' does not exist on type 'Global'.
   if (usePath2D && global.Path2D) {
+    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
     this._path2D = new global.Path2D(this._stroke.path);
   } else {
+    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
     this._pathCmd = pathStringToCanvas(this._stroke.path);
   }
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._extendedMaskPoints = extendStart(this._stroke.points, STROKE_WIDTH / 2);
 }
+// @ts-expect-error ts-migrate(2393) FIXME: Duplicate function implementation.
 StrokeRenderer.prototype = Object.create(StrokeRendererBase.prototype);
 
-StrokeRenderer.prototype.render = function(ctx, props) {
+StrokeRenderer.prototype.render = function(ctx: any, props: any) {
   if (props.opacity < 0.05) return;
 
   ctx.save();

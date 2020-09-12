@@ -1,20 +1,29 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'CharacterR... Remove this comment to see the full error message
 const CharacterRenderer = require('./CharacterRenderer');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'renderUser... Remove this comment to see the full error message
 const renderUserStroke = require('./renderUserStroke');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'assign'.
 const {assign} = require('../../utils');
 
-function HanziWriterRenderer(character, positioner) {
+// @ts-expect-error ts-migrate(2393) FIXME: Duplicate function implementation.
+function HanziWriterRenderer(character: any, positioner: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._character = character;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._positioner = positioner;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._mainCharRenderer = new CharacterRenderer(character);
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._outlineCharRenderer = new CharacterRenderer(character);
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._highlightCharRenderer = new CharacterRenderer(character);
 }
 
-HanziWriterRenderer.prototype.mount = function(target) {
+HanziWriterRenderer.prototype.mount = function(target: any) {
   this._target = target;
 };
 
-HanziWriterRenderer.prototype._animationFrame = function(func) {
+HanziWriterRenderer.prototype._animationFrame = function(func: any) {
   const ctx = this._target.getContext();
   ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
 
@@ -27,8 +36,8 @@ HanziWriterRenderer.prototype._animationFrame = function(func) {
   if (ctx.draw) ctx.draw();
 };
 
-HanziWriterRenderer.prototype.render = function(props) {
-  this._animationFrame(ctx => {
+HanziWriterRenderer.prototype.render = function(props: any) {
+  this._animationFrame((ctx: any) => {
     this._outlineCharRenderer.render(ctx, {
       opacity: props.character.outline.opacity,
       strokes: props.character.outline.strokes,

@@ -1,12 +1,19 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'createElm'... Remove this comment to see the full error message
 const { createElm, attrs } = require('./svgUtils');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'RenderTarg... Remove this comment to see the full error message
 const RenderTargetBase = require('../RenderTargetBase');
 
-function RenderTarget(svg, defs) {
+function RenderTarget(svg: any, defs: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this.svg = svg;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this.defs = defs;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this.node = svg;
 
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   if (this.node.createSVGPoint) {
+    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
     this._pt = this.node.createSVGPoint();
   }
 }
@@ -15,10 +22,11 @@ RenderTarget.prototype = Object.create(RenderTargetBase.prototype);
 RenderTarget.prototype.createSubRenderTarget = function() {
   const group = createElm('g');
   this.svg.appendChild(group);
+  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   return new RenderTarget(group, this.defs);
 };
 
-RenderTarget.prototype._getMousePoint = function(evt) {
+RenderTarget.prototype._getMousePoint = function(evt: any) {
   if (this._pt) {
     this._pt.x = evt.clientX;
     this._pt.y = evt.clientY;
@@ -28,7 +36,7 @@ RenderTarget.prototype._getMousePoint = function(evt) {
   return RenderTargetBase.prototype._getMousePoint.call(this, evt);
 };
 
-RenderTarget.prototype._getTouchPoint = function(evt) {
+RenderTarget.prototype._getTouchPoint = function(evt: any) {
   if (this._pt) {
     this._pt.x = evt.touches[0].clientX;
     this._pt.y = evt.touches[0].clientY;
@@ -38,10 +46,11 @@ RenderTarget.prototype._getTouchPoint = function(evt) {
   return RenderTargetBase.prototype._getTouchPoint.call(this, evt);
 };
 
-RenderTarget.init = (elmOrId, width = '100%', height = '100%') => {
+RenderTarget.init = (elmOrId: any, width = '100%', height = '100%') => {
   let svg;
   let elm = elmOrId;
   if (typeof elmOrId === 'string') {
+    // @ts-expect-error ts-migrate(2339) FIXME: Property 'document' does not exist on type 'Global... Remove this comment to see the full error message
     elm = global.document.getElementById(elmOrId);
   }
   if (!elm) {
@@ -57,6 +66,7 @@ RenderTarget.init = (elmOrId, width = '100%', height = '100%') => {
   attrs(svg, {width, height});
   const defs = createElm('defs');
   svg.appendChild(defs);
+  // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
   return new RenderTarget(svg, defs);
 };
 

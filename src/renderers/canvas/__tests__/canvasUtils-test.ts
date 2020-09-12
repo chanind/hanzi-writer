@@ -1,12 +1,16 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'pathString... Remove this comment to see the full error message
 const { pathStringToCanvas } = require('../canvasUtils');
 
+// @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
 describe('canvasUtils', () => {
-  let ctx;
+  let ctx: any;
 
+  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'beforeEach'.
   beforeEach(() => {
     ctx = document.createElement('canvas').getContext('2d');
   });
 
+  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
   describe('pathStringToCanvas', () => {
     const pathStrings = [
       'M 350 571 Q 380 593 449 614 Q 465 615 468 623 Q 471 633 458 643 Q 439 656 396 668 Q 381 674 370 672 Q 363 668 363 657 Q 364 621 200 527 Q 196 518 201 516 Q 213 516 290 546 Q 303 550 316 556 L 350 571 Z',
@@ -19,9 +23,11 @@ describe('canvasUtils', () => {
     ];
 
     pathStrings.forEach((pathString, index) => {
+      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
       it(`translates SVG pathstrings from MakeMeAHanzi into canvas commands case ${index}`, () => {
         const commandFunc = pathStringToCanvas(pathString);
         commandFunc(ctx);
+        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(ctx.__getEvents()).toMatchSnapshot();
       });
     });

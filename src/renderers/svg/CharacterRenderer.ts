@@ -1,21 +1,25 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'isMsBrowse... Remove this comment to see the full error message
 const { isMsBrowser } = require('../../utils');
 const StrokeRenderer = require('./StrokeRenderer');
 
 
-function CharacterRenderer(character) {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'CharacterR... Remove this comment to see the full error message
+function CharacterRenderer(character: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._oldProps = {};
-  this._strokeRenderers = character.strokes.map((stroke) => new StrokeRenderer(stroke));
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
+  this._strokeRenderers = character.strokes.map((stroke: any) => new StrokeRenderer(stroke));
 }
 
-CharacterRenderer.prototype.mount = function(target) {
+CharacterRenderer.prototype.mount = function(target: any) {
   const subTarget = target.createSubRenderTarget();
   this._group = subTarget.svg;
-  this._strokeRenderers.forEach((strokeRenderer, i) => {
+  this._strokeRenderers.forEach((strokeRenderer: any, i: any) => {
     strokeRenderer.mount(subTarget);
   });
 };
 
-CharacterRenderer.prototype.render = function(props) {
+CharacterRenderer.prototype.render = function(props: any) {
   if (props === this._oldProps) return;
   if (props.opacity !== this._oldProps.opacity) {
     this._group.style.opacity = props.opacity;

@@ -1,14 +1,19 @@
 // All makemeahanzi characters have the same bounding box
 const CHARACTER_BOUNDS = [{x: 0, y: -124}, {x: 1024, y: 900}];
 
-function Positioner(options) {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Positioner... Remove this comment to see the full error message
+function Positioner(options: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._options = options;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this.width = options.width;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this.height = options.height;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._calculateScaleAndOffset();
 }
 
-Positioner.prototype.convertExternalPoint = function(point) {
+Positioner.prototype.convertExternalPoint = function(point: any) {
   const x = (point.x - this.xOffset) / this.scale;
   const y = (this.height - this.yOffset - point.y) / this.scale;
   return {x, y};

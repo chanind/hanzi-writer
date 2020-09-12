@@ -1,25 +1,35 @@
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'strokeMatc... Remove this comment to see the full error message
 const strokeMatches = require('./strokeMatches');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'UserStroke... Remove this comment to see the full error message
 const UserStroke = require('./models/UserStroke');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'callIfExis... Remove this comment to see the full error message
 const {callIfExists, counter} = require('./utils');
 const quizActions = require('./quizActions');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'geometry'.
 const geometry = require('./geometry');
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'characterA... Remove this comment to see the full error message
 const characterActions = require('./characterActions');
 
 
-const getDrawnPath = (userStroke) => ({
+const getDrawnPath = (userStroke: any) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
-  points: userStroke.points.map(point => geometry.round(point)),
+  points: userStroke.points.map((point: any) => geometry.round(point))
 });
 
 
-function Quiz(character, renderState, positioner) {
+// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Quiz'.
+function Quiz(character: any, renderState: any, positioner: any) {
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._character = character;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._renderState = renderState;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._isActive = false;
+  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
   this._positioner = positioner;
 }
 
-Quiz.prototype.startQuiz = function(options) {
+Quiz.prototype.startQuiz = function(options: any) {
   this._isActive = true;
   this._options = options;
   this._currentStrokeIndex = 0;
@@ -29,7 +39,7 @@ Quiz.prototype.startQuiz = function(options) {
   this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
 };
 
-Quiz.prototype.startUserStroke = function(externalPoint) {
+Quiz.prototype.startUserStroke = function(externalPoint: any) {
   const point = this._positioner.convertExternalPoint(externalPoint);
   if (!this._isActive) return null;
   if (this._userStroke) return this.endUserStroke();
@@ -40,7 +50,7 @@ Quiz.prototype.startUserStroke = function(externalPoint) {
   );
 };
 
-Quiz.prototype.continueUserStroke = function(externalPoint) {
+Quiz.prototype.continueUserStroke = function(externalPoint: any) {
   if (!this._userStroke) return;
   const point = this._positioner.convertExternalPoint(externalPoint);
   this._userStroke.appendPoint(point, externalPoint);
@@ -85,7 +95,7 @@ Quiz.prototype.cancel = function() {
   }
 };
 
-Quiz.prototype._handleSuccess = function(stroke) {
+Quiz.prototype._handleSuccess = function(stroke: any) {
   callIfExists(this._options.onCorrectStroke, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,

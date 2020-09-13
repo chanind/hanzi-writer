@@ -60,7 +60,7 @@ HanziWriterRenderer.prototype.render = function(props) {
     let strokeRenderer = this._userStrokeRenderers[userStrokeId];
     if (!strokeRenderer) {
       strokeRenderer = new UserStrokeRenderer();
-      strokeRenderer.mount(this._positionedTarget, userStrokeProps);
+      strokeRenderer.mount(this._positionedTarget);
       this._userStrokeRenderers[userStrokeId] = strokeRenderer;
     }
     strokeRenderer.render(userStrokeProps);

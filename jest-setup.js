@@ -1,4 +1,6 @@
-const lolex = require("lolex");
 require("jest-fetch-mock").enableMocks();
 
-global.clock = lolex.install({ shouldAdvanceTime: true, advanceTimeDelta: 5 });
+window.clock = require("@sinonjs/fake-timers").install({
+  shouldAdvanceTime: true,
+  advanceTimeDelta: 5,
+});

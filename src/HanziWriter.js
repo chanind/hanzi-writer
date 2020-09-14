@@ -299,12 +299,12 @@ HanziWriter.prototype._withData = function(func) {
 
 HanziWriter.prototype._setupListeners = function() {
   this.target.addPointerStartListener((evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
+    if (!this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('startUserStroke', evt.getPoint());
   });
   this.target.addPointerMoveListener((evt) => {
-    if (this.isLoadingCharData || !this._quiz) return;
+    if (!this._quiz) return;
     evt.preventDefault();
     this._forwardToQuiz('continueUserStroke', evt.getPoint());
   });

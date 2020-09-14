@@ -227,7 +227,7 @@ HanziWriter.prototype.setCharacter = function(char) {
     this._renderState = new RenderState(this._character, this._options, (nextState) => {
       hanziWriterRenderer.render(nextState);
     });
-    this._hanziWriterRenderer.mount(this.target, this._renderState.state);
+    this._hanziWriterRenderer.mount(this.target);
     this._hanziWriterRenderer.render(this._renderState.state);
   });
   return this._withDataPromise;

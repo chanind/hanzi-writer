@@ -25,7 +25,7 @@ describe('StrokeRenderer', () => {
     };
 
     const renderer = new StrokeRenderer(char.strokes[0]);
-    renderer.mount(target, props);
+    renderer.mount(target);
     renderer.render(props);
 
     expect(target.defs.childNodes.length).toBe(1);

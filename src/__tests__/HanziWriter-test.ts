@@ -1,300 +1,224 @@
-// @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
-jest.mock('../Quiz');
+jest.mock("../Quiz");
 
-const oldGlobal = {test: 'object'};
-// @ts-expect-error ts-migrate(2339) FIXME: Property 'HanziWriter' does not exist on type 'Glo... Remove this comment to see the full error message
-global.HanziWriter = oldGlobal;
+import ren from "hanzi-writer-data/人.json";
+import yi from "hanzi-writer-data/一.json";
+import HanziWriter from "../HanziWriter";
+import { timeout } from "../utils";
+import { resolvePromises } from "../testUtils";
+import Quiz from "../Quiz";
+import { CharacterJson, CharDataLoaderFn } from "../typings/types";
 
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'ren'.
-const ren = require('hanzi-writer-data/人.json');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'yi'.
-const yi = require('hanzi-writer-data/一.json');
-const HanziWriter = require('../HanziWriter');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'timeout'.
-const { timeout } = require('../utils');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'resolvePro... Remove this comment to see the full error message
-const { resolvePromises } = require('../testUtils');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Quiz'.
-const Quiz = require('../Quiz');
+const charDataLoader: CharDataLoaderFn = () => ren as CharacterJson;
 
-
-const charDataLoader = () => ren;
-
-// @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-describe('HanziWriter', () => {
-  // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'beforeEach'.
+describe("HanziWriter", () => {
   beforeEach(() => {
+    // @ts-ignore
     Quiz.mockClear();
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('constructor', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('can optionally run init() if element and options are passed in', async () => {
+  describe("constructor", () => {
+    it("can optionally run init() if element and options are passed in", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', { charDataLoader });
-      await writer.setCharacter('人');
+      const writer = HanziWriter.create("target", { charDataLoader });
+      await writer.setCharacter("人");
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelectorAll('#target svg').length).toBe(1);
-      const svg = document.querySelector('#target svg');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(document.querySelectorAll("#target svg").length).toBe(1);
+      const svg = document.querySelector("#target svg") as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[0].nodeName).toBe('defs');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[1].nodeName).toBe('g');
+      expect(svg.childNodes[0].nodeName).toBe("defs");
+      expect(svg.childNodes[1].nodeName).toBe("g");
       // the characters are repeated 3 times - one for outline, character, and highlight
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(svg.childNodes[1].childNodes.length).toBe(3);
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      svg.childNodes[1].childNodes.forEach(charNode => {
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(charNode.nodeName).toBe('g');
+      svg.childNodes[1].childNodes.forEach((charNode) => {
+        expect(charNode.nodeName).toBe("g");
         // 2 strokes per character
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(charNode.childNodes.length).toBe(2);
       });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('[deprecated] loads data and builds an instance in a dom element', async () => {
+    it("[deprecated] loads data and builds an instance in a dom element", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { charDataLoader });
+      const writer = HanziWriter.create("target", "人", { charDataLoader });
 
       await writer._withDataPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelectorAll('#target svg').length).toBe(1);
-      const svg = document.querySelector('#target svg');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(document.querySelectorAll("#target svg").length).toBe(1);
+      const svg = document.querySelector("#target svg") as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[0].nodeName).toBe('defs');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[1].nodeName).toBe('g');
+      expect(svg.childNodes[0].nodeName).toBe("defs");
+      expect(svg.childNodes[1].nodeName).toBe("g");
       // the characters are repeated 3 times - one for outline, character, and highlight
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(svg.childNodes[1].childNodes.length).toBe(3);
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      svg.childNodes[1].childNodes.forEach(charNode => {
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(charNode.nodeName).toBe('g');
+      svg.childNodes[1].childNodes.forEach((charNode) => {
+        expect(charNode.nodeName).toBe("g");
         // 2 strokes per character
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(charNode.childNodes.length).toBe(2);
       });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('HanziWriter.create', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('loads data and builds an instance in a dom element', async () => {
+  describe("HanziWriter.create", () => {
+    it("loads data and builds an instance in a dom element", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create('target', '人', { charDataLoader });
+      const writer = HanziWriter.create("target", "人", { charDataLoader });
 
       await writer._withDataPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelectorAll('#target svg').length).toBe(1);
-      const svg = document.querySelector('#target svg');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(document.querySelectorAll("#target svg").length).toBe(1);
+      const svg = document.querySelector("#target svg") as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[0].nodeName).toBe('defs');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(svg.childNodes[1].nodeName).toBe('g');
+      expect(svg.childNodes[0].nodeName).toBe("defs");
+      expect(svg.childNodes[1].nodeName).toBe("g");
       // the characters are repeated 3 times - one for outline, character, and highlight
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(svg.childNodes[1].childNodes.length).toBe(3);
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      svg.childNodes[1].childNodes.forEach(charNode => {
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(charNode.nodeName).toBe('g');
+      svg.childNodes[1].childNodes.forEach((charNode) => {
+        expect(charNode.nodeName).toBe("g");
         // 2 strokes per character
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(charNode.childNodes.length).toBe(2);
       });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
     it("Errors if the target element can't be found", () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(() => {
-        HanziWriter.create('wrong-target', '人', { charDataLoader });
-      }).toThrow('HanziWriter target element not found: wrong-target');
+        HanziWriter.create("wrong-target", "人", { charDataLoader });
+      }).toThrow("HanziWriter target element not found: wrong-target");
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('can optionally use a canvas for rendering instead of SVG', async () => {
+    it("can optionally use a canvas for rendering instead of SVG", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create('target', '人', { charDataLoader, renderer: 'canvas' });
-
-      await writer._withDataPromise;
-
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelectorAll('#target canvas').length).toBe(1);
-      const canvas = document.querySelector('#target canvas');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(canvas.getContext('2d')).toMatchSnapshot();
-    });
-  });
-
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('data loading', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('calls onLoadCharDataError if provided on loading failure', async () => {
-      document.body.innerHTML = '<div id="target"></div>';
-
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
-      const onLoadCharDataError = jest.fn();
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        onLoadCharDataError,
-        charDataLoader: () => Promise.reject('reasons'),
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader,
+        renderer: "canvas",
       });
 
       await writer._withDataPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(onLoadCharDataError.mock.calls.length).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
+      expect(document.querySelectorAll("#target canvas").length).toBe(1);
+      const canvas = document.querySelector("#target canvas") as HTMLCanvasElement;
+      expect(canvas.getContext("2d")).toMatchSnapshot();
     });
+  });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('throws when calling an animatable method after loading failure', async () => {
+  describe("data loading", () => {
+    it("calls onLoadCharDataError if provided on loading failure", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onLoadCharDataError = jest.fn();
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
+      const writer = HanziWriter.create("target", "人", {
+        onLoadCharDataError,
+        charDataLoader: () => Promise.reject("reasons"),
+      });
+
+      await writer._withDataPromise;
+
+      expect(onLoadCharDataError.mock.calls.length).toBe(1);
+      expect(onLoadCharDataError.mock.calls[0][0]).toBe("reasons");
+    });
+
+    it("throws when calling an animatable method after loading failure", async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+
+      const onLoadCharDataError = jest.fn();
+      const writer = HanziWriter.create("target", "人", {
         onLoadCharDataError,
         charDataLoader: (char: any, onComplete: any, onErr: any) => {
-          onErr('reasons');
+          onErr("reasons");
         },
       });
 
       await writer._withDataPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(() => writer.showCharacter()).toThrow();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onLoadCharDataError).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(onLoadCharDataError).toHaveBeenCalledWith('reasons');
+      expect(onLoadCharDataError).toHaveBeenCalledWith("reasons");
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
+    it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
+      const writer = HanziWriter.create("target", "人", {
         charDataLoader: (char: any, onComplete: any, onErr: any) => {
-          onErr(new Error('reasons'));
+          onErr(new Error("reasons"));
         },
       });
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      await expect(writer._withDataPromise).rejects.toThrow(new Error('reasons'));
+      await expect(writer._withDataPromise).rejects.toThrow(new Error("reasons"));
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('setCharacter', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('deletes the current character while loading', async () => {
+  describe("setCharacter", () => {
+    it("deletes the current character while loading", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        charDataLoader: (char: any) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader(char, onLoad, onError) {
+          return timeout(1).then(() => (char === "人" ? ren : yi));
+        },
       });
       await writer._withDataPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg g')).not.toBe(null);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg defs *')).not.toBe(null);
-      writer.setCharacter('一');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg g')).toBe(null);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg defs *')).toBe(null);
+      expect(document.querySelector("#target svg g")).not.toBe(null);
+      expect(document.querySelector("#target svg defs *")).not.toBe(null);
+      writer.setCharacter("一");
+      expect(document.querySelector("#target svg g")).toBe(null);
+      expect(document.querySelector("#target svg defs *")).toBe(null);
 
       await writer._withDataPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg g').childNodes.length).toBe(3);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(document.querySelector('#target svg defs *')).not.toBe(null);
+      expect(document.querySelector("#target svg g")?.childNodes.length).toBe(3);
+      expect(document.querySelector("#target svg defs *")).not.toBe(null);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('maintains the visibility of the character from the last character rendered', async () => {
+    it("maintains the visibility of the character from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        charDataLoader: (char: any) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader(char, onLoad, onError) {
+          return timeout(1).then(() => (char === "人" ? ren : yi));
+        },
       });
       await writer._withDataPromise;
 
       writer.hideOutline();
-      writer.setCharacter('一');
+      writer.setCharacter("一");
       await writer._withDataPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.character.main.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.character.outline.opacity).toBe(0);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('maintains the visibility of the outline from the last character rendered', async () => {
+    it("maintains the visibility of the outline from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        charDataLoader: (char: any) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader: (char) => timeout(1).then(() => (char === "人" ? ren : yi)),
       });
       await writer._withDataPromise;
 
       writer.hideCharacter();
-      writer.setCharacter('一');
+      writer.setCharacter("一");
       await writer._withDataPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.character.main.opacity).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.character.outline.opacity).toBe(1);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('maintains colors from the last character rendered', async () => {
+    it("maintains colors from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        charDataLoader: (char: any) => timeout(1).then(() => (char === '人' ? ren : yi)),
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader: (char: any) => timeout(1).then(() => (char === "人" ? ren : yi)),
       });
       await writer._withDataPromise;
 
-      writer.updateColor('strokeColor', 'rgba(30, 30, 30, 0.8)');
-      writer.updateColor('outlineColor', 'rgba(10, 20, 30, 0.1)');
-      writer.setCharacter('一');
+      writer.updateColor("strokeColor", "rgba(30, 30, 30, 0.8)");
+      writer.updateColor("outlineColor", "rgba(10, 20, 30, 0.1)");
+      writer.setCharacter("一");
       await writer._withDataPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.options.strokeColor).toEqual({
         r: 30,
         g: 30,
         b: 30,
         a: 0.8,
       });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.options.outlineColor).toEqual({
         r: 10,
         g: 20,
@@ -304,18 +228,17 @@ describe('HanziWriter', () => {
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('animateCharacter', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('animates and returns promise that resolves when animation is finished', async () => {
+  describe("animateCharacter", () => {
+    it("animates and returns promise that resolves when animation is finished", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
       writer.animateCharacter({ onComplete }).then((result: any) => {
@@ -325,71 +248,54 @@ describe('HanziWriter', () => {
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      [0, 1].forEach(strokeNum => {
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[strokeNum].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      [0, 1].forEach((strokeNum) => {
+        expect(writer._renderState!.state.character.main.strokes[strokeNum].opacity).toBe(
+          1,
+        );
       });
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(0);
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(0);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(0);
       expect(isResolved).toBe(false);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).not.toHaveBeenCalled();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('animateStroke', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('animates and returns promise that resolves when animation is finished', async () => {
+  describe("animateStroke", () => {
+    it("animates and returns promise that resolves when animation is finished", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
       writer.animateStroke(1, { onComplete }).then((result: any) => {
@@ -399,61 +305,44 @@ describe('HanziWriter', () => {
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(0);
       expect(isResolved).toBe(false);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).not.toHaveBeenCalled();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('keeps other stroke opacities where they were originally', async () => {
+    it("keeps other stroke opacities where they were originally", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
       writer.hideCharacter({ duration: 0 });
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.opacity).toBe(0);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
 
       writer.animateStroke(1, { onComplete }).then((result: any) => {
         isResolved = true;
@@ -462,52 +351,38 @@ describe('HanziWriter', () => {
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(0);
+      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(false);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).not.toHaveBeenCalled();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('pauseAnimation and resumeAnimation', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('pauses and resumes the currently running animations', async () => {
+  describe("pauseAnimation and resumeAnimation", () => {
+    it("pauses and resumes the currently running animations", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(50);
       await resolvePromises();
 
@@ -517,79 +392,63 @@ describe('HanziWriter', () => {
       });
 
       await resolvePromises();
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(0);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(50);
       await resolvePromises();
 
-      const pausedDisplayPortion = writer._renderState.state.character.main.strokes[1].displayPortion;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      const pausedDisplayPortion = writer._renderState!.state.character.main.strokes[1]
+        .displayPortion;
       expect(pausedDisplayPortion).toBeGreaterThan(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(pausedDisplayPortion).toBeLessThan(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(false);
 
       writer.pauseAnimation();
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(2000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(false);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(pausedDisplayPortion);
+      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+        pausedDisplayPortion,
+      );
 
       writer.resumeAnimation();
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(50);
       await resolvePromises();
 
-      const newDisplayPortion = writer._renderState.state.character.main.strokes[1].displayPortion;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      const newDisplayPortion =
+        writer._renderState.state.character.main.strokes[1].displayPortion;
       expect(newDisplayPortion).not.toBe(pausedDisplayPortion);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(newDisplayPortion).toBeGreaterThan(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(newDisplayPortion).toBeLessThan(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(false);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(2000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('highlightStroke', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('highlights a single stroke', async () => {
+  describe("highlightStroke", () => {
+    it("highlights a single stroke", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
       writer.highlightStroke(1, { onComplete }).then((result: any) => {
@@ -599,56 +458,46 @@ describe('HanziWriter', () => {
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[0].opacity).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(0);
+      expect(writer._renderState?.state.character.highlight.opacity).toBe(1);
+      expect(writer._renderState?.state.character.highlight.strokes[0].opacity).toBe(0);
+      expect(writer._renderState?.state.character.highlight.strokes[1].opacity).toBe(0);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(
+        writer._renderState?.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(0);
       expect(isResolved).toBe(false);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).not.toHaveBeenCalled();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(1);
+      expect(
+        writer._renderState?.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(1);
+      expect(writer._renderState?.state.character.highlight.strokes[1].opacity).toBe(1);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.highlight.strokes[1].opacity).toBe(0);
+      expect(
+        writer._renderState?.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(1);
+      expect(writer._renderState?.state.character.highlight.strokes[1].opacity).toBe(0);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('loopCharacterAnimation', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('animates and then repeats until something else stops it', async () => {
+  describe("loopCharacterAnimation", () => {
+    it("animates and then repeats until something else stops it", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+      const writer = HanziWriter.create("target", "人", {
+        showCharacter: true,
+        charDataLoader,
+      });
       await writer._withDataPromise;
 
       writer.loopCharacterAnimation();
@@ -657,46 +506,43 @@ describe('HanziWriter', () => {
 
       // loop 5 times
       for (let i = 0; i < 5; i++) {
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.opacity).toBe(1);
-        [0, 1].forEach(strokeNum => {
-          // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-          expect(writer._renderState.state.character.main.strokes[strokeNum].opacity).toBe(1);
+        expect(writer._renderState?.state.character.main.opacity).toBe(1);
+        [0, 1].forEach((strokeNum) => {
+          expect(
+            writer._renderState?.state.character.main.strokes[strokeNum].opacity,
+          ).toBe(1);
         });
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.opacity).toBe(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(0);
+        expect(writer._renderState?.state.character.main.opacity).toBe(1);
+        expect(writer._renderState?.state.character.main.strokes[0].opacity).toBe(1);
+        expect(writer._renderState?.state.character.main.strokes[0].displayPortion).toBe(
+          0,
+        );
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
+        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(
+          1,
+        );
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(0);
+        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+          0,
+        );
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+          1,
+        );
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(3000);
         await resolvePromises();
       }
@@ -704,75 +550,71 @@ describe('HanziWriter', () => {
       // now, stop the animation by running something different
       writer.showCharacter();
       await resolvePromises();
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].opacity).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
     });
   });
 
-  [
-    { methodLabel: 'Character', stateLabel: 'main' },
-    { methodLabel: 'Outline', stateLabel: 'outline' },
-  ].forEach(({ methodLabel, stateLabel }) => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-    describe(`hide${methodLabel}`, () => {
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('animates and returns promise that resolves when finished', async () => {
+  const hideMethods: Array<{
+    method: "hideCharacter" | "hideOutline";
+    stateLabel: "main" | "outline";
+  }> = [
+    {
+      method: "hideCharacter",
+      stateLabel: "main",
+    },
+    {
+      method: "hideOutline",
+      stateLabel: "outline",
+    },
+  ];
+
+  hideMethods.forEach(({ method, stateLabel }) => {
+    describe(method, () => {
+      it("animates and returns promise that resolves when finished", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', { showCharacter: true, charDataLoader });
+        const writer = HanziWriter.create("target", "人", {
+          showCharacter: true,
+          charDataLoader,
+        });
         await writer._withDataPromise;
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`hide${methodLabel}`]({ onComplete }).then((result: any) => {
+        writer[method]({
+          onComplete,
+        }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(false);
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('returns instantly if char is already hidden', async () => {
+      it("returns instantly if char is already hidden", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', {
+        const writer = HanziWriter.create("target", "人", {
           showCharacter: false,
           showOutline: false,
           charDataLoader,
@@ -781,36 +623,27 @@ describe('HanziWriter', () => {
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`hide${methodLabel}`]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result: any) => {
           isResolved = true;
           resolvedVal = result;
         });
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(false);
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('resolves immediately if duration: 0 is passed', async () => {
+      it("resolves immediately if duration: 0 is passed", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', {
+        const writer = HanziWriter.create("target", "人", {
           showCharacter: true,
           showOutline: true,
           charDataLoader,
@@ -819,539 +652,458 @@ describe('HanziWriter', () => {
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`hide${methodLabel}`]({ onComplete, duration: 0 }).then((result: any) => {
+        writer[method]({ onComplete, duration: 0 }).then((result: any) => {
           isResolved = true;
           resolvedVal = result;
         });
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(false);
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
     });
+  });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-    describe(`show${methodLabel}`, () => {
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('animates and returns promise that resolves when finished', async () => {
+  const showMethods: Array<{
+    method: "showCharacter" | "showOutline";
+    stateLabel: "main" | "outline";
+  }> = [
+    {
+      method: "showCharacter",
+      stateLabel: "main",
+    },
+    {
+      method: "showOutline",
+      stateLabel: "outline",
+    },
+  ];
+
+  showMethods.forEach(({ method, stateLabel }) => {
+    describe(method, () => {
+      it("animates and returns promise that resolves when finished", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', {
-          [`show${methodLabel}`]: false,
+        const writer = HanziWriter.create("target", "人", {
+          [method]: false,
           charDataLoader,
         });
         await writer._withDataPromise;
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`show${methodLabel}`]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result: any) => {
           isResolved = true;
           resolvedVal = result;
         });
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(0);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(false);
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
         clock.tick(1000);
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('returns instantly if already shown', async () => {
+      it("returns instantly if already shown", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', {
-          [`show${methodLabel}`]: true,
+        const writer = HanziWriter.create("target", "人", {
+          [method]: true,
           charDataLoader,
         });
         await writer._withDataPromise;
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`show${methodLabel}`]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result: any) => {
           isResolved = true;
           resolvedVal = result;
         });
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(false);
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-      it('resolves immediately if duration: 0 is passed', async () => {
+      it("resolves immediately if duration: 0 is passed", async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-        const writer = new HanziWriter('target', '人', {
-          [`show${methodLabel}`]: false,
+        const writer = HanziWriter.create("target", "人", {
+          [method]: false,
           charDataLoader,
         });
         await writer._withDataPromise;
 
         let isResolved = false;
         let resolvedVal;
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
         const onComplete = jest.fn();
 
-        writer[`show${methodLabel}`]({ onComplete, duration: 0 }).then((result: any) => {
+        writer[method]({ onComplete, duration: 0 }).then((result: any) => {
           isResolved = true;
           resolvedVal = result;
         });
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(isResolved).toBe(false);
 
         await resolvePromises();
 
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-        expect(writer._renderState.state.character[stateLabel].opacity).toBe(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(true);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(resolvedVal).toEqual({ canceled: false });
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledTimes(1);
-        // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('updateColor', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('animates and returns promise that resolves when finished', async () => {
+  describe("updateColor", () => {
+    it("animates and returns promise that resolves when finished", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        strokeColor: '#123',
+      const writer = HanziWriter.create("target", "人", {
+        strokeColor: "#123",
         charDataLoader,
       });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
-      writer.updateColor('strokeColor', 'rgba(30, 30, 30, 0.8)', { onComplete }).then((result: any) => {
-        isResolved = true;
-        resolvedVal = result;
-      });
+      writer
+        .updateColor("strokeColor", "rgba(30, 30, 30, 0.8)", { onComplete })
+        .then((result: any) => {
+          isResolved = true;
+          resolvedVal = result;
+        });
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.strokeColor).toEqual({r: 17, g: 34, b: 51, a: 1});
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.options.strokeColor).toEqual({
+        r: 17,
+        g: 34,
+        b: 51,
+        a: 1,
+      });
       expect(isResolved).toBe(false);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(1000);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.strokeColor).toEqual({r: 30, g: 30, b: 30, a: 0.8});
+      expect(writer._renderState!.state.options.strokeColor).toEqual({
+        r: 30,
+        g: 30,
+        b: 30,
+        a: 0.8,
+      });
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('uses strokeColor for the tween if radicalColor is set to null', async () => {
+    it("uses strokeColor for the tween if radicalColor is set to null", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
-        strokeColor: 'rgba(30, 30, 30, 0.8)',
-        radicalColor: '#EEE',
+      const writer = HanziWriter.create("target", "人", {
+        strokeColor: "rgba(30, 30, 30, 0.8)",
+        radicalColor: "#EEE",
         charDataLoader,
       });
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
       const onComplete = jest.fn();
 
-      writer.updateColor('radicalColor', null, { onComplete, duration: 1000 }).then((result: any) => {
-        isResolved = true;
-        resolvedVal = result;
-      });
+      writer
+        .updateColor("radicalColor", null, { onComplete, duration: 1000 })
+        .then((result) => {
+          isResolved = true;
+          resolvedVal = result;
+        });
 
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor).toEqual({r: 238, g: 238, b: 238, a: 1});
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      expect(writer._renderState!.state.options.radicalColor).toEqual({
+        r: 238,
+        g: 238,
+        b: 238,
+        a: 1,
+      });
       expect(isResolved).toBe(false);
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
       clock.tick(999);
       await resolvePromises();
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor.r).toBeCloseTo(30, 0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor.g).toBeCloseTo(30, 0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor.b).toBeCloseTo(30, 0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor.a).toBeCloseTo(1, 0);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'clock'.
+      expect(writer._renderState!.state.options.radicalColor.r).toBeCloseTo(30, 0);
+      expect(writer._renderState!.state.options.radicalColor.g).toBeCloseTo(30, 0);
+      expect(writer._renderState!.state.options.radicalColor.b).toBeCloseTo(30, 0);
+      expect(writer._renderState!.state.options.radicalColor.a).toBeCloseTo(1, 0);
       clock.tick(30);
       await resolvePromises();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._renderState.state.options.radicalColor).toBeNull();
+      expect(writer._renderState!.state.options.radicalColor).toBeNull();
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(isResolved).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(resolvedVal).toEqual({ canceled: false });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('quiz', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('sets up and starts the quiz', async () => {
+  describe("quiz", () => {
+    it("sets up and starts the quiz", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { charDataLoader });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
+      const writer = HanziWriter.create("target", "人", { charDataLoader });
       const onComplete = jest.fn();
       writer.quiz({ onComplete });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(Quiz).not.toHaveBeenCalled();
       await writer._withDataPromise;
       await resolvePromises();
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(Quiz).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(Quiz).toHaveBeenCalledWith(writer._character, writer._renderState, writer._positioner);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.startQuiz).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.startQuiz).toHaveBeenCalledWith(Object.assign({}, writer._options, { onComplete }));
+      expect(Quiz).toHaveBeenCalledWith(
+        writer._character,
+        writer._renderState,
+        writer._positioner,
+      );
+      expect(writer._quiz!.startQuiz).toHaveBeenCalledTimes(1);
+      expect(writer._quiz!.startQuiz).toHaveBeenCalledWith({
+        ...writer._options,
+        onComplete,
+      });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('cancelQuiz', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('cancels the existing quiz', async () => {
+  describe("cancelQuiz", () => {
+    it("cancels the existing quiz", async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { charDataLoader });
+      const writer = HanziWriter.create("target", "人", { charDataLoader });
       await writer._withDataPromise;
       writer.quiz();
       await resolvePromises();
       const quiz = writer._quiz;
       writer.cancelQuiz();
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(quiz.cancel).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz).toBe(null);
+      expect(quiz!.cancel).toHaveBeenCalledTimes(1);
+      expect(writer._quiz).toBe(undefined);
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('mouse and touch events', () => {
+  describe("mouse and touch events", () => {
     let writer: any;
-    // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'beforeEach'.
     beforeEach(async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      writer = new HanziWriter('target', '人', { charDataLoader });
+      writer = HanziWriter.create("target", "人", { charDataLoader });
       await writer._withDataPromise;
       writer.quiz();
       await resolvePromises();
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('starts a user stroke on mousedown', () => {
-      const evt = new MouseEvent('mousedown', {
+    it("starts a user stroke on mousedown", () => {
+      const evt = new MouseEvent("mousedown", {
         bubbles: true,
         cancelable: true,
         clientX: 170,
         clientY: 127,
       });
-      const svg = document.querySelector('#target svg');
+      const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(canceled).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('starts a user stroke on touchstart', () => {
-      const evt = new TouchEvent('touchstart', {
+    it("starts a user stroke on touchstart", () => {
+      const evt = new TouchEvent("touchstart", {
         bubbles: true,
         cancelable: true,
-        // @ts-expect-error ts-migrate(2740) FIXME: Type '{ clientX: number; clientY: number; }' is mi... Remove this comment to see the full error message
-        touches: [{
-          clientX: 170,
-          clientY: 127,
-        }],
+        touches: [
+          {
+            clientX: 170,
+            clientY: 127,
+          } as Touch,
+        ],
       });
-      const svg = document.querySelector('#target svg');
+      const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(canceled).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('continues a user stroke on mousemove', () => {
-      const evt = new MouseEvent('mousemove', {
+    it("continues a user stroke on mousemove", () => {
+      const evt = new MouseEvent("mousemove", {
         bubbles: true,
         cancelable: true,
         clientX: 170,
         clientY: 127,
       });
-      const svg = document.querySelector('#target svg');
+      const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(canceled).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('continues a user stroke on touchmove', () => {
-      const evt = new TouchEvent('touchmove', {
+    it("continues a user stroke on touchmove", () => {
+      const evt = new TouchEvent("touchmove", {
         bubbles: true,
         cancelable: true,
-        // @ts-expect-error ts-migrate(2740) FIXME: Type '{ clientX: number; clientY: number; }' is mi... Remove this comment to see the full error message
-        touches: [{
-          clientX: 170,
-          clientY: 127,
-        }],
+        touches: [
+          {
+            clientX: 170,
+            clientY: 127,
+          } as Touch,
+        ],
       });
-      const svg = document.querySelector('#target svg');
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      const canceled = !svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+      const svg = document.querySelector("#target svg");
+      expect(svg).toBeTruthy();
+
+      // @ts-ignore (overriding default getBoundingClientRect)
+      svg!.getBoundingClientRect = () => ({ left: 50, top: 60 });
+
+      const canceled = !Boolean(svg!.dispatchEvent(evt));
       expect(canceled).toBe(true);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({x: 120, y: 67});
+      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('ends a user stroke on mouseup', () => {
-      const evt = new MouseEvent('mouseup', { bubbles: true, cancelable: true });
-      const svg = document.querySelector('#target svg');
+    it("ends a user stroke on mouseup", () => {
+      const evt = new MouseEvent("mouseup", { bubbles: true, cancelable: true });
+      const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('ends a user stroke on touchend', () => {
-      const evt = new TouchEvent('touchend', { bubbles: true, cancelable: true });
-      const svg = document.querySelector('#target svg');
+    it("ends a user stroke on touchend", () => {
+      const evt = new TouchEvent("touchend", { bubbles: true, cancelable: true });
+      const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.dispatchEvent(evt);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('loadCharacterData', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('calls onLoadCharDataError if provided on loading failure', async () => {
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
+  describe("loadCharacterData", () => {
+    it("calls onLoadCharDataError if provided on loading failure", async () => {
       const onLoadCharDataError = jest.fn();
-      const loadingPromise = HanziWriter.loadCharacterData('人', {
+      const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataError,
-        charDataLoader: () => Promise.reject('reasons'),
+        // @ts-ignore
+        charDataLoader: (char, onload, onerror) => Promise.reject("reasons"),
       });
 
       await loadingPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onLoadCharDataError.mock.calls.length).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
+      expect(onLoadCharDataError.mock.calls[0][0]).toBe("reasons");
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
-      const loadingPromise = HanziWriter.loadCharacterData('人', {
+    it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
+      const loadingPromise = HanziWriter.loadCharacterData("人", {
         charDataLoader: (char: any, onComplete: any, onErr: any) => {
-          onErr(new Error('reasons'));
+          onErr(new Error("reasons"));
         },
       });
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      await expect(loadingPromise).rejects.toThrow(new Error('reasons'));
+      await expect(loadingPromise).rejects.toThrow(new Error("reasons"));
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('returns the character data in a promise on success', async () => {
-      const loadingPromise = HanziWriter.loadCharacterData('人', {
-        charDataLoader: (char: any, onComplete: any, onErr: any) => ren,
+    it("returns the character data in a promise on success", async () => {
+      const loadingPromise = HanziWriter.loadCharacterData("人", {
+        charDataLoader: (char: any, onComplete: any, onErr: any) => ren as CharacterJson,
       });
 
       const result = await loadingPromise;
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(result).toBe(ren);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('returns the character data in onLoadCharDataSuccess if provided', async () => {
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'jest'.
+    it("returns the character data in onLoadCharDataSuccess if provided", async () => {
       const onLoadCharDataSuccess = jest.fn();
-      const loadingPromise = HanziWriter.loadCharacterData('人', {
+      const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataSuccess,
-        charDataLoader: (char: any, onComplete: any, onErr: any) => ren,
+        charDataLoader: (char: any, onComplete: any, onErr: any) => ren as CharacterJson,
       });
 
       await loadingPromise;
 
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onLoadCharDataSuccess.mock.calls.length).toBe(1);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(onLoadCharDataSuccess.mock.calls[0][0]).toBe(ren);
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('getScalingTransform', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('returns an object with info that can be used for scaling a makemeahanzi character in SVG', () => {
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+  describe("getScalingTransform", () => {
+    it("returns an object with info that can be used for scaling a makemeahanzi character in SVG", () => {
       expect(HanziWriter.getScalingTransform(100, 120, 10)).toEqual({
         scale: 0.078125,
-        transform: 'translate(10, 90.3125) scale(0.078125, -0.078125)',
+        transform: "translate(10, 90.3125) scale(0.078125, -0.078125)",
         x: 10,
         y: 29.6875,
       });
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('uses 0 as the default padding', () => {
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
+    it("uses 0 as the default padding", () => {
       expect(HanziWriter.getScalingTransform(100, 100)).toEqual({
         scale: 0.09765625,
-        transform: 'translate(0, 87.890625) scale(0.09765625, -0.09765625)',
+        transform: "translate(0, 87.890625) scale(0.09765625, -0.09765625)",
         x: 0,
         y: 12.109375,
       });
     });
   });
 
-  // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'describe'. Do you need to instal... Remove this comment to see the full error message
-  describe('option defaults', () => {
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('works with legacy strokeAnimationDuration and strokeHighlightDuration if present', () => {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', {
+  describe("option defaults", () => {
+    it("works with legacy strokeAnimationDuration and strokeHighlightDuration if present", () => {
+      const writer = HanziWriter.create("target", "人", {
+        // @ts-ignore
         strokeAnimationDuration: 1000,
         strokeHighlightDuration: 250,
       });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._options.strokeAnimationSpeed).toBe(0.5);
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
       expect(writer._options.strokeHighlightSpeed).toBe(2);
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('sets highlightCompleteColor to highlightColor if not explicitly set', () => {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人', { highlightColor: '#ABC' });
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._options.highlightCompleteColor).toBe('#ABC');
+    it("sets highlightCompleteColor to highlightColor if not explicitly set", () => {
+      const writer = HanziWriter.create("target", "人", { highlightColor: "#ABC" });
+      // @ts-ignore
+      expect(writer._options.highlightCompleteColor).toBe("#ABC");
     });
 
-    // @ts-expect-error ts-migrate(2582) FIXME: Cannot find name 'it'. Do you need to install type... Remove this comment to see the full error message
-    it('sets highlightCompleteColor to the default highilghtColor if none is passed', () => {
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      const writer = new HanziWriter('target', '人');
-      // @ts-expect-error ts-migrate(2304) FIXME: Cannot find name 'expect'.
-      expect(writer._options.highlightCompleteColor).toBe('#AAF');
+    it("sets highlightCompleteColor to the default highlightColor if none is passed", () => {
+      const writer = HanziWriter.create("target", "人");
+      // @ts-ignore
+      expect(writer._options.highlightCompleteColor).toBe("#AAF");
     });
   });
 });

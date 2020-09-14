@@ -1,65 +1,95 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'callIfExis... Remove this comment to see the full error message
-const { callIfExists } = require('./utils');
+import { CharacterJson, CharDataLoaderFn } from "./typings/types";
 
-
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'LoadingMan... Remove this comment to see the full error message
-function LoadingManager(options: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._loadCounter = 0;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._options = options;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._isLoading = false;
-
-  // use this to attribute to determine if there was a problem with loading
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this.loadingFailed = false;
-}
-
-LoadingManager.prototype._debouncedLoad = function(char: any, count: any) {
-  // these wrappers ignore all responses except the most recent.
-  const wrappedResolve = (data: any) => {
-    if (count === this._loadCounter) this._resolve(data);
-  };
-  const wrappedReject = (reason: any) => {
-    if (count === this._loadCounter) this._reject(reason);
-  };
-
-  const returnedData = this._options.charDataLoader(char, wrappedResolve, wrappedReject);
-  if (returnedData) wrappedResolve(returnedData);
+export type LoadingManagerOptions = {
+  charDataLoader: CharDataLoaderFn;
+  onLoadCharDataSuccess?: null | ((data: CharacterJson) => void);
+  onLoadCharDataError?: null | ((error?: Error | string) => void);
 };
 
-LoadingManager.prototype._setupLoadingPromise = function() {
-  return new Promise((resolve, reject) => {
-    this._resolve = resolve;
-    this._reject = reject;
-  }).then((data) => {
-    this._isLoading = false;
-    callIfExists(this._options.onLoadCharDataSuccess, data);
-    return data;
-  }, (reason) => {
-    this._isLoading = false;
-    this.loadingFailed = true;
-    callIfExists(this._options.onLoadCharDataError, reason);
-    // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
-    if (!this._options.onLoadCharDataError) {
-      if (reason instanceof Error) throw reason;
-      const err = new Error(`Failed to load char data for ${this._loadingChar}`);
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'reason' does not exist on type 'Error'.
-      err.reason = reason;
-      throw err;
+export default class LoadingManager {
+  _loadCounter = 0;
+  _isLoading = false;
+  _resolve: ((data: CharacterJson) => void) | undefined;
+  _reject: ((error?: Error | string) => void) | undefined;
+  _options: LoadingManagerOptions;
+
+  /** Set when calling LoadingManager.loadCharData  */
+  _loadingChar: string | undefined;
+  /** use this to attribute to determine if there was a problem with loading */
+  loadingFailed = false;
+
+  constructor(options: LoadingManagerOptions) {
+    this._options = options;
+  }
+
+  _debouncedLoad(char: string, count: number) {
+    // these wrappers ignore all responses except the most recent.
+    const wrappedResolve = (data: CharacterJson) => {
+      if (count === this._loadCounter) {
+        this._resolve?.(data);
+      }
+    };
+    const wrappedReject = (reason?: Error | string) => {
+      if (count === this._loadCounter) {
+        this._reject?.(reason);
+      }
+    };
+
+    const returnedData = this._options.charDataLoader(
+      char,
+      wrappedResolve,
+      wrappedReject,
+    );
+    if (returnedData) {
+      if ("then" in returnedData) {
+        returnedData.then(wrappedResolve).catch(wrappedReject);
+      } else {
+        wrappedResolve(returnedData);
+      }
     }
-  });
-};
+  }
 
-LoadingManager.prototype.loadCharData = function(char: any) {
-  this._loadingChar = char;
-  const promise = this._setupLoadingPromise();
-  this.loadingFailed = false;
-  this._isLoading = true;
-  this._loadCounter++;
-  this._debouncedLoad(char, this._loadCounter);
-  return promise;
-};
+  _setupLoadingPromise() {
+    return new Promise(
+      (
+        resolve: (data: CharacterJson) => void,
+        reject: (err?: Error | string) => void,
+      ) => {
+        this._resolve = resolve;
+        this._reject = reject;
+      },
+    )
+      .then((data: CharacterJson) => {
+        this._isLoading = false;
+        this._options.onLoadCharDataSuccess?.(data);
+        return data;
+      })
+      .catch((reason) => {
+        this._isLoading = false;
+        this.loadingFailed = true;
 
-module.exports = LoadingManager;
+        if (this._options.onLoadCharDataError) {
+          this._options.onLoadCharDataError(reason);
+        } else if (!this._options.onLoadCharDataError) {
+          // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
+          if (reason instanceof Error) {
+            throw reason;
+          }
+          const err = new Error(`Failed to load char data for ${this._loadingChar}`);
+          // @ts-ignore
+          err.reason = reason;
+          throw err;
+        }
+      });
+  }
+
+  loadCharData(char: string) {
+    this._loadingChar = char;
+    const promise = this._setupLoadingPromise();
+    this.loadingFailed = false;
+    this._isLoading = true;
+    this._loadCounter++;
+    this._debouncedLoad(char, this._loadCounter);
+    return promise;
+  }
+}

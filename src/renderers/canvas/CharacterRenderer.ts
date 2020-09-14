@@ -1,22 +1,33 @@
-const StrokeRenderer = require('./StrokeRenderer');
+import Character from "../../models/Character";
+import { ColorObject } from "../../typings/types";
+import StrokeRenderer from "./StrokeRenderer";
 
+export default class CharacterRenderer {
+  _strokeRenderers: StrokeRenderer[];
 
-// @ts-expect-error ts-migrate(2393) FIXME: Duplicate function implementation.
-function CharacterRenderer(character: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._strokeRenderers = character.strokes.map((stroke: any) => new StrokeRenderer(stroke));
-}
-
-CharacterRenderer.prototype.render = function(ctx: any, props: any) {
-  if (props.opacity < 0.05) return;
-  for (let i = 0; i < this._strokeRenderers.length; i++) {
-    this._strokeRenderers[i].render(ctx, {
-      strokeColor: props.strokeColor,
-      radicalColor: props.radicalColor,
-      opacity: props.strokes[i].opacity * props.opacity,
-      displayPortion: props.strokes[i].displayPortion,
-    });
+  constructor(character: Character) {
+    this._strokeRenderers = character.strokes.map(
+      (stroke: any) => new StrokeRenderer(stroke),
+    );
   }
-};
 
-module.exports = CharacterRenderer;
+  render(
+    ctx: CanvasRenderingContext2D,
+    props: {
+      opacity: number;
+      strokes: any;
+      strokeColor: ColorObject;
+      radicalColor?: ColorObject | null;
+    },
+  ) {
+    if (props.opacity < 0.05) return;
+    for (let i = 0; i < this._strokeRenderers.length; i++) {
+      this._strokeRenderers[i].render(ctx, {
+        strokeColor: props.strokeColor,
+        radicalColor: props.radicalColor,
+        opacity: props.strokes[i].opacity * props.opacity,
+        displayPortion: props.strokes[i].displayPortion,
+      });
+    }
+  }
+}

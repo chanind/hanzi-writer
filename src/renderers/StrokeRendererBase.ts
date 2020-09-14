@@ -1,15 +1,27 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'StrokeRend... Remove this comment to see the full error message
-function StrokeRendererBase() {}
+import Stroke from "../models/Stroke";
+import { ColorObject } from "../typings/types";
 
-StrokeRendererBase.prototype._getStrokeDashoffset = function(displayPortion: any) {
-  return this._pathLength * 0.999 * (1 - displayPortion);
-};
+export default class StrokeRendererBase {
+  _pathLength: number;
+  stroke: Stroke;
+  static STROKE_WIDTH = 200;
 
-StrokeRendererBase.prototype._getColor = function({
-  strokeColor,
-  radicalColor
-}: any) {
-  return radicalColor && this._stroke.isInRadical ? radicalColor : strokeColor;
-};
+  constructor(stroke: Stroke) {
+    this.stroke = stroke;
+    this._pathLength = stroke.getLength() + StrokeRendererBase.STROKE_WIDTH / 2;
+  }
 
-module.exports = StrokeRendererBase;
+  _getStrokeDashoffset(displayPortion: number) {
+    return this._pathLength * 0.999 * (1 - displayPortion);
+  }
+
+  _getColor({
+    strokeColor,
+    radicalColor,
+  }: {
+    strokeColor: ColorObject;
+    radicalColor?: ColorObject | null;
+  }) {
+    return radicalColor && this.stroke.isInRadical ? radicalColor : strokeColor;
+  }
+}

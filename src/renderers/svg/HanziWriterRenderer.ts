@@ -1,86 +1,96 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'CharacterR... Remove this comment to see the full error message
-const CharacterRenderer = require('./CharacterRenderer');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'UserStroke... Remove this comment to see the full error message
-const UserStrokeRenderer = require('./UserStrokeRenderer');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'assign'.
-const {assign} = require('../../utils');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'svg'.
-const svg = require('./svgUtils');
+import CharacterRenderer from "./CharacterRenderer";
+import UserStrokeRenderer from "./UserStrokeRenderer";
+import * as svg from "./svgUtils";
+import Character from "../../models/Character";
+import Positioner from "../../Positioner";
+import SVGRenderTarget from "./RenderTarget";
+import HanziWriterRendererBase from "../HanziWriterRendererBase";
+import { RenderStateObject } from "../../RenderState";
 
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'HanziWrite... Remove this comment to see the full error message
-function HanziWriterRenderer(character: any, positioner: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._character = character;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._positioner = positioner;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._mainCharRenderer = new CharacterRenderer(character);
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._outlineCharRenderer = new CharacterRenderer(character);
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._highlightCharRenderer = new CharacterRenderer(character);
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._userStrokeRenderers = {};
-}
+export default class HanziWriterRenderer
+  implements HanziWriterRendererBase<SVGElement | SVGSVGElement, SVGRenderTarget> {
+  _character: Character;
+  _positioner: Positioner;
+  _mainCharRenderer: CharacterRenderer;
+  _outlineCharRenderer: CharacterRenderer;
+  _highlightCharRenderer: CharacterRenderer;
+  _userStrokeRenderers: Record<string, UserStrokeRenderer | undefined>;
+  _positionedTarget: SVGRenderTarget | undefined;
 
-HanziWriterRenderer.prototype.mount = function(target: any) {
-  const positionedTarget = target.createSubRenderTarget();
-  const group = positionedTarget.svg;
-  svg.attr(group, 'transform', `
-    translate(${this._positioner.xOffset}, ${this._positioner.height - this._positioner.yOffset})
+  constructor(character: Character, positioner: Positioner) {
+    this._character = character;
+    this._positioner = positioner;
+    this._mainCharRenderer = new CharacterRenderer(character);
+    this._outlineCharRenderer = new CharacterRenderer(character);
+    this._highlightCharRenderer = new CharacterRenderer(character);
+    this._userStrokeRenderers = {};
+  }
+
+  mount(target: SVGRenderTarget) {
+    const positionedTarget = target.createSubRenderTarget();
+    const group = positionedTarget.svg;
+    svg.attr(
+      group,
+      "transform",
+      `
+    translate(${this._positioner.xOffset}, ${
+        this._positioner.height - this._positioner.yOffset
+      })
     scale(${this._positioner.scale}, ${-1 * this._positioner.scale})
-  `);
-  this._outlineCharRenderer.mount(positionedTarget);
-  this._mainCharRenderer.mount(positionedTarget);
-  this._highlightCharRenderer.mount(positionedTarget);
-  this._positionedTarget = positionedTarget;
-};
+  `,
+    );
+    this._outlineCharRenderer.mount(positionedTarget);
+    this._mainCharRenderer.mount(positionedTarget);
+    this._highlightCharRenderer.mount(positionedTarget);
+    this._positionedTarget = positionedTarget;
+  }
 
-HanziWriterRenderer.prototype.render = function(props: any) {
-  this._outlineCharRenderer.render({
-    opacity: props.character.outline.opacity,
-    strokes: props.character.outline.strokes,
-    strokeColor: props.options.outlineColor,
-  });
-  this._mainCharRenderer.render({
-    opacity: props.character.main.opacity,
-    strokes: props.character.main.strokes,
-    strokeColor: props.options.strokeColor,
-    radicalColor: props.options.radicalColor,
-  });
-  this._highlightCharRenderer.render({
-    opacity: props.character.highlight.opacity,
-    strokes: props.character.highlight.strokes,
-    strokeColor: props.options.highlightColor,
-  });
+  render(props: RenderStateObject) {
+    this._outlineCharRenderer.render({
+      opacity: props.character.outline.opacity,
+      strokes: props.character.outline.strokes,
+      strokeColor: props.options.outlineColor,
+    });
+    this._mainCharRenderer.render({
+      opacity: props.character.main.opacity,
+      strokes: props.character.main.strokes,
+      strokeColor: props.options.strokeColor,
+      radicalColor: props.options.radicalColor,
+    });
+    this._highlightCharRenderer.render({
+      opacity: props.character.highlight.opacity,
+      strokes: props.character.highlight.strokes,
+      strokeColor: props.options.highlightColor,
+    });
 
-  const userStrokes = props.userStrokes || {};
-  Object.keys(this._userStrokeRenderers).forEach(userStrokeId => {
-    if (!userStrokes[userStrokeId]) {
-      this._userStrokeRenderers[userStrokeId].destroy();
-      delete this._userStrokeRenderers[userStrokeId];
+    const userStrokes = props.userStrokes || {};
+
+    for (const userStrokeId in this._userStrokeRenderers) {
+      if (!userStrokes[userStrokeId]) {
+        this._userStrokeRenderers[userStrokeId]?.destroy();
+        delete this._userStrokeRenderers[userStrokeId];
+      }
     }
-  });
 
-  Object.keys(userStrokes).forEach(userStrokeId => {
-    if (!userStrokes[userStrokeId]) return;
-    const userStrokeProps = assign({
-      strokeWidth: props.options.drawingWidth,
-      strokeColor: props.options.drawingColor,
-    }, userStrokes[userStrokeId]);
-    let strokeRenderer = this._userStrokeRenderers[userStrokeId];
-    if (!strokeRenderer) {
-      strokeRenderer = new UserStrokeRenderer();
-      strokeRenderer.mount(this._positionedTarget, userStrokeProps);
-      this._userStrokeRenderers[userStrokeId] = strokeRenderer;
+    for (const userStrokeId in userStrokes) {
+      if (!userStrokes[userStrokeId]) return;
+      const userStrokeProps = {
+        strokeWidth: props.options.drawingWidth,
+        strokeColor: props.options.drawingColor,
+        ...userStrokes[userStrokeId],
+      };
+      let strokeRenderer = this._userStrokeRenderers[userStrokeId];
+      if (!strokeRenderer) {
+        strokeRenderer = new UserStrokeRenderer();
+        strokeRenderer.mount(this._positionedTarget!);
+        this._userStrokeRenderers[userStrokeId] = strokeRenderer;
+      }
+      strokeRenderer.render(userStrokeProps);
     }
-    strokeRenderer.render(userStrokeProps);
-  });
-};
+  }
 
-HanziWriterRenderer.prototype.destroy = function() {
-  svg.removeElm(this._positionedTarget.svg);
-  this._positionedTarget.defs.innerHTML = '';
-};
-
-module.exports = HanziWriterRenderer;
+  destroy() {
+    svg.removeElm(this._positionedTarget!.svg);
+    this._positionedTarget!.defs.innerHTML = "";
+  }
+}

@@ -1,57 +1,77 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'RenderTarg... Remove this comment to see the full error message
-function RenderTargetBase() {}
+import { Point } from "../typings/types";
 
-RenderTargetBase.prototype.addPointerStartListener = function(callback: any) {
-  this.node.addEventListener('mousedown', (evt: any) => {
-    callback(this._eventify(evt, this._getMousePoint));
-  });
-  this.node.addEventListener('touchstart', (evt: any) => {
-    callback(this._eventify(evt, this._getTouchPoint));
-  });
+type BoundEvent = {
+  getPoint(): Point;
+  preventDefault(): void;
 };
 
-RenderTargetBase.prototype.addPointerMoveListener = function(callback: any) {
-  this.node.addEventListener('mousemove', (evt: any) => {
-    callback(this._eventify(evt, this._getMousePoint));
-  });
-  this.node.addEventListener('touchmove', (evt: any) => {
-    callback(this._eventify(evt, this._getTouchPoint));
-  });
-};
+export type RenderTargetInitFunction<
+  TElement extends HTMLElement | SVGElement | SVGSVGElement = HTMLElement
+> = (
+  elmOrId: string | TElement,
+  width?: string | number,
+  height?: string | number,
+) => RenderTargetBase<TElement>;
 
-RenderTargetBase.prototype.addPointerEndListener = function(callback: any) {
-  // TODO: find a way to not need global listeners
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'document' does not exist on type 'Global... Remove this comment to see the full error message
-  global.document.addEventListener('mouseup', callback);
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'document' does not exist on type 'Global... Remove this comment to see the full error message
-  global.document.addEventListener('touchend', callback);
-};
+export default class RenderTargetBase<
+  TElement extends HTMLElement | SVGElement | SVGSVGElement = HTMLElement
+> {
+  node: TElement;
 
+  constructor(node: TElement) {
+    this.node = node;
+  }
 
-RenderTargetBase.prototype.getBoundingClientRect = function() {
-  return this.node.getBoundingClientRect();
-};
+  addPointerStartListener(callback: (arg: BoundEvent) => void) {
+    // @ts-expect-error
+    this.node.addEventListener("mousedown", (evt: MouseEvent) => {
+      callback(this._eventify(evt, this._getMousePoint));
+    });
+    // @ts-expect-error
+    this.node.addEventListener("touchstart", (evt: TouchEvent) => {
+      callback(this._eventify(evt, this._getTouchPoint));
+    });
+  }
 
-RenderTargetBase.prototype._eventify = function(evt: any, pointFunc: any) {
-  return {
-    getPoint: () => pointFunc.call(this, evt),
-    preventDefault: () => evt.preventDefault(),
-  };
-};
+  addPointerMoveListener(callback: (arg: BoundEvent) => void) {
+    // @ts-expect-error
+    this.node.addEventListener("mousemove", (evt: MouseEvent) => {
+      callback(this._eventify(evt, this._getMousePoint));
+    });
+    // @ts-expect-error
+    this.node.addEventListener("touchmove", (evt: TouchEvent) => {
+      callback(this._eventify(evt, this._getTouchPoint));
+    });
+  }
 
-RenderTargetBase.prototype._getMousePoint = function(evt: any) {
-  const box = this.getBoundingClientRect();
-  const x = evt.clientX - box.left;
-  const y = evt.clientY - box.top;
-  return {x, y};
-};
+  addPointerEndListener(callback: () => void) {
+    // TODO: find a way to not need global listeners
+    document.addEventListener("mouseup", callback);
+    document.addEventListener("touchend", callback);
+  }
 
-RenderTargetBase.prototype._getTouchPoint = function(evt: any) {
-  const box = this.getBoundingClientRect();
-  const x = evt.touches[0].clientX - box.left;
-  const y = evt.touches[0].clientY - box.top;
-  return {x, y};
-};
+  getBoundingClientRect() {
+    return this.node.getBoundingClientRect();
+  }
 
+  _eventify<TEvent extends Event>(evt: TEvent, pointFunc: (event: TEvent) => Point) {
+    return {
+      getPoint: () => pointFunc.call(this, evt),
+      preventDefault: () => evt.preventDefault(),
+    };
+  }
 
-module.exports = RenderTargetBase;
+  _getMousePoint(evt: MouseEvent): Point {
+    const box = this.getBoundingClientRect();
+    const x = evt.clientX - box.left;
+    const y = evt.clientY - box.top;
+    return { x, y };
+  }
+
+  _getTouchPoint(evt: TouchEvent): Point {
+    const box = this.getBoundingClientRect();
+    const x = evt.touches[0].clientX - box.left;
+    const y = evt.touches[0].clientY - box.top;
+    return { x, y };
+  }
+}

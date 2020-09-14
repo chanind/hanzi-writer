@@ -1,37 +1,39 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'drawPath'.
-const drawPath = (ctx: any, points: any) => {
+import { Point } from "../../typings/types";
+
+export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
   ctx.beginPath();
   const start = points[0];
   const remainingPoints = points.slice(1);
   ctx.moveTo(start.x, start.y);
-  remainingPoints.forEach((point: any) => {
+  remainingPoints.forEach((point) => {
     ctx.lineTo(point.x, point.y);
   });
   ctx.stroke();
 };
 
-// break a path string into a series of canvas path commands
-// only works with the subset of SVG paths used by MakeMeAHanzi data
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'pathString... Remove this comment to see the full error message
-const pathStringToCanvas = (pathString: any) => {
-  const pathParts = pathString.split(/(^|\s+)(?=[A-Z])/).filter((part: any) => part !== ' ');
-  const commands = [(ctx: any) => ctx.beginPath()];
-  pathParts.forEach((part: any) => {
+/**
+ * Break a path string into a series of canvas path commands
+ *
+ * Note: only works with the subset of SVG paths used by MakeMeAHanzi data
+ * @param pathString
+ */
+export const pathStringToCanvas = (pathString: string) => {
+  const pathParts = pathString.split(/(^|\s+)(?=[A-Z])/).filter((part) => part !== " ");
+  const commands = [(ctx: CanvasRenderingContext2D) => ctx.beginPath()];
+  pathParts.forEach((part) => {
     const [cmd, ...rawParams] = part.split(/\s+/);
-    const params = rawParams.map((param: any) => parseFloat(param));
-    if (cmd === 'M') {
+    const params = rawParams.map((param) => parseFloat(param)) as any;
+    if (cmd === "M") {
       commands.push((ctx) => ctx.moveTo.apply(ctx, params));
-    } else if (cmd === 'L') {
+    } else if (cmd === "L") {
       commands.push((ctx) => ctx.lineTo.apply(ctx, params));
-    } else if (cmd === 'C') {
+    } else if (cmd === "C") {
       commands.push((ctx) => ctx.bezierCurveTo.apply(ctx, params));
-    } else if (cmd === 'Q') {
+    } else if (cmd === "Q") {
       commands.push((ctx) => ctx.quadraticCurveTo.apply(ctx, params));
-    } else if (cmd === 'Z') {
+    } else if (cmd === "Z") {
       // commands.push((ctx) => ctx.closePath());
     }
   });
-  return (ctx: any) => commands.forEach(cmd => cmd(ctx));
+  return (ctx: CanvasRenderingContext2D) => commands.forEach((cmd) => cmd(ctx));
 };
-
-module.exports = { drawPath, pathStringToCanvas };

@@ -1,145 +1,227 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'copyAndMer... Remove this comment to see the full error message
-const { copyAndMergeDeep, colorStringToVals } = require('./utils');
+import Character from "./models/Character";
+import { GenericMutation } from "./Mutation";
+import { ColorObject, OnCompleteFunction, Point } from "./typings/types";
+import { copyAndMergeDeep, colorStringToVals } from "./utils";
 
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'RenderStat... Remove this comment to see the full error message
-function RenderState(character: any, options: any, onStateChange: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._onStateChange = onStateChange;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._mutationChains = [];
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this.state = {
-    options: {
-      drawingFadeDuration: options.drawingFadeDuration,
-      drawingWidth: options.drawingWidth,
-      drawingColor: colorStringToVals(options.drawingColor),
-      strokeColor: colorStringToVals(options.strokeColor),
-      outlineColor: colorStringToVals(options.outlineColor),
-      radicalColor: colorStringToVals(options.radicalColor || options.strokeColor),
-      highlightColor: colorStringToVals(options.highlightColor),
-    },
-    character: {
-      main: {
-        opacity: options.showCharacter ? 1 : 0,
-        strokes: {},
-      },
-      outline: {
-        opacity: options.showOutline ? 1 : 0,
-        strokes: {},
-      },
-      highlight: {
-        opacity: 1,
-        strokes: {},
-      },
-    },
-    userStrokes: null,
+export type StrokeRenderState = {
+  opacity: number;
+  displayPortion: number;
+};
+
+export type CharacterRenderState = {
+  opacity: number;
+  strokes: Record<number, StrokeRenderState>;
+  strokeColor?: string;
+};
+
+export type RenderStateObject = {
+  options: {
+    drawingFadeDuration: number;
+    drawingWidth: number;
+    drawingColor: ColorObject;
+    strokeColor: ColorObject;
+    outlineColor: ColorObject;
+    radicalColor: ColorObject;
+    highlightColor: ColorObject;
   };
-  for (let i = 0; i < character.strokes.length; i++) {
-    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-    this.state.character.main.strokes[i] = {
-      opacity: 1,
-      displayPortion: 1,
+  character: {
+    main: CharacterRenderState;
+    outline: CharacterRenderState;
+    highlight: CharacterRenderState;
+  };
+  userStrokes: Record<
+    string,
+    | {
+        points: Point[];
+        opacity: number;
+      }
+    | undefined
+  > | null;
+};
+
+type OnStateChangeCallback = (
+  nextState: RenderStateObject,
+  currentState: RenderStateObject,
+) => any;
+
+type MutationChain = {
+  _isActive: boolean;
+  _index: number;
+  _resolve: OnCompleteFunction;
+  _mutations: GenericMutation[];
+  _loop: boolean | undefined;
+  _scopes: string[];
+};
+
+export type RenderStateOptions = {
+  strokeColor: string | null;
+  radicalColor: string | null;
+  highlightColor: string | null;
+  outlineColor: string | null;
+  drawingColor: string | null;
+  drawingFadeDuration: number;
+  drawingWidth: number;
+  outlineWidth: number;
+  showCharacter: boolean;
+  showOutline: boolean;
+};
+
+export default class RenderState {
+  _mutationChains: MutationChain[] = [];
+  _onStateChange: OnStateChangeCallback;
+
+  state: RenderStateObject;
+
+  constructor(
+    character: Character,
+    options: RenderStateOptions,
+    onStateChange: OnStateChangeCallback = () => {},
+  ) {
+    this._onStateChange = onStateChange;
+
+    this.state = {
+      options: {
+        drawingFadeDuration: options.drawingFadeDuration,
+        drawingWidth: options.drawingWidth,
+        drawingColor: colorStringToVals(options.drawingColor),
+        strokeColor: colorStringToVals(options.strokeColor),
+        outlineColor: colorStringToVals(options.outlineColor),
+        radicalColor: colorStringToVals(options.radicalColor || options.strokeColor),
+        highlightColor: colorStringToVals(options.highlightColor),
+      },
+      character: {
+        main: {
+          opacity: options.showCharacter ? 1 : 0,
+          strokes: {},
+        },
+        outline: {
+          opacity: options.showOutline ? 1 : 0,
+          strokes: {},
+        },
+        highlight: {
+          opacity: 1,
+          strokes: {},
+        },
+      },
+      userStrokes: null,
     };
-    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-    this.state.character.outline.strokes[i] = {
-      opacity: 1,
-      displayPortion: 1,
-    };
-    // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-    this.state.character.highlight.strokes[i] = {
-      opacity: 0,
-      displayPortion: 1,
-    };
+
+    for (let i = 0; i < character.strokes.length; i++) {
+      this.state.character.main.strokes[i] = {
+        opacity: 1,
+        displayPortion: 1,
+      };
+
+      this.state.character.outline.strokes[i] = {
+        opacity: 1,
+        displayPortion: 1,
+      };
+
+      this.state.character.highlight.strokes[i] = {
+        opacity: 0,
+        displayPortion: 1,
+      };
+    }
   }
-}
 
-RenderState.prototype.updateState = function(stateChanges: any) {
-  const nextState = copyAndMergeDeep(this.state, stateChanges);
-  this._onStateChange(nextState, this.state);
-  this.state = nextState;
-};
+  updateState(stateChanges: any) {
+    const nextState = copyAndMergeDeep(this.state, stateChanges);
+    this._onStateChange(nextState, this.state);
+    this.state = nextState;
+  }
 
-RenderState.prototype.run = function(mutations: any, options = {}) {
-  const scopes = mutations.map((mut: any) => mut.scope).filter((x: any) => x);
-  this.cancelMutations(scopes);
-  return new Promise(resolve => {
-    const mutationChain = {
-      _isActive: true,
-      _index: 0,
-      _resolve: resolve,
-      _mutations: mutations,
-      // @ts-expect-error ts-migrate(2339) FIXME: Property 'loop' does not exist on type '{}'.
-      _loop: options.loop,
-      _scopes: scopes,
-    };
-    this._mutationChains.push(mutationChain);
-    this._run(mutationChain);
-  });
-};
+  run(
+    mutations: GenericMutation[],
+    options: {
+      loop?: boolean;
+    } = {},
+  ) {
+    const scopes = mutations.map((mut) => mut.scope);
 
-RenderState.prototype._run = function(mutationChain: any) {
-  if (!mutationChain._isActive) return;
-  const mutations = mutationChain._mutations;
-  if (mutationChain._index >= mutations.length) {
-    if (mutationChain._loop) {
-      mutationChain._index = 0; // eslint-disable-line no-param-reassign
-    } else {
-      mutationChain._isActive = false; // eslint-disable-line no-param-reassign
-      this._mutationChains = this._mutationChains.filter((chain: any) => chain !== mutationChain);
-      // The chain is done - resolve the promise to signal it finished successfully
-      mutationChain._resolve({ canceled: false });
+    this.cancelMutations(scopes);
+
+    return new Promise((resolve: OnCompleteFunction) => {
+      const mutationChain: MutationChain = {
+        _isActive: true,
+        _index: 0,
+        _resolve: resolve,
+        _mutations: mutations,
+        _loop: options.loop,
+        _scopes: scopes,
+      };
+      this._mutationChains.push(mutationChain);
+      this._run(mutationChain);
+    });
+  }
+
+  _run(mutationChain: MutationChain) {
+    if (!mutationChain._isActive) {
       return;
     }
+
+    const mutations = mutationChain._mutations;
+    if (mutationChain._index >= mutations.length) {
+      if (mutationChain._loop) {
+        mutationChain._index = 0; // eslint-disable-line no-param-reassign
+      } else {
+        mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+        this._mutationChains = this._mutationChains.filter(
+          (chain) => chain !== mutationChain,
+        );
+        // The chain is done - resolve the promise to signal it finished successfully
+        mutationChain._resolve({ canceled: false });
+        return;
+      }
+    }
+
+    const activeMutation = mutationChain._mutations[mutationChain._index];
+
+    activeMutation.run(this).then(() => {
+      if (mutationChain._isActive) {
+        mutationChain._index++; // eslint-disable-line no-param-reassign
+        this._run(mutationChain);
+      }
+    });
   }
 
-  const activeMutation = mutationChain._mutations[mutationChain._index];
-  activeMutation.run(this).then(() => {
-    if (mutationChain._isActive) {
-      mutationChain._index++; // eslint-disable-line no-param-reassign
-      this._run(mutationChain);
-    }
-  });
-};
+  _getActiveMutations() {
+    return this._mutationChains.map((chain) => chain._mutations[chain._index]);
+  }
 
-RenderState.prototype._getActiveMutations = function() {
-  return this._mutationChains.map((chain: any) => {
-    return chain._mutations[chain._index];
-  });
-};
+  pauseAll() {
+    this._getActiveMutations().forEach((mutation) => mutation.pause());
+  }
 
-RenderState.prototype.pauseAll = function() {
-  this._getActiveMutations().forEach((mutation: any) => mutation.pause());
-};
+  resumeAll() {
+    this._getActiveMutations().forEach((mutation) => mutation.resume());
+  }
 
-RenderState.prototype.resumeAll = function() {
-  this._getActiveMutations().forEach((mutation: any) => mutation.resume());
-};
-
-RenderState.prototype.cancelMutations = function(scopes: any) {
-  this._mutationChains.forEach((chain: any) => {
-    chain._scopes.forEach((chainScope: any) => {
-      scopes.forEach((scope: any) => {
-        if (chainScope.indexOf(scope) >= 0 || scope.indexOf(chainScope) >= 0) {
-          this._cancelMutationChain(chain);
-        }
+  cancelMutations(scopes: string[]) {
+    this._mutationChains.forEach((chain) => {
+      chain._scopes.forEach((chainScope) => {
+        scopes.forEach((scope) => {
+          if (chainScope.indexOf(scope) >= 0 || scope.indexOf(chainScope) >= 0) {
+            this._cancelMutationChain(chain);
+          }
+        });
       });
     });
-  });
-};
-
-RenderState.prototype.cancelAll = function() {
-  this.cancelMutations(['']);
-};
-
-RenderState.prototype._cancelMutationChain = function(mutationChain: any) {
-  mutationChain._isActive = false; // eslint-disable-line no-param-reassign
-  for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
-    mutationChain._mutations[i].cancel(this);
   }
-  if (mutationChain._resolve) {
-    mutationChain._resolve({ canceled: true });
-  }
-  this._mutationChains = this._mutationChains.filter((chain: any) => chain !== mutationChain);
-};
 
-module.exports = RenderState;
+  cancelAll() {
+    this.cancelMutations([""]);
+  }
+
+  _cancelMutationChain(mutationChain: MutationChain) {
+    mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+    for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
+      mutationChain._mutations[i].cancel(this);
+    }
+
+    mutationChain._resolve?.({ canceled: true });
+
+    this._mutationChains = this._mutationChains.filter(
+      (chain) => chain !== mutationChain,
+    );
+  }
+}

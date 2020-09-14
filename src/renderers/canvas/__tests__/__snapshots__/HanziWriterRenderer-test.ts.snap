@@ -2771,12 +2771,12 @@ Array [
   Object {
     "props": Object {},
     "transform": Array [
-      0.078125,
+      1,
       0,
       0,
-      -0.078125,
-      10,
-      80.3125,
+      1,
+      0,
+      0,
     ],
     "type": "restore",
   },
@@ -5747,12 +5747,12 @@ Array [
   Object {
     "props": Object {},
     "transform": Array [
-      0.078125,
+      1,
       0,
       0,
-      -0.078125,
-      10,
-      80.3125,
+      1,
+      0,
+      0,
     ],
     "type": "restore",
   },

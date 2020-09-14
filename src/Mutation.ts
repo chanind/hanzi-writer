@@ -1,35 +1,30 @@
-const {
-  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'inflate'.
-  inflate,
-  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'performanc... Remove this comment to see the full error message
-  performanceNow,
-  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'requestAni... Remove this comment to see the full error message
-  requestAnimationFrame,
-  // @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'cancelAnim... Remove this comment to see the full error message
-  cancelAnimationFrame,
-} = require('./utils');
+import { inflate, cancelAnimationFrame } from "./utils";
+import RenderState, { RenderStateObject } from "./RenderState";
 
 // ------ Mutation class --------
 
-const getPartialValues = function(startValues: any, endValues: any, progress: any) {
+const getPartialValues = (
+  startValues: RenderStateObject,
+  endValues: any,
+  progress: number,
+) => {
   const target = {};
-  for (const key in endValues) { // eslint-disable-line guard-for-in
-    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
-    // in here that aren't plain objects anyway and this is a hot code path
+  for (const key in endValues) {
     const endValue = endValues[key];
+    // @ts-ignore
     const startValue = startValues[key];
     if (endValue >= 0) {
-      // @ts-expect-error ts-migrate(7053) FIXME: No index signature with a parameter of type 'strin... Remove this comment to see the full error message
+      // @ts-ignore
       target[key] = progress * (endValue - startValue) + startValue;
     } else {
-      // @ts-expect-error ts-migrate(7053) FIXME: No index signature with a parameter of type 'strin... Remove this comment to see the full error message
+      // @ts-ignore
       target[key] = getPartialValues(startValue, endValue, progress);
     }
   }
   return target;
 };
 
-const isAlreadyAtEnd = function(startValues: any, endValues: any) {
+const isAlreadyAtEnd = function (startValues: any, endValues: any) {
   for (const key in endValues) {
     if (endValues.hasOwnProperty(key)) {
       const endValue = endValues[key];
@@ -45,140 +40,182 @@ const isAlreadyAtEnd = function(startValues: any, endValues: any) {
 };
 
 // from https://github.com/maxwellito/vivus
-const ease = (x: any) => -Math.cos(x * Math.PI) / 2 + 0.5;
+const ease = (x: number) => -Math.cos(x * Math.PI) / 2 + 0.5;
 
-function Mutation(scope: any, valuesOrCallable: any, options = {}) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this.scope = scope;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._valuesOrCallable = valuesOrCallable;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._duration = options.duration || 0;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._force = options.force;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._pausedDuration = 0;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._tickBound = this._tick.bind(this);
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._startPauseTime = null;
+/** Used by `Mutation` & `Delay` */
+export interface GenericMutation {
+  scope: string;
+  run(renderState: RenderState): Promise<void>;
+  pause(): void;
+  resume(): void;
+  cancel(renderState: RenderState): void;
 }
 
+class Delay implements GenericMutation {
+  _duration: number;
+  _startTime: number | null;
+  _paused: boolean;
+  _timeout: NodeJS.Timeout | undefined;
+  _resolve: (() => void) | undefined;
+  scope: string;
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype.run = function(renderState: any) {
-  if (!this._values) this._inflateValues(renderState);
-  if (this._duration === 0) renderState.updateState(this._values);
-  if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
-    return Promise.resolve();
+  constructor(duration: number) {
+    this._duration = duration;
+    this._startTime = null;
+    this._paused = false;
+    this.scope = `delay.${duration}`;
   }
-  this._renderState = renderState;
-  this._startState = renderState.state;
-  this._startTime = performanceNow();
-  this._frameHandle = requestAnimationFrame(this._tickBound);
-  return new Promise((resolve) => {
-    this._resolve = resolve;
-  });
-};
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype.pause = function() {
-  if (this._startPauseTime !== null) return;
-  if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
-  this._startPauseTime = performanceNow();
-};
-
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype.resume = function() {
-  if (this._startPauseTime === null) return;
-  this._frameHandle = requestAnimationFrame(this._tickBound);
-  this._pausedDuration += performanceNow() - this._startPauseTime;
-  this._startPauseTime = null;
-};
-
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype._tick = function(timing: any) {
-  if (this._startPauseTime !== null) return;
-  const progress = Math.min(1, (timing - this._startTime - this._pausedDuration) / this._duration);
-  if (progress === 1) {
-    this._renderState.updateState(this._values);
-    this._frameHandle = null;
-    this.cancel(this._renderState);
-  } else {
-    const easedProgress = ease(progress);
-    this._renderState.updateState(getPartialValues(this._startState, this._values, easedProgress));
-    this._frameHandle = requestAnimationFrame(this._tickBound);
+  run() {
+    this._startTime = performance.now();
+    return new Promise((resolve) => {
+      this._resolve = resolve;
+      this._timeout = setTimeout(() => this.cancel(), this._duration);
+    }) as Promise<void>;
   }
-};
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype._inflateValues = function(renderState: any) {
-  let values = this._valuesOrCallable;
-  if (typeof this._valuesOrCallable === 'function') {
-    values = this._valuesOrCallable(renderState.state);
+  pause() {
+    if (this._paused) return;
+    // to pause, clear the timeout and rewrite this._duration with whatever time is remaining
+    const elapsedDelay = performance.now() - (this._startTime || 0);
+    this._duration = Math.max(0, this._duration - elapsedDelay);
+    clearTimeout(this._timeout!);
+    this._paused = true;
   }
-  this._values = inflate(this.scope, values);
-};
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.prototype.cancel = function(renderState: any) {
-  if (this._resolve) this._resolve();
-  this._resolve = null;
-  if (this._frameHandle) cancelAnimationFrame(this._frameHandle);
-  this._frameHandle = null;
-  if (this._force) {
-    if (!this._values) this._inflateValues(renderState);
-    renderState.updateState(this._values);
+  resume() {
+    if (!this._paused) return;
+    this._startTime = performance.now();
+    this._timeout = setTimeout(() => this.cancel(), this._duration);
+    this._paused = false;
   }
-};
 
-// ------ Mutation.Delay Class --------
-
-function Delay(duration: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._duration = duration;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._startTime = null;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._paused = false;
+  cancel() {
+    clearTimeout(this._timeout!);
+    if (this._resolve) {
+      this._resolve();
+    }
+    this._resolve = undefined;
+  }
 }
 
-Delay.prototype.pause = function() {
-  if (this._paused) return;
-  // to pause, clear the timeout and rewrite this._duration with whatever time is remaining
-  const elapsedDelay = performanceNow() - this._startTime;
-  this._duration = Math.max(0, this._duration - elapsedDelay);
-  clearTimeout(this._timeout);
-  this._paused = true;
-};
+export default class Mutation<TValue = any> implements GenericMutation {
+  static Delay = Delay;
 
-Delay.prototype.resume = function() {
-  if (!this._paused) return;
-  this._startTime = performanceNow();
-  this._timeout = setTimeout(() => this.cancel(), this._duration);
-  this._paused = false;
-};
+  /** Dot notation e.g. `character.highlight.strokeColor` */
+  scope: string;
+  _valuesOrCallable: any | ((renderStateObj: RenderStateObject) => any);
+  _duration: number;
+  _force: any;
+  _pausedDuration: number;
+  _startPauseTime: number | null;
 
-Delay.prototype.run = function() {
-  const timeoutPromise = new Promise((resolve) => {
-    this._resolve = resolve;
-  });
-  this._startTime = performanceNow();
-  this._timeout = setTimeout(() => this.cancel(), this._duration);
-  return timeoutPromise;
-};
+  // Only set on .run()
+  _startTime: number | undefined;
+  _startState: RenderStateObject | undefined;
+  _renderState: RenderState | undefined;
+  _frameHandle: number | undefined;
+  _values: any;
+  _resolve: (() => void) | undefined;
 
-Delay.prototype.cancel = function() {
-  clearTimeout(this._timeout);
-  if (this._resolve) this._resolve();
-  this._resolve = false;
-};
+  constructor(
+    /** Dot notation e.g. `character.highlight.strokeColor` */
+    scope: string,
+    valuesOrCallable: TValue | ((renderStateObj: RenderStateObject) => TValue),
+    options: { duration?: number; force?: boolean } = {},
+  ) {
+    this.scope = scope;
+    this._valuesOrCallable = valuesOrCallable;
+    this._duration = options.duration || 0;
+    this._force = options.force;
+    this._pausedDuration = 0;
+    this._startPauseTime = null;
+  }
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-Mutation.Delay = Delay;
+  run(renderState: RenderState) {
+    if (!this._values) {
+      this._inflateValues(renderState);
+    }
+    if (this._duration === 0) {
+      renderState.updateState(this._values);
+    }
+    return new Promise((resolve) => {
+      if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
+        resolve();
+        return;
+      }
+      this._renderState = renderState;
+      this._startState = renderState.state;
+      this._startTime = performance.now();
+      this._frameHandle = requestAnimationFrame(this._tick);
+      this._resolve = resolve;
+    }) as Promise<void>;
+  }
 
-// -------------------------------------
+  pause() {
+    if (this._startPauseTime !== null) {
+      return;
+    }
+    if (this._frameHandle) {
+      cancelAnimationFrame(this._frameHandle);
+    }
+    this._startPauseTime = performance.now();
+  }
 
+  resume() {
+    if (this._startPauseTime === null) {
+      return;
+    }
+    this._frameHandle = requestAnimationFrame(this._tick);
+    this._pausedDuration += performance.now() - this._startPauseTime;
+    this._startPauseTime = null;
+  }
 
-// @ts-expect-error ts-migrate(2454) FIXME: Variable 'Mutation' is used before being assigned.
-module.exports = Mutation;
+  _tick = (timing: number) => {
+    if (this._startPauseTime !== null) {
+      return;
+    }
+
+    const progress = Math.min(
+      1,
+      (timing - this._startTime! - this._pausedDuration) / this._duration,
+    );
+
+    if (progress === 1) {
+      this._renderState!.updateState(this._values);
+      this._frameHandle = undefined;
+      this.cancel(this._renderState!);
+    } else {
+      const easedProgress = ease(progress);
+      this._renderState!.updateState(
+        getPartialValues(this._startState!, this._values, easedProgress),
+      );
+      this._frameHandle = requestAnimationFrame(this._tick);
+    }
+  };
+
+  _inflateValues(renderState: RenderState) {
+    const values: TValue =
+      typeof this._valuesOrCallable === "function"
+        ? this._valuesOrCallable(renderState.state)
+        : this._valuesOrCallable;
+
+    this._values = inflate(this.scope, values);
+  }
+
+  cancel(renderState: RenderState) {
+    this._resolve?.();
+
+    this._resolve = undefined;
+    if (this._frameHandle) {
+      cancelAnimationFrame(this._frameHandle);
+    }
+    this._frameHandle = undefined;
+    if (this._force) {
+      if (!this._values) {
+        this._inflateValues(renderState);
+      }
+      renderState.updateState(this._values);
+    }
+  }
+}

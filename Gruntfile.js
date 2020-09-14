@@ -1,24 +1,24 @@
-const webpack = require('webpack');
+const webpack = require("webpack");
 
-module.exports = function(grunt) {
-  const pkg = grunt.file.readJSON('package.json');
+export default function (grunt) {
+  const pkg = grunt.file.readJSON("package.json");
 
   grunt.initConfig({
     pkg: pkg,
 
     copy: {
       main: {
-        cwd: 'src/',
-        src: '**',
-        dest: 'dist/',
-        expand: true
+        cwd: "src/",
+        src: "**",
+        dest: "dist/",
+        expand: true,
       },
       data: {
-        cwd: 'data/',
-        src: '**',
-        dest: 'dist/data/',
-        expand: true
-      }
+        cwd: "data/",
+        src: "**",
+        dest: "dist/data/",
+        expand: true,
+      },
     },
 
     webpack: {
@@ -28,36 +28,36 @@ module.exports = function(grunt) {
             {
               test: /\.js$/,
               exclude: /node_modules/,
-              loader: 'babel-loader',
+              loader: "babel-loader",
               query: {
-                presets: ['env'],
-              }
+                presets: ["env"],
+              },
             },
             {
               test: /\.js$/,
-              loader: 'eslint-loader',
+              loader: "eslint-loader",
               exclude: [/node_modules/],
               options: {
-                configFile: '.eslintrc'
-              }
-            }
+                configFile: ".eslintrc",
+              },
+            },
           ],
         },
         plugins: [
           new webpack.BannerPlugin(
-            `Hanzi Writer v${pkg.version}\nhttps://chanind.github.io/hanzi-writer`
-          )
-        ]
+            `Hanzi Writer v${pkg.version}\nhttps://chanind.github.io/hanzi-writer`,
+          ),
+        ],
       },
 
       dist: {
-        entry: './src/HanziWriter.js',
+        entry: "./src/HanziWriter.js",
         output: {
-          filename: 'dist/hanzi-writer.js',
-          library: 'HanziWriter',
-          libraryTarget: 'umd'
-        }
-      }
+          filename: "dist/hanzi-writer.js",
+          library: "HanziWriter",
+          libraryTarget: "umd",
+        },
+      },
     },
 
     uglify: {
@@ -65,45 +65,52 @@ module.exports = function(grunt) {
         options: {
           mangle: {
             properties: {
-              regex: /^_/
-            }
+              regex: /^_/,
+            },
           },
           output: {
-            preamble: `/*! Hanzi Writer v${pkg.version} | https://chanind.github.io/hanzi-writer */`
-          }
+            preamble: `/*! Hanzi Writer v${pkg.version} | https://chanind.github.io/hanzi-writer */`,
+          },
         },
         files: {
-          'dist/hanzi-writer.min.js': ['dist/hanzi-writer.js']
-        }
-      }
+          "dist/hanzi-writer.min.js": ["dist/hanzi-writer.js"],
+        },
+      },
     },
 
     clean: {
-      pre: ['dist'],
+      pre: ["dist"],
       post: [
-        'dist/*',
-        '!dist/hanzi-writer.js',
-        '!dist/hanzi-writer.min.js',
-        'dist/data/APL',
-      ]
+        "dist/*",
+        "!dist/hanzi-writer.js",
+        "!dist/hanzi-writer.min.js",
+        "dist/data/APL",
+      ],
     },
 
     watch: {
       scripts: {
-        files: ['src/**/*.js'],
-        tasks: ['copy:main', 'webpack:dist', 'clean:post'],
+        files: ["src/**/*.js"],
+        tasks: ["copy:main", "webpack:dist", "clean:post"],
         options: {
           spawn: false,
         },
       },
-    }
+    },
   });
 
-  grunt.loadNpmTasks('grunt-contrib-copy');
-  grunt.loadNpmTasks('grunt-contrib-clean');
-  grunt.loadNpmTasks('grunt-contrib-uglify');
-  grunt.loadNpmTasks('grunt-contrib-watch');
-  grunt.loadNpmTasks('grunt-webpack');
+  grunt.loadNpmTasks("grunt-contrib-copy");
+  grunt.loadNpmTasks("grunt-contrib-clean");
+  grunt.loadNpmTasks("grunt-contrib-uglify");
+  grunt.loadNpmTasks("grunt-contrib-watch");
+  grunt.loadNpmTasks("grunt-webpack");
 
-  grunt.registerTask('default', ['clean:pre', 'copy:main', 'copy:data', 'webpack:dist', 'uglify:dist', 'clean:post']);
-};
+  grunt.registerTask("default", [
+    "clean:pre",
+    "copy:main",
+    "copy:data",
+    "webpack:dist",
+    "uglify:dist",
+    "clean:post",
+  ]);
+}

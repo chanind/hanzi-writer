@@ -1,145 +1,219 @@
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'strokeMatc... Remove this comment to see the full error message
-const strokeMatches = require('./strokeMatches');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'UserStroke... Remove this comment to see the full error message
-const UserStroke = require('./models/UserStroke');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'callIfExis... Remove this comment to see the full error message
-const {callIfExists, counter} = require('./utils');
-const quizActions = require('./quizActions');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'geometry'.
-const geometry = require('./geometry');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'characterA... Remove this comment to see the full error message
-const characterActions = require('./characterActions');
+import strokeMatches from "./strokeMatches";
+import UserStroke from "./models/UserStroke";
+import Positioner from "./Positioner";
+import { counter } from "./utils";
+import * as quizActions from "./quizActions";
+import * as geometry from "./geometry";
+import * as characterActions from "./characterActions";
+import Character from "./models/Character";
+import { HanziWriterOptions, Point } from "./typings/types";
+import RenderState from "./RenderState";
 
-
-const getDrawnPath = (userStroke: any) => ({
+const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
-  points: userStroke.points.map((point: any) => geometry.round(point))
+  points: userStroke.points.map((point: any) => geometry.round(point)),
 });
 
-
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'Quiz'.
-function Quiz(character: any, renderState: any, positioner: any) {
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._character = character;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._renderState = renderState;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._isActive = false;
-  // @ts-expect-error ts-migrate(2683) FIXME: 'this' implicitly has type 'any' because it does n... Remove this comment to see the full error message
-  this._positioner = positioner;
-}
-
-Quiz.prototype.startQuiz = function(options: any) {
-  this._isActive = true;
-  this._options = options;
-  this._currentStrokeIndex = 0;
-  this._numRecentMistakes = 0;
-  this._totalMistakes = 0;
-  this._drawnStrokes = [];
-  this._renderState.run(quizActions.startQuiz(this._character, options.strokeFadeDuration));
+type StrokeData = {
+  character: string;
+  drawnPath: {
+    pathString: string;
+    points: Point[];
+  };
+  strokeNum: number;
+  mistakesOnStroke: number;
+  totalMistakes: number;
+  strokesRemaining: number;
 };
 
-Quiz.prototype.startUserStroke = function(externalPoint: any) {
-  const point = this._positioner.convertExternalPoint(externalPoint);
-  if (!this._isActive) return null;
-  if (this._userStroke) return this.endUserStroke();
-  const strokeId = counter();
-  this._userStroke = new UserStroke(strokeId, point, externalPoint);
-  this._renderState.run(
-    quizActions.startUserStroke(strokeId, point),
-  );
+export type QuizOptions = {
+  /** Default: 1. This can be set to make stroke grading more or less lenient. The closer this is to 0 the more strictly the quiz is graded. */
+  leniency: number;
+  /** Highlights the correct stroke after a set number of incorrect attempts. Setting `false` disables entirely. Default: 3 */
+  showHintAfterMisses: number | false;
+  /** After a quiz is completed successfully it will flash briefly. Default: true */
+  highlightOnComplete: boolean;
+  highlightCompleteColor: string | null;
+  onMistake?: (strokeData: StrokeData) => void;
+  onCorrectStroke?: (strokeData: StrokeData) => void;
+  onComplete?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
-Quiz.prototype.continueUserStroke = function(externalPoint: any) {
-  if (!this._userStroke) return;
-  const point = this._positioner.convertExternalPoint(externalPoint);
-  this._userStroke.appendPoint(point, externalPoint);
-  const nextPoints = this._userStroke.points.slice(0);
-  this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
-};
+export default class Quiz {
+  _character: Character;
+  _renderState: RenderState;
+  _isActive: boolean;
+  _positioner: Positioner;
 
-Quiz.prototype.endUserStroke = function() {
-  if (!this._userStroke) return;
+  /** Set on startQuiz */
+  _options: Partial<HanziWriterOptions> | undefined;
+  _currentStrokeIndex: number = 0;
+  _numRecentMistakes: number = 0;
+  _totalMistakes: number = 0;
+  _userStroke: UserStroke | undefined;
 
-  this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
-  // skip single-point strokes
-  if (this._userStroke.points.length === 1) {
-    this._userStroke = null;
-    return;
+  constructor(character: Character, renderState: RenderState, positioner: Positioner) {
+    this._character = character;
+    this._renderState = renderState;
+    this._isActive = false;
+    this._positioner = positioner;
   }
 
-  const currentStroke = this._getCurrentStroke();
-  const isOutlineVisible = this._renderState.state.character.outline.opacity > 0;
-  const isMatch = strokeMatches(this._userStroke, this._character, this._currentStrokeIndex, {
-    isOutlineVisible,
-    leniency: this._options.leniency,
-  });
+  get numRecentMistakes() {
+    return this._numRecentMistakes || 0;
+  }
 
-  if (isMatch) {
-    this._handleSuccess(currentStroke);
-  } else {
-    this._handleFailure();
-    if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
+  startQuiz(options: HanziWriterOptions) {
+    this._isActive = true;
+    this._options = {
+      ...options,
+      leniency: options.leniency ?? 1,
+      showHintAfterMisses: options.showHintAfterMisses ?? 3,
+      drawingFadeDuration: options.drawingFadeDuration ?? 300,
+      highlightOnComplete: options.highlightOnComplete ?? true,
+      highlightCompleteColor: options.highlightCompleteColor ?? null,
+    };
+    this._currentStrokeIndex = 0;
+    this._numRecentMistakes = 0;
+    this._totalMistakes = 0;
+
+    return this._renderState
+      .run(quizActions.startQuiz(this._character, options.strokeFadeDuration))
+      .then((res) => {});
+  }
+
+  startUserStroke(externalPoint: Point) {
+    const point = this._positioner.convertExternalPoint(externalPoint);
+    if (!this._isActive) {
+      return null;
+    }
+    if (this._userStroke) {
+      return this.endUserStroke();
+    }
+    const strokeId = counter();
+    this._userStroke = new UserStroke(strokeId, point, externalPoint);
+    this._renderState.run(quizActions.startUserStroke(strokeId, point));
+  }
+
+  continueUserStroke(externalPoint: Point) {
+    if (!this._userStroke) return;
+    const point = this._positioner.convertExternalPoint(externalPoint);
+    this._userStroke.appendPoint(point, externalPoint);
+    const nextPoints = this._userStroke.points.slice(0);
+    this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
+  }
+
+  endUserStroke() {
+    if (!this._userStroke) {
+      return;
+    }
+
+    this._renderState.run(
+      quizActions.removeUserStroke(
+        this._userStroke.id,
+        this._options!.drawingFadeDuration ?? 300,
+      ),
+    );
+    // skip single-point strokes
+    if (this._userStroke.points.length === 1) {
+      this._userStroke = undefined;
+      return;
+    }
+
+    const currentStroke = this._getCurrentStroke();
+    const isMatch = strokeMatches(
+      this._userStroke,
+      this._character,
+      this._currentStrokeIndex,
+      {
+        // isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
+        leniency: this._options!.leniency,
+      },
+    );
+
+    if (isMatch) {
+      this._handleSuccess();
+    } else {
+      this._handleFailure();
+      if (
+        this._options!.showHintAfterMisses !== false &&
+        this.numRecentMistakes >= Number(this._options!.showHintAfterMisses)
+      ) {
+        this._renderState.run(
+          characterActions.highlightStroke(
+            currentStroke,
+            this._options!.highlightColor,
+            this._options!.strokeHighlightSpeed,
+          ),
+        );
+      }
+    }
+    this._userStroke = undefined;
+  }
+
+  cancel() {
+    this._isActive = false;
+    if (this._userStroke) {
       this._renderState.run(
-        quizActions.highlightStroke(currentStroke, this._options.highlightColor, this._options.strokeHighlightSpeed),
+        quizActions.removeUserStroke(
+          this._userStroke.id,
+          this._options!.drawingFadeDuration ?? 300,
+        ),
       );
     }
   }
-  this._userStroke = null;
-};
 
-Quiz.prototype.cancel = function() {
-  this._isActive = false;
-  if (this._userStroke) {
-    this._renderState.run(quizActions.removeUserStroke(this._userStroke.id, this._options.drawingFadeDuration));
-  }
-};
-
-Quiz.prototype._handleSuccess = function(stroke: any) {
-  callIfExists(this._options.onCorrectStroke, {
-    character: this._character.symbol,
-    strokeNum: this._currentStrokeIndex,
-    mistakesOnStroke: this._numRecentMistakes,
-    totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex - 1,
-    drawnPath: getDrawnPath(this._userStroke),
-  });
-  let animation = characterActions.showStroke('main', this._currentStrokeIndex, this._options.strokeFadeDuration);
-  this._currentStrokeIndex += 1;
-  this._numRecentMistakes = 0;
-
-  if (this._currentStrokeIndex === this._character.strokes.length) {
-    this._isActive = false;
-    callIfExists(this._options.onComplete, {
+  _handleSuccess() {
+    this._options!.onCorrectStroke?.({
       character: this._character.symbol,
+      strokeNum: this._currentStrokeIndex,
+      mistakesOnStroke: this._numRecentMistakes,
       totalMistakes: this._totalMistakes,
+      strokesRemaining: this._character.strokes.length - this._currentStrokeIndex! - 1,
+      drawnPath: getDrawnPath(this._userStroke!),
     });
-    if (this._options.highlightOnComplete) {
-      animation = animation.concat(quizActions.highlightCompleteChar(
-        this._character,
-        this._options.highlightCompleteColor,
-        this._options.strokeHighlightDuration * 2,
-      ));
+    let animation = characterActions.showStroke(
+      "main",
+      this._currentStrokeIndex,
+      this._options!.strokeFadeDuration ?? 300,
+    );
+    this._currentStrokeIndex! += 1;
+    this._numRecentMistakes = 0;
+
+    if (this._currentStrokeIndex === this._character.strokes.length) {
+      this._isActive = false;
+      this._options!.onComplete?.({
+        character: this._character.symbol,
+        totalMistakes: this._totalMistakes,
+      });
+      if (this._options!.highlightOnComplete) {
+        animation = [
+          ...animation,
+          ...quizActions.highlightCompleteChar(
+            this._character,
+            this._options!.highlightCompleteColor ?? null,
+            (this._options!.strokeHighlightDuration || 0) * 2,
+          ),
+        ];
+      }
     }
+    this._renderState.run(animation);
   }
-  this._renderState.run(animation);
-};
 
-Quiz.prototype._handleFailure = function() {
-  this._numRecentMistakes += 1;
-  this._totalMistakes += 1;
-  callIfExists(this._options.onMistake, {
-    character: this._character.symbol,
-    strokeNum: this._currentStrokeIndex,
-    mistakesOnStroke: this._numRecentMistakes,
-    totalMistakes: this._totalMistakes,
-    strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
-    drawnPath: getDrawnPath(this._userStroke),
-  });
-};
+  _handleFailure() {
+    this._numRecentMistakes! += 1;
+    this._totalMistakes! += 1;
+    this._options!.onMistake?.({
+      character: this._character.symbol,
+      strokeNum: this._currentStrokeIndex,
+      mistakesOnStroke: this._numRecentMistakes,
+      totalMistakes: this._totalMistakes,
+      strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
+      drawnPath: getDrawnPath(this._userStroke!),
+    });
+  }
 
-Quiz.prototype._getCurrentStroke = function() {
-  return this._character.strokes[this._currentStrokeIndex];
-};
-
-module.exports = Quiz;
+  _getCurrentStroke() {
+    return this._character.strokes[this._currentStrokeIndex];
+  }
+}

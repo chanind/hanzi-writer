@@ -1,68 +1,65 @@
-const Mutation = require('./Mutation');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'characterA... Remove this comment to see the full error message
-const characterActions = require('./characterActions');
-// @ts-expect-error ts-migrate(2451) FIXME: Cannot redeclare block-scoped variable 'objRepeat'... Remove this comment to see the full error message
-const { objRepeat } = require('./utils');
+import Mutation from "./Mutation";
+import * as characterActions from "./characterActions";
+import { objRepeat } from "./utils";
+import { Point } from "./typings/types";
+import Character from "./models/Character";
 
-const startQuiz = (character: any, fadeDuration: any) => {
-  return characterActions.hideCharacter('main', character, fadeDuration)
-    .concat([
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      new Mutation('character.highlight', {
-        opacity: 1,
-        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
-      }, { force: true }),
-      // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-      new Mutation('character.main', {
-        opacity: 1,
-        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
-      }, { force: true }),
-    ]);
-};
-
-const startUserStroke = (id: any, point: any) => {
+export const startQuiz = (character: Character, fadeDuration: number) => {
   return [
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    new Mutation('quiz.activeUserStrokeId', id, { force: true }),
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    new Mutation(`userStrokes.${id}`, {
-      points: [point],
-      opacity: 1,
-    }, { force: true }),
+    ...characterActions.hideCharacter("main", character, fadeDuration),
+    new Mutation(
+      "character.highlight",
+      {
+        opacity: 1,
+        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+      },
+      { force: true },
+    ),
+    new Mutation(
+      "character.main",
+      {
+        opacity: 1,
+        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+      },
+      { force: true },
+    ),
   ];
 };
 
-const updateUserStroke = (userStrokeId: any, points: any) => {
+export const startUserStroke = (id: number, point: Point) => {
   return [
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    new Mutation(`userStrokes.${userStrokeId}.points`, points, { force: true }),
+    new Mutation("quiz.activeUserStrokeId", id, { force: true }),
+    new Mutation(
+      `userStrokes.${id}`,
+      {
+        points: [point],
+        opacity: 1,
+      },
+      { force: true },
+    ),
   ];
 };
 
-const removeUserStroke = (userStrokeId: any, duration: any) => {
+export const updateUserStroke = (userStrokeId: number, points: Point[]) => {
+  return [new Mutation(`userStrokes.${userStrokeId}.points`, points, { force: true })];
+};
+
+export const removeUserStroke = (userStrokeId: number, duration: number) => {
   return [
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     new Mutation(`userStrokes.${userStrokeId}.opacity`, 0, { duration }),
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
     new Mutation(`userStrokes.${userStrokeId}`, null, { force: true }),
   ];
 };
 
-const highlightCompleteChar = (character: any, color: any, duration: any) => {
+export const highlightCompleteChar = (
+  character: Character,
+  color: string | null,
+  duration: number,
+) => {
   return [
-    // @ts-expect-error ts-migrate(7009) FIXME: 'new' expression, whose target lacks a construct s... Remove this comment to see the full error message
-    new Mutation('character.highlight.strokeColor', color),
-  ]
-    .concat(characterActions.hideCharacter('highlight', character))
-    .concat(characterActions.showCharacter('highlight', character, duration / 2))
-    .concat(characterActions.hideCharacter('highlight', character, duration / 2));
-};
-
-module.exports = {
-  highlightCompleteChar,
-  highlightStroke: characterActions.highlightStroke,
-  startQuiz,
-  startUserStroke,
-  updateUserStroke,
-  removeUserStroke,
+    new Mutation("character.highlight.strokeColor", color),
+    ...characterActions.hideCharacter("highlight", character),
+    ...characterActions.showCharacter("highlight", character, duration / 2),
+    ...characterActions.hideCharacter("highlight", character, duration / 2),
+  ];
 };

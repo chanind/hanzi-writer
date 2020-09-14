@@ -1,5 +1,4 @@
 import Mutation from "../Mutation";
-import RenderState from "../RenderState";
 
 describe("Mutation", () => {
   it("resolves immediately if there is no (or 0) duration passed", async () => {
@@ -63,7 +62,7 @@ describe("Mutation", () => {
 
     expect(isResolved).toBe(false);
     expect(renderState.updateState).toHaveBeenCalled();
-    renderState.updateState.mock.calls.forEach((mockCall: any) => {
+    renderState.updateState.mock.calls.forEach((mockCall) => {
       expect(mockCall[0].a.b).toBeGreaterThan(10);
       expect(mockCall[0].a.b).toBeLessThan(20);
     });
@@ -97,12 +96,12 @@ describe("Mutation", () => {
 
     clock.tick(45);
     const partialTweenVals = renderState.updateState.mock.calls.map(
-      (call: any) => call[0].a.b,
+      (call) => call[0].a.b,
     );
 
     expect(isResolved).toBe(false);
     expect(renderState.updateState).toHaveBeenCalled();
-    renderState.updateState.mock.calls.forEach((mockCall: any) => {
+    renderState.updateState.mock.calls.forEach((mockCall) => {
       expect(mockCall[0].a.b).toBeGreaterThan(10);
       expect(mockCall[0].a.b).toBeLessThan(20);
     });

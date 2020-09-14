@@ -13,6 +13,7 @@ import {
 import { Point } from "./typings/types";
 import Character from "./models/Character";
 import UserStroke from "./models/UserStroke";
+import Stroke from "./models/Stroke";
 
 const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
@@ -20,7 +21,7 @@ const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.4; // bigger = more lenient
 const MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
 
-const startAndEndMatches = function (points: any, closestStroke: any, leniency: any) {
+const startAndEndMatches = (points: Point[], closestStroke: Stroke, leniency: number) => {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
   const endingDist = distance(closestStroke.getEndingPoint(), points[points.length - 1]);
   return (
@@ -40,11 +41,11 @@ const getEdgeVectors = (points: Point[]) => {
   return vectors;
 };
 
-const directionMatches = (points: any, stroke: any) => {
+const directionMatches = (points: Point[], stroke: Stroke) => {
   const edgeVectors = getEdgeVectors(points);
   const strokeVectors = stroke.getVectors();
   const similarities = edgeVectors.map((edgeVector) => {
-    const strokeSimilarities = strokeVectors.map((strokeVector: any) =>
+    const strokeSimilarities = strokeVectors.map((strokeVector) =>
       cosineSimilarity(strokeVector, edgeVector),
     );
     return Math.max.apply(Math, strokeSimilarities);
@@ -53,16 +54,16 @@ const directionMatches = (points: any, stroke: any) => {
   return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;
 };
 
-const lengthMatches = (points: Point[], stroke: any, leniency: any) => {
+const lengthMatches = (points: Point[], stroke: Stroke, leniency: number) => {
   return (
     (leniency * (length(points) + 25)) / (stroke.getLength() + 25) >= MIN_LEN_THRESHOLD
   );
 };
 
-const stripDuplicates = (points: any) => {
+const stripDuplicates = (points: Point[]) => {
   if (points.length < 2) return points;
   const dedupedPoints = [points[0]];
-  points.slice(1).forEach((point: any) => {
+  points.slice(1).forEach((point) => {
     if (!equals(point, dedupedPoints[dedupedPoints.length - 1])) {
       dedupedPoints.push(point);
     }
@@ -78,7 +79,7 @@ const SHAPE_FIT_ROTATIONS = [
   (-1 * Math.PI) / 16,
 ];
 
-const shapeFit = (curve1: any, curve2: any, leniency: any) => {
+const shapeFit = (curve1: Point[], curve2: Point[], leniency: number) => {
   const normCurve1 = normalizeCurve(curve1);
   const normCurve2 = normalizeCurve(curve2);
   let minDist = Infinity;
@@ -91,7 +92,11 @@ const shapeFit = (curve1: any, curve2: any, leniency: any) => {
   return minDist <= FRECHET_THRESHOLD * leniency;
 };
 
-const getMatchData = (points: any, stroke: any, options: any) => {
+const getMatchData = (
+  points: Point[],
+  stroke: Stroke,
+  options: { leniency?: number; isOutlineVisible?: boolean },
+) => {
   const { leniency = 1, isOutlineVisible = false } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
@@ -117,6 +122,7 @@ const strokeMatches = (
   strokeNum: number,
   options: {
     leniency?: number;
+    isOutlineVisible?: boolean;
   } = {},
 ) => {
   const points = stripDuplicates(userStroke.points);

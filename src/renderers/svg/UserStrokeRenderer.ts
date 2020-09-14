@@ -20,7 +20,7 @@ export default class UserStrokeRenderer {
   }
 
   render(props: UserStrokeProps) {
-    if (props === this._oldProps) {
+    if (!this._path || props === this._oldProps) {
       return;
     }
     if (
@@ -31,13 +31,13 @@ export default class UserStrokeRenderer {
       svg.attrs(this._path, {
         fill: "none",
         stroke: `rgba(${r},${g},${b},${a})`,
-        "stroke-width": props.strokeWidth,
+        "stroke-width": props.strokeWidth.toString(),
         "stroke-linecap": "round",
         "stroke-linejoin": "round",
       });
     }
     if (props.opacity !== this._oldProps?.opacity) {
-      svg.attr(this._path, "opacity", props.opacity);
+      svg.attr(this._path, "opacity", props.opacity.toString());
     }
     if (props.points !== this._oldProps?.points) {
       svg.attr(this._path, "d", getPathString(props.points));

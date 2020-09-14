@@ -7,7 +7,7 @@ import parseCharData from "../../../parseCharData";
 const char = parseCharData("一", yi as CharacterJson);
 
 describe("StrokeRenderer", () => {
-  let target: any;
+  let target: RenderTarget;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
@@ -31,10 +31,13 @@ describe("StrokeRenderer", () => {
     expect(target.defs.childNodes[0].nodeName).toBe("clipPath");
     const maskPath = target.defs.childNodes[0].childNodes[0];
     expect(maskPath.nodeName).toBe("path");
+    // @ts-expect-error
     const maskId = target.defs.childNodes[0].getAttribute("id");
     expect(target.svg.childNodes.length).toBe(2); // defs and path
     expect(target.svg.childNodes[1].nodeName).toBe("path");
+    // @ts-expect-error
     expect(target.svg.childNodes[1].getAttribute("stroke")).toBe("rgba(12,101,20,0.3)");
+    // @ts-expect-error
     expect(target.svg.childNodes[1].getAttribute("clip-path")).toBe(
       `url(http://localhost/#${maskId})`,
     );

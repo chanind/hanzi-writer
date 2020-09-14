@@ -1,17 +1,18 @@
 import { Point } from "./typings/types";
 import { average, arrLast } from "./utils";
 
-export const subtract = (p1: any, p2: any) => ({ x: p1.x - p2.x, y: p1.y - p2.y });
+export const subtract = (p1: Point, p2: Point) => ({ x: p1.x - p2.x, y: p1.y - p2.y });
 
-export const magnitude = (point: any) =>
+export const magnitude = (point: Point) =>
   Math.sqrt(Math.pow(point.x, 2) + Math.pow(point.y, 2));
 
-export const distance = (point1: any, point2: any) => magnitude(subtract(point1, point2));
+export const distance = (point1: Point, point2: Point) =>
+  magnitude(subtract(point1, point2));
 
-export const equals = (point1: any, point2: any) =>
+export const equals = (point1: Point, point2: Point) =>
   point1.x === point2.x && point1.y === point2.y;
 
-export const round = (point: any, precision = 1) => {
+export const round = (point: Point, precision = 1) => {
   const multiplier = precision * 10;
   return {
     x: Math.round(multiplier * point.x) / multiplier,
@@ -19,10 +20,10 @@ export const round = (point: any, precision = 1) => {
   };
 };
 
-export const length = (points: any[]) => {
+export const length = (points: Point[]) => {
   let lastPoint = points[0];
   const pointsSansFirst = points.slice(1);
-  return pointsSansFirst.reduce((acc: any, point: any) => {
+  return pointsSansFirst.reduce((acc, point) => {
     const dist = distance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
@@ -45,8 +46,8 @@ export const _extendPointOnLine = (p1: Point, p2: Point, dist: number) => {
 };
 
 /** based on http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf */
-export const frechetDist = (curve1: any, curve2: any) => {
-  const results: any = [];
+export const frechetDist = (curve1: Point[], curve2: Point[]) => {
+  const results: number[][] = [];
   for (let i = 0; i < curve1.length; i++) {
     results.push([]);
     for (let j = 0; j < curve2.length; j++) {
@@ -54,8 +55,10 @@ export const frechetDist = (curve1: any, curve2: any) => {
     }
   }
 
-  const recursiveCalc = (i: any, j: any) => {
-    if (results[i][j] > -1) return results[i][j];
+  const recursiveCalc = (i: number, j: number) => {
+    if (results[i][j] > -1) {
+      return results[i][j];
+    }
     if (i === 0 && j === 0) {
       results[i][j] = distance(curve1[0], curve2[0]);
     } else if (i > 0 && j === 0) {
@@ -81,9 +84,9 @@ export const frechetDist = (curve1: any, curve2: any) => {
 };
 
 /** break up long segments in the curve into smaller segments of len maxLen or smaller */
-export const subdivideCurve = (curve: any, maxLen = 0.05) => {
+export const subdivideCurve = (curve: Point[], maxLen = 0.05) => {
   const newCurve = curve.slice(0, 1);
-  curve.slice(1).forEach((point: any) => {
+  curve.slice(1).forEach((point) => {
     const prevPoint = newCurve[newCurve.length - 1];
     const segLen = distance(point, prevPoint);
     if (segLen > maxLen) {
@@ -100,21 +103,22 @@ export const subdivideCurve = (curve: any, maxLen = 0.05) => {
 };
 
 /** redraw the curve using numPoints equally spaced out along the length of the curve */
-export const outlineCurve = (curve: any, numPoints = 30) => {
+export const outlineCurve = (curve: Point[], numPoints = 30) => {
   const curveLen = length(curve);
   const segmentLen = curveLen / (numPoints - 1);
   const outlinePoints = [curve[0]];
   const endPoint = arrLast(curve);
   const remainingCurvePoints = curve.slice(1);
+
   for (let i = 0; i < numPoints - 2; i++) {
-    let lastPoint = arrLast(outlinePoints);
+    let lastPoint: Point = arrLast(outlinePoints);
     let remainingDist = segmentLen;
     let outlinePointFound = false;
     while (!outlinePointFound) {
       const nextPointDist = distance(lastPoint, remainingCurvePoints[0]);
       if (nextPointDist < remainingDist) {
         remainingDist -= nextPointDist;
-        lastPoint = remainingCurvePoints.shift();
+        lastPoint = remainingCurvePoints.shift()!;
       } else {
         const nextPoint = _extendPointOnLine(
           lastPoint,
@@ -126,12 +130,14 @@ export const outlineCurve = (curve: any, numPoints = 30) => {
       }
     }
   }
+
   outlinePoints.push(endPoint);
+
   return outlinePoints;
 };
 
 /** translate and scale from https://en.wikipedia.org/wiki/Procrustes_analysis */
-export const normalizeCurve = (curve: any) => {
+export const normalizeCurve = (curve: Point[]) => {
   const outlinedCurve = outlineCurve(curve);
   const meanX = average(outlinedCurve.map((point) => point.x));
   const meanY = average(outlinedCurve.map((point) => point.y));
@@ -151,18 +157,18 @@ export const normalizeCurve = (curve: any) => {
 };
 
 // rotate around the origin
-export const rotate = (curve: any, theta: any) => {
-  return curve.map((point: any) => ({
+export const rotate = (curve: Point[], theta: number) => {
+  return curve.map((point) => ({
     x: Math.cos(theta) * point.x - Math.sin(theta) * point.y,
     y: Math.sin(theta) * point.x + Math.cos(theta) * point.y,
   }));
 };
 
 // remove intermediate points that are on the same line as the points to either side
-export const _filterParallelPoints = (points: any) => {
+export const _filterParallelPoints = (points: Point[]) => {
   if (points.length < 3) return points;
   const filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach((point: any, i: any) => {
+  points.slice(2).forEach((point) => {
     const numFilteredPoints = filteredPoints.length;
     const curVect = subtract(point, filteredPoints[numFilteredPoints - 1]);
     const prevVect = subtract(

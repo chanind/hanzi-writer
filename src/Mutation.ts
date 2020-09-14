@@ -24,26 +24,31 @@ const getPartialValues = (
   return target;
 };
 
-const isAlreadyAtEnd = function (startValues: any, endValues: any) {
+function isAlreadyAtEnd<TObject extends {}>(
+  startValues: TObject,
+  endValues: Record<keyof TObject, any>,
+) {
   for (const key in endValues) {
-    if (endValues.hasOwnProperty(key)) {
-      const endValue = endValues[key];
-      const startValue = startValues[key];
-      if (endValue >= 0) {
-        if (endValue !== startValue) return false;
-      } else if (!isAlreadyAtEnd(startValue, endValue)) {
+    const endValue = endValues[key as keyof TObject];
+    const startValue = startValues[key as keyof TObject];
+    if (endValue >= 0) {
+      if (endValue !== startValue) {
         return false;
       }
+    } else if (!isAlreadyAtEnd(startValue, endValue)) {
+      return false;
     }
   }
   return true;
-};
+}
 
 // from https://github.com/maxwellito/vivus
 const ease = (x: number) => -Math.cos(x * Math.PI) / 2 + 0.5;
 
 /** Used by `Mutation` & `Delay` */
 export interface GenericMutation {
+  /** Can be useful for checking whether the mutation is running */
+  _runningPromise: Promise<void> | undefined;
   scope: string;
   run(renderState: RenderState): Promise<void>;
   pause(): void;
@@ -52,6 +57,7 @@ export interface GenericMutation {
 }
 
 class Delay implements GenericMutation {
+  _runningPromise: Promise<void> | undefined;
   _duration: number;
   _startTime: number | null;
   _paused: boolean;
@@ -68,10 +74,11 @@ class Delay implements GenericMutation {
 
   run() {
     this._startTime = performance.now();
-    return new Promise((resolve) => {
+    this._runningPromise = new Promise((resolve) => {
       this._resolve = resolve;
       this._timeout = setTimeout(() => this.cancel(), this._duration);
     }) as Promise<void>;
+    return this._runningPromise;
   }
 
   pause() {
@@ -102,11 +109,12 @@ class Delay implements GenericMutation {
 export default class Mutation<TValue = any> implements GenericMutation {
   static Delay = Delay;
 
+  _runningPromise: Promise<void> | undefined;
   /** Dot notation e.g. `character.highlight.strokeColor` */
   scope: string;
   _valuesOrCallable: any | ((renderStateObj: RenderStateObject) => any);
   _duration: number;
-  _force: any;
+  _force: boolean | undefined;
   _pausedDuration: number;
   _startPauseTime: number | null;
 
@@ -136,10 +144,12 @@ export default class Mutation<TValue = any> implements GenericMutation {
     if (!this._values) {
       this._inflateValues(renderState);
     }
+
     if (this._duration === 0) {
       renderState.updateState(this._values);
     }
-    return new Promise((resolve) => {
+
+    this._runningPromise = new Promise((resolve) => {
       if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
         resolve();
         return;
@@ -150,6 +160,8 @@ export default class Mutation<TValue = any> implements GenericMutation {
       this._frameHandle = requestAnimationFrame(this._tick);
       this._resolve = resolve;
     }) as Promise<void>;
+
+    return this._runningPromise;
   }
 
   pause() {

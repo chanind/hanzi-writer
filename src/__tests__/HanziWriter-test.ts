@@ -4,9 +4,9 @@ import ren from "hanzi-writer-data/人.json";
 import yi from "hanzi-writer-data/一.json";
 import HanziWriter from "../HanziWriter";
 import { timeout } from "../utils";
-import { resolvePromises } from "../testUtils";
 import Quiz from "../Quiz";
 import { CharacterJson, CharDataLoaderFn } from "../typings/types";
+import { resolvePromises } from "../testUtils";
 
 const charDataLoader: CharDataLoaderFn = () => ren as CharacterJson;
 
@@ -126,7 +126,7 @@ describe("HanziWriter", () => {
       const onLoadCharDataError = jest.fn();
       const writer = HanziWriter.create("target", "人", {
         onLoadCharDataError,
-        charDataLoader: (char: any, onComplete: any, onErr: any) => {
+        charDataLoader(char, onComplete, onErr) {
           onErr("reasons");
         },
       });
@@ -142,7 +142,7 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const writer = HanziWriter.create("target", "人", {
-        charDataLoader: (char: any, onComplete: any, onErr: any) => {
+        charDataLoader(char, onComplete, onErr) {
           onErr(new Error("reasons"));
         },
       });
@@ -156,7 +156,9 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char, onLoad, onError) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() =>
+            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
+          );
         },
       });
       await writer._withDataPromise;
@@ -176,7 +178,9 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char, onLoad, onError) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() =>
+            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
+          );
         },
       });
       await writer._withDataPromise;
@@ -184,28 +188,36 @@ describe("HanziWriter", () => {
       writer.hideOutline();
       writer.setCharacter("一");
       await writer._withDataPromise;
-      expect(writer._renderState.state.character.main.opacity).toBe(1);
-      expect(writer._renderState.state.character.outline.opacity).toBe(0);
+      expect(writer._renderState?.state.character.main.opacity).toBe(1);
+      expect(writer._renderState?.state.character.outline.opacity).toBe(0);
     });
 
     it("maintains the visibility of the outline from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
-        charDataLoader: (char) => timeout(1).then(() => (char === "人" ? ren : yi)),
+        charDataLoader(char) {
+          return timeout(1).then(() =>
+            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
+          );
+        },
       });
       await writer._withDataPromise;
 
       writer.hideCharacter();
       writer.setCharacter("一");
       await writer._withDataPromise;
-      expect(writer._renderState.state.character.main.opacity).toBe(0);
-      expect(writer._renderState.state.character.outline.opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.opacity).toBe(0);
+      expect(writer._renderState?.state.character.outline.opacity).toBe(1);
     });
 
     it("maintains colors from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
-        charDataLoader: (char: any) => timeout(1).then(() => (char === "人" ? ren : yi)),
+        charDataLoader(char) {
+          return timeout(1).then(() =>
+            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
+          );
+        },
       });
       await writer._withDataPromise;
 
@@ -213,13 +225,13 @@ describe("HanziWriter", () => {
       writer.updateColor("outlineColor", "rgba(10, 20, 30, 0.1)");
       writer.setCharacter("一");
       await writer._withDataPromise;
-      expect(writer._renderState.state.options.strokeColor).toEqual({
+      expect(writer._renderState?.state.options.strokeColor).toEqual({
         r: 30,
         g: 30,
         b: 30,
         a: 0.8,
       });
-      expect(writer._renderState.state.options.outlineColor).toEqual({
+      expect(writer._renderState?.state.options.outlineColor).toEqual({
         r: 10,
         g: 20,
         b: 30,
@@ -241,19 +253,18 @@ describe("HanziWriter", () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      writer.animateCharacter({ onComplete }).then((result: any) => {
+      const promise = writer.animateCharacter({ onComplete });
+
+      promise.then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
 
       await resolvePromises();
+      expect(onComplete).not.toHaveBeenCalled();
 
-      expect(writer._renderState!.state.character.main.opacity).toBe(1);
-      [0, 1].forEach((strokeNum) => {
-        expect(writer._renderState!.state.character.main.strokes[strokeNum].opacity).toBe(
-          1,
-        );
-      });
+      // 8 mutations should be running
+      expect(promise.mutations.length).toBe(8);
 
       clock.tick(1000);
       await resolvePromises();
@@ -298,7 +309,7 @@ describe("HanziWriter", () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      writer.animateStroke(1, { onComplete }).then((result: any) => {
+      const promise = writer.animateStroke(1, { onComplete }).then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
@@ -340,20 +351,20 @@ describe("HanziWriter", () => {
       writer.hideCharacter({ duration: 0 });
       await resolvePromises();
 
-      expect(writer._renderState!.state.character.main.opacity).toBe(0);
-      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.opacity).toBe(0);
+      expect(writer._renderState?.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[1].opacity).toBe(1);
 
-      writer.animateStroke(1, { onComplete }).then((result: any) => {
+      writer.animateStroke(1, { onComplete }).then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
 
       await resolvePromises();
 
-      expect(writer._renderState!.state.character.main.opacity).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(0);
-      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[0].opacity).toBe(0);
+      expect(writer._renderState?.state.character.main.strokes[1].opacity).toBe(1);
 
       expect(isResolved).toBe(false);
       expect(onComplete).not.toHaveBeenCalled();
@@ -361,8 +372,8 @@ describe("HanziWriter", () => {
       clock.tick(1000);
       await resolvePromises();
 
-      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(1);
       expect(isResolved).toBe(true);
       expect(resolvedVal).toEqual({ canceled: false });
       expect(onComplete).toHaveBeenCalledTimes(1);
@@ -386,19 +397,19 @@ describe("HanziWriter", () => {
       clock.tick(50);
       await resolvePromises();
 
-      writer.animateStroke(1, { onComplete }).then((result: any) => {
+      writer.animateStroke(1, { onComplete }).then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
 
       await resolvePromises();
-      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(0);
+      expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(0);
 
       clock.tick(50);
       await resolvePromises();
 
-      const pausedDisplayPortion = writer._renderState!.state.character.main.strokes[1]
-        .displayPortion;
+      const pausedDisplayPortion =
+        writer._renderState?.state.character.main.strokes[1].displayPortion;
       expect(pausedDisplayPortion).toBeGreaterThan(0);
       expect(pausedDisplayPortion).toBeLessThan(1);
       expect(isResolved).toBe(false);
@@ -410,7 +421,7 @@ describe("HanziWriter", () => {
       await resolvePromises();
 
       expect(isResolved).toBe(false);
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+      expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(
         pausedDisplayPortion,
       );
 
@@ -421,7 +432,7 @@ describe("HanziWriter", () => {
       await resolvePromises();
 
       const newDisplayPortion =
-        writer._renderState.state.character.main.strokes[1].displayPortion;
+        writer._renderState?.state.character.main.strokes[1].displayPortion;
       expect(newDisplayPortion).not.toBe(pausedDisplayPortion);
       expect(newDisplayPortion).toBeGreaterThan(0);
       expect(newDisplayPortion).toBeLessThan(1);
@@ -430,7 +441,7 @@ describe("HanziWriter", () => {
       clock.tick(2000);
       await resolvePromises();
 
-      expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(1);
       expect(isResolved).toBe(true);
       expect(resolvedVal).toEqual({ canceled: false });
       expect(onComplete).toHaveBeenCalledTimes(1);
@@ -451,7 +462,7 @@ describe("HanziWriter", () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      writer.highlightStroke(1, { onComplete }).then((result: any) => {
+      writer.highlightStroke(1, { onComplete }).then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
@@ -525,21 +536,21 @@ describe("HanziWriter", () => {
         clock.tick(1000);
         await resolvePromises();
 
-        expect(writer._renderState.state.character.main.strokes[0].displayPortion).toBe(
+        expect(writer._renderState?.state.character.main.strokes[0].displayPortion).toBe(
           1,
         );
 
         clock.tick(1000);
         await resolvePromises();
 
-        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+        expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(
           0,
         );
 
         clock.tick(1000);
         await resolvePromises();
 
-        expect(writer._renderState.state.character.main.strokes[1].displayPortion).toBe(
+        expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(
           1,
         );
 
@@ -553,11 +564,11 @@ describe("HanziWriter", () => {
       clock.tick(1000);
       await resolvePromises();
 
-      expect(writer._renderState!.state.character.main.opacity).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
-      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(writer._renderState?.state.character.main.opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[1].opacity).toBe(1);
+      expect(writer._renderState?.state.character.main.strokes[1].displayPortion).toBe(1);
     });
   });
 
@@ -598,13 +609,13 @@ describe("HanziWriter", () => {
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(false);
 
         clock.tick(1000);
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(0);
 
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
@@ -625,7 +636,7 @@ describe("HanziWriter", () => {
         let resolvedVal;
         const onComplete = jest.fn();
 
-        writer[method]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
@@ -634,7 +645,7 @@ describe("HanziWriter", () => {
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
         expect(onComplete).toHaveBeenCalledTimes(1);
@@ -654,7 +665,7 @@ describe("HanziWriter", () => {
         let resolvedVal;
         const onComplete = jest.fn();
 
-        writer[method]({ onComplete, duration: 0 }).then((result: any) => {
+        writer[method]({ onComplete, duration: 0 }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
@@ -663,7 +674,7 @@ describe("HanziWriter", () => {
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
         expect(onComplete).toHaveBeenCalledTimes(1);
@@ -700,20 +711,20 @@ describe("HanziWriter", () => {
         let resolvedVal;
         const onComplete = jest.fn();
 
-        writer[method]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(0);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(0);
         expect(isResolved).toBe(false);
 
         clock.tick(1000);
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(1);
 
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
@@ -733,7 +744,7 @@ describe("HanziWriter", () => {
         let resolvedVal;
         const onComplete = jest.fn();
 
-        writer[method]({ onComplete }).then((result: any) => {
+        writer[method]({ onComplete }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
@@ -742,7 +753,7 @@ describe("HanziWriter", () => {
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
         expect(onComplete).toHaveBeenCalledTimes(1);
@@ -761,7 +772,7 @@ describe("HanziWriter", () => {
         let resolvedVal;
         const onComplete = jest.fn();
 
-        writer[method]({ onComplete, duration: 0 }).then((result: any) => {
+        writer[method]({ onComplete, duration: 0 }).then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
@@ -770,7 +781,7 @@ describe("HanziWriter", () => {
 
         await resolvePromises();
 
-        expect(writer._renderState!.state.character[stateLabel].opacity).toBe(1);
+        expect(writer._renderState?.state.character[stateLabel].opacity).toBe(1);
         expect(isResolved).toBe(true);
         expect(resolvedVal).toEqual({ canceled: false });
         expect(onComplete).toHaveBeenCalledTimes(1);
@@ -794,14 +805,14 @@ describe("HanziWriter", () => {
 
       writer
         .updateColor("strokeColor", "rgba(30, 30, 30, 0.8)", { onComplete })
-        .then((result: any) => {
+        .then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
 
       await resolvePromises();
 
-      expect(writer._renderState!.state.options.strokeColor).toEqual({
+      expect(writer._renderState?.state.options.strokeColor).toEqual({
         r: 17,
         g: 34,
         b: 51,
@@ -812,7 +823,7 @@ describe("HanziWriter", () => {
       clock.tick(1000);
       await resolvePromises();
 
-      expect(writer._renderState!.state.options.strokeColor).toEqual({
+      expect(writer._renderState?.state.options.strokeColor).toEqual({
         r: 30,
         g: 30,
         b: 30,
@@ -832,18 +843,22 @@ describe("HanziWriter", () => {
         radicalColor: "#EEE",
         charDataLoader,
       });
+
       await writer._withDataPromise;
 
       let isResolved = false;
       let resolvedVal;
       const onComplete = jest.fn();
 
-      writer
-        .updateColor("radicalColor", null, { onComplete, duration: 1000 })
-        .then((result) => {
-          isResolved = true;
-          resolvedVal = result;
-        });
+      const promise = writer.updateColor("radicalColor", null, {
+        onComplete,
+        duration: 1000,
+      });
+
+      promise.then((result) => {
+        isResolved = true;
+        resolvedVal = result;
+      });
 
       await resolvePromises();
 
@@ -853,18 +868,27 @@ describe("HanziWriter", () => {
         b: 238,
         a: 1,
       });
+
+      // promise.mutations = [
+      //  new Mutation(`options.radicalColor`, { r: 238, g: 238, b: 238, a: 1 }, { duration: 1000 })
+      //  new Mutation(`options.radicalColor`, null, { duration: 0 })
+      // ]
+      expect(promise.mutations.length).toEqual(2);
+
       expect(isResolved).toBe(false);
 
       clock.tick(999);
       await resolvePromises();
-      expect(writer._renderState!.state.options.radicalColor.r).toBeCloseTo(30, 0);
-      expect(writer._renderState!.state.options.radicalColor.g).toBeCloseTo(30, 0);
-      expect(writer._renderState!.state.options.radicalColor.b).toBeCloseTo(30, 0);
-      expect(writer._renderState!.state.options.radicalColor.a).toBeCloseTo(1, 0);
+      const { r, g, b, a } = writer._renderState!.state.options.radicalColor;
+
+      expect(r).toBeCloseTo(30, 0);
+      expect(g).toBeCloseTo(30, 0);
+      expect(b).toBeCloseTo(30, 0);
+      expect(a).toBeCloseTo(1, 0);
       clock.tick(30);
       await resolvePromises();
 
-      expect(writer._renderState!.state.options.radicalColor).toBeNull();
+      expect(writer._renderState?.state.options.radicalColor).toBeNull();
 
       expect(isResolved).toBe(true);
       expect(resolvedVal).toEqual({ canceled: false });
@@ -911,7 +935,7 @@ describe("HanziWriter", () => {
   });
 
   describe("mouse and touch events", () => {
-    let writer: any;
+    let writer: HanziWriter;
     beforeEach(async () => {
       document.body.innerHTML = '<div id="target"></div>';
       writer = HanziWriter.create("target", "人", { charDataLoader });
@@ -933,8 +957,8 @@ describe("HanziWriter", () => {
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
+      expect(writer._quiz?.startUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
     it("starts a user stroke on touchstart", () => {
@@ -954,8 +978,8 @@ describe("HanziWriter", () => {
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledTimes(1);
-      expect(writer._quiz.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
+      expect(writer._quiz?.startUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
     it("continues a user stroke on mousemove", () => {
@@ -971,8 +995,8 @@ describe("HanziWriter", () => {
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
+      expect(writer._quiz?.continueUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
     it("continues a user stroke on touchmove", () => {
@@ -994,8 +1018,8 @@ describe("HanziWriter", () => {
 
       const canceled = !Boolean(svg!.dispatchEvent(evt));
       expect(canceled).toBe(true);
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledTimes(1);
-      expect(writer._quiz.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
+      expect(writer._quiz?.continueUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
     it("ends a user stroke on mouseup", () => {
@@ -1003,7 +1027,7 @@ describe("HanziWriter", () => {
       const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.dispatchEvent(evt);
-      expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.endUserStroke).toHaveBeenCalledTimes(1);
     });
 
     it("ends a user stroke on touchend", () => {
@@ -1011,7 +1035,7 @@ describe("HanziWriter", () => {
       const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.dispatchEvent(evt);
-      expect(writer._quiz.endUserStroke).toHaveBeenCalledTimes(1);
+      expect(writer._quiz?.endUserStroke).toHaveBeenCalledTimes(1);
     });
   });
 
@@ -1032,7 +1056,7 @@ describe("HanziWriter", () => {
 
     it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
-        charDataLoader: (char: any, onComplete: any, onErr: any) => {
+        charDataLoader(char, onComplete, onErr) {
           onErr(new Error("reasons"));
         },
       });
@@ -1042,7 +1066,9 @@ describe("HanziWriter", () => {
 
     it("returns the character data in a promise on success", async () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
-        charDataLoader: (char: any, onComplete: any, onErr: any) => ren as CharacterJson,
+        charDataLoader(char, onComplete, onErr) {
+          return ren as CharacterJson;
+        },
       });
 
       const result = await loadingPromise;
@@ -1053,7 +1079,9 @@ describe("HanziWriter", () => {
       const onLoadCharDataSuccess = jest.fn();
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataSuccess,
-        charDataLoader: (char: any, onComplete: any, onErr: any) => ren as CharacterJson,
+        charDataLoader(char, onComplete, onErr) {
+          return ren as CharacterJson;
+        },
       });
 
       await loadingPromise;

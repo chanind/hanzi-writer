@@ -10,7 +10,7 @@ export default class StrokeRenderer extends StrokeRendererBase {
 
   // Conditionally set on constructor
   _path2D: Path2D | undefined;
-  _pathCmd: ((ctx: any) => void) | undefined;
+  _pathCmd: ((ctx: CanvasRenderingContext2D) => void) | undefined;
 
   constructor(stroke: Stroke, usePath2D = true) {
     super(stroke);

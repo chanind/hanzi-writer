@@ -1,3 +1,4 @@
+// @ts-ignore
 declare var clock: {
-  tick(ms: number): void;,
+  tick(ms: number): void;
 };

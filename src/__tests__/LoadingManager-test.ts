@@ -7,8 +7,8 @@ describe("LoadingManager", () => {
   describe("loadCharData", () => {
     it("resolves when data is loaded via async callback", async () => {
       const manager = new LoadingManager({
-        charDataLoader: (char: any, onComplete: any, onErr: any) => {
-          setTimeout(() => onComplete(ren), 1);
+        charDataLoader(char, onComplete, onErr) {
+          setTimeout(() => onComplete(ren as CharacterJson), 1);
         },
       });
       const data = await manager.loadCharData("人");
@@ -18,8 +18,8 @@ describe("LoadingManager", () => {
 
     it("resolves when data is loaded via sync callback", async () => {
       const manager = new LoadingManager({
-        charDataLoader: (char: any, onComplete: any, onErr: any) => {
-          onComplete(ren);
+        charDataLoader(char, onComplete, onErr) {
+          onComplete(ren as CharacterJson);
         },
       });
       const data = await manager.loadCharData("人");
@@ -50,12 +50,12 @@ describe("LoadingManager", () => {
     });
 
     it("passes data to onLoadCharDataSuccess if provided", async () => {
-      let successVal;
+      let successVal: CharacterJson | undefined;
       const manager = new LoadingManager({
         charDataLoader(char, onComplete, onErr) {
           return ren as CharacterJson;
         },
-        onLoadCharDataSuccess: (returnedData: any) => {
+        onLoadCharDataSuccess(returnedData) {
           successVal = returnedData;
         },
       });
@@ -67,7 +67,7 @@ describe("LoadingManager", () => {
 
     it("throws an error if loading fails via onErr callback and no callback is provided", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char: any, onComplete: any, onErr: any) {
+        charDataLoader(char, onComplete, onErr) {
           onErr("OMG");
         },
       });
@@ -79,7 +79,7 @@ describe("LoadingManager", () => {
 
     it("rethrows if loading fails via onErr callback passing an Error and no callback is provided", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char: any, onComplete: any, onErr: any) {
+        charDataLoader(char, onComplete, onErr) {
           onErr(new Error("OMG"));
         },
       });
@@ -93,7 +93,7 @@ describe("LoadingManager", () => {
         charDataLoader(char, onComplete, onErr) {
           onErr("everything is terrible");
         },
-        onLoadCharDataError: (reason: any) => {
+        onLoadCharDataError(reason) {
           failureReason = reason;
         },
       });
@@ -108,7 +108,7 @@ describe("LoadingManager", () => {
       const onCompleteFns: any = [];
       const manager = new LoadingManager({
         onLoadCharDataSuccess,
-        charDataLoader(char: any, onComplete: any) {
+        charDataLoader(char, onComplete) {
           onCompleteFns.push(onComplete);
         },
       });

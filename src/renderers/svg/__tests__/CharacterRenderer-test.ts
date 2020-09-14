@@ -43,8 +43,9 @@ describe("CharacterRenderer", () => {
     expect(subCanvas.style.opacity).toBe("0.7");
     // 2 strokes of 人
     expect(subCanvas.childNodes.length).toBe(2);
-    subCanvas.childNodes.forEach((node: any) => {
+    subCanvas.childNodes.forEach((node) => {
       expect(node.nodeName).toBe("path");
+      // @ts-expect-error
       expect(node.getAttribute("stroke")).toBe("rgba(120,17,101,0.3)");
     });
   });

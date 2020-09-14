@@ -93,7 +93,7 @@ describe("RenderState", () => {
           new Mutation.Delay(100),
           new Mutation("character.main.opacity", 0, { duration: 50 }),
         ])
-        .then((result: any) => {
+        .then((result) => {
           isResolved = true;
           resolvedVal = result;
         });
@@ -143,7 +143,7 @@ describe("RenderState", () => {
           new Mutation.Delay(100),
           new Mutation("character.main.opacity", 0, { duration: 50 }),
         ])
-        .then((result: any) => {
+        .then((result) => {
           isResolved = true;
           resolvedVal = result;
         });

@@ -12,6 +12,7 @@ import Character from "./models/Character";
 import { ColorOptions, HanziWriterOptions, OnCompleteFunction } from "./typings/types";
 import HanziWriterRendererBase from "./renderers/HanziWriterRendererBase";
 import RenderTargetBase, { RenderTargetInitFunction } from "./renderers/RenderTargetBase";
+import { GenericMutation } from "./Mutation";
 
 export const defaultOptions: HanziWriterOptions = {
   charDataLoader: defaultCharDataLoader,
@@ -60,19 +61,9 @@ export const defaultOptions: HanziWriterOptions = {
   rendererOverride: {},
 };
 
-let lastLoadingManager: any = null;
-let lastLoadingOptions: any = null;
+let lastLoadingManager: LoadingManager | null = null;
+let lastLoadingOptions: Partial<HanziWriterOptions> | null = null;
 
-type createFunction =
-  | ((
-      element: string | HTMLElement,
-      character: string,
-      options?: Partial<HanziWriterOptions>,
-    ) => HanziWriter)
-  | ((
-      element: string | HTMLElement,
-      options?: Partial<HanziWriterOptions>,
-    ) => HanziWriter);
 export default class HanziWriter {
   static create(
     element: string | HTMLElement,
@@ -151,8 +142,10 @@ export default class HanziWriter {
     const renderer = options.renderer === "canvas" ? canvasRenderer : svgRenderer;
     const rendererOverride = options.rendererOverride || {};
     this._renderer = {
+      // @ts-expect-error
       HanziWriterRenderer:
         rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
+      // @ts-expect-error
       createRenderTarget:
         rendererOverride.createRenderTarget || renderer.createRenderTarget,
     };
@@ -222,24 +215,25 @@ export default class HanziWriter {
     options: {
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ): Promise<{ canceled: boolean }> & { mutations: GenericMutation[] } {
     this.cancelQuiz();
-    return this._withData(() =>
-      this._renderState
-        ?.run(
-          characterActions.animateCharacter(
-            "main",
-            this._character!,
-            this._options.strokeFadeDuration,
-            this._options.strokeAnimationSpeed,
-            this._options.delayBetweenStrokes,
-          ),
-        )
-        .then((res) => {
-          options.onComplete?.(res);
-          return res;
-        }),
+
+    const mutations = characterActions.animateCharacter(
+      "main",
+      this._character!,
+      this._options.strokeFadeDuration,
+      this._options.strokeAnimationSpeed,
+      this._options.delayBetweenStrokes,
     );
+
+    const promise = this._withData(() =>
+      this._renderState?.run(mutations).then((res) => {
+        options.onComplete?.(res);
+        return res;
+      }),
+    );
+
+    return this._attachMutations(promise, mutations);
   }
 
   animateStroke(
@@ -376,37 +370,39 @@ export default class HanziWriter {
       duration?: number;
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
-    return this._withData(() => {
-      const duration =
-        typeof options.duration === "number"
-          ? options.duration
-          : this._options.strokeFadeDuration;
+  ) {
+    const mutations: GenericMutation[] = [];
 
-      const fixedColorVal = (() => {
-        // If we're removing radical color, tween it to the stroke color
-        if (colorName === "radicalColor" && !colorVal) {
-          return this._options.strokeColor;
-        }
-        return colorVal;
-      })();
-
-      const mappedColor = colorStringToVals(fixedColorVal);
-
-      this._options[colorName] = colorVal;
-
-      const mutation = characterActions.updateColor(colorName, mappedColor, duration);
-      // make sure to set radicalColor back to null after the transition finishes if val == null
+    const fixedColorVal = (() => {
+      // If we're removing radical color, tween it to the stroke color
       if (colorName === "radicalColor" && !colorVal) {
-        mutation.push(...characterActions.updateColor(colorName, null, 0));
+        return this._options.strokeColor;
       }
+      return colorVal;
+    })();
 
-      return this._renderState?.run(mutation).then((res) => {
+    const mappedColor = colorStringToVals(fixedColorVal);
+
+    this._options[colorName] = colorVal;
+
+    const duration = options.duration ?? this._options.strokeFadeDuration;
+    mutations.push(characterActions.updateColor(colorName, mappedColor, duration));
+
+    // make sure to set radicalColor back to null after the transition finishes if val == null
+    if (colorName === "radicalColor" && !colorVal) {
+      mutations.push(characterActions.updateColor(colorName, null, 0));
+    }
+
+    const promise: Promise<{ canceled: boolean }> = this._withData(() =>
+      this._renderState?.run(mutations).then((res) => {
         options.onComplete?.(res);
         return res;
-      });
-    });
+      }),
+    );
+
+    return this._attachMutations(promise, mutations);
   }
+
   quiz(quizOptions: Partial<QuizOptions> = {}) {
     this._withData(() => {
       if (this._character && this._renderState && this._positioner) {
@@ -492,6 +488,16 @@ export default class HanziWriter {
     }
 
     return this._fillWidthAndHeight(mergedOptions);
+  }
+
+  /** Mostly for testing purposes, allows individual mutations to be awaited on */
+  _attachMutations<TValue, TPromise extends Promise<TValue>>(
+    promise: TPromise,
+    mutations: GenericMutation[],
+  ) {
+    const promiseWithMutations = promise as TPromise & { mutations: GenericMutation[] };
+    promiseWithMutations.mutations = mutations;
+    return promiseWithMutations;
   }
 
   /** returns a new options object with width and height filled in if missing */

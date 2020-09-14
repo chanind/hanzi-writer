@@ -1,6 +1,8 @@
 export const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
-export const arrLast = (arr: any[]) => arr[arr.length - 1];
+export function arrLast<TValue>(arr: Array<TValue>) {
+  return arr[arr.length - 1];
+}
 
 export function copyAndMergeDeep(base: any, override: any) {
   const output = { ...base };
@@ -45,18 +47,24 @@ export function counter() {
   return count;
 }
 
-export function average(arr: any) {
-  const sum = arr.reduce((acc: any, val: any) => val + acc, 0);
+export function average(arr: number[]) {
+  const sum = arr.reduce((acc, val) => val + acc, 0);
   return sum / arr.length;
 }
 
 export function timeout(duration = 0) {
-  return new Promise((resolve, reject) => {
-    setTimeout(resolve, duration);
-  });
+  return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-export function colorStringToVals(colorString: any) {
+export function colorStringToVals(colorString: string | null) {
+  if (typeof colorString !== "string") {
+    return {
+      r: 0,
+      g: 0,
+      b: 0,
+      a: 0,
+    };
+  }
   const normalizedColor = colorString.toUpperCase().trim();
   // based on https://stackoverflow.com/a/21648508
   if (/^#([A-F0-9]{3}){1,2}$/.test(normalizedColor)) {
@@ -94,17 +102,17 @@ export function colorStringToVals(colorString: any) {
   throw new Error(`Invalid color: ${colorString}`);
 }
 
-export const trim = (string: any) => string.replace(/^\s+/, "").replace(/\s+$/, "");
+export const trim = (string: string) => string.replace(/^\s+/, "").replace(/\s+$/, "");
 
 // return a new array-like object with int keys where each key is item
 // ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
-export const objRepeat = (item: any, times: any) => {
-  const obj = {};
+export function objRepeat<T>(item: T, times: number) {
+  const obj: Record<number, T> = {};
   for (let i = 0; i < times; i++) {
     obj[i] = item;
   }
   return obj;
-};
+}
 
 const ua = window.navigator?.userAgent || "";
 

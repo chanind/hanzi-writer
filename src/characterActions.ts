@@ -54,10 +54,10 @@ export const updateColor = (
   colorVal: ColorObject | null,
   duration: number,
 ) => {
-  return [new Mutation(`options.${colorName}`, colorVal, { duration })];
+  return new Mutation(`options.${colorName}`, colorVal, { duration });
 };
 
-export const highlightStroke = (stroke: Stroke, color: any, speed: any) => {
+export const highlightStroke = (stroke: Stroke, color: string | null, speed: number) => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
@@ -109,8 +109,8 @@ export const animateStroke = (charName: CharacterName, stroke: Stroke, speed: nu
 export const animateSingleStroke = (
   charName: CharacterName,
   character: Character,
-  strokeNum: any,
-  speed: any,
+  strokeNum: number,
+  speed: number,
 ) => {
   const mutationStateFunc = (state: RenderStateObject) => {
     const curCharState = state.character[charName];
@@ -159,7 +159,7 @@ export const animateCharacter = (
 ) => {
   let mutations: GenericMutation[] = [
     ...hideCharacter(charName, character, fadeDuration),
-    ...showStrokes(charName, character, 0),
+    // ...showStrokes(charName, character, 0),
     new Mutation(
       `character.${charName}`,
       {

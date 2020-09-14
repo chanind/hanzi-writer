@@ -9,8 +9,8 @@ export type RenderTargetInitFunction<
   TElement extends HTMLElement | SVGElement | SVGSVGElement = HTMLElement
 > = (
   elmOrId: string | TElement,
-  width?: string | number,
-  height?: string | number,
+  width?: string | number | null,
+  height?: string | number | null,
 ) => RenderTargetBase<TElement>;
 
 export default class RenderTargetBase<

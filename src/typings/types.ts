@@ -1,6 +1,8 @@
 import { LoadingManagerOptions } from "../LoadingManager";
 import { PositionerOptions } from "../Positioner";
 import { QuizOptions } from "../Quiz";
+import HanziWriterRendererBase from "../renderers/HanziWriterRendererBase";
+import { RenderTargetInitFunction } from "../renderers/RenderTargetBase";
 
 export type CharacterJson = {
   strokes: string[];
@@ -67,7 +69,7 @@ export type HanziWriterOptions = PositionerOptions &
     outlineWidth: number;
 
     rendererOverride: {
-      HanziWriterRenderer?: any;
-      createRenderTarget?: any;
+      HanziWriterRenderer?: typeof HanziWriterRendererBase;
+      createRenderTarget?: RenderTargetInitFunction;
     };
   };

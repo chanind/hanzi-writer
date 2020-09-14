@@ -23,6 +23,7 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     })() as SVGSVGElement;
 
     element.appendChild(svg);
+
     attrs(svg, { width, height });
     const defs = createElm("defs");
     svg.appendChild(defs);

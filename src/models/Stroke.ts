@@ -2,12 +2,12 @@ import { subtract, distance, length } from "../geometry";
 import { Point } from "../typings/types";
 
 export default class Stroke {
-  path: any;
+  path: string;
   points: Point[];
   strokeNum: number;
   isInRadical: boolean;
 
-  constructor(path: any, points: Point[], strokeNum: number, isInRadical = false) {
+  constructor(path: string, points: Point[], strokeNum: number, isInRadical = false) {
     this.path = path;
     this.points = points;
     this.strokeNum = strokeNum;
@@ -29,23 +29,20 @@ export default class Stroke {
   getVectors() {
     let lastPoint = this.points[0];
     const pointsSansFirst = this.points.slice(1);
-    return pointsSansFirst.map((point: any) => {
+    return pointsSansFirst.map((point) => {
       const vector = subtract(point, lastPoint);
       lastPoint = point;
       return vector;
     });
   }
 
-  getDistance(point: any) {
-    const distances = this.points.map((strokePoint: any) => distance(strokePoint, point));
+  getDistance(point: Point) {
+    const distances = this.points.map((strokePoint) => distance(strokePoint, point));
     return Math.min.apply(Math, distances);
   }
 
-  getAverageDistance(points: any) {
-    const totalDist = points.reduce(
-      (acc: any, point: any) => acc + this.getDistance(point),
-      0,
-    );
+  getAverageDistance(points: Point[]) {
+    const totalDist = points.reduce((acc, point) => acc + this.getDistance(point), 0);
     return totalDist / points.length;
   }
 }

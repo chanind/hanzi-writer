@@ -11,7 +11,7 @@ import RenderState from "./RenderState";
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
-  points: userStroke.points.map((point: any) => geometry.round(point)),
+  points: userStroke.points.map((point) => geometry.round(point)),
 });
 
 type StrokeData = {
@@ -46,7 +46,7 @@ export default class Quiz {
   _positioner: Positioner;
 
   /** Set on startQuiz */
-  _options: Partial<HanziWriterOptions> | undefined;
+  _options: HanziWriterOptions | undefined;
   _currentStrokeIndex: number = 0;
   _numRecentMistakes: number = 0;
   _totalMistakes: number = 0;
@@ -65,14 +65,7 @@ export default class Quiz {
 
   startQuiz(options: HanziWriterOptions) {
     this._isActive = true;
-    this._options = {
-      ...options,
-      leniency: options.leniency ?? 1,
-      showHintAfterMisses: options.showHintAfterMisses ?? 3,
-      drawingFadeDuration: options.drawingFadeDuration ?? 300,
-      highlightOnComplete: options.highlightOnComplete ?? true,
-      highlightCompleteColor: options.highlightCompleteColor ?? null,
-    };
+    this._options = options;
     this._currentStrokeIndex = 0;
     this._numRecentMistakes = 0;
     this._totalMistakes = 0;
@@ -92,32 +85,39 @@ export default class Quiz {
     }
     const strokeId = counter();
     this._userStroke = new UserStroke(strokeId, point, externalPoint);
-    this._renderState.run(quizActions.startUserStroke(strokeId, point));
+    return this._renderState.run(quizActions.startUserStroke(strokeId, point));
   }
 
   continueUserStroke(externalPoint: Point) {
-    if (!this._userStroke) return;
+    if (!this._userStroke) {
+      return Promise.resolve();
+    }
     const point = this._positioner.convertExternalPoint(externalPoint);
     this._userStroke.appendPoint(point, externalPoint);
     const nextPoints = this._userStroke.points.slice(0);
-    this._renderState.run(quizActions.updateUserStroke(this._userStroke.id, nextPoints));
+    return this._renderState.run(
+      quizActions.updateUserStroke(this._userStroke.id, nextPoints),
+    );
   }
 
   endUserStroke() {
     if (!this._userStroke) {
-      return;
+      return Promise.resolve();
     }
 
-    this._renderState.run(
-      quizActions.removeUserStroke(
-        this._userStroke.id,
-        this._options!.drawingFadeDuration ?? 300,
+    const promises = [
+      this._renderState.run(
+        quizActions.removeUserStroke(
+          this._userStroke.id,
+          this._options!.drawingFadeDuration ?? 300,
+        ),
       ),
-    );
+    ];
+
     // skip single-point strokes
     if (this._userStroke.points.length === 1) {
       this._userStroke = undefined;
-      return;
+      return Promise.all(promises);
     }
 
     const currentStroke = this._getCurrentStroke();
@@ -126,41 +126,47 @@ export default class Quiz {
       this._character,
       this._currentStrokeIndex,
       {
-        // isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
+        isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
         leniency: this._options!.leniency,
       },
     );
 
     if (isMatch) {
-      this._handleSuccess();
+      promises.push(this._handleSuccess());
     } else {
       this._handleFailure();
       if (
         this._options!.showHintAfterMisses !== false &&
         this.numRecentMistakes >= Number(this._options!.showHintAfterMisses)
       ) {
-        this._renderState.run(
-          characterActions.highlightStroke(
-            currentStroke,
-            this._options!.highlightColor,
-            this._options!.strokeHighlightSpeed,
+        promises.push(
+          this._renderState.run(
+            characterActions.highlightStroke(
+              currentStroke,
+              this._options!.highlightColor,
+              this._options!.strokeHighlightSpeed,
+            ),
           ),
         );
       }
     }
+
     this._userStroke = undefined;
+
+    return Promise.all(promises);
   }
 
   cancel() {
     this._isActive = false;
     if (this._userStroke) {
-      this._renderState.run(
+      return this._renderState.run(
         quizActions.removeUserStroke(
           this._userStroke.id,
-          this._options!.drawingFadeDuration ?? 300,
+          this._options!.drawingFadeDuration,
         ),
       );
     }
+    return Promise.resolve();
   }
 
   _handleSuccess() {
@@ -191,13 +197,13 @@ export default class Quiz {
           ...animation,
           ...quizActions.highlightCompleteChar(
             this._character,
-            this._options!.highlightCompleteColor ?? null,
+            this._options!.highlightCompleteColor,
             (this._options!.strokeHighlightDuration || 0) * 2,
           ),
         ];
       }
     }
-    this._renderState.run(animation);
+    return this._renderState.run(animation);
   }
 
   _handleFailure() {

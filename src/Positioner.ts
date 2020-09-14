@@ -1,3 +1,5 @@
+import { Point } from "./typings/types";
+
 // All makemeahanzi characters have the same bounding box
 const CHARACTER_BOUNDS = [
   { x: 0, y: -124 },
@@ -45,7 +47,7 @@ export default class Positioner {
     this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
   }
 
-  convertExternalPoint(point: any) {
+  convertExternalPoint(point: Point) {
     const x = (point.x - this.xOffset) / this.scale;
     const y = (this.height - this.yOffset - point.y) / this.scale;
     return { x, y };

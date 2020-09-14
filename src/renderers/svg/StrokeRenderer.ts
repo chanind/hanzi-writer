@@ -4,19 +4,20 @@ import { extendStart, getPathString } from "../../geometry";
 import StrokeRendererBase from "../StrokeRendererBase";
 import Stroke from "../../models/Stroke";
 import SVGRenderTarget from "./RenderTarget";
+import { ColorObject } from "../../typings/types";
 
 const STROKE_WIDTH = 200;
 
-type Props = {
-  strokeColor: any;
-  radicalColor: any;
-  displayPortion: any;
+type StrokeRenderProps = {
+  strokeColor: ColorObject;
+  radicalColor: ColorObject | null;
+  displayPortion: number;
   opacity: number;
 };
 
 // this is a stroke composed of several stroke parts
 export default class StrokeRenderer extends StrokeRendererBase {
-  _oldProps: Props | undefined = undefined;
+  _oldProps: StrokeRenderProps | undefined = undefined;
 
   _animationPath: SVGPathElement | undefined;
   _clip: SVGClipPathElement | undefined;
@@ -41,7 +42,7 @@ export default class StrokeRenderer extends StrokeRendererBase {
     svg.attr(this._animationPath, "d", getPathString(extendedMaskPoints));
     svg.attrs(this._animationPath, {
       stroke: "#FFFFFF",
-      "stroke-width": STROKE_WIDTH,
+      "stroke-width": STROKE_WIDTH.toString(),
       fill: "none",
       "stroke-linecap": "round",
       "stroke-linejoin": "miter",
@@ -54,7 +55,7 @@ export default class StrokeRenderer extends StrokeRendererBase {
     return this;
   }
 
-  render(props: Props) {
+  render(props: StrokeRenderProps) {
     if (props === this._oldProps || !this._animationPath) {
       return;
     }

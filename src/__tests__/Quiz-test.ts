@@ -6,14 +6,14 @@ import Quiz from "../Quiz";
 import parseCharData from "../parseCharData";
 import RenderState, { RenderStateOptions } from "../RenderState";
 import Positioner from "../Positioner";
-import { resolvePromises } from "../testUtils";
 import strokeMatches from "../strokeMatches";
-import { CharacterJson, HanziWriterOptions } from "../typings/types";
+import { CharacterJson, Point } from "../typings/types";
 import { defaultOptions } from "../HanziWriter";
+import { resolvePromises } from "../testUtils";
 
 // @ts-ignore
 Positioner.mockImplementation(() => ({
-  convertExternalPoint: (point: any) => ({
+  convertExternalPoint: (point: Point) => ({
     x: point.x + 5,
     y: point.y + 5,
   }),
@@ -44,9 +44,6 @@ describe("Quiz", () => {
 
       expect(quiz._isActive).toBe(true);
 
-      clock.tick(1000);
-      await resolvePromises();
-
       expect(renderState.state.character.main.opacity).toBe(1);
       for (const strokeNum in renderState.state.character.main.strokes) {
         expect(renderState.state.character.main.strokes[strokeNum].opacity).toBe(0);
@@ -68,9 +65,7 @@ describe("Quiz", () => {
       });
 
       const quiz = new Quiz(char, renderState, new Positioner());
-      quiz.startQuiz({ ...defaultOptions });
-      clock.tick(1000);
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.character.highlight.opacity).toBe(1);
       for (const strokeNum in renderState.state.character.main.strokes) {
@@ -87,16 +82,12 @@ describe("Quiz", () => {
 
       quiz.startUserStroke({ x: 10, y: 20 });
       quiz.continueUserStroke({ x: 12, y: 23 });
-      clock.tick(100);
-      await resolvePromises();
+
       const currentStrokeId = quiz._userStroke!.id;
 
-      quiz.cancel();
-      await resolvePromises();
+      await quiz.cancel();
 
       expect(quiz._isActive).toBe(false);
-      clock.tick(1000);
-      await resolvePromises();
 
       expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
@@ -106,15 +97,12 @@ describe("Quiz", () => {
     it("begins a stroke with the provided point", async () => {
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
-      quiz.startQuiz({ ...defaultOptions });
-
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
 
-      quiz.startUserStroke({ x: 10, y: 20 });
-      await resolvePromises();
+      await quiz.startUserStroke({ x: 10, y: 20 });
 
       const userStrokeIds = Object.keys(renderState.state.userStrokes!);
       expect(userStrokeIds.length).toBe(1);
@@ -128,9 +116,7 @@ describe("Quiz", () => {
     it("ends the current user stroke if one exists", async () => {
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
-      quiz.startQuiz({ ...defaultOptions });
-
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
@@ -161,15 +147,12 @@ describe("Quiz", () => {
     it("adds to the current user stroke", async () => {
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
-      quiz.startQuiz({ ...defaultOptions });
-
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
 
-      quiz.startUserStroke({ x: 10, y: 20 });
-      await resolvePromises();
+      await quiz.startUserStroke({ x: 10, y: 20 });
 
       const currentStrokeId = quiz._userStroke!.id;
 
@@ -195,17 +178,12 @@ describe("Quiz", () => {
     it("does nothing if there is no current stroke", async () => {
       const renderState = createRenderState();
       const quiz = new Quiz(char, renderState, new Positioner());
-      quiz.startQuiz({ ...defaultOptions });
-
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
-      await resolvePromises();
 
       expect(quiz._userStroke).toBe(undefined);
-      quiz.continueUserStroke({ x: 100, y: 200 });
-
-      await resolvePromises();
+      await quiz.continueUserStroke({ x: 100, y: 200 });
 
       expect(quiz._userStroke).toBe(undefined);
       expect(renderState.state.userStrokes).toBe(null);
@@ -222,12 +200,10 @@ describe("Quiz", () => {
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
-      clock.tick(1000);
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
 
-      quiz.startUserStroke({ x: 10, y: 20 });
-      quiz.continueUserStroke({ x: 100, y: 200 });
+      await quiz.startUserStroke({ x: 10, y: 20 });
+      await quiz.continueUserStroke({ x: 100, y: 200 });
 
       const currentStrokeId = quiz._userStroke!.id;
       expect(quiz._currentStrokeIndex).toBe(0);
@@ -273,8 +249,8 @@ describe("Quiz", () => {
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
-      clock.tick(1000);
+      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
+
       await resolvePromises();
 
       quiz.startUserStroke({ x: 10, y: 20 });
@@ -307,9 +283,7 @@ describe("Quiz", () => {
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
-      clock.tick(1000);
-      await resolvePromises();
+      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
 
       quiz.startUserStroke({ x: 10, y: 20 });
       quiz.continueUserStroke({ x: 100, y: 200 });
@@ -460,7 +434,8 @@ describe("Quiz", () => {
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({
+
+      await quiz.startQuiz({
         ...defaultOptions,
         onCorrectStroke,
         onComplete,
@@ -468,23 +443,17 @@ describe("Quiz", () => {
         highlightOnComplete: true,
         highlightCompleteColor: "#0F0",
       });
-      clock.tick(1000);
-      await resolvePromises();
 
-      quiz.startUserStroke({ x: 10, y: 20 });
-      quiz.continueUserStroke({ x: 11, y: 21 });
+      await quiz.startUserStroke({ x: 10, y: 20 });
+      await quiz.continueUserStroke({ x: 11, y: 21 });
+      await quiz.endUserStroke();
+
+      expect(onCorrectStroke).toHaveBeenCalledTimes(1);
+
+      await quiz.startUserStroke({ x: 10, y: 20 });
+      await quiz.continueUserStroke({ x: 11, y: 21 });
       quiz.endUserStroke();
-      await resolvePromises();
-      clock.tick(1000);
-      await resolvePromises();
 
-      quiz.startUserStroke({ x: 10, y: 20 });
-      quiz.continueUserStroke({ x: 11, y: 21 });
-      quiz.endUserStroke();
-      await resolvePromises();
-
-      expect(quiz._userStroke).toBe(undefined);
-      expect(quiz._isActive).toBe(false);
       expect(onCorrectStroke).toHaveBeenCalledTimes(2);
       expect(onCorrectStroke).toHaveBeenLastCalledWith({
         character: "人",
@@ -500,6 +469,11 @@ describe("Quiz", () => {
           ],
         },
       });
+
+      // Quiz should now be inactive
+      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._isActive).toBe(false);
+
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenLastCalledWith({
         character: "人",
@@ -515,12 +489,13 @@ describe("Quiz", () => {
 
       clock.tick(1000);
       await resolvePromises();
-
       // highlights the character at the end
       expect(renderState.state.character.highlight.strokeColor).toBe("#0F0");
       expect(renderState.state.character.highlight.opacity).toBe(1);
+
       clock.tick(1000);
       await resolvePromises();
+
       expect(renderState.state.character.highlight.opacity).toBe(0);
     });
 

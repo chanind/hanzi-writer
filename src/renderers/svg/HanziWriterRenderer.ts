@@ -1,5 +1,5 @@
 import CharacterRenderer from "./CharacterRenderer";
-import UserStrokeRenderer from "./UserStrokeRenderer";
+import UserStrokeRenderer, { UserStrokeProps } from "./UserStrokeRenderer";
 import * as svg from "./svgUtils";
 import Character from "../../models/Character";
 import Positioner from "../../Positioner";
@@ -73,11 +73,12 @@ export default class HanziWriterRenderer
     }
 
     for (const userStrokeId in userStrokes) {
-      if (!userStrokes[userStrokeId]) return;
-      const userStrokeProps = {
+      const stroke = userStrokes[userStrokeId];
+      if (!stroke) return;
+      const userStrokeProps: UserStrokeProps = {
         strokeWidth: props.options.drawingWidth,
         strokeColor: props.options.drawingColor,
-        ...userStrokes[userStrokeId],
+        ...stroke,
       };
       let strokeRenderer = this._userStrokeRenderers[userStrokeId];
       if (!strokeRenderer) {

@@ -3,7 +3,7 @@ import { getPathString } from "../../geometry";
 import { ColorObject, Point } from "../../typings/types";
 import SVGRenderTarget from "./RenderTarget";
 
-type Props = {
+export type UserStrokeProps = {
   strokeWidth: number;
   strokeColor: ColorObject;
   opacity: number;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export default class UserStrokeRenderer {
-  _oldProps: Props | undefined = undefined;
+  _oldProps: UserStrokeProps | undefined = undefined;
   _path: SVGElement | undefined;
 
   mount(target: SVGRenderTarget) {
@@ -19,7 +19,7 @@ export default class UserStrokeRenderer {
     target.svg.appendChild(this._path);
   }
 
-  render(props: any) {
+  render(props: UserStrokeProps) {
     if (props === this._oldProps) {
       return;
     }

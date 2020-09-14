@@ -434,6 +434,30 @@ describe('Quiz', () => {
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
     });
 
+    it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
+      strokeMatches.mockImplementation(() => false);
+
+      const renderState = createRenderState();
+      // should reset this color before highlighting
+      renderState.state.character.highlight.strokeColor = '#00F';
+      const quiz = new Quiz(char, renderState, new Positioner());
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake, showHintAfterMisses: false }));
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({x: 10, y: 20});
+      quiz.continueUserStroke({x: 11, y: 21});
+      quiz.endUserStroke();
+      await resolvePromises();
+      clock.tick(1000);
+      await resolvePromises();
+      // Stroke shouldn't be highlighted
+      expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
+    });
+
     it('finishes the quiz when all strokes are successful', async () => {
       strokeMatches.mockImplementation(() => true);
 

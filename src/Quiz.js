@@ -65,7 +65,7 @@ Quiz.prototype.endUserStroke = function() {
   });
 
   if (isMatch) {
-    this._handleSuccess(currentStroke);
+    this._handleSuccess();
   } else {
     this._handleFailure();
     if (this._numRecentMistakes >= this._options.showHintAfterMisses) {
@@ -84,7 +84,7 @@ Quiz.prototype.cancel = function() {
   }
 };
 
-Quiz.prototype._handleSuccess = function(stroke) {
+Quiz.prototype._handleSuccess = function() {
   callIfExists(this._options.onCorrectStroke, {
     character: this._character.symbol,
     strokeNum: this._currentStrokeIndex,

@@ -10,12 +10,9 @@ const getChar = (charStr: any) => {
   return parseCharData(charStr, charJson);
 };
 
-const getUserStrokeFromPoints = ([startingPoint, ...otherPoints]: Point[]) => {
-  const userStroke = new UserStroke(1, startingPoint, startingPoint);
-
-  for (const point of otherPoints) {
-    userStroke.appendPoint(point, point);
-  }
+const getUserStrokeFromPoints = (points: Point[]) => {
+  const userStroke = new UserStroke(1, points[0], points[0]);
+  userStroke.points = points;
   return userStroke;
 };
 

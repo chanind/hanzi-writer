@@ -64,7 +64,7 @@ export default class CharacterRenderer {
         }
         this._strokeRenderers[i].render({
           strokeColor: props.strokeColor,
-          radicalColor: props.radicalColor,
+          radicalColor: props.radicalColor || null,
           opacity: props.strokes[i].opacity,
           displayPortion: props.strokes[i].displayPortion,
         });

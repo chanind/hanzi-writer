@@ -5,7 +5,7 @@ import { copyAndMergeDeep, colorStringToVals } from "./utils";
 
 export type StrokeRenderState = {
   opacity: number;
-  displayPortion?: number;
+  displayPortion: number;
 };
 
 export type CharacterRenderState = {

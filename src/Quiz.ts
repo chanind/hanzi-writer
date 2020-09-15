@@ -14,31 +14,6 @@ const getDrawnPath = (userStroke: UserStroke) => ({
   points: userStroke.points.map((point) => geometry.round(point)),
 });
 
-type StrokeData = {
-  character: string;
-  drawnPath: {
-    pathString: string;
-    points: Point[];
-  };
-  strokeNum: number;
-  mistakesOnStroke: number;
-  totalMistakes: number;
-  strokesRemaining: number;
-};
-
-export type QuizOptions = {
-  /** Default: 1. This can be set to make stroke grading more or less lenient. The closer this is to 0 the more strictly the quiz is graded. */
-  leniency: number;
-  /** Highlights the correct stroke after a set number of incorrect attempts. Setting `false` disables entirely. Default: 3 */
-  showHintAfterMisses: number | false;
-  /** After a quiz is completed successfully it will flash briefly. Default: true */
-  highlightOnComplete: boolean;
-  highlightCompleteColor: string | null;
-  onMistake?: (strokeData: StrokeData) => void;
-  onCorrectStroke?: (strokeData: StrokeData) => void;
-  onComplete?: (summary: { character: string; totalMistakes: number }) => void;
-};
-
 export default class Quiz {
   _character: Character;
   _renderState: RenderState;

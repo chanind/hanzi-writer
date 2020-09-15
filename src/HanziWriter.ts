@@ -1,7 +1,7 @@
 import RenderState from "./RenderState";
 import parseCharData from "./parseCharData";
 import Positioner from "./Positioner";
-import Quiz, { QuizOptions } from "./Quiz";
+import Quiz from "./Quiz";
 import svgRenderer from "./renderers/svg";
 import canvasRenderer from "./renderers/canvas";
 import defaultCharDataLoader from "./defaultCharDataLoader";
@@ -9,10 +9,17 @@ import LoadingManager from "./LoadingManager";
 import * as characterActions from "./characterActions";
 import { trim, colorStringToVals } from "./utils";
 import Character from "./models/Character";
-import { ColorOptions, HanziWriterOptions, OnCompleteFunction } from "./typings/types";
 import HanziWriterRendererBase from "./renderers/HanziWriterRendererBase";
 import RenderTargetBase, { RenderTargetInitFunction } from "./renderers/RenderTargetBase";
 import { GenericMutation } from "./Mutation";
+
+// Typings
+import {
+  ColorOptions,
+  HanziWriterOptions,
+  OnCompleteFunction,
+  QuizOptions,
+} from "./typings/types";
 
 export const defaultOptions: HanziWriterOptions = {
   charDataLoader: defaultCharDataLoader,

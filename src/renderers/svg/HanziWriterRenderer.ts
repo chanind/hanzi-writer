@@ -74,7 +74,9 @@ export default class HanziWriterRenderer
 
     for (const userStrokeId in userStrokes) {
       const stroke = userStrokes[userStrokeId];
-      if (!stroke) return;
+      if (!stroke) {
+        continue;
+      }
       const userStrokeProps: UserStrokeProps = {
         strokeWidth: props.options.drawingWidth,
         strokeColor: props.options.drawingColor,

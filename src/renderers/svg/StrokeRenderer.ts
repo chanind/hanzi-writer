@@ -59,6 +59,7 @@ export default class StrokeRenderer extends StrokeRendererBase {
     if (props === this._oldProps || !this._animationPath) {
       return;
     }
+
     if (props.displayPortion !== this._oldProps?.displayPortion) {
       this._animationPath.style.strokeDashoffset = this._getStrokeDashoffset(
         props.displayPortion,

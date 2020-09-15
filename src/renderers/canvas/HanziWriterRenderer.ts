@@ -68,7 +68,8 @@ export default class HanziWriterRenderer
       });
 
       const userStrokes = props.userStrokes || {};
-      Object.keys(userStrokes).forEach((userStrokeId) => {
+
+      for (const userStrokeId in userStrokes) {
         const userStroke = userStrokes[userStrokeId];
         if (userStroke) {
           const userStrokeProps = {
@@ -78,7 +79,7 @@ export default class HanziWriterRenderer
           };
           renderUserStroke(ctx, userStrokeProps);
         }
-      });
+      }
     });
   }
 

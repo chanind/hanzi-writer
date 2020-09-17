@@ -13,10 +13,8 @@ export function attrs(elm: Element, attrsMap: Record<string, string>) {
 // inspired by https://talk.observablehq.com/t/hanzi-writer-renders-incorrectly-inside-an-observable-notebook-on-a-mobile-browser/1898
 export function urlIdRef(id: string) {
   let prefix = "";
-  // @ts-expect-error ts-migrate(2339) FIXME: Property 'location' does not exist on type 'Global... Remove this comment to see the full error message
-  if (global.location && global.location.href) {
-    // @ts-expect-error ts-migrate(2339) FIXME: Property 'location' does not exist on type 'Global... Remove this comment to see the full error message
-    prefix = global.location.href.replace(/#[^#]*$/, "");
+  if (window.location && window.location.href) {
+    prefix = window.location.href.replace(/#[^#]*$/, "");
   }
   return `url(${prefix}#${id})`;
 }

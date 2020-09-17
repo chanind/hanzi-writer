@@ -8,7 +8,7 @@ import RenderState, { RenderStateOptions } from "../RenderState";
 import Positioner from "../Positioner";
 import strokeMatches from "../strokeMatches";
 import { CharacterJson, Point } from "../typings/types";
-import { defaultOptions } from "../HanziWriter";
+import defaultOptions from "../defaultOptions";
 import { resolvePromises } from "../testUtils";
 
 // @ts-ignore
@@ -30,7 +30,9 @@ const char = parseCharData("人", ren as CharacterJson);
 
 const createRenderState = (optOverrides: Partial<RenderStateOptions> = {}) => {
   const options: RenderStateOptions = { ...defaultOptions, ...optOverrides };
-  return new RenderState(char, options, () => {});
+  return new RenderState(char, options, () => {
+    //
+  });
 };
 
 describe("Quiz", () => {
@@ -83,13 +85,13 @@ describe("Quiz", () => {
       quiz.startUserStroke({ x: 10, y: 20 });
       quiz.continueUserStroke({ x: 12, y: 23 });
 
-      const currentStrokeId = quiz._userStroke!.id;
+      const currentStrokeId = quiz._userStroke?.id || -1;
 
       await quiz.cancel();
 
       expect(quiz._isActive).toBe(false);
 
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes?.[currentStrokeId]).toBe(null);
     });
   });
 

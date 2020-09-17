@@ -4,7 +4,7 @@ import Positioner from "./Positioner";
 import Quiz from "./Quiz";
 import svgRenderer from "./renderers/svg";
 import canvasRenderer from "./renderers/canvas";
-import defaultCharDataLoader from "./defaultCharDataLoader";
+import defaultOptions from "./defaultOptions";
 import LoadingManager from "./LoadingManager";
 import * as characterActions from "./characterActions";
 import { trim, colorStringToVals } from "./utils";
@@ -20,53 +20,6 @@ import {
   OnCompleteFunction,
   QuizOptions,
 } from "./typings/types";
-
-export const defaultOptions: HanziWriterOptions = {
-  charDataLoader: defaultCharDataLoader,
-  onLoadCharDataError: null,
-  onLoadCharDataSuccess: null,
-  showOutline: true,
-  showCharacter: true,
-  renderer: "svg",
-
-  // positioning options
-
-  width: null,
-  height: null,
-  padding: 20,
-
-  // animation options
-
-  strokeAnimationSpeed: 1,
-  strokeFadeDuration: 400,
-  strokeHighlightDuration: 200,
-  strokeHighlightSpeed: 2,
-  delayBetweenStrokes: 1000,
-  delayBetweenLoops: 2000,
-
-  // colors
-
-  strokeColor: "#555",
-  radicalColor: null,
-  highlightColor: "#AAF",
-  outlineColor: "#DDD",
-  drawingColor: "#333",
-
-  // quiz options
-
-  leniency: 1,
-  showHintAfterMisses: 3,
-  highlightOnComplete: true,
-  highlightCompleteColor: null,
-
-  // undocumented obscure options
-
-  drawingFadeDuration: 300,
-  drawingWidth: 4,
-  strokeWidth: 2,
-  outlineWidth: 2,
-  rendererOverride: {},
-};
 
 let lastLoadingManager: LoadingManager | null = null;
 let lastLoadingOptions: Partial<HanziWriterOptions> | null = null;

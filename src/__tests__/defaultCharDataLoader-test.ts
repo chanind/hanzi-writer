@@ -2,7 +2,7 @@ import { enableFetchMocks } from "jest-fetch-mock";
 enableFetchMocks();
 
 import ren from "hanzi-writer-data/人.json";
-import defaultCharDataLoader from "../defaultCharDataLoader";
+import { defaultCharDataLoader } from "../defaultOptions";
 
 beforeEach(() => {
   fetchMock.resetMocks();
@@ -37,7 +37,7 @@ describe("defaultCharDataLoader", () => {
 
     const onLoad = jest.fn();
 
-    const error = await new Promise((onError) => {
+    await new Promise((onError) => {
       defaultCharDataLoader("Q", onLoad, onError);
     });
 

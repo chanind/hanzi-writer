@@ -26,7 +26,7 @@ export default class CharacterRenderer {
   mount(target: SVGRenderTarget) {
     const subTarget = target.createSubRenderTarget();
     this._group = subTarget.svg;
-    this._strokeRenderers.forEach((strokeRenderer: any, i: any) => {
+    this._strokeRenderers.forEach((strokeRenderer) => {
       strokeRenderer.mount(subTarget);
     });
   }

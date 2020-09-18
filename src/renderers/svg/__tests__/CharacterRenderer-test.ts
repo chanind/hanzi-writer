@@ -1,9 +1,9 @@
 import ren from "hanzi-writer-data/人.json";
 import CharacterRenderer from "../CharacterRenderer";
 import RenderTarget from "../RenderTarget";
-import { copyAndMergeDeep } from "../../../utils";
-import parseCharData from "../../../parseCharData";
-import { CharacterJson } from "../../../typings/types";
+import { copyAndMergeDeep } from "utils";
+import parseCharData from "parseCharData";
+import { CharacterJson } from "typings/types";
 
 const char = parseCharData("人", ren as CharacterJson);
 
@@ -84,9 +84,9 @@ describe("CharacterRenderer", () => {
     expect(subCanvas.style.opacity).toBe("0.9");
     // 2 strokes of 人
     expect(subCanvas.childNodes.length).toBe(2);
-    subCanvas.childNodes.forEach((node: any) => {
+    subCanvas.childNodes.forEach((node) => {
       expect(node.nodeName).toBe("path");
-      expect(node.getAttribute("stroke")).toBe("rgba(255,255,0,0.1)");
+      expect((node as HTMLElement).getAttribute("stroke")).toBe("rgba(255,255,0,0.1)");
     });
   });
 

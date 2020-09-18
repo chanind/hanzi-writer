@@ -155,7 +155,7 @@ describe("HanziWriter", () => {
     it("deletes the current character while loading", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
-        charDataLoader(char, onLoad, onError) {
+        charDataLoader(char) {
           return timeout(1).then(() =>
             char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
           );
@@ -177,7 +177,7 @@ describe("HanziWriter", () => {
     it("maintains the visibility of the character from the last character rendered", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
-        charDataLoader(char, onLoad, onError) {
+        charDataLoader(char) {
           return timeout(1).then(() =>
             char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
           );
@@ -309,7 +309,7 @@ describe("HanziWriter", () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      const promise = writer.animateStroke(1, { onComplete }).then((result) => {
+      writer.animateStroke(1, { onComplete }).then((result) => {
         isResolved = true;
         resolvedVal = result;
       });
@@ -972,10 +972,9 @@ describe("HanziWriter", () => {
           } as Touch,
         ],
       });
-      const svg = document.querySelector("#target svg");
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
+      const svg = document.querySelector("#target svg") as SVGElement;
+      // @ts-ignore
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledTimes(1);
@@ -989,10 +988,9 @@ describe("HanziWriter", () => {
         clientX: 170,
         clientY: 127,
       });
-      const svg = document.querySelector("#target svg");
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
+      const svg = document.querySelector("#target svg") as SVGElement;
+      // @ts-ignore
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledTimes(1);
@@ -1016,7 +1014,7 @@ describe("HanziWriter", () => {
       // @ts-ignore (overriding default getBoundingClientRect)
       svg!.getBoundingClientRect = () => ({ left: 50, top: 60 });
 
-      const canceled = !Boolean(svg!.dispatchEvent(evt));
+      const canceled = !svg!.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledTimes(1);
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
@@ -1044,8 +1042,9 @@ describe("HanziWriter", () => {
       const onLoadCharDataError = jest.fn();
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataError,
-        // @ts-ignore
-        charDataLoader: (char, onload, onerror) => Promise.reject("reasons"),
+        charDataLoader() {
+          Promise.reject("reasons");
+        },
       });
 
       await loadingPromise;
@@ -1066,7 +1065,7 @@ describe("HanziWriter", () => {
 
     it("returns the character data in a promise on success", async () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader() {
           return ren as CharacterJson;
         },
       });
@@ -1079,7 +1078,7 @@ describe("HanziWriter", () => {
       const onLoadCharDataSuccess = jest.fn();
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataSuccess,
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader() {
           return ren as CharacterJson;
         },
       });

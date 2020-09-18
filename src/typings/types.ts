@@ -1,6 +1,6 @@
 import { LoadingManagerOptions } from "../LoadingManager";
 import { PositionerOptions } from "../Positioner";
-import HanziWriterRendererBase from "../renderers/HanziWriterRendererBase";
+import { HanziWriterRendererConstructor } from "../renderers/HanziWriterRendererBase";
 import { RenderTargetInitFunction } from "../renderers/RenderTargetBase";
 
 export type CharacterJson = {
@@ -20,16 +20,18 @@ export type Point = { x: number; y: number };
 export type ColorObject = { r: number; g: number; b: number; a: number };
 
 export type ColorOptions = {
-  /** Default: "#555" */
+  /** (Hex string, Default: "#555"). The color to draw each stroke. */
   strokeColor: string | null;
-  /** Default: null */
+  /** (Hex string, Default: null). The color to draw the radical in the stroke, if radical data is present. Radicals will be drawn the same color as other strokes if this is not set. */
   radicalColor: string | null;
-  /** Default: "#AAF" */
+  /** (Hex string, Default: "#AAF"). The color to use for highlighting in quizzes. */
   highlightColor: string | null;
-  /** Default: "#DDD" */
+  /** (Hex string, Default: "#DDD"). The color of the character outline.  */
   outlineColor: string | null;
-  /** Default: "#333" */
+  /** (Hex string, Default: "#333"). The color of the lines drawn by users during quizzing. */
   drawingColor: string | null;
+  /** (Hex string, Default: null). The color to use when highlighting the character on complete in quizzes. If not set, `highlightColor` will be used instead. Only relevant if `highlightOnComplete` is `true`. */
+  highlightCompleteColor: string | null;
 };
 
 export type OnCompleteFunction = (res: { canceled: boolean }) => void;
@@ -51,9 +53,8 @@ export type QuizOptions = {
   leniency: number;
   /** Highlights the correct stroke after a set number of incorrect attempts. Setting `false` disables entirely. Default: 3 */
   showHintAfterMisses: number | false;
-  /** After a quiz is completed successfully it will flash briefly. Default: true */
+  /** After a quiz is completed successfully, the character will flash briefly. Default: true */
   highlightOnComplete: boolean;
-  highlightCompleteColor: string | null;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
@@ -93,7 +94,7 @@ export type HanziWriterOptions = PositionerOptions &
     outlineWidth: number;
 
     rendererOverride: {
-      HanziWriterRenderer?: typeof HanziWriterRendererBase;
-      createRenderTarget?: RenderTargetInitFunction;
+      HanziWriterRenderer?: HanziWriterRendererConstructor;
+      createRenderTarget?: RenderTargetInitFunction<any>;
     };
   };

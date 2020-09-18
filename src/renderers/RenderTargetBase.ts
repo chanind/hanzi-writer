@@ -5,16 +5,22 @@ type BoundEvent = {
   preventDefault(): void;
 };
 
+/** Creates a render target (e.g. svg, canvas) */
 export type RenderTargetInitFunction<
-  TElement extends HTMLElement | SVGElement | SVGSVGElement = HTMLElement
+  TElement extends HTMLElement | SVGElement | SVGSVGElement | HTMLCanvasElement
 > = (
   elmOrId: string | TElement,
   width?: string | number | null,
   height?: string | number | null,
 ) => RenderTargetBase<TElement>;
 
+/** Generic render target */
 export default class RenderTargetBase<
-  TElement extends HTMLElement | SVGElement | SVGSVGElement = HTMLElement
+  TElement extends
+    | HTMLElement
+    | SVGElement
+    | SVGSVGElement
+    | HTMLCanvasElement = HTMLElement
 > {
   node: TElement;
 
@@ -23,24 +29,20 @@ export default class RenderTargetBase<
   }
 
   addPointerStartListener(callback: (arg: BoundEvent) => void) {
-    // @ts-expect-error
-    this.node.addEventListener("mousedown", (evt: MouseEvent) => {
-      callback(this._eventify(evt, this._getMousePoint));
+    this.node.addEventListener("mousedown", (evt) => {
+      callback(this._eventify(evt as MouseEvent, this._getMousePoint));
     });
-    // @ts-expect-error
-    this.node.addEventListener("touchstart", (evt: TouchEvent) => {
-      callback(this._eventify(evt, this._getTouchPoint));
+    this.node.addEventListener("touchstart", (evt) => {
+      callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
     });
   }
 
   addPointerMoveListener(callback: (arg: BoundEvent) => void) {
-    // @ts-expect-error
-    this.node.addEventListener("mousemove", (evt: MouseEvent) => {
-      callback(this._eventify(evt, this._getMousePoint));
+    this.node.addEventListener("mousemove", (evt) => {
+      callback(this._eventify(evt as MouseEvent, this._getMousePoint));
     });
-    // @ts-expect-error
-    this.node.addEventListener("touchmove", (evt: TouchEvent) => {
-      callback(this._eventify(evt, this._getTouchPoint));
+    this.node.addEventListener("touchmove", (evt) => {
+      callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
     });
   }
 

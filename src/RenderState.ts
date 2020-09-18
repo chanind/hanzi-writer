@@ -1,7 +1,7 @@
 import Character from "./models/Character";
 import { GenericMutation } from "./Mutation";
 import { ColorObject, OnCompleteFunction, Point } from "./typings/types";
-import { copyAndMergeDeep, colorStringToVals } from "./utils";
+import { copyAndMergeDeep, colorStringToVals, noop } from "./utils";
 
 export type StrokeRenderState = {
   opacity: number;
@@ -75,7 +75,7 @@ export default class RenderState {
   constructor(
     character: Character,
     options: RenderStateOptions,
-    onStateChange: OnStateChangeCallback = () => {},
+    onStateChange: OnStateChangeCallback = noop,
   ) {
     this._onStateChange = onStateChange;
 

@@ -1,5 +1,4 @@
-// @ts-expect-error ts-migrate(6200) FIXME: Definitions of the following identifiers conflict ... Remove this comment to see the full error message
-import { average, assign } from "./utils";
+import { average } from "./utils";
 import {
   cosineSimilarity,
   equals,

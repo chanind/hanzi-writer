@@ -1,50 +1,6 @@
 import { inflate, cancelAnimationFrame } from "./utils";
 import RenderState, { RenderStateObject } from "./RenderState";
 
-// ------ Mutation class --------
-
-const getPartialValues = (
-  startValues: RenderStateObject,
-  endValues: any,
-  progress: number,
-) => {
-  const target = {};
-  for (const key in endValues) {
-    const endValue = endValues[key];
-    // @ts-ignore
-    const startValue = startValues[key];
-    if (endValue >= 0) {
-      // @ts-ignore
-      target[key] = progress * (endValue - startValue) + startValue;
-    } else {
-      // @ts-ignore
-      target[key] = getPartialValues(startValue, endValue, progress);
-    }
-  }
-  return target;
-};
-
-function isAlreadyAtEnd<TObject extends {}>(
-  startValues: TObject,
-  endValues: Record<keyof TObject, any>,
-) {
-  for (const key in endValues) {
-    const endValue = endValues[key as keyof TObject];
-    const startValue = startValues[key as keyof TObject];
-    if (endValue >= 0) {
-      if (endValue !== startValue) {
-        return false;
-      }
-    } else if (!isAlreadyAtEnd(startValue, endValue)) {
-      return false;
-    }
-  }
-  return true;
-}
-
-// from https://github.com/maxwellito/vivus
-const ease = (x: number) => -Math.cos(x * Math.PI) / 2 + 0.5;
-
 /** Used by `Mutation` & `Delay` */
 export interface GenericMutation {
   /** Can be useful for checking whether the mutation is running */
@@ -159,7 +115,7 @@ export default class Mutation<TValue = any> implements GenericMutation {
       this._startTime = performance.now();
       this._frameHandle = requestAnimationFrame(this._tick);
       this._resolve = resolve;
-    }) as Promise<void>;
+    });
 
     return this._runningPromise;
   }
@@ -231,3 +187,42 @@ export default class Mutation<TValue = any> implements GenericMutation {
     }
   }
 }
+
+const getPartialValues = (
+  startValues: RenderStateObject,
+  endValues: any,
+  progress: number,
+) => {
+  const target = {};
+  for (const key in endValues) {
+    const endValue = endValues[key];
+    // @ts-ignore
+    const startValue = startValues[key];
+    if (endValue >= 0) {
+      // @ts-ignore
+      target[key] = progress * (endValue - startValue) + startValue;
+    } else {
+      // @ts-ignore
+      target[key] = getPartialValues(startValue, endValue, progress);
+    }
+  }
+  return target;
+};
+
+function isAlreadyAtEnd<T>(startValues: T, endValues: Record<keyof T, any>) {
+  for (const key in endValues) {
+    const endValue = endValues[key];
+    const startValue = startValues[key];
+    if (endValue >= 0) {
+      if (endValue !== startValue) {
+        return false;
+      }
+    } else if (!isAlreadyAtEnd(startValue, endValue)) {
+      return false;
+    }
+  }
+  return true;
+}
+
+// from https://github.com/maxwellito/vivus
+const ease = (x: number) => -Math.cos(x * Math.PI) / 2 + 0.5;

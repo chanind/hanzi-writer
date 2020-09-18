@@ -22,9 +22,9 @@ export default class Quiz {
 
   /** Set on startQuiz */
   _options: HanziWriterOptions | undefined;
-  _currentStrokeIndex: number = 0;
-  _numRecentMistakes: number = 0;
-  _totalMistakes: number = 0;
+  _currentStrokeIndex = 0;
+  _numRecentMistakes = 0;
+  _totalMistakes = 0;
   _userStroke: UserStroke | undefined;
 
   constructor(character: Character, renderState: RenderState, positioner: Positioner) {
@@ -45,9 +45,9 @@ export default class Quiz {
     this._numRecentMistakes = 0;
     this._totalMistakes = 0;
 
-    return this._renderState
-      .run(quizActions.startQuiz(this._character, options.strokeFadeDuration))
-      .then((res) => {});
+    return this._renderState.run(
+      quizActions.startQuiz(this._character, options.strokeFadeDuration),
+    );
   }
 
   startUserStroke(externalPoint: Point) {

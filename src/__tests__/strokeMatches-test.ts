@@ -5,7 +5,8 @@ import parseCharData from "../parseCharData";
 import { Point } from "../typings/types";
 import Character from "../models/Character";
 
-const getChar = (charStr: any) => {
+const getChar = (charStr: string) => {
+  // eslint-disable-next-line @typescript-eslint/no-var-requires
   const charJson = require(`hanzi-writer-data/${charStr}.json`);
   return parseCharData(charStr, charJson);
 };

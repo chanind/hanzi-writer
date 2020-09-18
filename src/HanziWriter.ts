@@ -9,7 +9,9 @@ import LoadingManager from "./LoadingManager";
 import * as characterActions from "./characterActions";
 import { trim, colorStringToVals } from "./utils";
 import Character from "./models/Character";
-import HanziWriterRendererBase from "./renderers/HanziWriterRendererBase";
+import HanziWriterRendererBase, {
+  HanziWriterRendererConstructor,
+} from "./renderers/HanziWriterRendererBase";
 import RenderTargetBase, { RenderTargetInitFunction } from "./renderers/RenderTargetBase";
 import { GenericMutation } from "./Mutation";
 
@@ -25,6 +27,30 @@ let lastLoadingManager: LoadingManager | null = null;
 let lastLoadingOptions: Partial<HanziWriterOptions> | null = null;
 
 export default class HanziWriter {
+  _options: HanziWriterOptions;
+  _loadingManager: LoadingManager;
+  /** Only set when calling .setCharacter() */
+  _char: string | undefined;
+  /** Only set when calling .setCharacter() */
+  _renderState: RenderState | undefined;
+  /** Only set when calling .setCharacter() */
+  _character: Character | undefined;
+  /** Only set when calling .setCharacter() */
+  _positioner: Positioner | undefined;
+  /** Only set when calling .setCharacter() */
+  _hanziWriterRenderer: HanziWriterRendererBase<HTMLElement, any> | null | undefined;
+  /** Only set when calling .setCharacter() */
+  _withDataPromise: Promise<void> | undefined;
+
+  _quiz: Quiz | undefined;
+  _renderer: {
+    HanziWriterRenderer: HanziWriterRendererConstructor;
+    createRenderTarget: RenderTargetInitFunction<any>;
+  };
+
+  target: RenderTargetBase;
+
+  /** Main entry point */
   static create(
     element: string | HTMLElement,
     character: string,
@@ -75,37 +101,12 @@ export default class HanziWriter {
     };
   }
 
-  _options: HanziWriterOptions;
-  _loadingManager: LoadingManager;
-  /** Only set when calling .setCharacter() */
-  _char: string | undefined;
-  /** Only set when calling .setCharacter() */
-  _renderState: RenderState | undefined;
-  /** Only set when calling .setCharacter() */
-  _character: Character | undefined;
-  /** Only set when calling .setCharacter() */
-  _positioner: Positioner | undefined;
-  /** Only set when calling .setCharacter() */
-  _hanziWriterRenderer: HanziWriterRendererBase<HTMLElement, any> | null | undefined;
-  /** Only set when calling .setCharacter() */
-  _withDataPromise: Promise<void> | undefined;
-
-  _quiz: Quiz | undefined;
-  _renderer: {
-    HanziWriterRenderer: typeof HanziWriterRendererBase;
-    createRenderTarget: RenderTargetInitFunction;
-  };
-
-  target: RenderTargetBase;
-
   constructor(element: string | HTMLElement, options: Partial<HanziWriterOptions>) {
     const renderer = options.renderer === "canvas" ? canvasRenderer : svgRenderer;
     const rendererOverride = options.rendererOverride || {};
     this._renderer = {
-      // @ts-expect-error
       HanziWriterRenderer:
         rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
-      // @ts-expect-error
       createRenderTarget:
         rendererOverride.createRenderTarget || renderer.createRenderTarget,
     };
@@ -151,7 +152,7 @@ export default class HanziWriter {
       onComplete?: OnCompleteFunction;
       duration?: number;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ) {
     this._options.showCharacter = false;
     return this._withData(() =>
       this._renderState
@@ -175,7 +176,7 @@ export default class HanziWriter {
     options: {
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> & { mutations: GenericMutation[] } {
+  ) {
     this.cancelQuiz();
 
     const mutations = characterActions.animateCharacter(
@@ -201,7 +202,7 @@ export default class HanziWriter {
     options: {
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ) {
     this.cancelQuiz();
     return this._withData(() =>
       this._renderState
@@ -225,7 +226,7 @@ export default class HanziWriter {
     options: {
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ) {
     const promise = () => {
       if (!this._character || !this._renderState) {
         return;
@@ -278,7 +279,7 @@ export default class HanziWriter {
       duration?: number;
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ) {
     this._options.showOutline = true;
     return this._withData(() =>
       this._renderState
@@ -303,7 +304,7 @@ export default class HanziWriter {
       duration?: number;
       onComplete?: OnCompleteFunction;
     } = {},
-  ): Promise<{ canceled: boolean }> {
+  ) {
     this._options.showOutline = false;
     return this._withData(() =>
       this._renderState
@@ -353,7 +354,7 @@ export default class HanziWriter {
       mutations.push(characterActions.updateColor(colorName, null, 0));
     }
 
-    const promise: Promise<{ canceled: boolean }> = this._withData(() =>
+    const promise = this._withData(() =>
       this._renderState?.run(mutations).then((res) => {
         options.onComplete?.(res);
         return res;
@@ -476,16 +477,17 @@ export default class HanziWriter {
     return filledOpts;
   }
 
-  _withData(func: () => any) {
+  async _withData<T>(func: () => T) {
     // if this._loadingManager.loadingFailed, then loading failed before this method was called
     if (this._loadingManager.loadingFailed) {
       throw Error("Failed to load character data. Call setCharacter and try again.");
     }
-    return this._withDataPromise!.then(() => {
-      if (!this._loadingManager.loadingFailed) {
-        return func();
-      }
-    });
+
+    await this._withDataPromise!;
+
+    if (!this._loadingManager.loadingFailed) {
+      return func();
+    }
   }
 
   _setupListeners() {

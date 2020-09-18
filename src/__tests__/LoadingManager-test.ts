@@ -7,7 +7,7 @@ describe("LoadingManager", () => {
   describe("loadCharData", () => {
     it("resolves when data is loaded via async callback", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader(char, onComplete) {
           setTimeout(() => onComplete(ren as CharacterJson), 1);
         },
       });
@@ -18,7 +18,7 @@ describe("LoadingManager", () => {
 
     it("resolves when data is loaded via sync callback", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader(char, onComplete) {
           onComplete(ren as CharacterJson);
         },
       });
@@ -29,7 +29,7 @@ describe("LoadingManager", () => {
 
     it("resolves when data is loaded via promise", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader() {
           return Promise.resolve(ren as CharacterJson);
         },
       });
@@ -40,7 +40,7 @@ describe("LoadingManager", () => {
 
     it("resolves when data is loaded via sync return", async () => {
       const manager = new LoadingManager({
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader() {
           return ren as CharacterJson;
         },
       });
@@ -52,7 +52,7 @@ describe("LoadingManager", () => {
     it("passes data to onLoadCharDataSuccess if provided", async () => {
       let successVal: CharacterJson | undefined;
       const manager = new LoadingManager({
-        charDataLoader(char, onComplete, onErr) {
+        charDataLoader() {
           return ren as CharacterJson;
         },
         onLoadCharDataSuccess(returnedData) {

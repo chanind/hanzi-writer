@@ -4,14 +4,17 @@ export function arrLast<TValue>(arr: Array<TValue>) {
   return arr[arr.length - 1];
 }
 
-export function copyAndMergeDeep(base: any, override: any) {
+export function copyAndMergeDeep<T>(
+  base: T,
+  override: Partial<{ [key in keyof T]: Partial<T[key]> }> | undefined,
+) {
   const output = { ...base };
   for (const key in override) {
-    // eslint-disable-line guard-for-in
     // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
     // in here that aren't plain objects anyway and this is a hot code path
     const baseVal = base[key];
     const overrideVal = override[key];
+
     if (baseVal === overrideVal) continue; // eslint-disable-line no-continue
     if (
       baseVal &&
@@ -22,13 +25,14 @@ export function copyAndMergeDeep(base: any, override: any) {
     ) {
       output[key] = copyAndMergeDeep(baseVal, overrideVal);
     } else {
+      // @ts-ignore
       output[key] = overrideVal;
     }
   }
   return output;
 }
 
-export function inflate<TObj extends {}>(scope: string, obj: TObj) {
+export function inflate<T>(scope: string, obj: T) {
   const parts = scope.split(".");
   const final = {};
   let current: Record<string, any> = final;
@@ -118,3 +122,6 @@ const ua = window.navigator?.userAgent || "";
 
 export const isMsBrowser =
   ua.indexOf("MSIE ") > 0 || ua.indexOf("Trident/") > 0 || ua.indexOf("Edge/") > 0;
+
+// eslint-disable-next-line @typescript-eslint/no-empty-function
+export const noop = () => {};

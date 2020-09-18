@@ -3,7 +3,6 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "rules": {
-    "id-length": [2, { "exceptions": ["x", "y", "i", "j", "r", "g", "b", "a"] }],
     "no-unused-vars": [2, { "vars": "all", "args": "none" }],
     "max-len": [0],
     "no-loop-func": [0],
@@ -28,6 +27,7 @@
     "consistent-return": [0],
     "@typescript-eslint/ban-ts-comment": [0],
     "@typescript-eslint/no-non-null-assertion": [0],
+    "@typescript-eslint/no-explicit-any": [0],
     "@typescript-eslint/explicit-module-boundary-types": [0]
   }
 }

@@ -5,6 +5,7 @@ import CanvasRenderTarget from "../canvas/RenderTarget";
 import CharacterRenderer from "./CharacterRenderer";
 import renderUserStroke from "./renderUserStroke";
 import { RenderStateObject } from "../../RenderState";
+import { noop } from "utils";
 
 export default class HanziWriterRenderer
   implements HanziWriterRendererBase<HTMLCanvasElement, CanvasRenderTarget> {
@@ -27,8 +28,10 @@ export default class HanziWriterRenderer
     this._target = target;
   }
 
+  destroy = noop;
+
   _animationFrame(cb: (ctx: CanvasRenderingContext2D) => void) {
-    const ctx = this._target?.getContext()!;
+    const ctx = this._target!.getContext()!;
     ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
 
     ctx.save();
@@ -82,6 +85,4 @@ export default class HanziWriterRenderer
       }
     });
   }
-
-  destroy() {}
 }

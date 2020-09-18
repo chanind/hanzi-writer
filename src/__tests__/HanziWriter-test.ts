@@ -21,7 +21,9 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const writer = HanziWriter.create("target", { charDataLoader });
-      await writer.setCharacter("人");
+      writer.setCharacter("人");
+
+      await writer._withDataPromise;
 
       expect(document.querySelectorAll("#target svg").length).toBe(1);
       const svg = document.querySelector("#target svg") as SVGElement;
@@ -1043,7 +1045,7 @@ describe("HanziWriter", () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataError,
         charDataLoader() {
-          Promise.reject("reasons");
+          return Promise.reject("reasons");
         },
       });
 

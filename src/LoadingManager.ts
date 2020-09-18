@@ -68,18 +68,22 @@ export default class LoadingManager {
         this._isLoading = false;
         this.loadingFailed = true;
 
+        // If the user has provided an "onLoadCharDataError", call this function
+        // Otherwise, throw the promise
         if (this._options.onLoadCharDataError) {
           this._options.onLoadCharDataError(reason);
-        } else if (!this._options.onLoadCharDataError) {
-          // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
-          if (reason instanceof Error) {
-            throw reason;
-          }
-          const err = new Error(`Failed to load char data for ${this._loadingChar}`);
-          // @ts-ignore
-          err.reason = reason;
-          throw err;
+          return;
         }
+
+        // If error callback wasn't provided, throw an error so the developer will be aware something went wrong
+        if (reason instanceof Error) {
+          throw reason;
+        }
+
+        const err = new Error(`Failed to load char data for ${this._loadingChar}`);
+        // @ts-ignore
+        err.reason = reason;
+        throw err;
       });
   }
 

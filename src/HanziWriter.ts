@@ -477,17 +477,17 @@ export default class HanziWriter {
     return filledOpts;
   }
 
-  async _withData<T>(func: () => T) {
+  _withData<T>(func: () => T) {
     // if this._loadingManager.loadingFailed, then loading failed before this method was called
     if (this._loadingManager.loadingFailed) {
       throw Error("Failed to load character data. Call setCharacter and try again.");
     }
 
-    await this._withDataPromise!;
-
-    if (!this._loadingManager.loadingFailed) {
-      return func();
-    }
+    return this._withDataPromise!.then(() => {
+      if (!this._loadingManager.loadingFailed) {
+        return func();
+      }
+    });
   }
 
   _setupListeners() {

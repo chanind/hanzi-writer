@@ -1,6 +1,11 @@
 import Character from "./models/Character";
 import { GenericMutation } from "./Mutation";
-import { ColorObject, OnCompleteFunction, Point } from "./typings/types";
+import {
+  ColorObject,
+  OnCompleteFunction,
+  Point,
+  RecursivePartial,
+} from "./typings/types";
 import { copyAndMergeDeep, colorStringToVals, noop } from "./utils";
 
 export type StrokeRenderState = {
@@ -23,6 +28,7 @@ export type RenderStateObject = {
     outlineColor: ColorObject;
     radicalColor: ColorObject;
     highlightColor: ColorObject;
+    highlightOnCompleteColor?: ColorObject;
   };
   character: {
     main: CharacterRenderState;
@@ -124,7 +130,7 @@ export default class RenderState {
     }
   }
 
-  updateState(stateChanges: any) {
+  updateState(stateChanges: RecursivePartial<RenderStateObject>) {
     const nextState = copyAndMergeDeep(this.state, stateChanges);
     this._onStateChange(nextState, this.state);
     this.state = nextState;
@@ -196,20 +202,22 @@ export default class RenderState {
     this._getActiveMutations().forEach((mutation) => mutation.resume());
   }
 
-  cancelMutations(scopes: string[]) {
-    this._mutationChains.forEach((chain) => {
-      chain._scopes.forEach((chainScope) => {
-        scopes.forEach((scope) => {
-          if (chainScope.indexOf(scope) >= 0 || scope.indexOf(chainScope) >= 0) {
+  cancelMutations(scopesToCancel: string[]) {
+    for (const chain of this._mutationChains) {
+      for (const chainId of chain._scopes) {
+        for (const scopeToCancel of scopesToCancel) {
+          if (chainId.startsWith(scopeToCancel) || scopeToCancel.startsWith(chainId)) {
             this._cancelMutationChain(chain);
           }
-        });
-      });
-    });
+        }
+      }
+    }
   }
 
   cancelAll() {
-    this.cancelMutations([""]);
+    for (const chain of this._mutationChains) {
+      this._cancelMutationChain(chain);
+    }
   }
 
   _cancelMutationChain(mutationChain: MutationChain) {

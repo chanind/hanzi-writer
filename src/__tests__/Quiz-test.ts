@@ -91,7 +91,7 @@ describe("Quiz", () => {
 
       expect(quiz._isActive).toBe(false);
 
-      expect(renderState.state.userStrokes?.[currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes?.[currentStrokeId]).toBe(undefined);
     });
   });
 
@@ -141,7 +141,7 @@ describe("Quiz", () => {
       await resolvePromises();
 
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
     });
   });
 
@@ -239,7 +239,7 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
     });
 
     it("ignores single point strokes", async () => {
@@ -273,7 +273,7 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
     });
 
     it("stays on the stroke if it was incorrect", async () => {
@@ -322,7 +322,7 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
     });
 
     it("highlights the stroke if the number of mistakes exceeds showHintAfterMisses", async () => {

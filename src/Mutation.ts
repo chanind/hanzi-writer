@@ -1,25 +1,29 @@
-import { inflate, cancelAnimationFrame } from "./utils";
+import { cancelAnimationFrame } from "./utils";
 import RenderState, { RenderStateObject } from "./RenderState";
+import { RecursivePartial } from "typings/types";
 
 /** Used by `Mutation` & `Delay` */
-export interface GenericMutation {
+export interface GenericMutation<
+  TRenderStateClass extends GenericRenderStateClass = RenderState
+> {
+  /** Allows mutations starting with the provided string to be cancelled */
+  scope: string;
   /** Can be useful for checking whether the mutation is running */
   _runningPromise: Promise<void> | undefined;
-  scope: string;
-  run(renderState: RenderState): Promise<void>;
+  run(renderState: TRenderStateClass): Promise<void>;
   pause(): void;
   resume(): void;
-  cancel(renderState: RenderState): void;
+  cancel(renderState: TRenderStateClass): void;
 }
 
 class Delay implements GenericMutation {
+  scope: string;
   _runningPromise: Promise<void> | undefined;
   _duration: number;
   _startTime: number | null;
   _paused: boolean;
   _timeout!: NodeJS.Timeout;
   _resolve: (() => void) | undefined;
-  scope: string;
 
   constructor(duration: number) {
     this._duration = duration;
@@ -32,7 +36,7 @@ class Delay implements GenericMutation {
     this._startTime = performance.now();
     this._runningPromise = new Promise((resolve) => {
       this._resolve = resolve;
-      // @ts-ignore
+      // @ts-ignore "setTimeout" return value type sometimes gets parsed as "number" instead of "Timeout"
       this._timeout = setTimeout(() => this.cancel(), this._duration);
     }) as Promise<void>;
     return this._runningPromise;
@@ -50,7 +54,7 @@ class Delay implements GenericMutation {
   resume() {
     if (!this._paused) return;
     this._startTime = performance.now();
-    // @ts-ignore
+    // @ts-ignore "setTimeout" return value type sometimes gets parsed as "number" instead of "Timeout"
     this._timeout = setTimeout(() => this.cancel(), this._duration);
     this._paused = false;
   }
@@ -64,13 +68,29 @@ class Delay implements GenericMutation {
   }
 }
 
-export default class Mutation<TValue = any> implements GenericMutation {
+type ValuesOrCallable<TValue> =
+  | RecursivePartial<TValue>
+  | ((renderStateObj: RenderStateObject) => TValue);
+
+type RenderStateScope<T> = RecursivePartial<T>;
+
+type GenericRenderStateClass<T = any> = {
+  state: T;
+  updateState(changes: RecursivePartial<T>): void;
+};
+
+export default class Mutation<
+  TRenderStateClass extends GenericRenderStateClass = RenderState,
+  TRenderStateObj = TRenderStateClass["state"],
+  TTypedRenderStateClass extends GenericRenderStateClass<
+    TRenderStateObj
+  > = GenericRenderStateClass<TRenderStateObj>
+> implements GenericMutation<TTypedRenderStateClass> {
   static Delay = Delay;
 
-  _runningPromise: Promise<void> | undefined;
-  /** Dot notation e.g. `character.highlight.strokeColor` */
   scope: string;
-  _valuesOrCallable: any | ((renderStateObj: RenderStateObject) => any);
+  _runningPromise: Promise<void> | undefined;
+  _valuesOrCallable: ValuesOrCallable<TRenderStateObj>;
   _duration: number;
   _force: boolean | undefined;
   _pausedDuration: number;
@@ -78,19 +98,23 @@ export default class Mutation<TValue = any> implements GenericMutation {
 
   // Only set on .run()
   _startTime: number | undefined;
-  _startState: RenderStateObject | undefined;
-  _renderState: RenderState | undefined;
+  _startState: RecursivePartial<TRenderStateObj> | undefined;
+  _renderState: TTypedRenderStateClass | undefined;
   _frameHandle: number | undefined;
-  _values: any;
+  _values: RecursivePartial<TRenderStateObj> | undefined;
   _resolve: (() => void) | undefined;
 
   constructor(
-    /** Dot notation e.g. `character.highlight.strokeColor` */
-    scope: string,
-    valuesOrCallable: TValue | ((renderStateObj: RenderStateObject) => TValue),
-    options: { duration?: number; force?: boolean } = {},
+    valuesOrCallable: ValuesOrCallable<TRenderStateObj>,
+    options: {
+      /** Allows mutations starting with the provided string to be cancelled */
+      scope?: string;
+      duration?: number;
+      /** Updates render state regardless if cancelled */
+      force?: boolean;
+    } = {},
   ) {
-    this.scope = scope;
+    this.scope = options.scope || "mutation";
     this._valuesOrCallable = valuesOrCallable;
     this._duration = options.duration || 0;
     this._force = options.force;
@@ -98,17 +122,18 @@ export default class Mutation<TValue = any> implements GenericMutation {
     this._startPauseTime = null;
   }
 
-  run(renderState: RenderState) {
-    if (!this._values) {
-      this._inflateValues(renderState);
-    }
-
+  run(renderState: TTypedRenderStateClass) {
     if (this._duration === 0) {
-      renderState.updateState(this._values);
+      const values = this.getValues(renderState);
+      renderState.updateState(values);
     }
 
     this._runningPromise = new Promise((resolve) => {
-      if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
+      if (
+        this._duration === 0 ||
+        // @ts-ignore
+        isAlreadyAtEnd(renderState.state, this.getValues(renderState))
+      ) {
         resolve();
         return;
       }
@@ -152,28 +177,42 @@ export default class Mutation<TValue = any> implements GenericMutation {
     );
 
     if (progress === 1) {
-      this._renderState!.updateState(this._values);
+      this._renderState!.updateState(this._values!);
       this._frameHandle = undefined;
       this.cancel(this._renderState!);
     } else {
       const easedProgress = ease(progress);
-      this._renderState!.updateState(
-        getPartialValues(this._startState!, this._values, easedProgress),
+      const stateChanges = getPartialValues(
+        // @ts-ignore
+        this._startState!,
+        this._values!,
+        easedProgress,
       );
+
+      this._renderState!.updateState(stateChanges);
       this._frameHandle = requestAnimationFrame(this._tick);
     }
   };
 
-  _inflateValues(renderState: RenderState) {
-    const values: TValue =
-      typeof this._valuesOrCallable === "function"
-        ? this._valuesOrCallable(renderState.state)
-        : this._valuesOrCallable;
+  getValues(renderState: TTypedRenderStateClass) {
+    if (this._values) {
+      return this._values;
+    }
 
-    this._values = inflate(this.scope, values);
+    const values: RenderStateScope<TRenderStateObj> = (() => {
+      if (typeof this._valuesOrCallable === "function") {
+        // @ts-ignore
+        return this._valuesOrCallable(renderState.state);
+      }
+      return this._valuesOrCallable;
+    })();
+
+    this._values = values;
+
+    return this._values;
   }
 
-  cancel(renderState: RenderState) {
+  cancel(renderState: TTypedRenderStateClass) {
     this._resolve?.();
 
     this._resolve = undefined;
@@ -182,29 +221,24 @@ export default class Mutation<TValue = any> implements GenericMutation {
     }
     this._frameHandle = undefined;
     if (this._force) {
-      if (!this._values) {
-        this._inflateValues(renderState);
-      }
-      renderState.updateState(this._values);
+      renderState.updateState(this.getValues(renderState));
     }
   }
 }
 
-const getPartialValues = (
-  startValues: RenderStateObject,
-  endValues: any,
+const getPartialValues = <T>(
+  startValues: T,
+  endValues: RecursivePartial<T>,
   progress: number,
 ) => {
-  const target = {};
+  const target: RecursivePartial<T> = {};
+
   for (const key in endValues) {
-    const endValue = endValues[key];
-    // @ts-ignore
+    const endValue = endValues[key]!;
     const startValue = startValues[key];
-    if (endValue >= 0) {
-      // @ts-ignore
+    if (typeof startValue === "number" && typeof endValue === "number" && endValue >= 0) {
       target[key] = progress * (endValue - startValue) + startValue;
     } else {
-      // @ts-ignore
       target[key] = getPartialValues(startValue, endValue, progress);
     }
   }

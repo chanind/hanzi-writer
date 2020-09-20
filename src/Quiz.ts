@@ -8,6 +8,7 @@ import * as characterActions from "./characterActions";
 import Character from "./models/Character";
 import { HanziWriterOptions, Point } from "./typings/types";
 import RenderState from "./RenderState";
+import Mutation from "Mutation";
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -80,7 +81,7 @@ export default class Quiz {
       return Promise.resolve();
     }
 
-    const promises = [
+    const promises: Promise<any>[] = [
       this._renderState.run(
         quizActions.removeUserStroke(
           this._userStroke.id,
@@ -133,19 +134,22 @@ export default class Quiz {
 
   cancel() {
     this._isActive = false;
-    if (this._userStroke) {
-      return this._renderState.run(
-        quizActions.removeUserStroke(
-          this._userStroke.id,
-          this._options!.drawingFadeDuration,
-        ),
-      );
+    if (!this._userStroke) {
+      return Promise.resolve();
     }
-    return Promise.resolve();
+    return this._renderState.run(
+      quizActions.removeUserStroke(
+        this._userStroke.id,
+        this._options!.drawingFadeDuration,
+      ),
+    );
   }
 
   _handleSuccess() {
-    this._options!.onCorrectStroke?.({
+    if (!this._options) {
+      return Promise.resolve();
+    }
+    this._options.onCorrectStroke?.({
       character: this._character.symbol,
       strokeNum: this._currentStrokeIndex,
       mistakesOnStroke: this._numRecentMistakes,
@@ -153,37 +157,38 @@ export default class Quiz {
       strokesRemaining: this._character.strokes.length - this._currentStrokeIndex! - 1,
       drawnPath: getDrawnPath(this._userStroke!),
     });
-    let animation = characterActions.showStroke(
-      "main",
-      this._currentStrokeIndex,
-      this._options!.strokeFadeDuration ?? 300,
-    );
-    this._currentStrokeIndex! += 1;
+    const animation = [
+      characterActions.showStroke(
+        "main",
+        this._currentStrokeIndex,
+        this._options.strokeFadeDuration,
+      ),
+    ] as Mutation<RenderState>[];
+    this._currentStrokeIndex += 1;
     this._numRecentMistakes = 0;
 
     if (this._currentStrokeIndex === this._character.strokes.length) {
       this._isActive = false;
-      this._options!.onComplete?.({
+      this._options.onComplete?.({
         character: this._character.symbol,
         totalMistakes: this._totalMistakes,
       });
-      if (this._options!.highlightOnComplete) {
-        animation = [
-          ...animation,
+      if (this._options.highlightOnComplete) {
+        animation.push(
           ...quizActions.highlightCompleteChar(
             this._character,
-            this._options!.highlightCompleteColor,
-            (this._options!.strokeHighlightDuration || 0) * 2,
+            this._options.highlightCompleteColor,
+            (this._options.strokeHighlightDuration || 0) * 2,
           ),
-        ];
+        );
       }
     }
     return this._renderState.run(animation);
   }
 
   _handleFailure() {
-    this._numRecentMistakes! += 1;
-    this._totalMistakes! += 1;
+    this._numRecentMistakes += 1;
+    this._totalMistakes += 1;
     this._options!.onMistake?.({
       character: this._character.symbol,
       strokeNum: this._currentStrokeIndex,

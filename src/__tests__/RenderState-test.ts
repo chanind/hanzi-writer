@@ -88,10 +88,34 @@ describe("RenderState", () => {
 
       renderState
         .run([
-          new Mutation("character.main.opacity", 0.3),
-          new Mutation("character.main.opacity", 0.9, { duration: 50 }),
+          new Mutation({
+            character: {
+              main: {
+                opacity: 0.3,
+              },
+            },
+          }),
+          new Mutation(
+            {
+              character: {
+                main: {
+                  opacity: 0.9,
+                },
+              },
+            },
+            { duration: 50 },
+          ),
           new Mutation.Delay(100),
-          new Mutation("character.main.opacity", 0, { duration: 50 }),
+          new Mutation(
+            {
+              character: {
+                main: {
+                  opacity: 0,
+                },
+              },
+            },
+            { duration: 50 },
+          ),
         ])
         .then((result) => {
           isResolved = true;
@@ -138,10 +162,45 @@ describe("RenderState", () => {
 
       renderState
         .run([
-          new Mutation("character.main.opacity", 0.3),
-          new Mutation("character.main.opacity", 0.9, { duration: 50 }),
+          new Mutation(
+            {
+              character: {
+                main: {
+                  opacity: 0.3,
+                },
+              },
+            },
+            {
+              scope: "character",
+            },
+          ),
+          new Mutation(
+            {
+              character: {
+                main: {
+                  opacity: 0.9,
+                },
+              },
+            },
+            {
+              scope: "character",
+              duration: 50,
+            },
+          ),
           new Mutation.Delay(100),
-          new Mutation("character.main.opacity", 0, { duration: 50 }),
+          new Mutation(
+            {
+              character: {
+                main: {
+                  opacity: 0,
+                },
+              },
+            },
+            {
+              scope: "character",
+              duration: 50,
+            },
+          ),
         ])
         .then((result) => {
           isResolved = true;
@@ -154,7 +213,7 @@ describe("RenderState", () => {
       expect(isResolved).toBe(false);
       expect(renderState.state.character.main.opacity).toBe(0.3);
 
-      renderState.cancelMutations(["character"]);
+      renderState.cancelMutations(["delay", "character"]);
 
       await Promise.resolve();
       expect(renderState.state.character.main.opacity).toBe(0.3);

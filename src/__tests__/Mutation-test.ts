@@ -3,14 +3,25 @@ import Mutation from "../Mutation";
 describe("Mutation", () => {
   it("resolves immediately if there is no (or 0) duration passed", async () => {
     const renderState = {
-      state: {},
+      state: {
+        a: {
+          b: {
+            c: 10,
+          },
+        },
+      },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", { c: 7 });
+    const mut = new Mutation<typeof renderState>({
+      a: {
+        b: {
+          c: 7,
+        },
+      },
+    });
     let isResolved = false;
 
-    // @ts-ignore
     mut.run(renderState).then(() => {
       isResolved = true;
     });
@@ -28,10 +39,17 @@ describe("Mutation", () => {
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", 7, { duration: 20 });
+    const mut = new Mutation<typeof renderState>(
+      {
+        a: {
+          b: 7,
+        },
+      },
+      { duration: 20 },
+    );
+
     let isResolved = false;
 
-    // @ts-ignore
     mut.run(renderState).then(() => {
       isResolved = true;
     });
@@ -47,9 +65,16 @@ describe("Mutation", () => {
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", 20, { duration: 50 });
+    const mut = new Mutation<typeof renderState>(
+      {
+        a: {
+          b: 20,
+        },
+      },
+      { duration: 50 },
+    );
     let isResolved = false;
-    // @ts-ignore
+
     mut.run(renderState).then(() => {
       isResolved = true;
     });
@@ -83,9 +108,17 @@ describe("Mutation", () => {
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", 20, { duration: 50 });
+    const mut = new Mutation<typeof renderState>(
+      {
+        a: {
+          b: 20,
+        },
+      },
+      { duration: 50 },
+    );
+
     let isResolved = false;
-    // @ts-ignore
+
     mut.run(renderState).then(() => {
       isResolved = true;
     });
@@ -115,7 +148,7 @@ describe("Mutation", () => {
     expect(partialTweenVals.length).toBe(renderState.updateState.mock.calls.length);
     expect(isResolved).toBe(false);
     expect(renderState.updateState).toHaveBeenCalled();
-    renderState.updateState.mock.calls.forEach((mockCall: any) => {
+    renderState.updateState.mock.calls.forEach((mockCall) => {
       expect(mockCall[0].a.b).toBeGreaterThan(10);
       expect(mockCall[0].a.b).toBeLessThan(20);
     });
@@ -136,7 +169,14 @@ describe("Mutation", () => {
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", 10, { force: true });
+    const mut = new Mutation<typeof renderState>(
+      {
+        a: {
+          b: 10,
+        },
+      },
+      { force: true },
+    );
     // @ts-ignore
     mut.cancel(renderState);
     expect(renderState.updateState).toHaveBeenCalledTimes(1);
@@ -149,9 +189,14 @@ describe("Mutation", () => {
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation("a.b", 10);
-    // @ts-ignore
+    const mut = new Mutation<typeof renderState>({
+      a: {
+        b: 10,
+      },
+    });
+
     mut.cancel(renderState);
+
     expect(renderState.updateState).not.toHaveBeenCalled();
   });
 });

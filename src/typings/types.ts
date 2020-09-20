@@ -1,7 +1,5 @@
-import { LoadingManagerOptions } from "../LoadingManager";
-import { PositionerOptions } from "../Positioner";
+import RenderTargetBase from "renderers/RenderTargetBase";
 import { HanziWriterRendererConstructor } from "../renderers/HanziWriterRendererBase";
-import { RenderTargetInitFunction } from "../renderers/RenderTargetBase";
 
 export type CharacterJson = {
   strokes: string[];
@@ -36,6 +34,15 @@ export type ColorOptions = {
 
 export type OnCompleteFunction = (res: { canceled: boolean }) => void;
 
+/** Creates a render target (e.g. svg, canvas) */
+export type RenderTargetInitFunction<
+  TElement extends HTMLElement | SVGElement | SVGSVGElement | HTMLCanvasElement
+> = (
+  elmOrId: string | TElement,
+  width?: string | number | null,
+  height?: string | number | null,
+) => RenderTargetBase<TElement>;
+
 export type StrokeData = {
   character: string;
   drawnPath: {
@@ -58,6 +65,21 @@ export type QuizOptions = {
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
+};
+
+export type PositionerOptions = {
+  /** Default: 20 */
+  padding: number | null;
+  /** Default: 0 */
+  width: number | null;
+  /** Default: 0 */
+  height: number | null;
+};
+
+export type LoadingManagerOptions = {
+  charDataLoader: CharDataLoaderFn;
+  onLoadCharDataSuccess?: null | ((data: CharacterJson) => void);
+  onLoadCharDataError?: null | ((error?: Error | string) => void);
 };
 
 export type HanziWriterOptions = PositionerOptions &
@@ -98,3 +120,7 @@ export type HanziWriterOptions = PositionerOptions &
       createRenderTarget?: RenderTargetInitFunction<any>;
     };
   };
+
+export type RecursivePartial<T> = {
+  [P in keyof T]?: RecursivePartial<T[P]>;
+};

@@ -1,21 +1,19 @@
+import { RecursivePartial } from "typings/types";
+
 export const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
 export function arrLast<TValue>(arr: Array<TValue>) {
   return arr[arr.length - 1];
 }
 
-export function copyAndMergeDeep<T>(
-  base: T,
-  override: Partial<{ [key in keyof T]: Partial<T[key]> }> | undefined,
-) {
+export function copyAndMergeDeep<T>(base: T, override: RecursivePartial<T> | undefined) {
   const output = { ...base };
   for (const key in override) {
-    // skipping hasOwnProperty check for performance reasons - we shouldn't be passing any objects
-    // in here that aren't plain objects anyway and this is a hot code path
     const baseVal = base[key];
     const overrideVal = override[key];
-
-    if (baseVal === overrideVal) continue; // eslint-disable-line no-continue
+    if (baseVal === overrideVal) {
+      continue;
+    }
     if (
       baseVal &&
       overrideVal &&
@@ -30,18 +28,6 @@ export function copyAndMergeDeep<T>(
     }
   }
   return output;
-}
-
-export function inflate<T>(scope: string, obj: T) {
-  const parts = scope.split(".");
-  const final = {};
-  let current: Record<string, any> = final;
-  for (let i = 0; i < parts.length; i++) {
-    const cap = i === parts.length - 1 ? obj : {};
-    current[parts[i]] = cap;
-    current = cap;
-  }
-  return final;
 }
 
 let count = 0;

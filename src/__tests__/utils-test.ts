@@ -16,6 +16,7 @@ describe("utils", () => {
         },
         q: 9,
       };
+
       expect(utils.copyAndMergeDeep(base, override)).toEqual({
         a: {
           b: 1,
@@ -87,20 +88,6 @@ describe("utils", () => {
       expect(() => utils.colorStringToVals("#DC00")).toThrow();
       expect(() => utils.colorStringToVals("#DCQ")).toThrow();
       expect(() => utils.colorStringToVals("RBB(10,10,10)")).toThrow();
-    });
-  });
-
-  describe("inflate", () => {
-    it("inflates the scope into a full object and attaches the obj", () => {
-      expect(utils.inflate("bob.jim.joe", { x: 8 })).toEqual({
-        bob: {
-          jim: {
-            joe: {
-              x: 8,
-            },
-          },
-        },
-      });
     });
   });
 });

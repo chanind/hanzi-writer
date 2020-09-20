@@ -1,10 +1,4 @@
-import { CharacterJson, CharDataLoaderFn } from "./typings/types";
-
-export type LoadingManagerOptions = {
-  charDataLoader: CharDataLoaderFn;
-  onLoadCharDataSuccess?: null | ((data: CharacterJson) => void);
-  onLoadCharDataError?: null | ((error?: Error | string) => void);
-};
+import { CharacterJson, LoadingManagerOptions } from "./typings/types";
 
 export default class LoadingManager {
   _loadCounter = 0;

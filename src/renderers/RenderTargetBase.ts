@@ -5,15 +5,6 @@ type BoundEvent = {
   preventDefault(): void;
 };
 
-/** Creates a render target (e.g. svg, canvas) */
-export type RenderTargetInitFunction<
-  TElement extends HTMLElement | SVGElement | SVGSVGElement | HTMLCanvasElement
-> = (
-  elmOrId: string | TElement,
-  width?: string | number | null,
-  height?: string | number | null,
-) => RenderTargetBase<TElement>;
-
 /** Generic render target */
 export default class RenderTargetBase<
   TElement extends

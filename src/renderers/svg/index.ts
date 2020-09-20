@@ -1,4 +1,4 @@
-import { RenderTargetInitFunction } from "renderers/RenderTargetBase";
+import { RenderTargetInitFunction } from "typings/types";
 import HanziWriterRenderer from "./HanziWriterRenderer";
 import RenderTarget from "./RenderTarget";
 

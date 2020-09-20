@@ -12,7 +12,7 @@ import Character from "./models/Character";
 import HanziWriterRendererBase, {
   HanziWriterRendererConstructor,
 } from "./renderers/HanziWriterRendererBase";
-import RenderTargetBase, { RenderTargetInitFunction } from "./renderers/RenderTargetBase";
+import RenderTargetBase from "./renderers/RenderTargetBase";
 import { GenericMutation } from "./Mutation";
 
 // Typings
@@ -21,7 +21,11 @@ import {
   HanziWriterOptions,
   OnCompleteFunction,
   QuizOptions,
+  RenderTargetInitFunction,
 } from "./typings/types";
+
+// Export type interfaces
+export * from "./typings/types";
 
 let lastLoadingManager: LoadingManager | null = null;
 let lastLoadingOptions: Partial<HanziWriterOptions> | null = null;
@@ -347,6 +351,7 @@ export default class HanziWriter {
     this._options[colorName] = colorVal;
 
     const duration = options.duration ?? this._options.strokeFadeDuration;
+
     mutations.push(characterActions.updateColor(colorName, mappedColor, duration));
 
     // make sure to set radicalColor back to null after the transition finishes if val == null

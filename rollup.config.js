@@ -8,7 +8,6 @@ import license from "rollup-plugin-license";
 const extensions = [".js", ".ts"];
 
 export default [
-  // CommonJS (for Node) and ES module (for bundlers) build.
   {
     input: "src/HanziWriter.ts",
     output: [
@@ -16,7 +15,7 @@ export default [
         file: pkg.main,
         format: "cjs",
         sourcemap: true,
-        exports: "default",
+        exports: "auto",
       },
       {
         file: "dist/hanzi-writer.min.js",

@@ -872,8 +872,8 @@ describe("HanziWriter", () => {
       });
 
       // promise.mutations = [
-      //  new Mutation(`options.radicalColor`, { r: 238, g: 238, b: 238, a: 1 }, { duration: 1000 })
-      //  new Mutation(`options.radicalColor`, null, { duration: 0 })
+      //  new Mutation<RenderState>(`options.radicalColor`, { r: 238, g: 238, b: 238, a: 1 }, { duration: 1000 })
+      //  new Mutation<RenderState>(`options.radicalColor`, null, { duration: 0 })
       // ]
       expect(promise.mutations.length).toEqual(2);
 
@@ -956,8 +956,7 @@ describe("HanziWriter", () => {
       const svg = document.querySelector("#target svg");
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      const canceled = !svg.dispatchEvent(evt);
+      const canceled = !svg?.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledTimes(1);
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
@@ -975,8 +974,7 @@ describe("HanziWriter", () => {
         ],
       });
       const svg = document.querySelector("#target svg") as SVGElement;
-      // @ts-ignore
-      svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
+      svg.getBoundingClientRect = () => ({ left: 50, top: 60 } as DOMRect);
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledTimes(1);
@@ -1015,8 +1013,7 @@ describe("HanziWriter", () => {
 
       // @ts-ignore (overriding default getBoundingClientRect)
       svg!.getBoundingClientRect = () => ({ left: 50, top: 60 });
-
-      const canceled = !svg!.dispatchEvent(evt);
+      const canceled = !svg?.dispatchEvent(evt);
       expect(canceled).toBe(true);
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledTimes(1);
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
@@ -1025,8 +1022,7 @@ describe("HanziWriter", () => {
     it("ends a user stroke on mouseup", () => {
       const evt = new MouseEvent("mouseup", { bubbles: true, cancelable: true });
       const svg = document.querySelector("#target svg");
-      // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
-      svg.dispatchEvent(evt);
+      svg?.dispatchEvent(evt);
       expect(writer._quiz?.endUserStroke).toHaveBeenCalledTimes(1);
     });
 
@@ -1115,7 +1111,6 @@ describe("HanziWriter", () => {
   describe("option defaults", () => {
     it("works with legacy strokeAnimationDuration and strokeHighlightDuration if present", () => {
       const writer = HanziWriter.create("target", "人", {
-        // @ts-ignore
         strokeAnimationDuration: 1000,
         strokeHighlightDuration: 250,
       });
@@ -1125,13 +1120,11 @@ describe("HanziWriter", () => {
 
     it("sets highlightCompleteColor to highlightColor if not explicitly set", () => {
       const writer = HanziWriter.create("target", "人", { highlightColor: "#ABC" });
-      // @ts-ignore
       expect(writer._options.highlightCompleteColor).toBe("#ABC");
     });
 
     it("sets highlightCompleteColor to the default highlightColor if none is passed", () => {
       const writer = HanziWriter.create("target", "人");
-      // @ts-ignore
       expect(writer._options.highlightCompleteColor).toBe("#AAF");
     });
   });

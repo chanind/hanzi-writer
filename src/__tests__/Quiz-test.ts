@@ -30,9 +30,7 @@ const char = parseCharData("人", ren as CharacterJson);
 
 const createRenderState = (optOverrides: Partial<RenderStateOptions> = {}) => {
   const options: RenderStateOptions = { ...defaultOptions, ...optOverrides };
-  return new RenderState(char, options, () => {
-    //
-  });
+  return new RenderState(char, options);
 };
 
 describe("Quiz", () => {

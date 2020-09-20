@@ -5,9 +5,9 @@ export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
   const start = points[0];
   const remainingPoints = points.slice(1);
   ctx.moveTo(start.x, start.y);
-  remainingPoints.forEach((point) => {
+  for (const point of remainingPoints) {
     ctx.lineTo(point.x, point.y);
-  });
+  }
   ctx.stroke();
 };
 
@@ -20,7 +20,7 @@ export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
 export const pathStringToCanvas = (pathString: string) => {
   const pathParts = pathString.split(/(^|\s+)(?=[A-Z])/).filter((part) => part !== " ");
   const commands = [(ctx: CanvasRenderingContext2D) => ctx.beginPath()];
-  pathParts.forEach((part) => {
+  for (const part of pathParts) {
     const [cmd, ...rawParams] = part.split(/\s+/);
     const params = rawParams.map((param) => parseFloat(param)) as any;
     if (cmd === "M") {
@@ -34,6 +34,6 @@ export const pathStringToCanvas = (pathString: string) => {
     } else if (cmd === "Z") {
       // commands.push((ctx) => ctx.closePath());
     }
-  });
+  }
   return (ctx: CanvasRenderingContext2D) => commands.forEach((cmd) => cmd(ctx));
 };

@@ -8,7 +8,7 @@ import RenderState from "RenderState";
 export const startQuiz = (character: Character, fadeDuration: number) => {
   return [
     ...characterActions.hideCharacter("main", character, fadeDuration),
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           highlight: {
@@ -19,7 +19,7 @@ export const startQuiz = (character: Character, fadeDuration: number) => {
       },
       { force: true },
     ),
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           main: {
@@ -30,12 +30,12 @@ export const startQuiz = (character: Character, fadeDuration: number) => {
       },
       { force: true },
     ),
-  ] as Mutation<RenderState>[];
+  ];
 };
 
 export const startUserStroke = (id: number, point: Point) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         userStrokes: {
           [id]: {
@@ -51,7 +51,7 @@ export const startUserStroke = (id: number, point: Point) => {
 
 export const updateUserStroke = (userStrokeId: number, points: Point[]) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         userStrokes: {
           [userStrokeId]: {
@@ -63,12 +63,12 @@ export const updateUserStroke = (userStrokeId: number, points: Point[]) => {
         force: true,
       },
     ),
-  ] as Mutation<RenderState>[];
+  ];
 };
 
 export const removeUserStroke = (userStrokeId: number, duration: number) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         userStrokes: {
           [userStrokeId]: {
@@ -80,7 +80,7 @@ export const removeUserStroke = (userStrokeId: number, duration: number) => {
         duration,
       },
     ),
-    new Mutation(
+    new Mutation<RenderState>(
       {
         userStrokes: {
           [userStrokeId]: undefined,
@@ -90,7 +90,7 @@ export const removeUserStroke = (userStrokeId: number, duration: number) => {
         force: true,
       },
     ),
-  ] as Mutation<RenderState>[];
+  ];
 };
 
 export const highlightCompleteChar = (
@@ -99,7 +99,7 @@ export const highlightCompleteChar = (
   duration: number,
 ) => {
   return [
-    new Mutation({
+    new Mutation<RenderState>({
       character: {
         highlight: {
           strokeColor: color!,
@@ -109,5 +109,5 @@ export const highlightCompleteChar = (
     ...characterActions.hideCharacter("highlight", character),
     ...characterActions.showCharacter("highlight", character, duration / 2),
     ...characterActions.hideCharacter("highlight", character, duration / 2),
-  ] as Mutation<RenderState>[];
+  ];
 };

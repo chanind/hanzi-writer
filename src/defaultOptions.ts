@@ -1,5 +1,4 @@
-import { HanziWriterOptions } from "./typings/types";
-import { CharacterJson } from "./typings/types";
+import { HanziWriterOptions, CharacterJson } from "./typings/types";
 
 const VERSION = "2.0";
 

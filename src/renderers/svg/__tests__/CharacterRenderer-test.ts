@@ -37,16 +37,14 @@ describe("CharacterRenderer", () => {
     charRenderer.mount(target);
     charRenderer.render(props);
 
-    const subCanvas = target.svg.childNodes[1];
+    const subCanvas = target.svg.childNodes[1] as SVGElement;
     expect(subCanvas.nodeName).toBe("g");
-    // @ts-ignore
     expect(subCanvas.style.opacity).toBe("0.7");
     // 2 strokes of 人
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach((node) => {
       expect(node.nodeName).toBe("path");
-      // @ts-expect-error
-      expect(node.getAttribute("stroke")).toBe("rgba(120,17,101,0.3)");
+      expect((node as SVGElement).getAttribute("stroke")).toBe("rgba(120,17,101,0.3)");
     });
   });
 
@@ -116,18 +114,14 @@ describe("CharacterRenderer", () => {
     const charRenderer = new CharacterRenderer(char);
     charRenderer.mount(target);
     charRenderer.render(props1);
-    const subCanvas = target.svg.childNodes[1];
+    const subCanvas = target.svg.childNodes[1] as SVGElement;
 
-    // @ts-ignore
     expect(subCanvas.style.opacity).toBe("0");
-    // @ts-ignore
     expect(subCanvas.style.display).toBe("none");
 
     charRenderer.render(props2);
 
-    // @ts-ignore
     expect(subCanvas.style.opacity).toBe("0.9");
-    // @ts-ignore
     expect(subCanvas.style.display).toBe("");
   });
 });

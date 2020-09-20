@@ -177,8 +177,9 @@ describe("Mutation", () => {
       },
       { force: true },
     );
-    // @ts-ignore
+
     mut.cancel(renderState);
+
     expect(renderState.updateState).toHaveBeenCalledTimes(1);
     expect(renderState.updateState).toHaveBeenLastCalledWith({ a: { b: 10 } });
   });

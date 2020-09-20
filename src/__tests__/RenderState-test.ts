@@ -88,14 +88,14 @@ describe("RenderState", () => {
 
       renderState
         .run([
-          new Mutation({
+          new Mutation<RenderState>({
             character: {
               main: {
                 opacity: 0.3,
               },
             },
           }),
-          new Mutation(
+          new Mutation<RenderState>(
             {
               character: {
                 main: {
@@ -106,7 +106,7 @@ describe("RenderState", () => {
             { duration: 50 },
           ),
           new Mutation.Delay(100),
-          new Mutation(
+          new Mutation<RenderState>(
             {
               character: {
                 main: {
@@ -162,7 +162,7 @@ describe("RenderState", () => {
 
       renderState
         .run([
-          new Mutation(
+          new Mutation<RenderState>(
             {
               character: {
                 main: {
@@ -174,7 +174,7 @@ describe("RenderState", () => {
               scope: "character",
             },
           ),
-          new Mutation(
+          new Mutation<RenderState>(
             {
               character: {
                 main: {
@@ -188,7 +188,7 @@ describe("RenderState", () => {
             },
           ),
           new Mutation.Delay(100),
-          new Mutation(
+          new Mutation<RenderState>(
             {
               character: {
                 main: {

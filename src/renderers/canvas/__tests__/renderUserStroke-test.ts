@@ -1,4 +1,6 @@
 import renderUserStroke from "../renderUserStroke";
+// Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
+import "jest-canvas-mock";
 
 describe("renderUserStroke", () => {
   let ctx: CanvasRenderingContext2D;
@@ -19,7 +21,6 @@ describe("renderUserStroke", () => {
       ],
     };
     renderUserStroke(ctx, props);
-    // @ts-ignore
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
@@ -35,7 +36,6 @@ describe("renderUserStroke", () => {
       ],
     };
     renderUserStroke(ctx, props);
-    // @ts-ignore
     expect(ctx.__getEvents()).toEqual([]);
   });
 });

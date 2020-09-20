@@ -97,8 +97,6 @@ export type HanziWriterOptions = PositionerOptions &
     strokeAnimationSpeed: number;
     /** Default: 400 */
     strokeFadeDuration: number;
-    /** Default: 200 */
-    strokeHighlightDuration: number;
     /** Default: 2 */
     strokeHighlightSpeed: number;
     /** Default: 1000 */
@@ -119,6 +117,11 @@ export type HanziWriterOptions = PositionerOptions &
       HanziWriterRenderer?: HanziWriterRendererConstructor;
       createRenderTarget?: RenderTargetInitFunction<any>;
     };
+
+    /** @deprecated Use `strokeAnimationSpeed` */
+    strokeAnimationDuration?: number;
+    /** @deprecated Use `strokeHighlightSpeed` */
+    strokeHighlightDuration: number;
   };
 
 export type RecursivePartial<T> = {

@@ -1,4 +1,6 @@
 import { pathStringToCanvas } from "../canvasUtils";
+// Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
+import "jest-canvas-mock";
 
 describe("canvasUtils", () => {
   let ctx: CanvasRenderingContext2D;
@@ -22,7 +24,6 @@ describe("canvasUtils", () => {
       it(`translates SVG pathstrings from MakeMeAHanzi into canvas commands case ${index}`, () => {
         const commandFunc = pathStringToCanvas(pathString);
         commandFunc(ctx);
-        // @ts-ignore
         expect(ctx.__getEvents()).toMatchSnapshot();
       });
     });

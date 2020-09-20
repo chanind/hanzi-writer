@@ -8,7 +8,6 @@ import * as characterActions from "./characterActions";
 import Character from "./models/Character";
 import { HanziWriterOptions, Point } from "./typings/types";
 import RenderState from "./RenderState";
-import Mutation from "Mutation";
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -163,7 +162,7 @@ export default class Quiz {
         this._currentStrokeIndex,
         this._options.strokeFadeDuration,
       ),
-    ] as Mutation<RenderState>[];
+    ];
     this._currentStrokeIndex += 1;
     this._numRecentMistakes = 0;
 

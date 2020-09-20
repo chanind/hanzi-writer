@@ -414,12 +414,8 @@ export default class HanziWriter {
           this._positioner,
         );
         this._hanziWriterRenderer = hanziWriterRenderer;
-        this._renderState = new RenderState(
-          this._character,
-          this._options,
-          (nextState) => {
-            hanziWriterRenderer.render(nextState);
-          },
+        this._renderState = new RenderState(this._character, this._options, (nextState) =>
+          hanziWriterRenderer.render(nextState),
         );
         this._hanziWriterRenderer.mount(this.target);
         this._hanziWriterRenderer.render(this._renderState.state);

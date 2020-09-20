@@ -44,7 +44,7 @@ export default class HanziWriterRenderer
     cb(ctx);
     ctx.restore();
 
-    // @ts-expect-error
+    // @ts-expect-error Verify if this is still needed for the "wechat miniprogram".
     if (ctx.draw) {
       // @ts-expect-error
       ctx.draw();

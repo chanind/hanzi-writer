@@ -8720,7 +8720,7 @@ sane@^4.0.3:
     "@cnakazawa/watch" "^1.0.3"
     anymatch "^2.0.0"
     capture-exit "^2.0.0"
-    exec-sh "^0.3.2"
+    exec-sh "^0.3.2"ac
     execa "^1.0.0"
     fb-watchman "^2.0.0"
     micromatch "^3.1.4"

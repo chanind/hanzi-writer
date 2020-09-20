@@ -1,7 +1,7 @@
 import ren from "hanzi-writer-data/人.json";
 import ta from "hanzi-writer-data/他.json";
 import LoadingManager from "../LoadingManager";
-import { CharacterJson } from "../typings/types";
+import { CharacterJson, CharDataLoaderFn } from "../typings/types";
 
 describe("LoadingManager", () => {
   describe("loadCharData", () => {
@@ -105,7 +105,7 @@ describe("LoadingManager", () => {
 
     it("debounces if multiple loads are called at the same time", async () => {
       const onLoadCharDataSuccess = jest.fn();
-      const onCompleteFns: any = [];
+      const onCompleteFns: Array<Parameters<CharDataLoaderFn>[1]> = [];
       const manager = new LoadingManager({
         onLoadCharDataSuccess,
         charDataLoader(char, onComplete) {
@@ -122,8 +122,8 @@ describe("LoadingManager", () => {
         hasPromise1Resolved = true;
       });
 
-      onCompleteFns[0].call(null, ren);
-      onCompleteFns[1].call(null, ta);
+      onCompleteFns[0](ren as CharacterJson);
+      onCompleteFns[1](ta as CharacterJson);
 
       const data = await loadPromise2;
 

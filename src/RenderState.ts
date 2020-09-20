@@ -48,7 +48,7 @@ export type RenderStateObject = {
 type OnStateChangeCallback = (
   nextState: RenderStateObject,
   currentState: RenderStateObject,
-) => any;
+) => void;
 
 type MutationChain = {
   _isActive: boolean;

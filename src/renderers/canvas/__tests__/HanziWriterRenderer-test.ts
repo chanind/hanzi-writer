@@ -5,6 +5,8 @@ import Positioner from "../../../Positioner";
 import parseCharData from "../../../parseCharData";
 import { CharacterJson } from "../../../typings/types";
 import { RenderStateObject } from "../../../RenderState";
+// Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
+import "jest-canvas-mock";
 
 const char = parseCharData("人", ren as CharacterJson);
 
@@ -15,7 +17,7 @@ const positioner = new Positioner({
 });
 
 describe("HanziWriterRenderer", () => {
-  let target: any;
+  let target: RenderTarget;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
@@ -68,7 +70,7 @@ describe("HanziWriterRenderer", () => {
     renderer.mount(target);
     renderer.render(props);
 
-    expect(target.node.getContext("2d").__getEvents()).toMatchSnapshot();
+    expect(target.node.getContext("2d")?.__getEvents()).toMatchSnapshot();
   });
 
   it("handles empty user strokes", () => {
@@ -111,6 +113,6 @@ describe("HanziWriterRenderer", () => {
     renderer.mount(target);
     renderer.render(props);
 
-    expect(target.node.getContext("2d").__getEvents()).toMatchSnapshot();
+    expect(target.node.getContext("2d")?.__getEvents()).toMatchSnapshot();
   });
 });

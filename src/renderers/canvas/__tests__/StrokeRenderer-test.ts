@@ -2,6 +2,8 @@ import yi from "hanzi-writer-data/一.json";
 import { CharacterJson } from "../../../typings/types";
 import StrokeRenderer from "../StrokeRenderer";
 import parseCharData from "../../../parseCharData";
+// Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
+import "jest-canvas-mock";
 
 const char = parseCharData("一", yi as CharacterJson);
 
@@ -23,7 +25,6 @@ describe("StrokeRenderer", () => {
     const renderer = new StrokeRenderer(char.strokes[0]);
     renderer.render(ctx, props);
 
-    // @ts-ignore
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
@@ -38,7 +39,6 @@ describe("StrokeRenderer", () => {
     const renderer = new StrokeRenderer(char.strokes[0], false);
     renderer.render(ctx, props);
 
-    // @ts-ignore
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
@@ -53,7 +53,6 @@ describe("StrokeRenderer", () => {
     const renderer = new StrokeRenderer(char.strokes[0]);
     renderer.render(ctx, props);
 
-    // @ts-ignore
     expect(ctx.__getEvents()).toEqual([]);
   });
 });

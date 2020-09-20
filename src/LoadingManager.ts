@@ -1,10 +1,12 @@
 import { CharacterJson, LoadingManagerOptions } from "./typings/types";
 
+type CustomError = Error & { reason: string };
+
 export default class LoadingManager {
   _loadCounter = 0;
   _isLoading = false;
   _resolve: ((data: CharacterJson) => void) | undefined;
-  _reject: ((error?: Error | string) => void) | undefined;
+  _reject: ((error?: Error | CustomError | string) => void) | undefined;
   _options: LoadingManagerOptions;
 
   /** Set when calling LoadingManager.loadCharData  */
@@ -34,6 +36,7 @@ export default class LoadingManager {
       wrappedResolve,
       wrappedReject,
     );
+
     if (returnedData) {
       if ("then" in returnedData) {
         returnedData.then(wrappedResolve).catch(wrappedReject);
@@ -47,7 +50,7 @@ export default class LoadingManager {
     return new Promise(
       (
         resolve: (data: CharacterJson) => void,
-        reject: (err?: Error | string) => void,
+        reject: (err?: Error | CustomError | string) => void,
       ) => {
         this._resolve = resolve;
         this._reject = reject;
@@ -74,9 +77,12 @@ export default class LoadingManager {
           throw reason;
         }
 
-        const err = new Error(`Failed to load char data for ${this._loadingChar}`);
-        // @ts-ignore
+        const err = new Error(
+          `Failed to load char data for ${this._loadingChar}`,
+        ) as CustomError;
+
         err.reason = reason;
+
         throw err;
       });
   }

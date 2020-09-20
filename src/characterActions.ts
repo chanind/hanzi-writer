@@ -13,7 +13,7 @@ export const showStrokes = (
   duration: number,
 ) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           [charName]: {
@@ -38,7 +38,7 @@ export const showCharacter = (
   duration: number,
 ) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           [charName]: {
@@ -64,7 +64,7 @@ export const hideCharacter = (
   duration = 0,
 ) => {
   return [
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           [charName]: {
@@ -102,7 +102,7 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
-    new Mutation({
+    new Mutation<RenderState>({
       character: {
         highlight: {
           strokeColor: color!,
@@ -110,7 +110,7 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
       },
     }),
 
-    new Mutation({
+    new Mutation<RenderState>({
       character: {
         highlight: {
           opacity: 1,
@@ -124,7 +124,7 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
       },
     }),
 
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           highlight: {
@@ -142,7 +142,7 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
       },
     ),
 
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           highlight: {
@@ -158,14 +158,14 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
         duration,
       },
     ),
-  ] as Mutation<RenderState>[];
+  ];
 };
 
 export const animateStroke = (charName: CharacterName, stroke: Stroke, speed: number) => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
-    new Mutation({
+    new Mutation<RenderState>({
       character: {
         [charName]: {
           opacity: 1,
@@ -179,7 +179,7 @@ export const animateStroke = (charName: CharacterName, stroke: Stroke, speed: nu
       },
     }),
 
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           [charName]: {
@@ -205,7 +205,7 @@ export const animateSingleStroke = (
   speed: number,
 ) => {
   return [
-    new Mutation((state) => {
+    new Mutation<RenderState>((state) => {
       const curCharState = state.character[charName];
       const mutationState: CharacterRenderState = {
         opacity: 1,
@@ -232,7 +232,7 @@ export const showStroke = (
   strokeNum: number,
   duration: number,
 ) => {
-  return new Mutation(
+  return new Mutation<RenderState>(
     {
       character: {
         [charName]: {
@@ -262,7 +262,7 @@ export const animateCharacter = (
   const mutations: GenericMutation[] = [
     ...hideCharacter(charName, character, fadeDuration),
     // ...showStrokes(charName, character, 0),
-    new Mutation(
+    new Mutation<RenderState>(
       {
         character: {
           [charName]: {

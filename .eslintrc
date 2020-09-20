@@ -2,7 +2,12 @@
   "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
-  "ignorePatterns": ["babel.config.js", "jest-setup.js"],
+  "ignorePatterns": [
+    "babel.config.js",
+    "jest-setup.js",
+    "demo/test.js",
+    "demo/test_data.js"
+  ],
   "rules": {
     "no-unused-vars": [2, { "vars": "all", "args": "none" }],
     "max-len": [0],

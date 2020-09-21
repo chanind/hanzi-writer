@@ -38,7 +38,7 @@ export default class Stroke {
 
   getDistance(point: Point) {
     const distances = this.points.map((strokePoint) => distance(strokePoint, point));
-    return Math.min.apply(Math, distances);
+    return Math.min(...distances);
   }
 
   getAverageDistance(points: Point[]) {

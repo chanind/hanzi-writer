@@ -22,15 +22,19 @@ export const pathStringToCanvas = (pathString: string) => {
   const commands = [(ctx: CanvasRenderingContext2D) => ctx.beginPath()];
   for (const part of pathParts) {
     const [cmd, ...rawParams] = part.split(/\s+/);
-    const params = rawParams.map((param) => parseFloat(param)) as any;
+    const params = rawParams.map((param) => parseFloat(param)) as any[];
     if (cmd === "M") {
-      commands.push((ctx) => ctx.moveTo.apply(ctx, params));
+      commands.push((ctx) => ctx.moveTo(...(params as [number, number])));
     } else if (cmd === "L") {
-      commands.push((ctx) => ctx.lineTo.apply(ctx, params));
+      commands.push((ctx) => ctx.lineTo(...(params as [number, number])));
     } else if (cmd === "C") {
-      commands.push((ctx) => ctx.bezierCurveTo.apply(ctx, params));
+      commands.push((ctx) =>
+        ctx.bezierCurveTo(...(params as Parameters<typeof ctx.bezierCurveTo>)),
+      );
     } else if (cmd === "Q") {
-      commands.push((ctx) => ctx.quadraticCurveTo.apply(ctx, params));
+      commands.push((ctx) =>
+        ctx.quadraticCurveTo(...(params as Parameters<typeof ctx.quadraticCurveTo>)),
+      );
     } else if (cmd === "Z") {
       // commands.push((ctx) => ctx.closePath());
     }

@@ -47,7 +47,7 @@ const directionMatches = (points: Point[], stroke: Stroke) => {
     const strokeSimilarities = strokeVectors.map((strokeVector) =>
       cosineSimilarity(strokeVector, edgeVector),
     );
-    return Math.max.apply(Math, strokeSimilarities);
+    return Math.max(...strokeSimilarities);
   });
   const avgSimilarity = average(similarities);
   return avgSimilarity > COSINE_SIMILARITY_THRESHOLD;

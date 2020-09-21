@@ -29,15 +29,12 @@ export default class HanziWriterRenderer
   mount(target: SVGRenderTarget) {
     const positionedTarget = target.createSubRenderTarget();
     const group = positionedTarget.svg;
+    const { xOffset, yOffset, height, scale } = this._positioner;
+
     svg.attr(
       group,
       "transform",
-      `
-    translate(${this._positioner.xOffset}, ${
-        this._positioner.height - this._positioner.yOffset
-      })
-    scale(${this._positioner.scale}, ${-1 * this._positioner.scale})
-  `,
+      `translate(${xOffset}, ${height - yOffset}) scale(${scale}, ${-1 * scale})`,
     );
     this._outlineCharRenderer.mount(positionedTarget);
     this._mainCharRenderer.mount(positionedTarget);
@@ -46,21 +43,33 @@ export default class HanziWriterRenderer
   }
 
   render(props: RenderStateObject) {
+    const { main, outline, highlight } = props.character;
+    const {
+      outlineColor,
+      radicalColor,
+      highlightColor,
+      strokeColor,
+      drawingWidth,
+      drawingColor,
+    } = props.options;
+
     this._outlineCharRenderer.render({
-      opacity: props.character.outline.opacity,
-      strokes: props.character.outline.strokes,
-      strokeColor: props.options.outlineColor,
+      opacity: outline.opacity,
+      strokes: outline.strokes,
+      strokeColor: outlineColor,
     });
+
     this._mainCharRenderer.render({
-      opacity: props.character.main.opacity,
-      strokes: props.character.main.strokes,
-      strokeColor: props.options.strokeColor,
-      radicalColor: props.options.radicalColor,
+      opacity: main.opacity,
+      strokes: main.strokes,
+      strokeColor,
+      radicalColor: radicalColor,
     });
+
     this._highlightCharRenderer.render({
-      opacity: props.character.highlight.opacity,
-      strokes: props.character.highlight.strokes,
-      strokeColor: props.options.highlightColor,
+      opacity: highlight.opacity,
+      strokes: highlight.strokes,
+      strokeColor: highlightColor,
     });
 
     const userStrokes = props.userStrokes || {};
@@ -78,16 +87,21 @@ export default class HanziWriterRenderer
         continue;
       }
       const userStrokeProps: UserStrokeProps = {
-        strokeWidth: props.options.drawingWidth,
-        strokeColor: props.options.drawingColor,
+        strokeWidth: drawingWidth,
+        strokeColor: drawingColor,
         ...stroke,
       };
-      let strokeRenderer = this._userStrokeRenderers[userStrokeId];
-      if (!strokeRenderer) {
-        strokeRenderer = new UserStrokeRenderer();
-        strokeRenderer.mount(this._positionedTarget!);
-        this._userStrokeRenderers[userStrokeId] = strokeRenderer;
-      }
+
+      const strokeRenderer = (() => {
+        if (this._userStrokeRenderers[userStrokeId]) {
+          return this._userStrokeRenderers[userStrokeId]!;
+        }
+        const newStrokeRenderer = new UserStrokeRenderer();
+        newStrokeRenderer.mount(this._positionedTarget!);
+        this._userStrokeRenderers[userStrokeId] = newStrokeRenderer;
+        return newStrokeRenderer;
+      })();
+
       strokeRenderer.render(userStrokeProps);
     }
   }

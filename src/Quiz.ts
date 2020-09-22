@@ -182,7 +182,15 @@ export default class Quiz {
         );
       }
     }
-    return this._renderState.run(animation);
+    return this._renderState.run(animation).then((res) => {
+      if (!this._isActive) {
+        this._options?.onHighlightComplete?.({
+          character: this._character.symbol,
+          totalMistakes: this._totalMistakes,
+        });
+      }
+      return res;
+    });
   }
 
   _handleFailure() {

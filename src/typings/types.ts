@@ -64,7 +64,10 @@ export type QuizOptions = {
   highlightOnComplete: boolean;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
+  /** Callback when the quiz completes */
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
+  /** Callback when the highlight animation is complete */
+  onHighlightComplete?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
 export type PositionerOptions = {

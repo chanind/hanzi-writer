@@ -19,6 +19,7 @@ import { GenericMutation } from "./Mutation";
 import {
   ColorOptions,
   HanziWriterOptions,
+  LoadingManagerOptions,
   OnCompleteFunction,
   QuizOptions,
   RenderTargetInitFunction,
@@ -26,9 +27,6 @@ import {
 
 // Export type interfaces
 export * from "./typings/types";
-
-let lastLoadingManager: LoadingManager | null = null;
-let lastLoadingOptions: Partial<HanziWriterOptions> | null = null;
 
 export default class HanziWriter {
   _options: HanziWriterOptions;
@@ -80,15 +78,25 @@ export default class HanziWriter {
     return writer;
   }
 
-  static loadCharacterData(character: string, options: Partial<HanziWriterOptions> = {}) {
-    let loadingManager;
-    if (lastLoadingManager && lastLoadingOptions === options) {
-      loadingManager = lastLoadingManager;
-    } else {
-      loadingManager = new LoadingManager({ ...defaultOptions, ...options });
-    }
-    lastLoadingManager = loadingManager;
-    lastLoadingOptions = options;
+  /** Singleton instance of LoadingManager. Only set in `loadCharacterData` */
+  static _loadingManager: LoadingManager | null = null;
+  /** Singleton loading options. Only set in `loadCharacterData` */
+  static _loadingOptions: Partial<HanziWriterOptions> | null = null;
+
+  static loadCharacterData(
+    character: string,
+    options: Partial<LoadingManagerOptions> = {},
+  ) {
+    const loadingManager = (() => {
+      const { _loadingManager, _loadingOptions } = HanziWriter;
+      if (_loadingManager?._loadingChar === character && _loadingOptions === options) {
+        return _loadingManager;
+      }
+      return new LoadingManager({ ...defaultOptions, ...options });
+    })();
+
+    HanziWriter._loadingManager = loadingManager;
+    HanziWriter._loadingOptions = options;
     return loadingManager.loadCharData(character);
   }
 

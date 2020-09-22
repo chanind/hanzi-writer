@@ -452,6 +452,18 @@ describe("HanziWriter", () => {
   });
 
   describe("highlightStroke", () => {
+    it("doesn't do anything if no character has been set", async () => {
+      const onComplete = jest.fn();
+
+      const writer = HanziWriter.create("target", {
+        showCharacter: true,
+        charDataLoader,
+      });
+
+      await writer.highlightStroke(1, { onComplete });
+
+      expect(onComplete).not.toHaveBeenCalled();
+    });
     it("highlights a single stroke", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
@@ -1133,6 +1145,37 @@ describe("HanziWriter", () => {
 
       expect(onLoadCharDataSuccess.mock.calls.length).toBe(1);
       expect(onLoadCharDataSuccess.mock.calls[0][0]).toBe(ren);
+    });
+
+    it("uses lastLoadingManager if options match", async () => {
+      const options = {
+        charDataLoader() {
+          return ren as CharacterJson;
+        },
+      };
+
+      HanziWriter.loadCharacterData("人", options);
+      const loadingManager = HanziWriter._loadingManager;
+
+      HanziWriter.loadCharacterData("人", options);
+      const loadingManagerTwo = HanziWriter._loadingManager;
+      expect(loadingManager).toBe(loadingManagerTwo);
+    });
+
+    it("doesn't use lastLoadingManager if options change", async () => {
+      HanziWriter.loadCharacterData("人", {
+        charDataLoader() {
+          return ren as CharacterJson;
+        },
+      });
+      const loadingManager = HanziWriter._loadingManager;
+      HanziWriter.loadCharacterData("人", {
+        charDataLoader() {
+          return yi as CharacterJson;
+        },
+      });
+      const loadingManagerTwo = HanziWriter._loadingManager;
+      expect(loadingManager).not.toBe(loadingManagerTwo);
     });
   });
 

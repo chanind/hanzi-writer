@@ -237,10 +237,13 @@ function getPartialValues<T>(
   return target;
 }
 
-function isAlreadyAtEnd<T>(startValues: T, endValues: RecursivePartial<T> | undefined) {
+function isAlreadyAtEnd<T>(
+  startValues: T | undefined,
+  endValues: RecursivePartial<T> | undefined,
+) {
   for (const key in endValues) {
     const endValue = endValues[key];
-    const startValue = startValues[key];
+    const startValue = startValues?.[key];
     if (endValue >= 0) {
       if (endValue !== startValue) {
         return false;

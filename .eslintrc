@@ -3,10 +3,11 @@
   "parser": "@typescript-eslint/parser",
   "plugins": ["@typescript-eslint"],
   "ignorePatterns": [
+    "dist/*",
+    "build/*",
+    "examples/*",
     "babel.config.js",
-    "jest-setup.js",
-    "demo/test.js",
-    "demo/test_data.js"
+    "jest-setup.js"
   ],
   "rules": {
     "no-multi-spaces": "error",

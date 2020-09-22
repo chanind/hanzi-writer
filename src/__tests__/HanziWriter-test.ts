@@ -142,14 +142,15 @@ describe("HanziWriter", () => {
 
     it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
       document.body.innerHTML = '<div id="target"></div>';
+      const error = new Error("reasons");
 
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char, onComplete, onErr) {
-          onErr(new Error("reasons"));
+          onErr(error);
         },
       });
 
-      await expect(writer._withDataPromise).rejects.toThrow(new Error("reasons"));
+      await expect(writer._withDataPromise).rejects.toThrow(error);
     });
   });
 
@@ -188,8 +189,7 @@ describe("HanziWriter", () => {
       await writer._withDataPromise;
 
       writer.hideOutline();
-      writer.setCharacter("一");
-      await writer._withDataPromise;
+      await writer.setCharacter("一");
       expect(writer._renderState?.state.character.main.opacity).toBe(1);
       expect(writer._renderState?.state.character.outline.opacity).toBe(0);
     });

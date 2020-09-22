@@ -253,7 +253,7 @@ export default class HanziWriter {
     return this._withData(promise);
   }
 
-  loopCharacterAnimation() {
+  async loopCharacterAnimation() {
     this.cancelQuiz();
     return this._withData(() =>
       this._renderState!.run(
@@ -370,7 +370,7 @@ export default class HanziWriter {
   }
 
   quiz(quizOptions: Partial<QuizOptions> = {}) {
-    this._withData(() => {
+    return this._withData(async () => {
       if (this._character && this._renderState && this._positioner) {
         this.cancelQuiz();
         this._quiz = new Quiz(this._character, this._renderState, this._positioner);
@@ -381,9 +381,28 @@ export default class HanziWriter {
       }
     });
   }
-  cancelQuiz() {
+  cancelQuiz(
+    options: {
+      /** Resets show/hide character & outlines */
+      resetDisplay?: boolean;
+    } = {},
+  ) {
     if (this._quiz) {
-      this._quiz.cancel();
+      const promise = this._quiz.cancel();
+      promise?.then(() => {
+        if (options.resetDisplay) {
+          if (this._options.showCharacter) {
+            this.showCharacter();
+          } else {
+            this.hideCharacter();
+          }
+          if (this._options.showOutline) {
+            this.showOutline();
+          } else {
+            this.hideOutline;
+          }
+        }
+      });
       this._quiz = undefined;
     }
   }

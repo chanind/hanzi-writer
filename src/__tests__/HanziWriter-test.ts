@@ -1,5 +1,3 @@
-jest.mock("../Quiz");
-
 import ren from "hanzi-writer-data/人.json";
 import yi from "hanzi-writer-data/一.json";
 import HanziWriter from "../HanziWriter";
@@ -9,6 +7,8 @@ import { CharacterJson, CharDataLoaderFn } from "../typings/types";
 import { resolvePromises } from "../testUtils";
 
 const charDataLoader: CharDataLoaderFn = () => ren as CharacterJson;
+
+jest.mock("../Quiz");
 
 describe("HanziWriter", () => {
   beforeEach(() => {
@@ -920,15 +920,65 @@ describe("HanziWriter", () => {
         onComplete,
       });
     });
+
+    it("resets display options if cancelQuiz is called with `resetDisplay`", async () => {
+      const writer = HanziWriter.create("target", "人", {
+        charDataLoader,
+        showCharacter: true,
+        showOutline: false,
+      });
+
+      await writer._withDataPromise;
+      writer.showCharacter = jest.fn();
+      writer.hideCharacter = jest.fn();
+      writer.showOutline = jest.fn();
+      writer.hideOutline = jest.fn();
+
+      // Start the quiz..
+      await writer.quiz();
+
+      expect(writer.showCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.showOutline).toHaveBeenCalledTimes(0);
+      expect(writer.hideCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.hideOutline).toHaveBeenCalledTimes(0);
+
+      writer.cancelQuiz({ resetDisplay: true });
+
+      expect(writer.showCharacter).toHaveBeenCalledTimes(1);
+      expect(writer.showOutline).toHaveBeenCalledTimes(0);
+      expect(writer.hideCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.hideOutline).toHaveBeenCalledTimes(0);
+    });
+
+    it("doesn't reset display options if no options are provided to cancelQuiz", async () => {
+      const writer = HanziWriter.create("target", "人", { charDataLoader });
+
+      writer.showCharacter = jest.fn();
+      writer.hideCharacter = jest.fn();
+      writer.showOutline = jest.fn();
+      writer.hideOutline = jest.fn();
+
+      await writer.quiz();
+
+      expect(writer.showCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.showOutline).toHaveBeenCalledTimes(0);
+      expect(writer.hideCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.hideOutline).toHaveBeenCalledTimes(0);
+
+      writer.cancelQuiz();
+
+      expect(writer.showCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.showOutline).toHaveBeenCalledTimes(0);
+      expect(writer.hideCharacter).toHaveBeenCalledTimes(0);
+      expect(writer.hideOutline).toHaveBeenCalledTimes(0);
+    });
   });
 
   describe("cancelQuiz", () => {
     it("cancels the existing quiz", async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", { charDataLoader });
-      await writer._withDataPromise;
-      writer.quiz();
-      await resolvePromises();
+      await writer.quiz();
       const quiz = writer._quiz;
       writer.cancelQuiz();
       expect(quiz!.cancel).toHaveBeenCalledTimes(1);
@@ -941,9 +991,7 @@ describe("HanziWriter", () => {
     beforeEach(async () => {
       document.body.innerHTML = '<div id="target"></div>';
       writer = HanziWriter.create("target", "人", { charDataLoader });
-      await writer._withDataPromise;
-      writer.quiz();
-      await resolvePromises();
+      await writer.quiz();
     });
 
     it("starts a user stroke on mousedown", () => {

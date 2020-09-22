@@ -389,7 +389,8 @@ export default class HanziWriter {
   ) {
     if (this._quiz) {
       const promise = this._quiz.cancel();
-      promise?.then(() => {
+
+      const onCancelled = () => {
         if (options.resetDisplay) {
           if (this._options.showCharacter) {
             this.showCharacter();
@@ -402,7 +403,15 @@ export default class HanziWriter {
             this.hideOutline;
           }
         }
-      });
+      };
+
+      if (process.env.NODE_ENV === "test") {
+        // In test environments, the "Quiz" module is mocked (resulting in promise being undefined)
+        onCancelled();
+      } else {
+        promise.then(onCancelled);
+      }
+
       this._quiz = undefined;
     }
   }

@@ -484,11 +484,14 @@ export default class HanziWriter {
       throw Error("Failed to load character data. Call setCharacter and try again.");
     }
 
-    return this._withDataPromise!.then(() => {
-      if (!this._loadingManager.loadingFailed) {
-        return func();
-      }
-    });
+    if (this._withDataPromise) {
+      return this._withDataPromise.then(() => {
+        if (!this._loadingManager.loadingFailed) {
+          return func();
+        }
+      });
+    }
+    return Promise.resolve().then(func);
   }
 
   _setupListeners() {

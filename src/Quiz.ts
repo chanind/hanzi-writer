@@ -134,7 +134,7 @@ export default class Quiz {
   cancel() {
     this._isActive = false;
     if (!this._userStroke) {
-      return Promise.resolve();
+      return Promise.resolve({ canceled: false });
     }
     return this._renderState.run(
       quizActions.removeUserStroke(

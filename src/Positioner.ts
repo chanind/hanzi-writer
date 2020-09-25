@@ -5,6 +5,9 @@ const CHARACTER_BOUNDS = [
   { x: 0, y: -124 },
   { x: 1024, y: 900 },
 ];
+const [from, to] = CHARACTER_BOUNDS;
+const preScaledWidth = to.x - from.x;
+const preScaledHeight = to.y - from.y;
 
 export default class Positioner {
   padding: number;
@@ -14,28 +17,25 @@ export default class Positioner {
   yOffset: number;
   scale: number;
 
-  constructor(options: Partial<PositionerOptions> = {}) {
-    this.padding = options.padding || 0;
-    this.width = options.width || 0;
-    this.height = options.height || 0;
+  constructor(options: PositionerOptions) {
+    const { padding, width, height } = options;
+    this.padding = padding;
+    this.width = width;
+    this.height = height;
 
-    const bounds = CHARACTER_BOUNDS;
-    const preScaledWidth = bounds[1].x - bounds[0].x;
-    const preScaledHeight = bounds[1].y - bounds[0].y;
-    const effectiveWidth = this.width - 2 * this.padding;
-    const effectiveHeight = this.height - 2 * this.padding;
+    const effectiveWidth = width - 2 * padding;
+    const effectiveHeight = height - 2 * padding;
     const scaleX = effectiveWidth / preScaledWidth;
     const scaleY = effectiveHeight / preScaledHeight;
 
     this.scale = Math.min(scaleX, scaleY);
 
-    const xCenteringBuffer =
-      this.padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
+    const xCenteringBuffer = padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
     const yCenteringBuffer =
-      this.padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
+      padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
 
-    this.xOffset = -1 * bounds[0].x * this.scale + xCenteringBuffer;
-    this.yOffset = -1 * bounds[0].y * this.scale + yCenteringBuffer;
+    this.xOffset = -1 * from.x * this.scale + xCenteringBuffer;
+    this.yOffset = -1 * from.y * this.scale + yCenteringBuffer;
   }
 
   convertExternalPoint(point: Point) {

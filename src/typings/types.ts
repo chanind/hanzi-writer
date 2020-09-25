@@ -66,17 +66,17 @@ export type QuizOptions = {
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
-  /** Callback when the highlight animation is complete */
+  /** Callback when the quiz highlight animation is complete */
   onHighlightComplete?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
 export type PositionerOptions = {
   /** Default: 20 */
-  padding: number | null;
+  padding: number;
   /** Default: 0 */
-  width: number | null;
+  width: number;
   /** Default: 0 */
-  height: number | null;
+  height: number;
 };
 
 export type LoadingManagerOptions = {

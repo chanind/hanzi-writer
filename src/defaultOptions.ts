@@ -32,8 +32,8 @@ const defaultOptions: HanziWriterOptions = {
 
   // positioning options
 
-  width: null,
-  height: null,
+  width: 0,
+  height: 0,
   padding: 20,
 
   // animation options

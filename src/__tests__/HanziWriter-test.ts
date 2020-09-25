@@ -265,9 +265,6 @@ describe("HanziWriter", () => {
       await resolvePromises();
       expect(onComplete).not.toHaveBeenCalled();
 
-      // 8 mutations should be running
-      expect(promise.mutations.length).toBe(8);
-
       clock.tick(1000);
       await resolvePromises();
 
@@ -882,12 +879,6 @@ describe("HanziWriter", () => {
         b: 238,
         a: 1,
       });
-
-      // promise.mutations = [
-      //  new Mutation<RenderState>(`options.radicalColor`, { r: 238, g: 238, b: 238, a: 1 }, { duration: 1000 })
-      //  new Mutation<RenderState>(`options.radicalColor`, null, { duration: 0 })
-      // ]
-      expect(promise.mutations.length).toEqual(2);
 
       expect(isResolved).toBe(false);
 

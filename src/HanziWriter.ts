@@ -114,13 +114,13 @@ export default class HanziWriter {
   }
 
   constructor(element: string | HTMLElement, options: Partial<HanziWriterOptions>) {
-    const renderer = options.renderer === "canvas" ? canvasRenderer : svgRenderer;
+    const { HanziWriterRenderer, createRenderTarget } =
+      options.renderer === "canvas" ? canvasRenderer : svgRenderer;
     const rendererOverride = options.rendererOverride || {};
+
     this._renderer = {
-      HanziWriterRenderer:
-        rendererOverride.HanziWriterRenderer || renderer.HanziWriterRenderer,
-      createRenderTarget:
-        rendererOverride.createRenderTarget || renderer.createRenderTarget,
+      HanziWriterRenderer: rendererOverride.HanziWriterRenderer || HanziWriterRenderer,
+      createRenderTarget: rendererOverride.createRenderTarget || createRenderTarget,
     };
     // wechat miniprogram component needs direct access to the render target, so this is public
     this.target = this._renderer.createRenderTarget(
@@ -131,7 +131,6 @@ export default class HanziWriter {
     this._options = this._assignOptions(options);
     this._loadingManager = new LoadingManager(this._options);
     this._setupListeners();
-    this._quiz = undefined;
   }
 
   showCharacter(
@@ -191,22 +190,22 @@ export default class HanziWriter {
   ) {
     this.cancelQuiz();
 
-    const mutations = characterActions.animateCharacter(
-      "main",
-      this._character!,
-      this._options.strokeFadeDuration,
-      this._options.strokeAnimationSpeed,
-      this._options.delayBetweenStrokes,
+    return this._withData(() =>
+      this._renderState
+        ?.run(
+          characterActions.animateCharacter(
+            "main",
+            this._character!,
+            this._options.strokeFadeDuration,
+            this._options.strokeAnimationSpeed,
+            this._options.delayBetweenStrokes,
+          ),
+        )
+        .then((res) => {
+          options.onComplete?.(res);
+          return res;
+        }),
     );
-
-    const promise = this._withData(() =>
-      this._renderState?.run(mutations).then((res) => {
-        options.onComplete?.(res);
-        return res;
-      }),
-    );
-
-    return this._attachMutations(promise, mutations);
   }
 
   animateStroke(
@@ -367,14 +366,12 @@ export default class HanziWriter {
       mutations.push(characterActions.updateColor(colorName, null, 0));
     }
 
-    const promise = this._withData(() =>
+    return this._withData(() =>
       this._renderState?.run(mutations).then((res) => {
         options.onComplete?.(res);
         return res;
       }),
     );
-
-    return this._attachMutations(promise, mutations);
   }
 
   quiz(quizOptions: Partial<QuizOptions> = {}) {
@@ -389,6 +386,7 @@ export default class HanziWriter {
       }
     });
   }
+
   cancelQuiz(
     options: {
       /** Resets show/hide character & outlines */
@@ -459,15 +457,7 @@ export default class HanziWriter {
     return this._withDataPromise;
   }
 
-  _assignOptions(
-    options: Partial<
-      HanziWriterOptions & {
-        strokeAnimationDuration?: number;
-        strokeAnimationSpeed?: number;
-        highlightCompleteColor?: string | null;
-      }
-    >,
-  ) {
+  _assignOptions(options: Partial<HanziWriterOptions>) {
     const mergedOptions = {
       ...defaultOptions,
       ...options,
@@ -486,16 +476,6 @@ export default class HanziWriter {
     }
 
     return this._fillWidthAndHeight(mergedOptions);
-  }
-
-  /** Mostly for testing purposes, allows individual mutations to be awaited on */
-  _attachMutations<TValue, TPromise extends Promise<TValue>>(
-    promise: TPromise,
-    mutations: GenericMutation[],
-  ) {
-    const promiseWithMutations = promise as TPromise & { mutations: GenericMutation[] };
-    promiseWithMutations.mutations = mutations;
-    return promiseWithMutations;
   }
 
   /** returns a new options object with width and height filled in if missing */

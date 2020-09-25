@@ -33,11 +33,17 @@ const createRenderState = (optOverrides: Partial<RenderStateOptions> = {}) => {
   return new RenderState(char, options);
 };
 
+const positioner = new Positioner({
+  width: 100,
+  height: 100,
+  padding: 10,
+});
+
 describe("Quiz", () => {
   describe("startQuiz", () => {
     it("resets the quiz and makes it active", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       expect(quiz._isActive).toBe(false);
 
       await quiz.startQuiz({ ...defaultOptions });
@@ -64,7 +70,7 @@ describe("Quiz", () => {
         },
       });
 
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.character.highlight.opacity).toBe(1);
@@ -77,7 +83,7 @@ describe("Quiz", () => {
   describe("cancel", () => {
     it("makes the quiz inactive and removes the current stroke", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       quiz.startQuiz({ ...defaultOptions });
 
       quiz.startUserStroke({ x: 10, y: 20 });
@@ -96,7 +102,7 @@ describe("Quiz", () => {
   describe("startUserStroke", () => {
     it("begins a stroke with the provided point", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
@@ -115,7 +121,7 @@ describe("Quiz", () => {
 
     it("ends the current user stroke if one exists", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
@@ -146,7 +152,7 @@ describe("Quiz", () => {
   describe("continueUserStroke", () => {
     it("adds to the current user stroke", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
@@ -177,7 +183,7 @@ describe("Quiz", () => {
 
     it("does nothing if there is no current stroke", async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       await quiz.startQuiz({ ...defaultOptions });
 
       expect(renderState.state.userStrokes).toBe(null);
@@ -196,7 +202,7 @@ describe("Quiz", () => {
       strokeMatches.mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -245,7 +251,7 @@ describe("Quiz", () => {
       strokeMatches.mockImplementation(() => false);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -279,7 +285,7 @@ describe("Quiz", () => {
       strokeMatches.mockImplementation(() => false);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -330,7 +336,7 @@ describe("Quiz", () => {
       const renderState = createRenderState();
       // should reset this color before highlighting
       renderState.state.character.highlight.strokeColor = "#00F";
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -401,7 +407,7 @@ describe("Quiz", () => {
       const renderState = createRenderState();
       // should reset this color before highlighting
       renderState.state.character.highlight.strokeColor = "#00F";
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -430,7 +436,7 @@ describe("Quiz", () => {
       strokeMatches.mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
@@ -504,7 +510,7 @@ describe("Quiz", () => {
       strokeMatches.mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, new Positioner());
+      const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       quiz.startQuiz({ ...defaultOptions, onCorrectStroke });
       clock.tick(1000);
@@ -537,7 +543,7 @@ describe("Quiz", () => {
     // @ts-ignore
     strokeMatches.mockImplementation(() => true);
     const renderState = createRenderState();
-    const quiz = new Quiz(char, renderState, new Positioner());
+    const quiz = new Quiz(char, renderState, positioner);
 
     quiz.startQuiz({ ...defaultOptions });
     clock.tick(1000);

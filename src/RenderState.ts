@@ -221,7 +221,7 @@ export default class RenderState {
   }
 
   _cancelMutationChain(mutationChain: MutationChain) {
-    mutationChain._isActive = false; // eslint-disable-line no-param-reassign
+    mutationChain._isActive = false;
     for (let i = mutationChain._index; i < mutationChain._mutations.length; i++) {
       mutationChain._mutations[i].cancel(this);
     }

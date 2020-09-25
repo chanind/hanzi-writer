@@ -20,12 +20,15 @@ export default class CharacterRenderer {
     },
   ) {
     if (props.opacity < 0.05) return;
+
+    const { opacity, strokeColor, radicalColor, strokes } = props;
+
     for (let i = 0; i < this._strokeRenderers.length; i++) {
       this._strokeRenderers[i].render(ctx, {
-        strokeColor: props.strokeColor,
-        radicalColor: props.radicalColor,
-        opacity: props.strokes[i].opacity * props.opacity,
-        displayPortion: props.strokes[i].displayPortion || 0,
+        strokeColor,
+        radicalColor,
+        opacity: strokes[i].opacity * opacity,
+        displayPortion: strokes[i].displayPortion || 0,
       });
     }
   }

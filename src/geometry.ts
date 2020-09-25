@@ -86,7 +86,8 @@ export const frechetDist = (curve1: Point[], curve2: Point[]) => {
 /** break up long segments in the curve into smaller segments of len maxLen or smaller */
 export const subdivideCurve = (curve: Point[], maxLen = 0.05) => {
   const newCurve = curve.slice(0, 1);
-  curve.slice(1).forEach((point) => {
+
+  for (const point of curve.slice(1)) {
     const prevPoint = newCurve[newCurve.length - 1];
     const segLen = distance(point, prevPoint);
     if (segLen > maxLen) {
@@ -98,7 +99,8 @@ export const subdivideCurve = (curve: Point[], maxLen = 0.05) => {
     } else {
       newCurve.push(point);
     }
-  });
+  }
+
   return newCurve;
 };
 

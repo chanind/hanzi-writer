@@ -15,7 +15,7 @@ type StrokeRenderProps = {
   opacity: number;
 };
 
-// this is a stroke composed of several stroke parts
+/** This is a stroke composed of several stroke parts **/
 export default class StrokeRenderer extends StrokeRendererBase {
   _oldProps: StrokeRenderProps | undefined = undefined;
 

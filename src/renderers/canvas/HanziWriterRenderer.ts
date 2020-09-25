@@ -31,19 +31,15 @@ export default class HanziWriterRenderer
   destroy = noop;
 
   _animationFrame(cb: (ctx: CanvasRenderingContext2D) => void) {
+    const { width, height, scale, xOffset, yOffset } = this._positioner;
     const ctx = this._target!.getContext()!;
-    ctx.clearRect(0, 0, this._positioner.width, this._positioner.height);
-
+    ctx.clearRect(0, 0, width, height);
     ctx.save();
-    ctx.translate(
-      this._positioner.xOffset,
-      this._positioner.height - this._positioner.yOffset,
-    );
+    ctx.translate(xOffset, height - yOffset);
     ctx.transform(1, 0, 0, -1, 0, 0);
-    ctx.scale(this._positioner.scale, this._positioner.scale);
+    ctx.scale(scale, scale);
     cb(ctx);
     ctx.restore();
-
     // @ts-expect-error Verify if this is still needed for the "wechat miniprogram".
     if (ctx.draw) {
       // @ts-expect-error
@@ -52,22 +48,32 @@ export default class HanziWriterRenderer
   }
 
   render(props: RenderStateObject) {
+    const { outline, main, highlight } = props.character;
+    const {
+      outlineColor,
+      strokeColor,
+      radicalColor,
+      highlightColor,
+      drawingColor,
+      drawingWidth,
+    } = props.options;
+
     this._animationFrame((ctx) => {
       this._outlineCharRenderer.render(ctx, {
-        opacity: props.character.outline.opacity,
-        strokes: props.character.outline.strokes,
-        strokeColor: props.options.outlineColor,
+        opacity: outline.opacity,
+        strokes: outline.strokes,
+        strokeColor: outlineColor,
       });
       this._mainCharRenderer.render(ctx, {
-        opacity: props.character.main.opacity,
-        strokes: props.character.main.strokes,
-        strokeColor: props.options.strokeColor,
-        radicalColor: props.options.radicalColor,
+        opacity: main.opacity,
+        strokes: main.strokes,
+        strokeColor: strokeColor,
+        radicalColor: radicalColor,
       });
       this._highlightCharRenderer.render(ctx, {
-        opacity: props.character.highlight.opacity,
-        strokes: props.character.highlight.strokes,
-        strokeColor: props.options.highlightColor,
+        opacity: highlight.opacity,
+        strokes: highlight.strokes,
+        strokeColor: highlightColor,
       });
 
       const userStrokes = props.userStrokes || {};
@@ -76,8 +82,8 @@ export default class HanziWriterRenderer
         const userStroke = userStrokes[userStrokeId];
         if (userStroke) {
           const userStrokeProps = {
-            strokeWidth: props.options.drawingWidth,
-            strokeColor: props.options.drawingColor,
+            strokeWidth: drawingWidth,
+            strokeColor: drawingColor,
             ...userStroke,
           };
           renderUserStroke(ctx, userStrokeProps);

@@ -38,7 +38,6 @@ export default class StrokeRenderer extends StrokeRendererBase {
     if (props.opacity < 0.05) {
       return;
     }
-
     ctx.save();
 
     if (this._path2D) {

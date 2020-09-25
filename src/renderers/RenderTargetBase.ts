@@ -55,16 +55,16 @@ export default class RenderTargetBase<
   }
 
   _getMousePoint(evt: MouseEvent): Point {
-    const box = this.getBoundingClientRect();
-    const x = evt.clientX - box.left;
-    const y = evt.clientY - box.top;
+    const { left, top } = this.getBoundingClientRect();
+    const x = evt.clientX - left;
+    const y = evt.clientY - top;
     return { x, y };
   }
 
   _getTouchPoint(evt: TouchEvent): Point {
-    const box = this.getBoundingClientRect();
-    const x = evt.touches[0].clientX - box.left;
-    const y = evt.touches[0].clientY - box.top;
+    const { left, top } = this.getBoundingClientRect();
+    const x = evt.touches[0].clientX - left;
+    const y = evt.touches[0].clientY - top;
     return { x, y };
   }
 }

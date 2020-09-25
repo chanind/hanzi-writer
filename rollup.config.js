@@ -4,6 +4,7 @@ import resolve from "@rollup/plugin-node-resolve";
 import babel from "@rollup/plugin-babel";
 import pkg from "./package.json";
 import license from "rollup-plugin-license";
+import filesize from "rollup-plugin-filesize";
 
 const extensions = [".js", ".ts"];
 
@@ -33,7 +34,10 @@ export default [
       },
     ],
     plugins: [
-      ts(),
+      filesize(),
+      ts({
+        transpiler: "babel",
+      }),
       resolve({ extensions }),
       babel({
         exclude: "node_modules/**",

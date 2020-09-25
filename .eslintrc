@@ -14,6 +14,7 @@
     "no-nested-ternary": "error",
     "no-trailing-spaces": "error",
     "no-irregular-whitespace": "error",
+    "no-param-reassign": "error",
     "no-unused-vars": [2, { "vars": "all", "args": "none" }],
     "comma-dangle": ["error", "always-multiline"],
     // @typescript-eslint settings

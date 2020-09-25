@@ -10,7 +10,6 @@ import {
   length,
 } from "./geometry";
 import { Point } from "./typings/types";
-import Character from "./models/Character";
 import UserStroke from "./models/UserStroke";
 import Stroke from "./models/Stroke";
 
@@ -19,6 +18,51 @@ const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.4; // bigger = more lenient
 const MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
+
+export default function strokeMatches(
+  userStroke: UserStroke,
+  strokes: Stroke[],
+  strokeNum: number,
+  options: {
+    leniency?: number;
+    isOutlineVisible?: boolean;
+  } = {},
+) {
+  const points = stripDuplicates(userStroke.points);
+
+  if (points.length < 2) {
+    return null;
+  }
+
+  const { isMatch, avgDist } = getMatchData(points, strokes[strokeNum], options);
+
+  if (!isMatch) {
+    return false;
+  }
+
+  // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
+  const laterStrokes = strokes.slice(strokeNum + 1);
+  let closestMatchDist = avgDist;
+
+  for (let i = 0; i < laterStrokes.length; i++) {
+    const { isMatch, avgDist } = getMatchData(points, laterStrokes[i], options);
+    if (isMatch && avgDist < closestMatchDist) {
+      closestMatchDist = avgDist;
+    }
+  }
+  // if there's a better match, rather that returning false automatically, try reducing leniency instead
+  // if leniency is already really high we can allow some similar strokes to pass
+  if (closestMatchDist < avgDist) {
+    // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
+    const leniencyAdjustment = (0.6 * (closestMatchDist + avgDist)) / (2 * avgDist);
+    const { isMatch } = getMatchData(points, strokes[strokeNum], {
+      ...options,
+      leniency: (options.leniency || 1) * leniencyAdjustment,
+    });
+    return isMatch;
+  }
+  return true;
+}
 
 const startAndEndMatches = (points: Point[], closestStroke: Stroke, leniency: number) => {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -61,12 +105,15 @@ const lengthMatches = (points: Point[], stroke: Stroke, leniency: number) => {
 
 const stripDuplicates = (points: Point[]) => {
   if (points.length < 2) return points;
-  const dedupedPoints = [points[0]];
-  points.slice(1).forEach((point) => {
+  const [firstPoint, ...rest] = points;
+  const dedupedPoints = [firstPoint];
+
+  for (const point of rest) {
     if (!equals(point, dedupedPoints[dedupedPoints.length - 1])) {
       dedupedPoints.push(point);
     }
-  });
+  }
+
   return dedupedPoints;
 };
 
@@ -114,48 +161,3 @@ const getMatchData = (
     avgDist,
   };
 };
-
-const strokeMatches = (
-  userStroke: UserStroke,
-  character: Character,
-  strokeNum: number,
-  options: {
-    leniency?: number;
-    isOutlineVisible?: boolean;
-  } = {},
-) => {
-  const points = stripDuplicates(userStroke.points);
-  if (points.length < 2) return null;
-
-  const strokeMatchData = getMatchData(points, character.strokes[strokeNum], options);
-  if (!strokeMatchData.isMatch) return false;
-
-  // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
-  const laterStrokes = character.strokes.slice(strokeNum + 1);
-  let closestMatchDist = strokeMatchData.avgDist;
-  for (let i = 0; i < laterStrokes.length; i++) {
-    const laterMatchData = getMatchData(points, laterStrokes[i], options);
-    if (laterMatchData.isMatch && laterMatchData.avgDist < closestMatchDist) {
-      closestMatchDist = laterMatchData.avgDist;
-    }
-  }
-  // if there's a better match, rather that returning false automatically, try reducing leniency instead
-  // if leniency is already really high we can allow some similar strokes to pass
-  if (closestMatchDist < strokeMatchData.avgDist) {
-    // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
-    const leniencyAdjustment =
-      (0.6 * (closestMatchDist + strokeMatchData.avgDist)) /
-      (2 * strokeMatchData.avgDist);
-    const newLeniency = (options.leniency || 1) * leniencyAdjustment;
-    const adjustedOptions = { ...options, leniency: newLeniency };
-    const adjustedStrokeMatchData = getMatchData(
-      points,
-      character.strokes[strokeNum],
-      adjustedOptions,
-    );
-    return adjustedStrokeMatchData.isMatch;
-  }
-  return true;
-};
-
-export default strokeMatches;

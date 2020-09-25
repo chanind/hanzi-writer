@@ -6,7 +6,7 @@ import * as quizActions from "./quizActions";
 import * as geometry from "./geometry";
 import * as characterActions from "./characterActions";
 import Character from "./models/Character";
-import { HanziWriterOptions, Point } from "./typings/types";
+import { HanziWriterOptions, Point, StrokeData } from "./typings/types";
 import RenderState from "./RenderState";
 
 const getDrawnPath = (userStroke: UserStroke) => ({
@@ -23,7 +23,7 @@ export default class Quiz {
   /** Set on startQuiz */
   _options: HanziWriterOptions | undefined;
   _currentStrokeIndex = 0;
-  _numRecentMistakes = 0;
+  _mistakesOnStroke = 0;
   _totalMistakes = 0;
   _userStroke: UserStroke | undefined;
 
@@ -34,15 +34,11 @@ export default class Quiz {
     this._positioner = positioner;
   }
 
-  get numRecentMistakes() {
-    return this._numRecentMistakes || 0;
-  }
-
   startQuiz(options: HanziWriterOptions) {
     this._isActive = true;
     this._options = options;
     this._currentStrokeIndex = 0;
-    this._numRecentMistakes = 0;
+    this._mistakesOnStroke = 0;
     this._totalMistakes = 0;
 
     return this._renderState.run(
@@ -51,13 +47,13 @@ export default class Quiz {
   }
 
   startUserStroke(externalPoint: Point) {
-    const point = this._positioner.convertExternalPoint(externalPoint);
     if (!this._isActive) {
       return null;
     }
     if (this._userStroke) {
       return this.endUserStroke();
     }
+    const point = this._positioner.convertExternalPoint(externalPoint);
     const strokeId = counter();
     this._userStroke = new UserStroke(strokeId, point, externalPoint);
     return this._renderState.run(quizActions.startUserStroke(strokeId, point));
@@ -98,7 +94,7 @@ export default class Quiz {
     const currentStroke = this._getCurrentStroke();
     const isMatch = strokeMatches(
       this._userStroke,
-      this._character,
+      this._character.strokes,
       this._currentStrokeIndex,
       {
         isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
@@ -112,7 +108,7 @@ export default class Quiz {
       this._handleFailure();
       if (
         this._options!.showHintAfterMisses !== false &&
-        this.numRecentMistakes >= Number(this._options!.showHintAfterMisses)
+        this._mistakesOnStroke >= Number(this._options!.showHintAfterMisses)
       ) {
         promises.push(
           this._renderState.run(
@@ -144,48 +140,66 @@ export default class Quiz {
     );
   }
 
+  _getStrokeData(isCorrect = false): StrokeData {
+    return {
+      character: this._character.symbol,
+      strokeNum: this._currentStrokeIndex,
+      mistakesOnStroke: this._mistakesOnStroke,
+      totalMistakes: this._totalMistakes,
+      strokesRemaining:
+        this._character.strokes.length - this._currentStrokeIndex - (isCorrect ? 1 : 0),
+      drawnPath: getDrawnPath(this._userStroke!),
+    };
+  }
+
   _handleSuccess() {
     if (!this._options) {
       return Promise.resolve();
     }
-    this._options.onCorrectStroke?.({
-      character: this._character.symbol,
-      strokeNum: this._currentStrokeIndex,
-      mistakesOnStroke: this._numRecentMistakes,
-      totalMistakes: this._totalMistakes,
-      strokesRemaining: this._character.strokes.length - this._currentStrokeIndex! - 1,
-      drawnPath: getDrawnPath(this._userStroke!),
-    });
-    const animation = [
-      characterActions.showStroke(
-        "main",
-        this._currentStrokeIndex,
-        this._options.strokeFadeDuration,
-      ),
-    ];
-    this._currentStrokeIndex += 1;
-    this._numRecentMistakes = 0;
 
-    if (this._currentStrokeIndex === this._character.strokes.length) {
+    const { strokes, symbol } = this._character;
+
+    const {
+      onCorrectStroke,
+      onComplete,
+      onHighlightComplete,
+      highlightOnComplete,
+      strokeFadeDuration,
+      highlightCompleteColor,
+      strokeHighlightDuration,
+    } = this._options;
+
+    onCorrectStroke?.(this._getStrokeData(true));
+
+    const animation = [
+      characterActions.showStroke("main", this._currentStrokeIndex, strokeFadeDuration),
+    ];
+    this._mistakesOnStroke = 0;
+    this._currentStrokeIndex += 1;
+
+    const isComplete = this._currentStrokeIndex === strokes.length;
+
+    if (isComplete) {
       this._isActive = false;
-      this._options.onComplete?.({
-        character: this._character.symbol,
+      onComplete?.({
+        character: symbol,
         totalMistakes: this._totalMistakes,
       });
-      if (this._options.highlightOnComplete) {
+      if (highlightOnComplete) {
         animation.push(
           ...quizActions.highlightCompleteChar(
             this._character,
-            this._options.highlightCompleteColor,
-            (this._options.strokeHighlightDuration || 0) * 2,
+            highlightCompleteColor,
+            (strokeHighlightDuration || 0) * 2,
           ),
         );
       }
     }
+
     return this._renderState.run(animation).then((res) => {
-      if (!this._isActive) {
-        this._options?.onHighlightComplete?.({
-          character: this._character.symbol,
+      if (isComplete) {
+        onHighlightComplete?.({
+          character: symbol,
           totalMistakes: this._totalMistakes,
         });
       }
@@ -194,16 +208,9 @@ export default class Quiz {
   }
 
   _handleFailure() {
-    this._numRecentMistakes += 1;
+    this._mistakesOnStroke += 1;
     this._totalMistakes += 1;
-    this._options!.onMistake?.({
-      character: this._character.symbol,
-      strokeNum: this._currentStrokeIndex,
-      mistakesOnStroke: this._numRecentMistakes,
-      totalMistakes: this._totalMistakes,
-      strokesRemaining: this._character.strokes.length - this._currentStrokeIndex,
-      drawnPath: getDrawnPath(this._userStroke!),
-    });
+    this._options!.onMistake?.(this._getStrokeData());
   }
 
   _getCurrentStroke() {

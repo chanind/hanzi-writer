@@ -26,7 +26,7 @@ const assertMatches = (
   const char = getChar(charStr);
   const userStroke = getUserStrokeFromPoints(points);
 
-  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(true);
+  expect(strokeMatches(userStroke, char.strokes, strokeNum, options)).toBe(true);
 };
 
 const assertNotMatches = (
@@ -38,7 +38,7 @@ const assertNotMatches = (
   const char = getChar(charStr);
   const userStroke = getUserStrokeFromPoints(points);
 
-  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(false);
+  expect(strokeMatches(userStroke, char.strokes, strokeNum, options)).toBe(false);
 };
 
 describe("strokeMatches", () => {
@@ -57,7 +57,7 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 10, y: 51 }, { x: 9999, y: 9999 });
 
     const character = new Character("", [stroke]);
-    expect(strokeMatches(userStroke, character, 0)).toBe(true);
+    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(true);
   });
 
   it("does not match if the user stroke is in the wrong direction", () => {
@@ -76,7 +76,7 @@ describe("strokeMatches", () => {
 
     const character = new Character("", [stroke]);
 
-    expect(strokeMatches(userStroke, character, 0)).toBe(false);
+    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(false);
   });
 
   it("does not match if the user stroke is too far away", () => {
@@ -98,7 +98,7 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 10 + 200, y: 51 + 200 }, { x: 9999, y: 9999 });
 
     const character = new Character("", [stroke]);
-    expect(strokeMatches(userStroke, character, 0)).toBe(false);
+    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(false);
   });
 
   it("is more lenient depending on how large leniency is", () => {
@@ -121,8 +121,10 @@ describe("strokeMatches", () => {
 
     const character = new Character("", [stroke]);
 
-    expect(strokeMatches(userStroke, character, 0, { leniency: 0.2 })).toBe(false);
-    expect(strokeMatches(userStroke, character, 0, { leniency: 20 })).toBe(true);
+    expect(strokeMatches(userStroke, character.strokes, 0, { leniency: 0.2 })).toBe(
+      false,
+    );
+    expect(strokeMatches(userStroke, character.strokes, 0, { leniency: 20 })).toBe(true);
   });
 
   it("matches using real data 1", () => {

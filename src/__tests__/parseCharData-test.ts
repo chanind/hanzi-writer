@@ -1,10 +1,9 @@
 import ta from "hanzi-writer-data/他.json";
 import parseCharData from "../parseCharData";
-import { CharacterJson } from "../typings/types";
 
 describe("parseCharData", () => {
   it("creates a Character object from character json", () => {
-    const res = parseCharData("他", ta as CharacterJson);
+    const res = parseCharData("他", ta);
     expect(res.strokes).toHaveLength(5);
     expect(res.strokes[0].isInRadical).toBe(true);
     expect(res.strokes[1].isInRadical).toBe(true);

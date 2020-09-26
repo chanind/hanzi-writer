@@ -8,7 +8,7 @@ describe("LoadingManager", () => {
     it("resolves when data is loaded via async callback", async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete) {
-          setTimeout(() => onComplete(ren as CharacterJson), 1);
+          setTimeout(() => onComplete(ren), 1);
         },
       });
       const data = await manager.loadCharData("人");
@@ -19,7 +19,7 @@ describe("LoadingManager", () => {
     it("resolves when data is loaded via sync callback", async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete) {
-          onComplete(ren as CharacterJson);
+          onComplete(ren);
         },
       });
       const data = await manager.loadCharData("人");
@@ -30,7 +30,7 @@ describe("LoadingManager", () => {
     it("resolves when data is loaded via promise", async () => {
       const manager = new LoadingManager({
         charDataLoader() {
-          return Promise.resolve(ren as CharacterJson);
+          return Promise.resolve(ren);
         },
       });
       const data = await manager.loadCharData("人");
@@ -41,7 +41,7 @@ describe("LoadingManager", () => {
     it("resolves when data is loaded via sync return", async () => {
       const manager = new LoadingManager({
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
       });
       const data = await manager.loadCharData("人");
@@ -53,7 +53,7 @@ describe("LoadingManager", () => {
       let successVal: CharacterJson | undefined;
       const manager = new LoadingManager({
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
         onLoadCharDataSuccess(returnedData) {
           successVal = returnedData;
@@ -122,8 +122,8 @@ describe("LoadingManager", () => {
         hasPromise1Resolved = true;
       });
 
-      onCompleteFns[0](ren as CharacterJson);
-      onCompleteFns[1](ta as CharacterJson);
+      onCompleteFns[0](ren);
+      onCompleteFns[1](ta);
 
       const data = await loadPromise2;
 

@@ -2,9 +2,8 @@ import ren from "hanzi-writer-data/人.json";
 import Mutation from "../Mutation";
 import RenderState from "../RenderState";
 import parseCharData from "../parseCharData";
-import { CharacterJson } from "../typings/types";
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 const opts = {
   strokeColor: "#555",

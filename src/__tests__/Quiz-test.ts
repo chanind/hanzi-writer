@@ -7,7 +7,7 @@ import parseCharData from "../parseCharData";
 import RenderState, { RenderStateOptions } from "../RenderState";
 import Positioner from "../Positioner";
 import strokeMatches from "../strokeMatches";
-import { CharacterJson, Point } from "../typings/types";
+import { Point } from "../typings/types";
 import defaultOptions from "../defaultOptions";
 import { resolvePromises } from "../testUtils";
 
@@ -26,7 +26,7 @@ beforeEach(() => {
   Positioner.mockClear();
 });
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 const createRenderState = (optOverrides: Partial<RenderStateOptions> = {}) => {
   const options: RenderStateOptions = { ...defaultOptions, ...optOverrides };

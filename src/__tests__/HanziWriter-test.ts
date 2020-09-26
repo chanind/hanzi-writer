@@ -3,10 +3,10 @@ import yi from "hanzi-writer-data/一.json";
 import HanziWriter from "../HanziWriter";
 import { timeout } from "../utils";
 import Quiz from "../Quiz";
-import { CharacterJson, CharDataLoaderFn } from "../typings/types";
+import { CharDataLoaderFn } from "../typings/types";
 import { resolvePromises } from "../testUtils";
 
-const charDataLoader: CharDataLoaderFn = () => ren as CharacterJson;
+const charDataLoader: CharDataLoaderFn = () => ren;
 
 jest.mock("../Quiz");
 
@@ -159,9 +159,7 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char) {
-          return timeout(1).then(() =>
-            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
-          );
+          return timeout(1).then(() => (char === "人" ? ren : yi));
         },
       });
       await writer._withDataPromise;
@@ -181,9 +179,7 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char) {
-          return timeout(1).then(() =>
-            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
-          );
+          return timeout(1).then(() => (char === "人" ? ren : yi));
         },
       });
       await writer._withDataPromise;
@@ -198,9 +194,7 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char) {
-          return timeout(1).then(() =>
-            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
-          );
+          return timeout(1).then(() => (char === "人" ? ren : yi));
         },
       });
       await writer._withDataPromise;
@@ -216,9 +210,7 @@ describe("HanziWriter", () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create("target", "人", {
         charDataLoader(char) {
-          return timeout(1).then(() =>
-            char === "人" ? (ren as CharacterJson) : (yi as CharacterJson),
-          );
+          return timeout(1).then(() => (char === "人" ? ren : yi));
         },
       });
       await writer._withDataPromise;
@@ -1115,7 +1107,7 @@ describe("HanziWriter", () => {
     it("returns the character data in a promise on success", async () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
       });
 
@@ -1128,7 +1120,7 @@ describe("HanziWriter", () => {
       const loadingPromise = HanziWriter.loadCharacterData("人", {
         onLoadCharDataSuccess,
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
       });
 
@@ -1141,7 +1133,7 @@ describe("HanziWriter", () => {
     it("uses lastLoadingManager if options match", async () => {
       const options = {
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
       };
 
@@ -1156,13 +1148,13 @@ describe("HanziWriter", () => {
     it("doesn't use lastLoadingManager if options change", async () => {
       HanziWriter.loadCharacterData("人", {
         charDataLoader() {
-          return ren as CharacterJson;
+          return ren;
         },
       });
       const loadingManager = HanziWriter._loadingManager;
       HanziWriter.loadCharacterData("人", {
         charDataLoader() {
-          return yi as CharacterJson;
+          return yi;
         },
       });
       const loadingManagerTwo = HanziWriter._loadingManager;

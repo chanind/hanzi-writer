@@ -3,9 +3,8 @@ import CharacterRenderer from "../CharacterRenderer";
 import RenderTarget from "../RenderTarget";
 import { copyAndMergeDeep } from "../../../utils";
 import parseCharData from "../../../parseCharData";
-import { CharacterJson } from "../../../typings/types";
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 describe("CharacterRenderer", () => {
   let target: RenderTarget;

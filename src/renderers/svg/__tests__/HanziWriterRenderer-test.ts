@@ -4,10 +4,9 @@ import SVGRenderTarget from "../RenderTarget";
 import { copyAndMergeDeep } from "../../../utils";
 import Positioner from "../../../Positioner";
 import parseCharData from "../../../parseCharData";
-import { CharacterJson } from "../../../typings/types";
 import { RenderStateObject } from "../../../RenderState";
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 const positioner = new Positioner({
   width: 100,

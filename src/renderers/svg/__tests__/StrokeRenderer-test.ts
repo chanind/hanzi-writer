@@ -1,10 +1,9 @@
 import yi from "hanzi-writer-data/一.json";
-import { CharacterJson } from "../../../typings/types";
 import StrokeRenderer from "../StrokeRenderer";
 import RenderTarget from "../RenderTarget";
 import parseCharData from "../../../parseCharData";
 
-const char = parseCharData("一", yi as CharacterJson);
+const char = parseCharData("一", yi);
 
 describe("StrokeRenderer", () => {
   let target: RenderTarget;

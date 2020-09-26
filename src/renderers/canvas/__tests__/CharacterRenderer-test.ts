@@ -1,11 +1,10 @@
 import ren from "hanzi-writer-data/人.json";
 import CharacterRenderer from "../CharacterRenderer";
 import parseCharData from "../../../parseCharData";
-import { CharacterJson } from "../../../typings/types";
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
 import "jest-canvas-mock";
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 describe("CharacterRenderer", () => {
   let ctx: CanvasRenderingContext2D;

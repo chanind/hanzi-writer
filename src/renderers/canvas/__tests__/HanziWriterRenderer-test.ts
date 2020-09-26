@@ -3,12 +3,11 @@ import HanziWriterRenderer from "../HanziWriterRenderer";
 import RenderTarget from "../RenderTarget";
 import Positioner from "../../../Positioner";
 import parseCharData from "../../../parseCharData";
-import { CharacterJson } from "../../../typings/types";
 import { RenderStateObject } from "../../../RenderState";
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
 import "jest-canvas-mock";
 
-const char = parseCharData("人", ren as CharacterJson);
+const char = parseCharData("人", ren);
 
 const positioner = new Positioner({
   width: 100,

@@ -1,11 +1,10 @@
 import yi from "hanzi-writer-data/一.json";
-import { CharacterJson } from "../../../typings/types";
 import StrokeRenderer from "../StrokeRenderer";
 import parseCharData from "../../../parseCharData";
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
 import "jest-canvas-mock";
 
-const char = parseCharData("一", yi as CharacterJson);
+const char = parseCharData("一", yi);
 
 describe("StrokeRenderer", () => {
   let ctx: CanvasRenderingContext2D;

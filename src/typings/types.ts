@@ -3,7 +3,7 @@ import { HanziWriterRendererConstructor } from "../renderers/HanziWriterRenderer
 
 export type CharacterJson = {
   strokes: string[];
-  medians: [number, number][][];
+  medians: number[][][];
   radStrokes?: number[];
 };
 

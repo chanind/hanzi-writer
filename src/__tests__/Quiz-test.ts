@@ -335,7 +335,12 @@ describe("Quiz", () => {
 
       const renderState = createRenderState();
       // should reset this color before highlighting
-      renderState.state.character.highlight.strokeColor = "#00F";
+      renderState.state.options.highlightColor = {
+        r: 0,
+        g: 0,
+        b: 255,
+        a: 1,
+      };
       const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
@@ -393,7 +398,13 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
 
       // should highlight the stroke now
-      expect(renderState.state.character.highlight.strokeColor).toBe("#AAF");
+      renderState.state.options.highlightColor = {
+        r: 170,
+        g: 170,
+        b: 255,
+        a: 1,
+      };
+
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();
@@ -406,7 +417,13 @@ describe("Quiz", () => {
 
       const renderState = createRenderState();
       // should reset this color before highlighting
-      renderState.state.character.highlight.strokeColor = "#00F";
+      renderState.state.options.highlightColor = {
+        r: 0,
+        g: 0,
+        b: 255,
+        a: 1,
+      };
+
       const quiz = new Quiz(char, renderState, positioner);
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
@@ -447,7 +464,7 @@ describe("Quiz", () => {
         onComplete,
         onMistake,
         highlightOnComplete: true,
-        highlightCompleteColor: "#0F0",
+        highlightCompleteColor: "#0F0", // r: 0, g: 255, b: 0, a: 1
       });
 
       await quiz.startUserStroke({ x: 10, y: 20 });
@@ -496,7 +513,12 @@ describe("Quiz", () => {
       clock.tick(1000);
       await resolvePromises();
       // highlights the character at the end
-      expect(renderState.state.character.highlight.strokeColor).toBe("#0F0");
+      expect(renderState.state.options.highlightColor).toEqual({
+        r: 0,
+        g: 255,
+        b: 0,
+        a: 1,
+      });
       expect(renderState.state.character.highlight.opacity).toBe(1);
 
       clock.tick(1000);

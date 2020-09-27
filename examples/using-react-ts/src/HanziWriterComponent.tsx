@@ -1,110 +1,106 @@
-import React, {
-  useLayoutEffect,
-  useRef,
-  useImperativeHandle,
-  useMemo,
-  useEffect,
-} from "react";
-import HanziWriter, { HanziWriterOptions, QuizOptions } from "hanzi-writer";
+import React, { useLayoutEffect, useRef, useImperativeHandle, useMemo } from "react";
+import HanziWriter, { HanziWriterOptions, QuizOptions, ColorOptions } from "hanzi-writer";
+import { useCurrentRef, usePreviousRef, useUpdateEffect } from "./hooks";
+
+// We don't want stale function references
+type WithoutQuizOptions = Omit<HanziWriterOptions, keyof QuizOptions>;
 
 export type HanziWriterComponentProps = {
-  className?: string;
   char: string;
-  quiz?: {
-    active: boolean;
-    options: Partial<QuizOptions>;
-  };
+  className?: string;
   children?: React.ReactNode;
-  options: Partial<HanziWriterOptions>;
-};
+} & Partial<WithoutQuizOptions>;
+
+const colorOptions: Array<keyof ColorOptions> = [
+  "strokeColor",
+  "radicalColor",
+  "highlightColor",
+  "outlineColor",
+  "drawingColor",
+  "highlightCompleteColor",
+];
 
 /**
  * React component for the `"hanzi-writer"` library
+ *
+ * The ref of this component returns the HanziWriter class instance
+ *
  */
 const HanziWriterComponent = React.forwardRef<
   HanziWriter | undefined,
   HanziWriterComponentProps
->((props, ref) => {
+>(({ char, className, children, ...options }, ref) => {
   const writer = useRef<HanziWriter>();
+  const elementId = useMemo(() => `char-${char}-${new Date().getTime()}`, [char]);
 
-  const elementId = useMemo(() => `char-${props.char}-${new Date().getTime()}`, [
-    props.char,
-  ]);
+  // The object reference will change with every re-render. Keeping a current ref avoids unnecessary effect invocations
+  const optionsRef = useCurrentRef(options);
+  // We'd like to compare our current options with the previous options inside effects
+  // but not subscribe to object reference changes
+  const previousOptionsRef = usePreviousRef(options);
 
+  // Create a new instance of HanziWriter when the character changes
   useLayoutEffect(() => {
     if (writer.current) {
-      writer.current?.setCharacter(props.char).catch((err) => {
+      writer.current?.setCharacter(char).catch((err) => {
         console.warn(err);
       });
       return;
     }
 
     // Create new character
-    writer.current = HanziWriter.create(elementId, props.char, {
-      ...(props.options || {}),
-      width: 400,
-      height: 400,
-    });
-  }, [elementId, props.char]);
+    writer.current = HanziWriter.create(elementId, char, optionsRef.current || {});
+  }, [elementId, char, optionsRef]);
 
-  // Toggle quiz
-  useLayoutEffect(() => {
-    if ("quiz" in props) {
-      if (props.quiz?.active) {
-        writer.current?.quiz(props.quiz.options);
-      } else {
-        writer.current?.cancelQuiz({
-          resetDisplay: true,
-        });
+  // Update colors
+  useUpdateEffect(
+    function onColorChange() {
+      const prevOptions = previousOptionsRef.current || {};
+      for (const colorKey of colorOptions) {
+        const currentVal = options[colorKey];
+        if (prevOptions[colorKey] !== currentVal && typeof currentVal !== "undefined") {
+          writer.current?.updateColor(colorKey, currentVal);
+        }
       }
-    }
-  }, [props.char, props.quiz]);
+    },
+    [
+      options.strokeColor,
+      options.radicalColor,
+      options.highlightColor,
+      options.outlineColor,
+      options.drawingColor,
+      options.highlightCompleteColor,
+    ],
+  );
 
   // Toggle show/hide character
   useUpdateEffect(() => {
-    if ("showCharacter" in props.options) {
-      if (props.options.showCharacter) {
-        writer.current?.showCharacter();
-      } else {
-        writer.current?.hideCharacter();
-      }
+    const value = options.showCharacter ?? writer.current?._options.showCharacter;
+    if (value) {
+      writer.current?.showCharacter();
+    } else {
+      writer.current?.hideCharacter();
     }
-  }, [props.options.showCharacter]);
+  }, [options.showCharacter]);
 
   // Toggle show/hide outline
   useUpdateEffect(() => {
-    if ("showOutline" in props.options) {
-      if (!props.options.showOutline) {
-        writer.current?.hideOutline();
-      } else {
-        writer.current?.showOutline();
-      }
+    const value = options.showOutline ?? writer.current?._options.showOutline;
+    if (!value) {
+      writer.current?.hideOutline();
+    } else {
+      writer.current?.showOutline();
     }
-  }, [props.options.showCharacter, props.options.showOutline]);
+  }, [options.showOutline]);
 
+  // Allows parent components to use the HanziWriter class instance through "ref"
   useImperativeHandle(ref, () => writer.current);
 
   return (
-    <div id={elementId} className={props.className}>
-      {props.children || null}
+    <div id={elementId} className={className}>
+      {children || null}
     </div>
   );
 });
-
-/**
- * A custom useEffect hook that only triggers on updates, not on initial mount
- */
-export function useUpdateEffect(effect: () => any, dependencies: any[] = []) {
-  const isInitialMount = useRef(true);
-
-  useEffect(() => {
-    if (isInitialMount.current) {
-      isInitialMount.current = false;
-    } else {
-      effect();
-    }
-    // eslint-disable-next-line
-  }, dependencies);
-}
 
 export default HanziWriterComponent;

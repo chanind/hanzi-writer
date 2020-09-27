@@ -1,5 +1,5 @@
 import Mutation, { GenericMutation } from "./Mutation";
-import { objRepeat } from "./utils";
+import { colorStringToVals, objRepeat } from "./utils";
 import Stroke from "./models/Stroke";
 import { ColorObject, ColorOptions } from "./typings/types";
 import Character from "./models/Character";
@@ -103,14 +103,9 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
     new Mutation<RenderState>({
-      character: {
-        highlight: {
-          strokeColor: color!,
-        },
+      options: {
+        highlightColor: colorStringToVals(color),
       },
-    }),
-
-    new Mutation<RenderState>({
       character: {
         highlight: {
           opacity: 1,

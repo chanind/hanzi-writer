@@ -118,16 +118,14 @@ export default class Mutation<
   }
 
   run(renderState: TRenderStateClass) {
+    const values = this.getValues(renderState);
+
     if (this._duration === 0) {
-      const values = this.getValues(renderState);
       renderState.updateState(values);
     }
 
     this._runningPromise = new Promise((resolve) => {
-      if (
-        this._duration === 0 ||
-        isAlreadyAtEnd(renderState.state, this.getValues(renderState))
-      ) {
+      if (this._duration === 0 || isAlreadyAtEnd(renderState.state, values)) {
         resolve();
         return;
       }

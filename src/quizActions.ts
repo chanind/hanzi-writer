@@ -1,6 +1,6 @@
 import Mutation from "./Mutation";
 import * as characterActions from "./characterActions";
-import { objRepeat } from "./utils";
+import { colorStringToVals, objRepeat } from "./utils";
 import { Point } from "./typings/types";
 import Character from "./models/Character";
 import RenderState from "RenderState";
@@ -100,10 +100,8 @@ export const highlightCompleteChar = (
 ) => {
   return [
     new Mutation<RenderState>({
-      character: {
-        highlight: {
-          strokeColor: color!,
-        },
+      options: {
+        highlightColor: colorStringToVals(color),
       },
     }),
     ...characterActions.hideCharacter("highlight", character),

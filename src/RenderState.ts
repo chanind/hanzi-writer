@@ -16,7 +16,6 @@ export type StrokeRenderState = {
 export type CharacterRenderState = {
   opacity: number;
   strokes: Record<number, StrokeRenderState>;
-  strokeColor?: string;
 };
 
 export type RenderStateObject = {
@@ -28,7 +27,6 @@ export type RenderStateObject = {
     outlineColor: ColorObject;
     radicalColor: ColorObject;
     highlightColor: ColorObject;
-    highlightOnCompleteColor?: ColorObject;
   };
   character: {
     main: CharacterRenderState;

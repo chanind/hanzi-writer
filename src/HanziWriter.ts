@@ -379,10 +379,11 @@ export default class HanziWriter {
       if (this._character && this._renderState && this._positioner) {
         this.cancelQuiz();
         this._quiz = new Quiz(this._character, this._renderState, this._positioner);
-        this._quiz.startQuiz({
+        this._options = {
           ...this._options,
           ...quizOptions,
-        });
+        };
+        this._quiz.startQuiz(this._options);
       }
     });
   }

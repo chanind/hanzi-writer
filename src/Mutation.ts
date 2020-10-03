@@ -102,7 +102,7 @@ export default class Mutation<
   constructor(
     valuesOrCallable: ValuesOrCallable<TRenderStateObj>,
     options: {
-      /** Allows mutations starting with the provided string to be cancelled */
+      /** Allows mutations starting with the provided string prefix to be cancelled */
       scope?: string;
       duration?: number;
       /** Updates render state regardless if cancelled */
@@ -190,26 +190,23 @@ export default class Mutation<
       return this._values;
     }
 
-    const values: RecursivePartial<TRenderStateObj> = (() => {
+    this._values = ((): RecursivePartial<TRenderStateObj> => {
       if (typeof this._valuesOrCallable === "function") {
         return this._valuesOrCallable(renderState.state);
       }
       return this._valuesOrCallable;
     })();
 
-    this._values = values;
-
     return this._values;
   }
 
   cancel(renderState: TRenderStateClass) {
     this._resolve?.();
-
     this._resolve = undefined;
-    if (this._frameHandle) {
-      cancelAnimationFrame(this._frameHandle);
-    }
+
+    cancelAnimationFrame(this._frameHandle || -1);
     this._frameHandle = undefined;
+
     if (this._force) {
       renderState.updateState(this.getValues(renderState));
     }

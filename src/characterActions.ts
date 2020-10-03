@@ -151,6 +151,8 @@ export const highlightStroke = (stroke: Stroke, color: string | null, speed: num
       },
       {
         duration,
+        // Make sure that opacity is reset regardless if cancelled
+        force: true,
       },
     ),
   ];

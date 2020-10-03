@@ -106,16 +106,23 @@ export default class Quiz {
       promises.push(this._handleSuccess());
     } else {
       this._handleFailure();
+
+      const {
+        showHintAfterMisses,
+        highlightColor,
+        strokeHighlightSpeed,
+      } = this._options!;
+
       if (
-        this._options!.showHintAfterMisses !== false &&
-        this._mistakesOnStroke >= Number(this._options!.showHintAfterMisses)
+        showHintAfterMisses !== false &&
+        this._mistakesOnStroke >= showHintAfterMisses
       ) {
         promises.push(
           this._renderState.run(
             characterActions.highlightStroke(
               currentStroke,
-              this._options!.highlightColor,
-              this._options!.strokeHighlightSpeed,
+              highlightColor,
+              strokeHighlightSpeed,
             ),
           ),
         );
@@ -174,6 +181,7 @@ export default class Quiz {
     const animation = [
       characterActions.showStroke("main", this._currentStrokeIndex, strokeFadeDuration),
     ];
+
     this._mistakesOnStroke = 0;
     this._currentStrokeIndex += 1;
 

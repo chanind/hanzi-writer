@@ -18,11 +18,12 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     const svg = (() => {
       if (nodeType === "SVG" || nodeType === "G") {
         return element;
+      } else {
+        const svg = createElm("svg");
+        element.appendChild(svg);
+        return svg;
       }
-      return createElm("svg");
     })() as SVGSVGElement;
-
-    element.appendChild(svg);
 
     attrs(svg, { width, height });
     const defs = createElm("defs");

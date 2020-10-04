@@ -407,7 +407,7 @@ export default class HanziWriter {
           if (this._options.showOutline) {
             this.showOutline();
           } else {
-            this.hideOutline;
+            this.hideOutline();
           }
         }
       };

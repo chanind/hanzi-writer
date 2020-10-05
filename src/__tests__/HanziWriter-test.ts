@@ -939,10 +939,10 @@ describe("HanziWriter", () => {
 
       writer.cancelQuiz({ resetDisplay: true });
 
-      expect(writer.showCharacter).toHaveBeenCalledTimes(1);
+      expect(writer.hideOutline).toHaveBeenCalledTimes(1); // showOutline : false
+      expect(writer.showCharacter).toHaveBeenCalledTimes(1); // showCharacter : true
       expect(writer.showOutline).toHaveBeenCalledTimes(0);
       expect(writer.hideCharacter).toHaveBeenCalledTimes(0);
-      expect(writer.hideOutline).toHaveBeenCalledTimes(0);
     });
 
     it("doesn't reset display options if no options are provided to cancelQuiz", async () => {

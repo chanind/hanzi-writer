@@ -6,6 +6,15 @@ CanvasRenderingContext2D {
     height="100%"
     width="100%"
   />,
+  "_clipIndex": 1,
+  "_clipStack": Array [
+    Array [],
+    Array [],
+    Array [],
+    Array [],
+    Array [],
+    Array [],
+  ],
   "_directionStack": Array [
     "inherit",
   ],
@@ -768,7 +777,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#ddd",
+        "value": "#dddddd",
       },
       "transform": Array [
         -0.0390625,
@@ -782,7 +791,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#ddd",
+        "value": "#dddddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1231,7 +1240,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#ddd",
+        "value": "#dddddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1245,7 +1254,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#ddd",
+        "value": "#dddddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1664,7 +1673,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555",
+        "value": "#555555",
       },
       "transform": Array [
         -0.0390625,
@@ -1678,7 +1687,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555",
+        "value": "#555555",
       },
       "transform": Array [
         -0.0390625,
@@ -2127,7 +2136,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555",
+        "value": "#555555",
       },
       "transform": Array [
         -0.0390625,
@@ -2141,7 +2150,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555",
+        "value": "#555555",
       },
       "transform": Array [
         -0.0390625,
@@ -2531,7 +2540,7 @@ CanvasRenderingContext2D {
     },
   ],
   "_fillStyleStack": Array [
-    "#000",
+    "#000000",
   ],
   "_filterStack": Array [
     "none",
@@ -2717,7 +2726,7 @@ CanvasRenderingContext2D {
   ],
   "_stackIndex": 0,
   "_strokeStyleStack": Array [
-    "#000",
+    "#000000",
   ],
   "_textAlignStack": Array [
     "start",

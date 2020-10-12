@@ -15,7 +15,6 @@
     "@rollup/plugin-node-resolve": "^9.0.0",
     "@sinonjs/fake-timers": "^6.0.1",
     "@types/jest": "^26.0.14",
-    "@types/nise": "^1.4.0",
     "@types/sinonjs__fake-timers": "^6.0.2",
     "@typescript-eslint/eslint-plugin": "^4.4.0",
     "@typescript-eslint/parser": "^4.4.0",

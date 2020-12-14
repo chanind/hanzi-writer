@@ -47,40 +47,49 @@ export const _extendPointOnLine = (p1: Point, p2: Point, dist: number) => {
 
 /** based on http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf */
 export const frechetDist = (curve1: Point[], curve2: Point[]) => {
-  const results: number[][] = [];
-  for (let i = 0; i < curve1.length; i++) {
-    results.push([]);
-    for (let j = 0; j < curve2.length; j++) {
-      results[i].push(-1);
-    }
-  }
+  const longCurve = curve1.length >= curve2.length ? curve1 : curve2;
+  const shortCurve = curve1.length >= curve2.length ? curve2 : curve1;
 
-  const recursiveCalc = (i: number, j: number) => {
-    if (results[i][j] > -1) {
-      return results[i][j];
-    }
+  const calcVal = (
+    i: number,
+    j: number,
+    prevResultsCol: number[],
+    curResultsCol: number[],
+  ): number => {
     if (i === 0 && j === 0) {
-      results[i][j] = distance(curve1[0], curve2[0]);
-    } else if (i > 0 && j === 0) {
-      results[i][j] = Math.max(recursiveCalc(i - 1, 0), distance(curve1[i], curve2[0]));
-    } else if (i === 0 && j > 0) {
-      results[i][j] = Math.max(recursiveCalc(0, j - 1), distance(curve1[0], curve2[j]));
-    } else if (i > 0 && j > 0) {
-      results[i][j] = Math.max(
-        Math.min(
-          recursiveCalc(i - 1, j),
-          recursiveCalc(i - 1, j - 1),
-          recursiveCalc(i, j - 1),
-        ),
-        distance(curve1[i], curve2[j]),
-      );
-    } else {
-      results[i][j] = Infinity;
+      return distance(longCurve[0], shortCurve[0]);
     }
-    return results[i][j];
+
+    if (i > 0 && j === 0) {
+      return Math.max(prevResultsCol[0], distance(longCurve[i], shortCurve[0]));
+    }
+
+    const lastResult = curResultsCol[curResultsCol.length - 1];
+
+    if (i === 0 && j > 0) {
+      return Math.max(lastResult, distance(longCurve[0], shortCurve[j]));
+    }
+
+    return Math.max(
+      Math.min(prevResultsCol[j], prevResultsCol[j - 1], lastResult),
+      distance(longCurve[i], shortCurve[j]),
+    );
   };
 
-  return recursiveCalc(curve1.length - 1, curve2.length - 1);
+  let prevResultsCol: number[] = [];
+  for (let i = 0; i < longCurve.length; i++) {
+    const curResultsCol: number[] = [];
+    for (let j = 0; j < shortCurve.length; j++) {
+      // we only need the results from i - 1 and j - 1 to continue the calculation
+      // so we only need to hold onto the last column of calculated results
+      // prevResultsCol is results[i-1][:] in the original algorithm
+      // curResultsCol is results[i][:j-1] in the original algorithm
+      curResultsCol.push(calcVal(i, j, prevResultsCol, curResultsCol));
+    }
+    prevResultsCol = curResultsCol;
+  }
+
+  return prevResultsCol[shortCurve.length - 1];
 };
 
 /** break up long segments in the curve into smaller segments of len maxLen or smaller */

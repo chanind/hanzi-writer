@@ -1,4 +1,4 @@
-import { CharacterJson, LoadingManagerOptions } from "./typings/types";
+import { CharacterJson, LoadingManagerOptions } from './typings/types';
 
 type CustomError = Error & { reason: string };
 
@@ -38,7 +38,7 @@ export default class LoadingManager {
     );
 
     if (returnedData) {
-      if ("then" in returnedData) {
+      if ('then' in returnedData) {
         returnedData.then(wrappedResolve).catch(wrappedReject);
       } else {
         wrappedResolve(returnedData);

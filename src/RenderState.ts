@@ -1,12 +1,12 @@
-import Character from "./models/Character";
-import { GenericMutation } from "./Mutation";
+import Character from './models/Character';
+import { GenericMutation } from './Mutation';
 import {
   ColorObject,
   OnCompleteFunction,
   Point,
   RecursivePartial,
-} from "./typings/types";
-import { copyAndMergeDeep, colorStringToVals, noop } from "./utils";
+} from './typings/types';
+import { copyAndMergeDeep, colorStringToVals, noop } from './utils';
 
 export type StrokeRenderState = {
   opacity: number;

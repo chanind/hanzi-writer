@@ -1,19 +1,19 @@
-import RenderState from "./RenderState";
-import parseCharData from "./parseCharData";
-import Positioner from "./Positioner";
-import Quiz from "./Quiz";
-import svgRenderer from "./renderers/svg";
-import canvasRenderer from "./renderers/canvas";
-import defaultOptions from "./defaultOptions";
-import LoadingManager from "./LoadingManager";
-import * as characterActions from "./characterActions";
-import { trim, colorStringToVals } from "./utils";
-import Character from "./models/Character";
+import RenderState from './RenderState';
+import parseCharData from './parseCharData';
+import Positioner from './Positioner';
+import Quiz from './Quiz';
+import svgRenderer from './renderers/svg';
+import canvasRenderer from './renderers/canvas';
+import defaultOptions from './defaultOptions';
+import LoadingManager from './LoadingManager';
+import * as characterActions from './characterActions';
+import { trim, colorStringToVals } from './utils';
+import Character from './models/Character';
 import HanziWriterRendererBase, {
   HanziWriterRendererConstructor,
-} from "./renderers/HanziWriterRendererBase";
-import RenderTargetBase from "./renderers/RenderTargetBase";
-import { GenericMutation } from "./Mutation";
+} from './renderers/HanziWriterRendererBase';
+import RenderTargetBase from './renderers/RenderTargetBase';
+import { GenericMutation } from './Mutation';
 
 // Typings
 import {
@@ -23,10 +23,10 @@ import {
   OnCompleteFunction,
   QuizOptions,
   RenderTargetInitFunction,
-} from "./typings/types";
+} from './typings/types';
 
 // Export type interfaces
-export * from "./typings/types";
+export * from './typings/types';
 
 export default class HanziWriter {
   _options: HanziWriterOptions;
@@ -67,7 +67,7 @@ export default class HanziWriter {
     characterOrOptions: string | Partial<HanziWriterOptions>,
     options: Partial<HanziWriterOptions> = {},
   ) {
-    if (typeof characterOrOptions === "object") {
+    if (typeof characterOrOptions === 'object') {
       const writer = new HanziWriter(element, characterOrOptions);
       return writer;
     }
@@ -109,13 +109,13 @@ export default class HanziWriter {
       transform: trim(`
         translate(${positioner.xOffset}, ${positioner.height - positioner.yOffset})
         scale(${positioner.scale}, ${-1 * positioner.scale})
-      `).replace(/\s+/g, " "),
+      `).replace(/\s+/g, ' '),
     };
   }
 
   constructor(element: string | HTMLElement, options: Partial<HanziWriterOptions>) {
     const { HanziWriterRenderer, createRenderTarget } =
-      options.renderer === "canvas" ? canvasRenderer : svgRenderer;
+      options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
     const rendererOverride = options.rendererOverride || {};
 
     this._renderer = {
@@ -144,9 +144,9 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.showCharacter(
-            "main",
+            'main',
             this._character!,
-            typeof options.duration === "number"
+            typeof options.duration === 'number'
               ? options.duration
               : this._options.strokeFadeDuration,
           ),
@@ -169,9 +169,9 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.hideCharacter(
-            "main",
+            'main',
             this._character!,
-            typeof options.duration === "number"
+            typeof options.duration === 'number'
               ? options.duration
               : this._options.strokeFadeDuration,
           ),
@@ -194,7 +194,7 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.animateCharacter(
-            "main",
+            'main',
             this._character!,
             this._options.strokeFadeDuration,
             this._options.strokeAnimationSpeed,
@@ -219,7 +219,7 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.animateSingleStroke(
-            "main",
+            'main',
             this._character!,
             strokeNum,
             this._options.strokeAnimationSpeed,
@@ -265,7 +265,7 @@ export default class HanziWriter {
     return this._withData(() =>
       this._renderState!.run(
         characterActions.animateCharacterLoop(
-          "main",
+          'main',
           this._character!,
           this._options.strokeFadeDuration,
           this._options.strokeAnimationSpeed,
@@ -296,9 +296,9 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.showCharacter(
-            "outline",
+            'outline',
             this._character!,
-            typeof options.duration === "number"
+            typeof options.duration === 'number'
               ? options.duration
               : this._options.strokeFadeDuration,
           ),
@@ -321,9 +321,9 @@ export default class HanziWriter {
       this._renderState
         ?.run(
           characterActions.hideCharacter(
-            "outline",
+            'outline',
             this._character!,
-            typeof options.duration === "number"
+            typeof options.duration === 'number'
               ? options.duration
               : this._options.strokeFadeDuration,
           ),
@@ -347,7 +347,7 @@ export default class HanziWriter {
 
     const fixedColorVal = (() => {
       // If we're removing radical color, tween it to the stroke color
-      if (colorName === "radicalColor" && !colorVal) {
+      if (colorName === 'radicalColor' && !colorVal) {
         return this._options.strokeColor;
       }
       return colorVal;
@@ -362,7 +362,7 @@ export default class HanziWriter {
     mutations.push(characterActions.updateColor(colorName, mappedColor, duration));
 
     // make sure to set radicalColor back to null after the transition finishes if val == null
-    if (colorName === "radicalColor" && !colorVal) {
+    if (colorName === 'radicalColor' && !colorVal) {
       mutations.push(characterActions.updateColor(colorName, null, 0));
     }
 
@@ -412,7 +412,7 @@ export default class HanziWriter {
         }
       };
 
-      if (process.env.NODE_ENV === "test") {
+      if (process.env.NODE_ENV === 'test') {
         // In test environments, the "Quiz" module is mocked (resulting in promise being undefined)
         onCancelled();
       } else {
@@ -498,7 +498,7 @@ export default class HanziWriter {
   _withData<T>(func: () => T) {
     // if this._loadingManager.loadingFailed, then loading failed before this method was called
     if (this._loadingManager.loadingFailed) {
-      throw Error("Failed to load character data. Call setCharacter and try again.");
+      throw Error('Failed to load character data. Call setCharacter and try again.');
     }
 
     if (this._withDataPromise) {

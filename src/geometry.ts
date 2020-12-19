@@ -1,5 +1,5 @@
-import { Point } from "./typings/types";
-import { average, arrLast } from "./utils";
+import { Point } from './typings/types';
+import { average, arrLast } from './utils';
 
 export const subtract = (p1: Point, p2: Point) => ({ x: p1.x - p2.x, y: p1.y - p2.y });
 
@@ -205,7 +205,7 @@ export function getPathString(points: Point[], close = false) {
     pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
   });
   if (close) {
-    pathString += "Z";
+    pathString += 'Z';
   }
   return pathString;
 }

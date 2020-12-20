@@ -1,4 +1,4 @@
-import { Point } from "../typings/types";
+import { Point } from '../typings/types';
 
 type BoundEvent = {
   getPoint(): Point;
@@ -20,27 +20,27 @@ export default class RenderTargetBase<
   }
 
   addPointerStartListener(callback: (arg: BoundEvent) => void) {
-    this.node.addEventListener("mousedown", (evt) => {
+    this.node.addEventListener('mousedown', (evt) => {
       callback(this._eventify(evt as MouseEvent, this._getMousePoint));
     });
-    this.node.addEventListener("touchstart", (evt) => {
+    this.node.addEventListener('touchstart', (evt) => {
       callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
     });
   }
 
   addPointerMoveListener(callback: (arg: BoundEvent) => void) {
-    this.node.addEventListener("mousemove", (evt) => {
+    this.node.addEventListener('mousemove', (evt) => {
       callback(this._eventify(evt as MouseEvent, this._getMousePoint));
     });
-    this.node.addEventListener("touchmove", (evt) => {
+    this.node.addEventListener('touchmove', (evt) => {
       callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
     });
   }
 
   addPointerEndListener(callback: () => void) {
     // TODO: find a way to not need global listeners
-    document.addEventListener("mouseup", callback);
-    document.addEventListener("touchend", callback);
+    document.addEventListener('mouseup', callback);
+    document.addEventListener('touchend', callback);
   }
 
   getBoundingClientRect() {

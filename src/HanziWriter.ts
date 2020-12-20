@@ -21,6 +21,7 @@ import {
   HanziWriterOptions,
   LoadingManagerOptions,
   OnCompleteFunction,
+  ParsedHanziWriterOptions,
   QuizOptions,
   RenderTargetInitFunction,
 } from './typings/types';
@@ -29,7 +30,7 @@ import {
 export * from './typings/types';
 
 export default class HanziWriter {
-  _options: HanziWriterOptions;
+  _options: ParsedHanziWriterOptions;
   _loadingManager: LoadingManager;
   /** Only set when calling .setCharacter() */
   _char: string | undefined;
@@ -247,7 +248,7 @@ export default class HanziWriter {
         .run(
           characterActions.highlightStroke(
             this._character.strokes[strokeNum],
-            this._options.highlightColor,
+            colorStringToVals(this._options.highlightColor),
             this._options.strokeHighlightSpeed,
           ),
         )
@@ -343,7 +344,7 @@ export default class HanziWriter {
       onComplete?: OnCompleteFunction;
     } = {},
   ) {
-    const mutations: GenericMutation[] = [];
+    let mutations: GenericMutation[] = [];
 
     const fixedColorVal = (() => {
       // If we're removing radical color, tween it to the stroke color
@@ -359,11 +360,13 @@ export default class HanziWriter {
 
     const duration = options.duration ?? this._options.strokeFadeDuration;
 
-    mutations.push(characterActions.updateColor(colorName, mappedColor, duration));
+    mutations = mutations.concat(
+      characterActions.updateColor(colorName, mappedColor, duration),
+    );
 
     // make sure to set radicalColor back to null after the transition finishes if val == null
     if (colorName === 'radicalColor' && !colorVal) {
-      mutations.push(characterActions.updateColor(colorName, null, 0));
+      mutations = mutations.concat(characterActions.updateColor(colorName, null, 0));
     }
 
     return this._withData(() =>
@@ -458,7 +461,7 @@ export default class HanziWriter {
     return this._withDataPromise;
   }
 
-  _assignOptions(options: Partial<HanziWriterOptions>) {
+  _assignOptions(options: Partial<HanziWriterOptions>): ParsedHanziWriterOptions {
     const mergedOptions = {
       ...defaultOptions,
       ...options,
@@ -480,7 +483,7 @@ export default class HanziWriter {
   }
 
   /** returns a new options object with width and height filled in if missing */
-  _fillWidthAndHeight(options: HanziWriterOptions) {
+  _fillWidthAndHeight(options: HanziWriterOptions): ParsedHanziWriterOptions {
     const filledOpts = { ...options };
     if (filledOpts.width && !filledOpts.height) {
       filledOpts.height = filledOpts.width;
@@ -492,7 +495,7 @@ export default class HanziWriter {
       filledOpts.width = minDim;
       filledOpts.height = minDim;
     }
-    return filledOpts;
+    return filledOpts as ParsedHanziWriterOptions;
   }
 
   _withData<T>(func: () => T) {

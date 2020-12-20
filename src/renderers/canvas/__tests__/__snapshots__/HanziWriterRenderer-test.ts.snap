@@ -1915,7 +1915,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -1929,7 +1929,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -2378,7 +2378,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -2392,7 +2392,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -2771,12 +2771,12 @@ Array [
   Object {
     "props": Object {},
     "transform": Array [
-      1,
+      0.078125,
       0,
       0,
-      1,
-      0,
-      0,
+      -0.078125,
+      10,
+      80.3125,
     ],
     "type": "restore",
   },
@@ -4698,7 +4698,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -4712,7 +4712,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -5161,7 +5161,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -5175,7 +5175,7 @@ Array [
   },
   Object {
     "props": Object {
-      "value": "#0000ff",
+      "value": "#00f",
     },
     "transform": Array [
       0.078125,
@@ -5747,12 +5747,12 @@ Array [
   Object {
     "props": Object {},
     "transform": Array [
-      1,
+      0.078125,
       0,
       0,
-      1,
-      0,
-      0,
+      -0.078125,
+      10,
+      80.3125,
     ],
     "type": "restore",
   },

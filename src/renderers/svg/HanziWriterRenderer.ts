@@ -1,11 +1,11 @@
-import CharacterRenderer from "./CharacterRenderer";
-import UserStrokeRenderer, { UserStrokeProps } from "./UserStrokeRenderer";
-import * as svg from "./svgUtils";
-import Character from "../../models/Character";
-import Positioner from "../../Positioner";
-import SVGRenderTarget from "./RenderTarget";
-import HanziWriterRendererBase from "../HanziWriterRendererBase";
-import { RenderStateObject } from "../../RenderState";
+import CharacterRenderer from './CharacterRenderer';
+import UserStrokeRenderer, { UserStrokeProps } from './UserStrokeRenderer';
+import * as svg from './svgUtils';
+import Character from '../../models/Character';
+import Positioner from '../../Positioner';
+import SVGRenderTarget from './RenderTarget';
+import HanziWriterRendererBase from '../HanziWriterRendererBase';
+import { RenderStateObject } from '../../RenderState';
 
 export default class HanziWriterRenderer
   implements HanziWriterRendererBase<SVGElement | SVGSVGElement, SVGRenderTarget> {
@@ -33,7 +33,7 @@ export default class HanziWriterRenderer
 
     svg.attr(
       group,
-      "transform",
+      'transform',
       `translate(${xOffset}, ${height - yOffset}) scale(${scale}, ${-1 * scale})`,
     );
     this._outlineCharRenderer.mount(positionedTarget);
@@ -108,6 +108,6 @@ export default class HanziWriterRenderer
 
   destroy() {
     svg.removeElm(this._positionedTarget!.svg);
-    this._positionedTarget!.defs.innerHTML = "";
+    this._positionedTarget!.defs.innerHTML = '';
   }
 }

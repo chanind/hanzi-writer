@@ -1,7 +1,7 @@
-import * as svg from "./svgUtils";
-import { getPathString } from "../../geometry";
-import { ColorObject, Point } from "../../typings/types";
-import SVGRenderTarget from "./RenderTarget";
+import * as svg from './svgUtils';
+import { getPathString } from '../../geometry';
+import { ColorObject, Point } from '../../typings/types';
+import SVGRenderTarget from './RenderTarget';
 
 export type UserStrokeProps = {
   strokeWidth: number;
@@ -15,7 +15,7 @@ export default class UserStrokeRenderer {
   _path: SVGElement | undefined;
 
   mount(target: SVGRenderTarget) {
-    this._path = svg.createElm("path");
+    this._path = svg.createElm('path');
     target.svg.appendChild(this._path);
   }
 
@@ -29,18 +29,18 @@ export default class UserStrokeRenderer {
     ) {
       const { r, g, b, a } = props.strokeColor;
       svg.attrs(this._path, {
-        fill: "none",
+        fill: 'none',
         stroke: `rgba(${r},${g},${b},${a})`,
-        "stroke-width": props.strokeWidth.toString(),
-        "stroke-linecap": "round",
-        "stroke-linejoin": "round",
+        'stroke-width': props.strokeWidth.toString(),
+        'stroke-linecap': 'round',
+        'stroke-linejoin': 'round',
       });
     }
     if (props.opacity !== this._oldProps?.opacity) {
-      svg.attr(this._path, "opacity", props.opacity.toString());
+      svg.attr(this._path, 'opacity', props.opacity.toString());
     }
     if (props.points !== this._oldProps?.points) {
-      svg.attr(this._path, "d", getPathString(props.points));
+      svg.attr(this._path, 'd', getPathString(props.points));
     }
     this._oldProps = props;
   }

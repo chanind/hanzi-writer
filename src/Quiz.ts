@@ -1,13 +1,14 @@
 import strokeMatches from './strokeMatches';
 import UserStroke from './models/UserStroke';
 import Positioner from './Positioner';
-import { counter } from './utils';
+import { counter, colorStringToVals } from './utils';
 import * as quizActions from './quizActions';
 import * as geometry from './geometry';
 import * as characterActions from './characterActions';
 import Character from './models/Character';
-import { HanziWriterOptions, Point, StrokeData } from './typings/types';
+import { ParsedHanziWriterOptions, Point, StrokeData } from './typings/types';
 import RenderState from './RenderState';
+import { MutationChain } from 'Mutation';
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -21,7 +22,7 @@ export default class Quiz {
   _positioner: Positioner;
 
   /** Set on startQuiz */
-  _options: HanziWriterOptions | undefined;
+  _options: ParsedHanziWriterOptions | undefined;
   _currentStrokeIndex = 0;
   _mistakesOnStroke = 0;
   _totalMistakes = 0;
@@ -34,7 +35,7 @@ export default class Quiz {
     this._positioner = positioner;
   }
 
-  startQuiz(options: HanziWriterOptions) {
+  startQuiz(options: ParsedHanziWriterOptions) {
     this._isActive = true;
     this._options = options;
     this._currentStrokeIndex = 0;
@@ -94,7 +95,7 @@ export default class Quiz {
     const currentStroke = this._getCurrentStroke();
     const isMatch = strokeMatches(
       this._userStroke,
-      this._character.strokes,
+      this._character,
       this._currentStrokeIndex,
       {
         isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
@@ -121,7 +122,7 @@ export default class Quiz {
           this._renderState.run(
             characterActions.highlightStroke(
               currentStroke,
-              highlightColor,
+              colorStringToVals(highlightColor),
               strokeHighlightSpeed,
             ),
           ),
@@ -172,14 +173,17 @@ export default class Quiz {
       onHighlightComplete,
       highlightOnComplete,
       strokeFadeDuration,
-      highlightCompleteColor,
       strokeHighlightDuration,
     } = this._options;
 
     onCorrectStroke?.(this._getStrokeData(true));
 
-    const animation = [
-      characterActions.showStroke('main', this._currentStrokeIndex, strokeFadeDuration),
+    const animation: MutationChain = [
+      ...characterActions.showStroke(
+        'main',
+        this._currentStrokeIndex,
+        strokeFadeDuration,
+      ),
     ];
 
     this._mistakesOnStroke = 0;
@@ -197,7 +201,6 @@ export default class Quiz {
         animation.push(
           ...quizActions.highlightCompleteChar(
             this._character,
-            highlightCompleteColor,
             (strokeHighlightDuration || 0) * 2,
           ),
         );

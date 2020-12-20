@@ -1,5 +1,5 @@
-import Stroke from "../models/Stroke";
-import { ColorObject } from "../typings/types";
+import Stroke from '../models/Stroke';
+import { ColorObject } from '../typings/types';
 
 export default class StrokeRendererBase {
   _pathLength: number;

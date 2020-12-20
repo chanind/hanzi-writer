@@ -1,25 +1,13 @@
-import Mutation from "../Mutation";
+import Mutation from '../Mutation';
 
-describe("Mutation", () => {
-  it("resolves immediately if there is no (or 0) duration passed", async () => {
+describe('Mutation', () => {
+  it('resolves immediately if there is no (or 0) duration passed', async () => {
     const renderState = {
-      state: {
-        a: {
-          b: {
-            c: 10,
-          },
-        },
-      },
+      state: {},
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>({
-      a: {
-        b: {
-          c: 7,
-        },
-      },
-    });
+    const mut = new Mutation('a.b', { c: 7 });
     let isResolved = false;
 
     mut.run(renderState).then(() => {
@@ -33,21 +21,13 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("resolves immediately if there are no changes with the current state", async () => {
+  it('resolves immediately if there are no changes with the current state', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>(
-      {
-        a: {
-          b: 7,
-        },
-      },
-      { duration: 20 },
-    );
-
+    const mut = new Mutation('a.b', 7, { duration: 20 });
     let isResolved = false;
 
     mut.run(renderState).then(() => {
@@ -59,20 +39,13 @@ describe("Mutation", () => {
     expect(renderState.updateState).not.toHaveBeenCalled();
   });
 
-  it("tweens to the target state over duration", async () => {
+  it('tweens to the target state over duration', async () => {
     const renderState = {
       state: { a: { b: 10 } },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>(
-      {
-        a: {
-          b: 20,
-        },
-      },
-      { duration: 50 },
-    );
+    const mut = new Mutation('a.b', 20, { duration: 50 });
     let isResolved = false;
 
     mut.run(renderState).then(() => {
@@ -102,21 +75,13 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("can pause and resume during the tween", async () => {
+  it('can pause and resume during the tween', async () => {
     const renderState = {
       state: { a: { b: 10 } },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>(
-      {
-        a: {
-          b: 20,
-        },
-      },
-      { duration: 50 },
-    );
-
+    const mut = new Mutation('a.b', 20, { duration: 50 });
     let isResolved = false;
 
     mut.run(renderState).then(() => {
@@ -163,47 +128,34 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("updates state on cancel if force: true", async () => {
+  it('updates state on cancel if force: true', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>(
-      {
-        a: {
-          b: 10,
-        },
-      },
-      { force: true },
-    );
+    const mut = new Mutation('a.b', 10, { force: true });
 
     mut.cancel(renderState);
-
     expect(renderState.updateState).toHaveBeenCalledTimes(1);
     expect(renderState.updateState).toHaveBeenLastCalledWith({ a: { b: 10 } });
   });
 
-  it("does not update state on cancel if force: false", async () => {
+  it('does not update state on cancel if force: false', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
     };
 
-    const mut = new Mutation<typeof renderState>({
-      a: {
-        b: 10,
-      },
-    });
+    const mut = new Mutation('a.b', 10);
 
     mut.cancel(renderState);
-
     expect(renderState.updateState).not.toHaveBeenCalled();
   });
 });
 
-describe("Mutation.Delay", () => {
-  it("can pause and resume during the delay", async () => {
+describe('Mutation.Delay', () => {
+  it('can pause and resume during the delay', async () => {
     const delay = new Mutation.Delay(1000);
     let isResolved = false;
 

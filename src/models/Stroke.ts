@@ -1,5 +1,5 @@
-import { subtract, distance, length } from "../geometry";
-import { Point } from "../typings/types";
+import { subtract, distance, length } from '../geometry';
+import { Point } from '../typings/types';
 
 export default class Stroke {
   path: string;

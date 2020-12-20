@@ -1,5 +1,10 @@
-import { cancelAnimationFrame } from './utils';
-import RenderState, { RenderStateObject } from './RenderState';
+import {
+  cancelAnimationFrame,
+  requestAnimationFrame,
+  inflate,
+  performanceNow,
+} from './utils';
+import RenderState from './RenderState';
 import { RecursivePartial } from 'typings/types';
 
 /** Used by `Mutation` & `Delay` */
@@ -15,6 +20,8 @@ export interface GenericMutation<
   resume(): void;
   cancel(renderState: TRenderStateClass): void;
 }
+
+export type MutationChain = GenericMutation<any>[];
 
 class Delay implements GenericMutation {
   scope: string;
@@ -33,7 +40,7 @@ class Delay implements GenericMutation {
   }
 
   run() {
-    this._startTime = performance.now();
+    this._startTime = performanceNow();
     this._runningPromise = new Promise((resolve) => {
       this._resolve = resolve;
       // @ts-ignore return type of "setTimeout" in builds is parsed as `number` instead of `Timeout`
@@ -68,10 +75,6 @@ class Delay implements GenericMutation {
   }
 }
 
-type ValuesOrCallable<TValue> =
-  | RecursivePartial<TValue>
-  | ((renderStateObj: RenderStateObject) => RecursivePartial<TValue>);
-
 type GenericRenderStateClass<T = any> = {
   state: T;
   updateState(changes: RecursivePartial<T>): void;
@@ -85,7 +88,7 @@ export default class Mutation<
 
   scope: string;
   _runningPromise: Promise<void> | undefined;
-  _valuesOrCallable: ValuesOrCallable<TRenderStateObj>;
+  _valuesOrCallable: any;
   _duration: number;
   _force: boolean | undefined;
   _pausedDuration: number;
@@ -97,19 +100,23 @@ export default class Mutation<
   _renderState: TRenderStateClass | undefined;
   _frameHandle: number | undefined;
   _values: RecursivePartial<TRenderStateObj> | undefined;
-  _resolve: (() => void) | undefined;
+  _resolve: ((_val?: any) => void) | undefined;
 
+  /**
+   *
+   * @param scope a string representation of what fields this mutation affects from the state. This is used to cancel conflicting mutations
+   * @param valuesOrCallable a thunk containing the value to set, or a callback which will return those values
+   */
   constructor(
-    valuesOrCallable: ValuesOrCallable<TRenderStateObj>,
+    scope: string,
+    valuesOrCallable: any,
     options: {
-      /** Allows mutations starting with the provided string prefix to be cancelled */
-      scope?: string;
       duration?: number;
       /** Updates render state regardless if cancelled */
       force?: boolean;
     } = {},
   ) {
-    this.scope = options.scope || 'mutation';
+    this.scope = scope;
     this._valuesOrCallable = valuesOrCallable;
     this._duration = options.duration || 0;
     this._force = options.force;
@@ -117,26 +124,27 @@ export default class Mutation<
     this._startPauseTime = null;
   }
 
-  run(renderState: TRenderStateClass) {
-    const values = this.getValues(renderState);
-
-    if (this._duration === 0) {
-      renderState.updateState(values);
+  run(renderState: TRenderStateClass): Promise<void> {
+    if (!this._values) this._inflateValues(renderState);
+    if (this._duration === 0) renderState.updateState(this._values!);
+    if (this._duration === 0 || isAlreadyAtEnd(renderState.state, this._values)) {
+      return Promise.resolve();
     }
-
-    this._runningPromise = new Promise((resolve) => {
-      if (this._duration === 0 || isAlreadyAtEnd(renderState.state, values)) {
-        resolve();
-        return;
-      }
-      this._renderState = renderState;
-      this._startState = renderState.state;
-      this._startTime = performance.now();
-      this._frameHandle = requestAnimationFrame(this._tick);
+    this._renderState = renderState;
+    this._startState = renderState.state;
+    this._startTime = performance.now();
+    this._frameHandle = requestAnimationFrame(this._tick);
+    return new Promise((resolve) => {
       this._resolve = resolve;
     });
+  }
 
-    return this._runningPromise;
+  private _inflateValues(renderState: TRenderStateClass) {
+    let values = this._valuesOrCallable;
+    if (typeof this._valuesOrCallable === 'function') {
+      values = this._valuesOrCallable(renderState.state);
+    }
+    this._values = inflate(this.scope, values);
   }
 
   pause() {
@@ -158,7 +166,7 @@ export default class Mutation<
     this._startPauseTime = null;
   }
 
-  _tick = (timing: number) => {
+  private _tick = (timing: number) => {
     if (this._startPauseTime !== null) {
       return;
     }
@@ -208,6 +216,7 @@ export default class Mutation<
     this._frameHandle = undefined;
 
     if (this._force) {
+      if (!this._values) this._inflateValues(renderState);
       renderState.updateState(this.getValues(renderState));
     }
   }

@@ -1,10 +1,10 @@
-import { createElm, attrs } from "./svgUtils";
-import RenderTargetBase from "../RenderTargetBase";
+import { createElm, attrs } from './svgUtils';
+import RenderTargetBase from '../RenderTargetBase';
 
 export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGElement> {
-  static init(elmOrId: Element | string, width = "100%", height = "100%") {
+  static init(elmOrId: Element | string, width = '100%', height = '100%') {
     const element = (() => {
-      if (typeof elmOrId === "string") {
+      if (typeof elmOrId === 'string') {
         return document.getElementById(elmOrId);
       }
       return elmOrId;
@@ -16,17 +16,17 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     const nodeType = element.nodeName.toUpperCase();
 
     const svg = (() => {
-      if (nodeType === "SVG" || nodeType === "G") {
+      if (nodeType === 'SVG' || nodeType === 'G') {
         return element;
       } else {
-        const svg = createElm("svg");
+        const svg = createElm('svg');
         element.appendChild(svg);
         return svg;
       }
     })() as SVGSVGElement;
 
     attrs(svg, { width, height });
-    const defs = createElm("defs");
+    const defs = createElm('defs');
     svg.appendChild(defs);
 
     return new RenderTarget(svg, defs);
@@ -42,13 +42,13 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     this.svg = svg;
     this.defs = defs;
 
-    if ("createSVGPoint" in svg) {
+    if ('createSVGPoint' in svg) {
       this._pt = svg.createSVGPoint();
     }
   }
 
   createSubRenderTarget() {
-    const group = createElm("g");
+    const group = createElm('g');
     this.svg.appendChild(group);
     return new RenderTarget(group, this.defs);
   }
@@ -57,7 +57,7 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     if (this._pt) {
       this._pt.x = evt.clientX;
       this._pt.y = evt.clientY;
-      if ("getScreenCTM" in this.node) {
+      if ('getScreenCTM' in this.node) {
         const localPt = this._pt.matrixTransform(this.node.getScreenCTM()?.inverse());
         return { x: localPt.x, y: localPt.y };
       }
@@ -69,7 +69,7 @@ export default class RenderTarget extends RenderTargetBase<SVGSVGElement | SVGEl
     if (this._pt) {
       this._pt.x = evt.touches[0].clientX;
       this._pt.y = evt.touches[0].clientY;
-      if ("getScreenCTM" in this.node) {
+      if ('getScreenCTM' in this.node) {
         const localPt = this._pt.matrixTransform(
           (this.node as SVGSVGElement).getScreenCTM()?.inverse(),
         );

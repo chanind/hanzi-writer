@@ -1,4 +1,4 @@
-import { Point } from "../typings/types";
+import { Point } from '../typings/types';
 
 export default class UserStroke {
   id: number;

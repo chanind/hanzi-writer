@@ -1,62 +1,99 @@
-jest.mock("../strokeMatches");
-jest.mock("../Positioner");
+jest.mock('../strokeMatches');
+jest.mock('../Positioner');
 
-import ren from "hanzi-writer-data/人.json";
-import Quiz from "../Quiz";
-import parseCharData from "../parseCharData";
-import RenderState, { RenderStateOptions } from "../RenderState";
-import Positioner from "../Positioner";
-import strokeMatches from "../strokeMatches";
-import { Point } from "../typings/types";
-import defaultOptions from "../defaultOptions";
-import { resolvePromises } from "../testUtils";
+import ren from 'hanzi-writer-data/人.json';
+import Quiz from '../Quiz';
+import parseCharData from '../parseCharData';
+import RenderState from '../RenderState';
+import Positioner from '../Positioner';
+import { resolvePromises } from '../testUtils';
+import strokeMatches from '../strokeMatches';
+import { ParsedHanziWriterOptions, Point } from 'typings/types';
 
-// @ts-ignore
-Positioner.mockImplementation(() => ({
-  convertExternalPoint: (point: Point) => ({
-    x: point.x + 5,
-    y: point.y + 5,
-  }),
+(Positioner as any).mockImplementation(() => ({
+  convertExternalPoint: (point: Point) => ({ x: point.x + 5, y: point.y + 5 }),
 }));
 
 beforeEach(() => {
-  // @ts-ignore
-  strokeMatches.mockClear();
-  // @ts-ignore
-  Positioner.mockClear();
+  (strokeMatches as any).mockClear();
+  (Positioner as any).mockClear();
 });
 
-const char = parseCharData("人", ren);
+const char = parseCharData('人', ren);
+const opts: ParsedHanziWriterOptions = {
+  onLoadCharDataError: null,
+  onLoadCharDataSuccess: null,
+  showOutline: true,
+  showCharacter: true,
 
-const createRenderState = (optOverrides: Partial<RenderStateOptions> = {}) => {
-  const options: RenderStateOptions = { ...defaultOptions, ...optOverrides };
-  return new RenderState(char, options);
+  // positioning options
+
+  width: 200,
+  height: 200,
+  padding: 20,
+
+  // animation options
+
+  strokeAnimationSpeed: 1,
+  strokeFadeDuration: 400,
+  strokeHighlightDuration: 200,
+  strokeHighlightSpeed: 2,
+  delayBetweenStrokes: 1000,
+  delayBetweenLoops: 2000,
+
+  // colors
+
+  strokeColor: '#555',
+  radicalColor: null,
+  highlightColor: '#AAF',
+  outlineColor: '#DDD',
+  drawingColor: '#333',
+
+  // quiz options
+
+  leniency: 1,
+  showHintAfterMisses: 3,
+  highlightOnComplete: true,
+  highlightCompleteColor: null,
+
+  // undocumented obscure options
+
+  drawingFadeDuration: 300,
+  drawingWidth: 4,
+  strokeWidth: 2,
+  outlineWidth: 2,
 };
 
-const positioner = new Positioner({
-  width: 100,
-  height: 100,
-  padding: 10,
-});
+const createRenderState = (optOverrides = {}) => {
+  const options = Object.assign({}, opts, optOverrides);
+  // eslint-disable-next-line @typescript-eslint/no-empty-function
+  return new RenderState(char, options, () => {});
+};
 
-describe("Quiz", () => {
-  describe("startQuiz", () => {
-    it("resets the quiz and makes it active", async () => {
+describe('Quiz', () => {
+  describe('startQuiz', () => {
+    it('resets the quiz and makes it active', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       expect(quiz._isActive).toBe(false);
 
-      await quiz.startQuiz({ ...defaultOptions });
-
+      quiz.startQuiz(Object.assign({}, opts));
       expect(quiz._isActive).toBe(true);
 
+      clock.tick(1000);
+      await resolvePromises();
+
       expect(renderState.state.character.main.opacity).toBe(1);
-      for (const strokeNum in renderState.state.character.main.strokes) {
+      Object.keys(renderState.state.character.main.strokes).forEach((strokeNum) => {
         expect(renderState.state.character.main.strokes[strokeNum].opacity).toBe(0);
-      }
+      });
     });
 
-    it("sets all highlight stroke opacities to 0", async () => {
+    it('sets all highlight stroke opacities to 0', async () => {
       const renderState = createRenderState();
       renderState.updateState({
         character: {
@@ -70,45 +107,66 @@ describe("Quiz", () => {
         },
       });
 
-      const quiz = new Quiz(char, renderState, positioner);
-      await quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
+      clock.tick(1000);
+      await resolvePromises();
 
       expect(renderState.state.character.highlight.opacity).toBe(1);
-      for (const strokeNum in renderState.state.character.main.strokes) {
+      Object.keys(renderState.state.character.main.strokes).forEach((strokeNum) => {
         expect(renderState.state.character.highlight.strokes[strokeNum].opacity).toBe(0);
-      }
+      });
     });
   });
 
-  describe("cancel", () => {
-    it("makes the quiz inactive and removes the current stroke", async () => {
+  describe('cancel', () => {
+    it('makes the quiz inactive and removes the current stroke', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
-      quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
 
       quiz.startUserStroke({ x: 10, y: 20 });
       quiz.continueUserStroke({ x: 12, y: 23 });
+      clock.tick(100);
+      await resolvePromises();
+      const currentStrokeId = quiz._userStroke!.id;
 
-      const currentStrokeId = quiz._userStroke?.id || -1;
-
-      await quiz.cancel();
+      quiz.cancel();
+      await resolvePromises();
 
       expect(quiz._isActive).toBe(false);
+      clock.tick(1000);
+      await resolvePromises();
 
-      expect(renderState.state.userStrokes?.[currentStrokeId]).toBe(undefined);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
   });
 
-  describe("startUserStroke", () => {
-    it("begins a stroke with the provided point", async () => {
+  describe('startUserStroke', () => {
+    it('begins a stroke with the provided point', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
-      await quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
+
+      await resolvePromises();
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
 
-      await quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.startUserStroke({ x: 10, y: 20 });
+      await resolvePromises();
 
       const userStrokeIds = Object.keys(renderState.state.userStrokes!);
       expect(userStrokeIds.length).toBe(1);
@@ -119,10 +177,16 @@ describe("Quiz", () => {
       expect(quiz._userStroke!.points).toEqual([{ x: 15, y: 25 }]);
     });
 
-    it("ends the current user stroke if one exists", async () => {
+    it('ends the current user stroke if one exists', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
-      await quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
+
+      await resolvePromises();
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
@@ -136,7 +200,7 @@ describe("Quiz", () => {
 
       const userStrokeIds = Object.keys(renderState.state.userStrokes!);
       expect(userStrokeIds.length).toBe(1);
-      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._userStroke).toBeUndefined();
       expect(renderState.state.userStrokes![currentStrokeId]!.points).toEqual([
         { x: 15, y: 25 },
       ]);
@@ -145,20 +209,27 @@ describe("Quiz", () => {
       await resolvePromises();
 
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
   });
 
-  describe("continueUserStroke", () => {
-    it("adds to the current user stroke", async () => {
+  describe('continueUserStroke', () => {
+    it('adds to the current user stroke', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
-      await quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
+
+      await resolvePromises();
 
       expect(renderState.state.userStrokes).toBe(null);
       expect(quiz._userStroke).toBe(undefined);
 
-      await quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.startUserStroke({ x: 10, y: 20 });
+      await resolvePromises();
 
       const currentStrokeId = quiz._userStroke!.id;
 
@@ -181,53 +252,67 @@ describe("Quiz", () => {
       ]);
     });
 
-    it("does nothing if there is no current stroke", async () => {
+    it('does nothing if there is no current stroke', async () => {
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
-      await quiz.startQuiz({ ...defaultOptions });
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts));
+
+      await resolvePromises();
 
       expect(renderState.state.userStrokes).toBe(null);
+      await resolvePromises();
 
       expect(quiz._userStroke).toBe(undefined);
-      await quiz.continueUserStroke({ x: 100, y: 200 });
+      quiz.continueUserStroke({ x: 100, y: 200 });
+
+      await resolvePromises();
 
       expect(quiz._userStroke).toBe(undefined);
       expect(renderState.state.userStrokes).toBe(null);
     });
   });
 
-  describe("endUserStroke", () => {
-    it("finishes the stroke and moves on if it was correct", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => true);
+  describe('endUserStroke', () => {
+    it('finishes the stroke and moves on if it was correct', async () => {
+      (strokeMatches as any).mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake }));
+      clock.tick(1000);
+      await resolvePromises();
 
-      await quiz.startUserStroke({ x: 10, y: 20 });
-      await quiz.continueUserStroke({ x: 100, y: 200 });
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 100, y: 200 });
 
       const currentStrokeId = quiz._userStroke!.id;
       expect(quiz._currentStrokeIndex).toBe(0);
       quiz.endUserStroke();
       await resolvePromises();
 
-      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._userStroke).toBeUndefined();
       expect(quiz._isActive).toBe(true);
       expect(quiz._currentStrokeIndex).toBe(1);
       expect(onCorrectStroke).toHaveBeenCalledTimes(1);
       expect(onCorrectStroke).toHaveBeenCalledWith({
-        character: "人",
+        character: '人',
         mistakesOnStroke: 0,
         strokeNum: 0,
         strokesRemaining: 1,
         totalMistakes: 0,
         drawnPath: {
-          pathString: "M 10 20 L 100 200",
+          pathString: 'M 10 20 L 100 200',
           points: [
             { x: 15, y: 25 },
             { x: 105, y: 205 },
@@ -243,20 +328,23 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
 
-    it("ignores single point strokes", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => false);
+    it('ignores single point strokes', async () => {
+      (strokeMatches as any).mockImplementation(() => false);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
-
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake }));
+      clock.tick(1000);
       await resolvePromises();
 
       quiz.startUserStroke({ x: 10, y: 20 });
@@ -264,7 +352,7 @@ describe("Quiz", () => {
       quiz.endUserStroke();
       await resolvePromises();
 
-      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._userStroke).toBeUndefined();
       expect(quiz._isActive).toBe(true);
       expect(quiz._currentStrokeIndex).toBe(0);
       expect(onMistake).not.toHaveBeenCalled();
@@ -277,19 +365,24 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
 
-    it("stays on the stroke if it was incorrect", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => false);
+    it('stays on the stroke if it was incorrect', async () => {
+      (strokeMatches as any).mockImplementation(() => false);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      await quiz.startQuiz({ ...defaultOptions, onCorrectStroke, onComplete, onMistake });
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake }));
+      clock.tick(1000);
+      await resolvePromises();
 
       quiz.startUserStroke({ x: 10, y: 20 });
       quiz.continueUserStroke({ x: 100, y: 200 });
@@ -299,18 +392,18 @@ describe("Quiz", () => {
       quiz.endUserStroke();
       await resolvePromises();
 
-      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._userStroke).toBeUndefined();
       expect(quiz._isActive).toBe(true);
       expect(quiz._currentStrokeIndex).toBe(0);
       expect(onMistake).toHaveBeenCalledTimes(1);
       expect(onMistake).toHaveBeenCalledWith({
-        character: "人",
+        character: '人',
         mistakesOnStroke: 1,
         strokeNum: 0,
         strokesRemaining: 2,
         totalMistakes: 1,
         drawnPath: {
-          pathString: "M 10 20 L 100 200",
+          pathString: 'M 10 20 L 100 200',
           points: [
             { x: 15, y: 25 },
             { x: 105, y: 205 },
@@ -326,32 +419,29 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
       // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(undefined);
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
 
-    it("highlights the stroke if the number of mistakes exceeds showHintAfterMisses", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => false);
+    it('highlights the stroke if the number of mistakes exceeds showHintAfterMisses', async () => {
+      (strokeMatches as any).mockImplementation(() => false);
 
       const renderState = createRenderState();
-      // should reset this color before highlighting
-      renderState.state.options.highlightColor = {
-        r: 0,
-        g: 0,
-        b: 255,
-        a: 1,
-      };
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({
-        ...defaultOptions,
-        onCorrectStroke,
-        onComplete,
-        onMistake,
-        showHintAfterMisses: 2,
-      });
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          showHintAfterMisses: 2,
+        }),
+      );
       clock.tick(1000);
       await resolvePromises();
 
@@ -370,18 +460,18 @@ describe("Quiz", () => {
       quiz.endUserStroke();
       await resolvePromises();
 
-      expect(quiz._userStroke).toBe(undefined);
+      expect(quiz._userStroke).toBeUndefined();
       expect(quiz._isActive).toBe(true);
       expect(quiz._currentStrokeIndex).toBe(0);
       expect(onMistake).toHaveBeenCalledTimes(2);
       expect(onMistake).toHaveBeenLastCalledWith({
-        character: "人",
+        character: '人',
         mistakesOnStroke: 2,
         strokeNum: 0,
         strokesRemaining: 2,
         totalMistakes: 2,
         drawnPath: {
-          pathString: "M 10 20 L 11 21",
+          pathString: 'M 10 20 L 11 21',
           points: [
             { x: 15, y: 25 },
             { x: 16, y: 26 },
@@ -398,43 +488,32 @@ describe("Quiz", () => {
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
 
       // should highlight the stroke now
-      renderState.state.options.highlightColor = {
-        r: 170,
-        g: 170,
-        b: 255,
-        a: 1,
-      };
-
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
     });
 
-    it("does not highlight strokes if showHintAfterMisses is set to false", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => false);
+    it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
+      (strokeMatches as any).mockImplementation(() => false);
 
       const renderState = createRenderState();
-      // should reset this color before highlighting
-      renderState.state.options.highlightColor = {
-        r: 0,
-        g: 0,
-        b: 255,
-        a: 1,
-      };
-
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
-      quiz.startQuiz({
-        ...defaultOptions,
-        onCorrectStroke,
-        onComplete,
-        onMistake,
-        showHintAfterMisses: false,
-      });
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          showHintAfterMisses: false,
+        }),
+      );
       clock.tick(1000);
       await resolvePromises();
 
@@ -448,58 +527,62 @@ describe("Quiz", () => {
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
     });
 
-    it("finishes the quiz when all strokes are successful", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => true);
+    it('finishes the quiz when all strokes are successful', async () => {
+      (strokeMatches as any).mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
       const onMistake = jest.fn();
       const onComplete = jest.fn();
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          highlightOnComplete: true,
+          highlightCompleteColor: '#0F0',
+        }),
+      );
+      clock.tick(1000);
+      await resolvePromises();
 
-      await quiz.startQuiz({
-        ...defaultOptions,
-        onCorrectStroke,
-        onComplete,
-        onMistake,
-        highlightOnComplete: true,
-        highlightCompleteColor: "#0F0", // r: 0, g: 255, b: 0, a: 1
-      });
-
-      await quiz.startUserStroke({ x: 10, y: 20 });
-      await quiz.continueUserStroke({ x: 11, y: 21 });
-      await quiz.endUserStroke();
-
-      expect(onCorrectStroke).toHaveBeenCalledTimes(1);
-
-      await quiz.startUserStroke({ x: 10, y: 20 });
-      await quiz.continueUserStroke({ x: 11, y: 21 });
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 11, y: 21 });
       quiz.endUserStroke();
+      await resolvePromises();
+      clock.tick(1000);
+      await resolvePromises();
 
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 11, y: 21 });
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBeUndefined();
+      expect(quiz._isActive).toBe(false);
       expect(onCorrectStroke).toHaveBeenCalledTimes(2);
       expect(onCorrectStroke).toHaveBeenLastCalledWith({
-        character: "人",
+        character: '人',
         mistakesOnStroke: 0,
         strokeNum: 1,
         strokesRemaining: 0,
         totalMistakes: 0,
         drawnPath: {
-          pathString: "M 10 20 L 11 21",
+          pathString: 'M 10 20 L 11 21',
           points: [
             { x: 15, y: 25 },
             { x: 16, y: 26 },
           ],
         },
       });
-
-      // Quiz should now be inactive
-      expect(quiz._userStroke).toBe(undefined);
-      expect(quiz._isActive).toBe(false);
-
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenLastCalledWith({
-        character: "人",
+        character: '人',
         totalMistakes: 0,
       });
       expect(onMistake).not.toHaveBeenCalled();
@@ -512,29 +595,24 @@ describe("Quiz", () => {
 
       clock.tick(1000);
       await resolvePromises();
-      // highlights the character at the end
-      expect(renderState.state.options.highlightColor).toEqual({
-        r: 0,
-        g: 255,
-        b: 0,
-        a: 1,
-      });
-      expect(renderState.state.character.highlight.opacity).toBe(1);
 
+      expect(renderState.state.character.highlight.opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();
-
       expect(renderState.state.character.highlight.opacity).toBe(0);
     });
 
-    it("rounds drawn path data", async () => {
-      // @ts-ignore
-      strokeMatches.mockImplementation(() => true);
+    it('rounds drawn path data', async () => {
+      (strokeMatches as any).mockImplementation(() => true);
 
       const renderState = createRenderState();
-      const quiz = new Quiz(char, renderState, positioner);
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
       const onCorrectStroke = jest.fn();
-      quiz.startQuiz({ ...defaultOptions, onCorrectStroke });
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke }));
       clock.tick(1000);
       await resolvePromises();
 
@@ -545,13 +623,13 @@ describe("Quiz", () => {
       await resolvePromises();
       expect(onCorrectStroke).toHaveBeenCalledTimes(1);
       expect(onCorrectStroke).toHaveBeenLastCalledWith({
-        character: "人",
+        character: '人',
         mistakesOnStroke: 0,
         strokeNum: 0,
         strokesRemaining: 1,
         totalMistakes: 0,
         drawnPath: {
-          pathString: "M 10.9 20.5 L 11.9 23.4",
+          pathString: 'M 10.9 20.5 L 11.9 23.4',
           points: [
             { x: 15.9, y: 25.5 },
             { x: 16.9, y: 28.4 },
@@ -561,13 +639,16 @@ describe("Quiz", () => {
     });
   });
 
-  it("doesnt leave strokes partially drawn if the users finishes the quiz really fast", async () => {
-    // @ts-ignore
-    strokeMatches.mockImplementation(() => true);
+  it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
+    (strokeMatches as any).mockImplementation(() => true);
     const renderState = createRenderState();
-    const quiz = new Quiz(char, renderState, positioner);
+    const quiz = new Quiz(
+      char,
+      renderState,
+      new Positioner({ padding: 20, width: 200, height: 200 }),
+    );
 
-    quiz.startQuiz({ ...defaultOptions });
+    quiz.startQuiz(Object.assign({}, opts));
     clock.tick(1000);
     await resolvePromises();
 
@@ -591,21 +672,16 @@ describe("Quiz", () => {
     expect(renderState.state.character.main.strokes[1].opacity).toBe(1);
   });
 
-  it("sets up character opacities correctly if the users starts drawing during char fading", async () => {
-    // @ts-ignore
-    strokeMatches.mockImplementation(() => true);
+  it('sets up character opacities correctly if the users starts drawing during char fading', async () => {
+    (strokeMatches as any).mockImplementation(() => true);
     const renderState = createRenderState();
     const quiz = new Quiz(
       char,
       renderState,
-      new Positioner({
-        padding: 20,
-        width: 0,
-        height: 0,
-      }),
+      new Positioner({ padding: 20, width: 200, height: 200 }),
     );
 
-    quiz.startQuiz({ ...defaultOptions });
+    quiz.startQuiz(Object.assign({}, opts));
     clock.tick(20);
     await resolvePromises();
 

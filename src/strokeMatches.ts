@@ -12,6 +12,7 @@ import {
 import { Point } from './typings/types';
 import UserStroke from './models/UserStroke';
 import Stroke from './models/Stroke';
+import Character from 'models/Character';
 
 const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
@@ -21,13 +22,14 @@ const MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
 
 export default function strokeMatches(
   userStroke: UserStroke,
-  strokes: Stroke[],
+  character: Character,
   strokeNum: number,
   options: {
     leniency?: number;
     isOutlineVisible?: boolean;
   } = {},
 ) {
+  const strokes = character.strokes;
   const points = stripDuplicates(userStroke.points);
 
   if (points.length < 2) {

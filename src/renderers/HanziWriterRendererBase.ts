@@ -1,7 +1,7 @@
-import Character from "../models/Character";
-import Positioner from "../Positioner";
-import { RenderStateObject } from "../RenderState";
-import RenderTargetBase from "./RenderTargetBase";
+import Character from '../models/Character';
+import Positioner from '../Positioner';
+import { RenderStateObject } from '../RenderState';
+import RenderTargetBase from './RenderTargetBase';
 
 export default interface HanziWriterRendererBase<
   TElementType extends HTMLElement | HTMLCanvasElement | SVGElement | SVGSVGElement,

@@ -1,40 +1,40 @@
-import * as geometry from "../geometry";
+import * as geometry from '../geometry';
 
-describe("geometry", () => {
-  describe("_extendPointOnLine", () => {
-    it("returns a point distance away from the end point", () => {
+describe('geometry', () => {
+  describe('_extendPointOnLine', () => {
+    it('returns a point distance away from the end point', () => {
       const p1 = { x: 0, y: 0 };
       const p2 = { x: 8, y: 6 };
       expect(geometry._extendPointOnLine(p1, p2, 5)).toEqual({ x: 12, y: 9 });
     });
 
-    it("works with negative distances", () => {
+    it('works with negative distances', () => {
       const p1 = { x: 0, y: 0 };
       const p2 = { x: 8, y: 6 };
       expect(geometry._extendPointOnLine(p1, p2, -5)).toEqual({ x: 4, y: 3 });
     });
 
-    it("works when p2 is before p1 in the line", () => {
+    it('works when p2 is before p1 in the line', () => {
       const p1 = { x: 12, y: 9 };
       const p2 = { x: 8, y: 6 };
       expect(geometry._extendPointOnLine(p1, p2, 10)).toEqual({ x: 0, y: 0 });
     });
 
-    it("works with vertical lines", () => {
+    it('works with vertical lines', () => {
       const p1 = { x: 2, y: 4 };
       const p2 = { x: 2, y: 6 };
       expect(geometry._extendPointOnLine(p1, p2, 7)).toEqual({ x: 2, y: 13 });
     });
 
-    it("works with vertical lines where p2 is above p1", () => {
+    it('works with vertical lines where p2 is above p1', () => {
       const p1 = { x: 2, y: 6 };
       const p2 = { x: 2, y: 4 };
       expect(geometry._extendPointOnLine(p1, p2, 7)).toEqual({ x: 2, y: -3 });
     });
   });
 
-  describe("frechetDist", () => {
-    it("is 0 if the curves are the same", () => {
+  describe('frechetDist', () => {
+    it('is 0 if the curves are the same', () => {
       const curve1 = [
         { x: 0, y: 0 },
         { x: 4, y: 4 },
@@ -48,7 +48,7 @@ describe("geometry", () => {
       expect(geometry.frechetDist(curve2, curve1)).toBe(0);
     });
 
-    it("less than then max length of any segment if curves are identical", () => {
+    it('less than then max length of any segment if curves are identical', () => {
       const { subdivideCurve, frechetDist } = geometry;
       const curve1 = [
         { x: 0, y: 0 },
@@ -71,7 +71,7 @@ describe("geometry", () => {
       ).toBeLessThan(0.01);
     });
 
-    it("will be the dist of the starting points if those are the only difference", () => {
+    it('will be the dist of the starting points if those are the only difference', () => {
       const curve1 = [
         { x: 1, y: 0 },
         { x: 4, y: 4 },
@@ -86,8 +86,8 @@ describe("geometry", () => {
     });
   });
 
-  describe("subdivideCurve", () => {
-    it("leave the curve the same if segment lengths are less than maxLen apart", () => {
+  describe('subdivideCurve', () => {
+    it('leave the curve the same if segment lengths are less than maxLen apart', () => {
       const curve = [
         { x: 0, y: 0 },
         { x: 4, y: 4 },
@@ -98,7 +98,7 @@ describe("geometry", () => {
       ]);
     });
 
-    it("breaks up segments so that each segment is less than maxLen length", () => {
+    it('breaks up segments so that each segment is less than maxLen length', () => {
       const curve = [
         { x: 0, y: 0 },
         { x: 4, y: 4 },
@@ -118,8 +118,8 @@ describe("geometry", () => {
     });
   });
 
-  describe("outlineCurve", () => {
-    it("divides a curve into equally spaced segments", () => {
+  describe('outlineCurve', () => {
+    it('divides a curve into equally spaced segments', () => {
       const curve1 = [
         { x: 0, y: 0 },
         { x: 4, y: 6 },
@@ -144,8 +144,8 @@ describe("geometry", () => {
     });
   });
 
-  describe("_filterParallelPoints", () => {
-    it("removes internal points that are on the line connecting the points on either side", () => {
+  describe('_filterParallelPoints', () => {
+    it('removes internal points that are on the line connecting the points on either side', () => {
       const points = [
         { x: 0, y: 0 },
         { x: 5, y: 0 },
@@ -164,7 +164,7 @@ describe("geometry", () => {
       ]);
     });
 
-    it("returns the original points if there are no parallel points", () => {
+    it('returns the original points if there are no parallel points', () => {
       const points = [
         { x: 0, y: 0 },
         { x: 6, y: 0 },
@@ -175,32 +175,32 @@ describe("geometry", () => {
     });
   });
 
-  describe("getPathString", () => {
-    it("returns d path based on the points passed in", () => {
+  describe('getPathString', () => {
+    it('returns d path based on the points passed in', () => {
       const points = [
         { x: 0, y: 0 },
         { x: 5, y: 0 },
         { x: 5, y: 2 },
       ];
-      expect(geometry.getPathString(points)).toEqual("M 0 0 L 5 0 L 5 2");
+      expect(geometry.getPathString(points)).toEqual('M 0 0 L 5 0 L 5 2');
     });
 
-    it("closes the path if close = true", () => {
+    it('closes the path if close = true', () => {
       const points = [
         { x: 0, y: 0 },
         { x: 5, y: 0 },
         { x: 5, y: 2 },
       ];
-      expect(geometry.getPathString(points, true)).toEqual("M 0 0 L 5 0 L 5 2Z");
+      expect(geometry.getPathString(points, true)).toEqual('M 0 0 L 5 0 L 5 2Z');
     });
 
-    it("rounds points to 1 decimal point", () => {
+    it('rounds points to 1 decimal point', () => {
       const points = [
         { x: 0.11113, y: 0.991212 },
         { x: 5.4565, y: 0.923 },
         { x: 5.4456, y: 2 },
       ];
-      expect(geometry.getPathString(points, true)).toEqual("M 0.1 1 L 5.5 0.9 L 5.4 2Z");
+      expect(geometry.getPathString(points, true)).toEqual('M 0.1 1 L 5.5 0.9 L 5.4 2Z');
     });
   });
 });

@@ -1,5 +1,5 @@
-import { ColorObject, Point } from "../../typings/types";
-import { drawPath } from "./canvasUtils";
+import { ColorObject, Point } from '../../typings/types';
+import { drawPath } from './canvasUtils';
 
 export default function renderUserStroke(
   ctx: CanvasRenderingContext2D,
@@ -20,8 +20,8 @@ export default function renderUserStroke(
   ctx.globalAlpha = opacity;
   ctx.lineWidth = strokeWidth;
   ctx.strokeStyle = `rgba(${r},${g},${b},${a})`;
-  ctx.lineCap = "round";
-  ctx.lineJoin = "round";
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
   drawPath(ctx, points);
   ctx.restore();
 }

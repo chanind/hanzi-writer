@@ -1,62 +1,73 @@
-import { enableFetchMocks } from "jest-fetch-mock";
-enableFetchMocks();
+import { fakeXhr, FakeXMLHttpRequest, FakeXMLHttpRequestStatic } from 'nise';
+import ren from 'hanzi-writer-data/人.json';
+import defaultCharDataLoader from '../defaultCharDataLoader';
 
-import ren from "hanzi-writer-data/人.json";
-import { defaultCharDataLoader } from "../defaultOptions";
+let xhr: FakeXMLHttpRequestStatic;
+let requests: FakeXMLHttpRequest[];
 
 beforeEach(() => {
-  fetchMock.resetMocks();
+  requests = [];
+  xhr = fakeXhr.useFakeXMLHttpRequest();
+  xhr.onCreate = function (req) {
+    requests.push(req);
+  };
 });
 
-describe("defaultCharDataLoader", () => {
-  it("loads char data from the jsdelivr CDN", async () => {
-    fetchMock.mockOnce(JSON.stringify(ren));
+afterEach(() => {
+  xhr.restore();
+});
 
+describe('defaultCharDataLoader', () => {
+  it('loads char data from the jsdelivr CDN', () => {
+    const onLoad = jest.fn();
     const onError = jest.fn();
 
-    const response = await new Promise((onLoad) => {
-      defaultCharDataLoader("人", onLoad, onError);
-    });
+    defaultCharDataLoader('人', onLoad, onError);
 
-    expect(fetchMock.mock.calls.length).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toBe(
-      "https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/人.json",
+    expect(requests.length).toBe(1);
+    expect(requests[0].url).toBe(
+      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/人.json',
     );
+
+    requests[0].respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(ren));
 
     expect(onError).not.toHaveBeenCalled();
-    expect(response).toMatchObject(ren);
+    expect(onLoad).toHaveBeenCalledTimes(1);
+    expect(onLoad).toHaveBeenCalledWith(ren);
   });
 
-  it("calls onError if a non-200 response is returned", async () => {
-    const url = "https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/Q.json";
+  it('calls onError if a non-200 response is returned', () => {
+    const onLoad = jest.fn();
+    const onError = jest.fn();
 
-    fetchMock.mockResponse(
-      "Couldn't find the requested file /Q.json in hanzi-writer-data.",
-      { headers: { "Content-Type": "text/plain" }, status: 404 },
+    defaultCharDataLoader('Q', onLoad, onError);
+
+    expect(requests.length).toBe(1);
+    expect(requests[0].url).toBe(
+      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/Q.json',
     );
 
-    const onLoad = jest.fn();
+    requests[0].respond(
+      404,
+      { 'Content-Type': 'text/plain' },
+      "Couldn't find the requested file /Q.json in hanzi-writer-data.",
+    );
 
-    await new Promise((onError) => {
-      defaultCharDataLoader("Q", onLoad, onError);
-    });
-
-    expect(fetchMock.mock.calls.length).toBe(1);
-    expect(fetchMock.mock.calls[0][0]).toBe(url);
-
+    expect(onError).toHaveBeenCalledTimes(1);
     expect(onLoad).not.toHaveBeenCalled();
   });
 
-  it("calls onError if a network error occurs", async () => {
-    fetchMock.mockReject();
+  it('calls onError if a network error occurs', () => {
     const onLoad = jest.fn();
+    const onError = jest.fn();
 
-    await new Promise((onError) => {
-      defaultCharDataLoader("人", onLoad, onError);
-    });
+    defaultCharDataLoader('人', onLoad, onError);
 
-    expect(fetchMock.mock.calls.length).toBe(1);
+    expect(requests.length).toBe(1);
 
+    requests[0].error();
+
+    expect(onError).toHaveBeenCalledTimes(1);
     expect(onLoad).not.toHaveBeenCalled();
   });
 });

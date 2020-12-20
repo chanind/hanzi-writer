@@ -6,15 +6,6 @@ CanvasRenderingContext2D {
     height="100%"
     width="100%"
   />,
-  "_clipIndex": 1,
-  "_clipStack": Array [
-    Array [],
-    Array [],
-    Array [],
-    Array [],
-    Array [],
-    Array [],
-  ],
   "_directionStack": Array [
     "inherit",
   ],
@@ -777,7 +768,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#dddddd",
+        "value": "#ddd",
       },
       "transform": Array [
         -0.0390625,
@@ -791,7 +782,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#dddddd",
+        "value": "#ddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1240,7 +1231,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#dddddd",
+        "value": "#ddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1254,7 +1245,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#dddddd",
+        "value": "#ddd",
       },
       "transform": Array [
         -0.0390625,
@@ -1673,7 +1664,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555555",
+        "value": "#555",
       },
       "transform": Array [
         -0.0390625,
@@ -1687,7 +1678,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555555",
+        "value": "#555",
       },
       "transform": Array [
         -0.0390625,
@@ -2136,7 +2127,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555555",
+        "value": "#555",
       },
       "transform": Array [
         -0.0390625,
@@ -2150,7 +2141,7 @@ CanvasRenderingContext2D {
     },
     Object {
       "props": Object {
-        "value": "#555555",
+        "value": "#555",
       },
       "transform": Array [
         -0.0390625,
@@ -2529,18 +2520,18 @@ CanvasRenderingContext2D {
     Object {
       "props": Object {},
       "transform": Array [
-        1,
-        0,
-        0,
-        1,
-        0,
-        0,
+        -0.0390625,
+        -0,
+        -0,
+        0.0390625,
+        20,
+        -15.15625,
       ],
       "type": "restore",
     },
   ],
   "_fillStyleStack": Array [
-    "#000000",
+    "#000",
   ],
   "_filterStack": Array [
     "none",
@@ -2726,7 +2717,7 @@ CanvasRenderingContext2D {
   ],
   "_stackIndex": 0,
   "_strokeStyleStack": Array [
-    "#000000",
+    "#000",
   ],
   "_textAlignStack": Array [
     "start",
@@ -2736,12 +2727,12 @@ CanvasRenderingContext2D {
   ],
   "_transformStack": Array [
     Array [
-      1,
-      0,
-      0,
-      1,
-      0,
-      0,
+      -0.0390625,
+      -0,
+      -0,
+      0.0390625,
+      20,
+      -15.15625,
     ],
   ],
   "addHitRegion": [MockFunction],

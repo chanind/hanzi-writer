@@ -1,4 +1,4 @@
-import { Point, PositionerOptions } from './typings/types';
+import { Point } from './typings/types';
 
 // All makemeahanzi characters have the same bounding box
 const CHARACTER_BOUNDS = [
@@ -8,6 +8,12 @@ const CHARACTER_BOUNDS = [
 const [from, to] = CHARACTER_BOUNDS;
 const preScaledWidth = to.x - from.x;
 const preScaledHeight = to.y - from.y;
+
+interface PositionerOptions {
+  width: number;
+  height: number;
+  padding: number;
+}
 
 export default class Positioner {
   padding: number;

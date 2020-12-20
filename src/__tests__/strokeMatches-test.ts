@@ -1,50 +1,42 @@
-import strokeMatches from "../strokeMatches";
-import Stroke from "../models/Stroke";
-import UserStroke from "../models/UserStroke";
-import parseCharData from "../parseCharData";
-import { Point } from "../typings/types";
-import Character from "../models/Character";
+import strokeMatches from '../strokeMatches';
+import Stroke from '../models/Stroke';
+import UserStroke from '../models/UserStroke';
+import parseCharData from '../parseCharData';
+import { Point } from 'typings/types';
+import Character from 'models/Character';
 
-const getChar = (charStr: string) => {
+const getChar = (charStr: string): Character => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
   const charJson = require(`hanzi-writer-data/${charStr}.json`);
   return parseCharData(charStr, charJson);
 };
 
-const getUserStrokeFromPoints = (points: Point[]) => {
-  const userStroke = new UserStroke(1, points[0], points[0]);
-  userStroke.points = points;
-  return userStroke;
-};
-
 const assertMatches = (
   charStr: string,
-  strokeNum: number,
+  strokeNum: string,
   points: Point[],
   options = {},
 ) => {
   const char = getChar(charStr);
-  const userStroke = getUserStrokeFromPoints(points);
-
-  expect(strokeMatches(userStroke, char.strokes, strokeNum, options)).toBe(true);
+  const userStroke = { points } as any;
+  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(true);
 };
 
 const assertNotMatches = (
   charStr: string,
-  strokeNum: number,
+  strokeNum: string,
   points: Point[],
   options = {},
 ) => {
   const char = getChar(charStr);
-  const userStroke = getUserStrokeFromPoints(points);
-
-  expect(strokeMatches(userStroke, char.strokes, strokeNum, options)).toBe(false);
+  const userStroke = { points } as any;
+  expect(strokeMatches(userStroke, char, strokeNum, options)).toBe(false);
 };
 
-describe("strokeMatches", () => {
-  it("matches if the user stroke roughly matches the stroke medians", () => {
+describe('strokeMatches', () => {
+  it('matches if the user stroke roughly matches the stroke medians', () => {
     const stroke = new Stroke(
-      "",
+      '',
       [
         { x: 0, y: 0 },
         { x: 10, y: 50 },
@@ -56,13 +48,12 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 5, y: 25 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10, y: 51 }, { x: 9999, y: 9999 });
 
-    const character = new Character("", [stroke]);
-    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(true);
+    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(true);
   });
 
-  it("does not match if the user stroke is in the wrong direction", () => {
+  it('does not match if the user stroke is in the wrong direction', () => {
     const stroke = new Stroke(
-      "",
+      '',
       [
         { x: 0, y: 0 },
         { x: 10, y: 50 },
@@ -74,14 +65,12 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 5, y: 25 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 2, y: 1 }, { x: 9999, y: 9999 });
 
-    const character = new Character("", [stroke]);
-
-    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(false);
+    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(false);
   });
 
-  it("does not match if the user stroke is too far away", () => {
+  it('does not match if the user stroke is too far away', () => {
     const stroke = new Stroke(
-      "",
+      '',
       [
         { x: 0, y: 0 },
         { x: 10, y: 50 },
@@ -97,13 +86,12 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 5 + 200, y: 25 + 200 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10 + 200, y: 51 + 200 }, { x: 9999, y: 9999 });
 
-    const character = new Character("", [stroke]);
-    expect(strokeMatches(userStroke, character.strokes, 0)).toBe(false);
+    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(false);
   });
 
-  it("is more lenient depending on how large leniency is", () => {
+  it('is more lenient depending on how large leniency is', () => {
     const stroke = new Stroke(
-      "",
+      '',
       [
         { x: 0, y: 0 },
         { x: 10, y: 50 },
@@ -119,16 +107,16 @@ describe("strokeMatches", () => {
     userStroke.appendPoint({ x: 5 + 200, y: 25 + 200 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10 + 200, y: 51 + 200 }, { x: 9999, y: 9999 });
 
-    const character = new Character("", [stroke]);
-
-    expect(strokeMatches(userStroke, character.strokes, 0, { leniency: 0.2 })).toBe(
+    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0, { leniency: 0.2 })).toBe(
       false,
     );
-    expect(strokeMatches(userStroke, character.strokes, 0, { leniency: 20 })).toBe(true);
+    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0, { leniency: 20 })).toBe(
+      true,
+    );
   });
 
-  it("matches using real data 1", () => {
-    assertMatches("人", 0, [
+  it('matches using real data 1', () => {
+    assertMatches('人', 0, [
       { x: 409.6, y: 746.4 },
       { x: 409.6, y: 746.4 },
       { x: 409.6, y: 746.4 },
@@ -203,8 +191,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("matches using real data 2", () => {
-    assertMatches("人", 1, [
+  it('matches using real data 2', () => {
+    assertMatches('人', 1, [
       { x: 583.1111111111111, y: 516 },
       { x: 583.1111111111111, y: 516 },
       { x: 583.1111111111111, y: 516 },
@@ -225,8 +213,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("does not match using real data 1", () => {
-    assertNotMatches("人", 0, [
+  it('does not match using real data 1', () => {
+    assertNotMatches('人', 0, [
       { x: 133.6888888888889, y: 595.6444444444444 },
       { x: 133.6888888888889, y: 595.6444444444444 },
       { x: 136.53333333333333, y: 595.6444444444444 },
@@ -247,8 +235,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("does not match using real data 2", () => {
-    assertNotMatches("人", 0, [
+  it('does not match using real data 2', () => {
+    assertNotMatches('人', 0, [
       { x: 31.288888888888888, y: 285.6 },
       { x: 28.444444444444443, y: 285.6 },
       { x: 34.13333333333333, y: 288.44444444444446 },
@@ -272,8 +260,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("does not match using real data 3", () => {
-    assertNotMatches("人", 0, [
+  it('does not match using real data 3', () => {
+    assertNotMatches('人', 0, [
       { x: 395.3777777777778, y: 712.2666666666667 },
       { x: 395.3777777777778, y: 712.2666666666667 },
       { x: 395.3777777777778, y: 703.7333333333333 },
@@ -293,8 +281,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("does not match using real data 4", () => {
-    assertNotMatches("人", 0, [
+  it('does not match using real data 4', () => {
+    assertNotMatches('人', 0, [
       { x: 961.4222222222222, y: 680.9777777777778 },
       { x: 961.4222222222222, y: 680.9777777777778 },
       { x: 961.4222222222222, y: 680.9777777777778 },
@@ -342,8 +330,8 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("matches using real data 5", () => {
-    assertMatches("国", 1, [
+  it('matches using real data 5', () => {
+    assertMatches('国', 1, [
       { x: 337.2, y: 717 },
       { x: 347.5, y: 717 },
       { x: 378.2, y: 717 },
@@ -376,7 +364,7 @@ describe("strokeMatches", () => {
     ]);
   });
 
-  it("matches using real data 6", () => {
+  it('matches using real data 6', () => {
     const points = [
       { x: 412.3, y: 423.4 },
       { x: 463.5, y: 423.4 },
@@ -386,13 +374,13 @@ describe("strokeMatches", () => {
       { x: 562.5, y: 423.4 },
       { x: 576.2, y: 423.4 },
     ];
-    assertNotMatches("国", 2, points, { isOutlineVisible: true });
-    assertMatches("国", 3, points, { isOutlineVisible: true });
-    assertNotMatches("国", 4, points, { isOutlineVisible: true });
-    assertNotMatches("国", 5, points, { isOutlineVisible: true });
+    assertNotMatches('国', 2, points, { isOutlineVisible: true });
+    assertMatches('国', 3, points, { isOutlineVisible: true });
+    assertNotMatches('国', 4, points, { isOutlineVisible: true });
+    assertNotMatches('国', 5, points, { isOutlineVisible: true });
   });
 
-  it("matches using real data 7", () => {
+  it('matches using real data 7', () => {
     const points = [
       { x: 197.3, y: 568.8 },
       { x: 201.1, y: 561.2 },
@@ -403,23 +391,23 @@ describe("strokeMatches", () => {
       { x: 807.1, y: 524 },
       { x: 722.1, y: 197.1 },
     ];
-    assertNotMatches("中", 0, points);
-    assertMatches("中", 1, points);
-    assertNotMatches("中", 2, points);
+    assertNotMatches('中', 0, points);
+    assertMatches('中', 1, points);
+    assertNotMatches('中', 2, points);
   });
 
-  it("matches using real data 8", () => {
+  it('matches using real data 8', () => {
     const points = [
       { x: 234.8, y: 433.4 },
       { x: 161.3, y: 325.5 },
       { x: 43.9, y: 119.7 },
     ];
-    assertNotMatches("小", 0, points);
-    assertMatches("小", 1, points);
-    assertNotMatches("小", 2, points);
+    assertNotMatches('小', 0, points);
+    assertMatches('小', 1, points);
+    assertNotMatches('小', 2, points);
   });
 
-  it("matches using real data 9", () => {
+  it('matches using real data 9', () => {
     const points = [
       { x: 618.7, y: 378.9 },
       { x: 659.7, y: 385.7 },
@@ -428,11 +416,11 @@ describe("strokeMatches", () => {
       { x: 758.7, y: 430.1 },
       { x: 772.3, y: 433.5 },
     ];
-    assertNotMatches("谁", 5, points);
-    assertMatches("谁", 6, points);
+    assertNotMatches('谁', 5, points);
+    assertMatches('谁', 6, points);
   });
 
-  it("matches using real data 10", () => {
+  it('matches using real data 10', () => {
     const points = [
       { x: 239.8, y: 717.5 },
       { x: 263.7, y: 717.5 },
@@ -459,11 +447,11 @@ describe("strokeMatches", () => {
       { x: 239.8, y: 311.3 },
       { x: 226.2, y: 342 },
     ];
-    assertMatches("那", 0, points);
-    assertNotMatches("那", 1, points);
+    assertMatches('那', 0, points);
+    assertNotMatches('那', 1, points);
   });
 
-  it("matches using real data 11", () => {
+  it('matches using real data 11', () => {
     const points = [
       { x: 40.7, y: 425.9 },
       { x: 47.6, y: 425.9 },
@@ -486,12 +474,12 @@ describe("strokeMatches", () => {
       { x: 382.1, y: 272.3 },
       { x: 392.3, y: 286 },
     ];
-    assertNotMatches("语", 0, points);
-    assertMatches("语", 1, points);
-    assertNotMatches("语", 2, points);
+    assertNotMatches('语', 0, points);
+    assertMatches('语', 1, points);
+    assertNotMatches('语', 2, points);
   });
 
-  it("matches using real data 12", () => {
+  it('matches using real data 12', () => {
     const points = [
       { x: 512, y: 735.7 },
       { x: 512, y: 732.2 },
@@ -540,14 +528,14 @@ describe("strokeMatches", () => {
       { x: 645.1, y: 503.6 },
       { x: 641.7, y: 500.1 },
     ];
-    assertNotMatches("很", 2, points);
-    assertMatches("很", 3, points);
-    assertNotMatches("很", 4, points);
-    assertNotMatches("很", 5, points);
-    assertNotMatches("很", 6, points);
+    assertNotMatches('很', 2, points);
+    assertMatches('很', 3, points);
+    assertNotMatches('很', 4, points);
+    assertNotMatches('很', 5, points);
+    assertNotMatches('很', 6, points);
   });
 
-  it("matches using real data 13", () => {
+  it('matches using real data 13', () => {
     const points = [
       { x: 325, y: 684.3 },
       { x: 325, y: 687.7 },
@@ -578,12 +566,12 @@ describe("strokeMatches", () => {
       { x: 775.6, y: 701.4 },
       { x: 738, y: 684.3 },
     ];
-    assertNotMatches("写", 0, points);
-    assertMatches("写", 1, points);
-    assertNotMatches("写", 2, points);
+    assertNotMatches('写', 0, points);
+    assertMatches('写', 1, points);
+    assertNotMatches('写', 2, points);
   });
 
-  it("matches using real data 14", () => {
+  it('matches using real data 14', () => {
     const points = [
       { x: 55.4, y: 497.6 },
       { x: 62.2, y: 504.4 },
@@ -632,11 +620,11 @@ describe("strokeMatches", () => {
       { x: 990.6, y: 115.3 },
       { x: 990.6, y: 135.8 },
     ];
-    assertNotMatches("九", 0, points);
-    assertMatches("九", 1, points);
+    assertNotMatches('九', 0, points);
+    assertMatches('九', 1, points);
   });
 
-  it("matches using real data 15", () => {
+  it('matches using real data 15', () => {
     const points = [
       { x: 455.1, y: 681 },
       { x: 455.1, y: 683.8 },
@@ -691,11 +679,11 @@ describe("strokeMatches", () => {
       { x: 531.9, y: 316.9 },
       { x: 526.2, y: 314 },
     ];
-    assertMatches("阝", 0, points);
-    assertNotMatches("阝", 1, points);
+    assertMatches('阝', 0, points);
+    assertNotMatches('阝', 1, points);
   });
 
-  it("matches using real data 16", () => {
+  it('matches using real data 16', () => {
     const points = [
       { x: 386.8, y: 743.4 },
       { x: 390.3, y: 740 },
@@ -785,12 +773,12 @@ describe("strokeMatches", () => {
       { x: 414.2, y: 552.2 },
       { x: 410.7, y: 552.2 },
     ];
-    assertNotMatches("弓", 0, points);
-    assertNotMatches("弓", 1, points);
-    assertNotMatches("弓", 2, points);
+    assertNotMatches('弓', 0, points);
+    assertNotMatches('弓', 1, points);
+    assertNotMatches('弓', 2, points);
   });
 
-  it("matches using real data 17", () => {
+  it('matches using real data 17', () => {
     const points = [
       { x: 526.6, y: 626.7 },
       { x: 526.6, y: 616.5 },
@@ -798,12 +786,12 @@ describe("strokeMatches", () => {
       { x: 495.8, y: 592.6 },
       { x: 465.1, y: 578.9 },
     ];
-    assertNotMatches("犭", 0, points);
-    assertNotMatches("犭", 1, points);
-    assertNotMatches("犭", 2, points);
+    assertNotMatches('犭', 0, points);
+    assertNotMatches('犭', 1, points);
+    assertNotMatches('犭', 2, points);
   });
 
-  it("matches using real data 18", () => {
+  it('matches using real data 18', () => {
     const points = [
       { x: 553.9, y: 708.6 },
       { x: 547, y: 691.6 },
@@ -811,12 +799,12 @@ describe("strokeMatches", () => {
       { x: 540.2, y: 677.9 },
       { x: 540.2, y: 674.5 },
     ];
-    assertNotMatches("犭", 0, points);
-    assertNotMatches("犭", 1, points);
-    assertNotMatches("犭", 2, points);
+    assertNotMatches('犭', 0, points);
+    assertNotMatches('犭', 1, points);
+    assertNotMatches('犭', 2, points);
   });
 
-  it("matches using real data 19", () => {
+  it('matches using real data 19', () => {
     const points = [
       { x: 139.5, y: 456.5 },
       { x: 142.9, y: 453.1 },
@@ -869,23 +857,23 @@ describe("strokeMatches", () => {
       { x: 228.2, y: 122 },
       { x: 214.6, y: 111.8 },
     ];
-    assertNotMatches("这", 4, points);
-    assertMatches("这", 5, points);
-    assertNotMatches("这", 6, points);
+    assertNotMatches('这', 4, points);
+    assertMatches('这', 5, points);
+    assertNotMatches('这', 6, points);
   });
 
-  it("matches using real data 20", () => {
+  it('matches using real data 20', () => {
     const points = [
       { x: 483, y: 468.2 },
       { x: 472.7, y: 440.9 },
       { x: 462.5, y: 423.8 },
     ];
-    assertNotMatches("您", 4, points);
-    assertMatches("您", 5, points);
-    assertNotMatches("您", 6, points);
+    assertNotMatches('您', 4, points);
+    assertMatches('您', 5, points);
+    assertNotMatches('您', 6, points);
   });
 
-  it("matches using real data 21", () => {
+  it('matches using real data 21', () => {
     const points = [
       { x: 184.1, y: 534.7 },
       { x: 214.8, y: 545 },
@@ -893,12 +881,12 @@ describe("strokeMatches", () => {
       { x: 371.8, y: 596.2 },
       { x: 375.2, y: 599.6 },
     ];
-    assertNotMatches("吗", 0, points);
-    assertNotMatches("吗", 1, points);
-    assertNotMatches("吗", 2, points);
+    assertNotMatches('吗', 0, points);
+    assertNotMatches('吗', 1, points);
+    assertNotMatches('吗', 2, points);
   });
 
-  it("matches using real data 22", () => {
+  it('matches using real data 22', () => {
     const points = [
       { x: 496.6, y: 555.4 },
       { x: 500.1, y: 551.9 },
@@ -912,12 +900,12 @@ describe("strokeMatches", () => {
       { x: 640, y: 603.1 },
       { x: 643.4, y: 603.1 },
     ];
-    assertNotMatches("得", 5, points);
-    assertMatches("得", 5, points, { leniency: 2 });
-    assertMatches("得", 6, points);
+    assertNotMatches('得', 5, points);
+    assertMatches('得', 5, points, { leniency: 2 });
+    assertMatches('得', 6, points);
   });
 
-  it("matches using real data 23", () => {
+  it('matches using real data 23', () => {
     const points = [
       { x: 500.6, y: 624.1 },
       { x: 500.6, y: 624.1 },
@@ -1006,10 +994,10 @@ describe("strokeMatches", () => {
       { x: 702.6, y: 353.9 },
       { x: 702.6, y: 353.9 },
     ];
-    assertMatches("厶", 0, points);
+    assertMatches('厶', 0, points);
   });
 
-  it("matches using real data 24", () => {
+  it('matches using real data 24', () => {
     const points = [
       { x: 708.3, y: 749.2 },
       { x: 711.1, y: 749.2 },
@@ -1073,10 +1061,10 @@ describe("strokeMatches", () => {
       { x: 859, y: 370.9 },
       { x: 856.2, y: 370.9 },
     ];
-    assertNotMatches("那", 4, points);
+    assertNotMatches('那', 4, points);
   });
 
-  it("matches using real data 25", () => {
+  it('matches using real data 25', () => {
     const points = [
       { x: 662.8, y: 726.5 },
       { x: 662.8, y: 726.5 },
@@ -1186,10 +1174,10 @@ describe("strokeMatches", () => {
       { x: 765.2, y: 285.6 },
       { x: 765.2, y: 288.4 },
     ];
-    assertMatches("那", 4, points);
+    assertMatches('那', 4, points);
   });
 
-  it("matches using real data 26", () => {
+  it('matches using real data 26', () => {
     const points = [
       { x: 674.1, y: 749.2 },
       { x: 674.1, y: 749.2 },
@@ -1232,10 +1220,10 @@ describe("strokeMatches", () => {
       { x: 861.9, y: 251.5 },
       { x: 850.5, y: 248.6 },
     ];
-    assertNotMatches("那", 4, points);
+    assertNotMatches('那', 4, points);
   });
 
-  it("matches using real data 27", () => {
+  it('matches using real data 27', () => {
     const points = [
       { x: 455.1, y: 681 },
       { x: 455.1, y: 683.8 },
@@ -1290,11 +1278,11 @@ describe("strokeMatches", () => {
       { x: 531.9, y: 316.9 },
       { x: 526.2, y: 314 },
     ];
-    assertMatches("阝", 0, points);
-    assertNotMatches("阝", 1, points);
+    assertMatches('阝', 0, points);
+    assertNotMatches('阝', 1, points);
   });
 
-  it("matches using real data 28", () => {
+  it('matches using real data 28', () => {
     const points = [
       { x: 494.9, y: 726.5 },
       { x: 497.8, y: 726.5 },
@@ -1330,7 +1318,7 @@ describe("strokeMatches", () => {
       { x: 546.1, y: 319.7 },
       { x: 526.2, y: 311.2 },
     ];
-    assertMatches("阝", 0, points);
-    assertNotMatches("阝", 1, points);
+    assertMatches('阝', 0, points);
+    assertNotMatches('阝', 1, points);
   });
 });

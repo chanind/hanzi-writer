@@ -1,6 +1,28 @@
-import { RecursivePartial } from 'typings/types';
+import { ColorObject, RecursivePartial } from 'typings/types';
 
-export const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
+export const performanceNow =
+  (global.performance && (() => global.performance.now())) || (() => Date.now());
+export const requestAnimationFrame =
+  global.requestAnimationFrame ||
+  ((callback) => setTimeout(() => callback(performanceNow()), 1000 / 60));
+export const cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
+
+// Object.assign polyfill, because IE :/
+export const _assign = function (target: any, ...overrides: any[]) {
+  const overrideTarget = Object(target);
+  overrides.forEach((override) => {
+    if (override != null) {
+      for (const key in override) {
+        if (Object.prototype.hasOwnProperty.call(override, key)) {
+          overrideTarget[key] = override[key];
+        }
+      }
+    }
+  });
+  return overrideTarget;
+};
+
+export const assign = Object.assign || _assign;
 
 export function arrLast<TValue>(arr: Array<TValue>) {
   return arr[arr.length - 1];
@@ -30,6 +52,19 @@ export function copyAndMergeDeep<T>(base: T, override: RecursivePartial<T> | und
   return output;
 }
 
+/** basically a simplified version of lodash.get, selects a key out of an object like 'a.b' from {a: {b: 7}} */
+export function inflate(scope: string, obj: any): any {
+  const parts = scope.split('.');
+  const final: any = {};
+  let current = final;
+  for (let i = 0; i < parts.length; i++) {
+    const cap = i === parts.length - 1 ? obj : {};
+    current[parts[i]] = cap;
+    current = cap;
+  }
+  return final;
+}
+
 let count = 0;
 
 export function counter() {
@@ -46,7 +81,7 @@ export function timeout(duration = 0) {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-export function colorStringToVals(colorString: string | null) {
+export function colorStringToVals(colorString: string | null): ColorObject {
   if (typeof colorString !== 'string') {
     return {
       r: 0,

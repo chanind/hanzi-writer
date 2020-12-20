@@ -1,10 +1,10 @@
-import { counter } from "../../utils";
-import * as svg from "./svgUtils";
-import { extendStart, getPathString } from "../../geometry";
-import StrokeRendererBase from "../StrokeRendererBase";
-import Stroke from "../../models/Stroke";
-import SVGRenderTarget from "./RenderTarget";
-import { ColorObject } from "../../typings/types";
+import { counter } from '../../utils';
+import * as svg from './svgUtils';
+import { extendStart, getPathString } from '../../geometry';
+import StrokeRendererBase from '../StrokeRendererBase';
+import Stroke from '../../models/Stroke';
+import SVGRenderTarget from './RenderTarget';
+import { ColorObject } from '../../typings/types';
 
 const STROKE_WIDTH = 200;
 
@@ -28,25 +28,25 @@ export default class StrokeRenderer extends StrokeRendererBase {
   }
 
   mount(target: SVGRenderTarget) {
-    this._animationPath = svg.createElm("path") as SVGPathElement;
-    this._clip = svg.createElm("clipPath") as SVGClipPathElement;
-    this._strokePath = svg.createElm("path") as SVGPathElement;
+    this._animationPath = svg.createElm('path') as SVGPathElement;
+    this._clip = svg.createElm('clipPath') as SVGClipPathElement;
+    this._strokePath = svg.createElm('path') as SVGPathElement;
     const maskId = `mask-${counter()}`;
-    svg.attr(this._clip, "id", maskId);
+    svg.attr(this._clip, 'id', maskId);
 
-    svg.attr(this._strokePath, "d", this.stroke.path);
-    this._animationPath.style.opacity = "0";
-    svg.attr(this._animationPath, "clip-path", svg.urlIdRef(maskId));
+    svg.attr(this._strokePath, 'd', this.stroke.path);
+    this._animationPath.style.opacity = '0';
+    svg.attr(this._animationPath, 'clip-path', svg.urlIdRef(maskId));
 
     const extendedMaskPoints = extendStart(this.stroke.points, STROKE_WIDTH / 2);
-    svg.attr(this._animationPath, "d", getPathString(extendedMaskPoints));
+    svg.attr(this._animationPath, 'd', getPathString(extendedMaskPoints));
     svg.attrs(this._animationPath, {
-      stroke: "#FFFFFF",
-      "stroke-width": STROKE_WIDTH.toString(),
-      fill: "none",
-      "stroke-linecap": "round",
-      "stroke-linejoin": "miter",
-      "stroke-dasharray": `${this._pathLength},${this._pathLength}`,
+      stroke: '#FFFFFF',
+      'stroke-width': STROKE_WIDTH.toString(),
+      fill: 'none',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'miter',
+      'stroke-dasharray': `${this._pathLength},${this._pathLength}`,
     });
 
     this._clip.appendChild(this._strokePath);

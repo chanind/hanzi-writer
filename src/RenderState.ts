@@ -15,7 +15,7 @@ export type StrokeRenderState = {
 
 export type CharacterRenderState = {
   opacity: number;
-  strokes: Record<number, StrokeRenderState>;
+  strokes: Record<number | string, StrokeRenderState>;
 };
 
 export type RenderStateObject = {
@@ -42,6 +42,8 @@ export type RenderStateObject = {
     | undefined
   > | null;
 };
+
+export type CharacterName = keyof RenderStateObject['character'];
 
 type OnStateChangeCallback = (
   nextState: RenderStateObject,

@@ -1,7 +1,7 @@
-import Character from "../../models/Character";
-import { StrokeRenderState } from "../../RenderState";
-import { ColorObject } from "../../typings/types";
-import StrokeRenderer from "./StrokeRenderer";
+import Character from '../../models/Character';
+import { StrokeRenderState } from '../../RenderState';
+import { ColorObject } from '../../typings/types';
+import StrokeRenderer from './StrokeRenderer';
 
 export default class CharacterRenderer {
   _strokeRenderers: StrokeRenderer[];

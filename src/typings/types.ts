@@ -1,5 +1,5 @@
-import RenderTargetBase from "renderers/RenderTargetBase";
-import { HanziWriterRendererConstructor } from "../renderers/HanziWriterRendererBase";
+import RenderTargetBase from 'renderers/RenderTargetBase';
+import { HanziWriterRendererConstructor } from '../renderers/HanziWriterRendererBase';
 
 export type CharacterJson = {
   strokes: string[];
@@ -10,7 +10,7 @@ export type CharacterJson = {
 export type CharDataLoaderFn = (
   char: string,
   onLoad: (data: CharacterJson) => void,
-  onError: (err?: Error | string) => void,
+  onError: (err?: any) => void,
 ) => Promise<CharacterJson> | CharacterJson | void;
 
 export type Point = { x: number; y: number };
@@ -72,11 +72,11 @@ export type QuizOptions = {
 
 export type PositionerOptions = {
   /** Default: 20 */
-  padding: number;
+  padding?: number;
   /** Default: 0 */
-  width: number;
+  width?: number;
   /** Default: 0 */
-  height: number;
+  height?: number;
 };
 
 export type LoadingManagerOptions = {
@@ -85,46 +85,58 @@ export type LoadingManagerOptions = {
   onLoadCharDataError?: null | ((error?: Error | string) => void);
 };
 
+type BaseHanziWriterOptions = {
+  showOutline: boolean;
+  showCharacter: boolean;
+  /** Default: svg */
+  renderer: 'svg' | 'canvas';
+
+  // Animation options
+
+  /** Default: 1 */
+  strokeAnimationSpeed: number;
+  /** Default: 400 */
+  strokeFadeDuration: number;
+  /** Default: 2 */
+  strokeHighlightSpeed: number;
+  /** Default: 1000 */
+  delayBetweenStrokes: number;
+  /** Default: 2000 */
+  delayBetweenLoops: number;
+
+  /** Default: 300 */
+  drawingFadeDuration: number;
+  /** Default: 4 */
+  drawingWidth: number;
+  /** Default: 2 */
+  strokeWidth: number;
+  /** Default: 2 */
+  outlineWidth: number;
+
+  rendererOverride: {
+    HanziWriterRenderer?: HanziWriterRendererConstructor;
+    createRenderTarget?: RenderTargetInitFunction<any>;
+  };
+
+  /** @deprecated Use `strokeAnimationSpeed` */
+  strokeAnimationDuration?: number;
+  /** @deprecated Use `strokeHighlightSpeed` */
+  strokeHighlightDuration: number;
+};
+
 export type HanziWriterOptions = PositionerOptions &
   QuizOptions &
   ColorOptions &
-  LoadingManagerOptions & {
-    showOutline: boolean;
-    showCharacter: boolean;
-    /** Default: svg */
-    renderer: "svg" | "canvas";
+  LoadingManagerOptions &
+  BaseHanziWriterOptions;
 
-    // Animation options
-
-    /** Default: 1 */
-    strokeAnimationSpeed: number;
-    /** Default: 400 */
-    strokeFadeDuration: number;
-    /** Default: 2 */
-    strokeHighlightSpeed: number;
-    /** Default: 1000 */
-    delayBetweenStrokes: number;
-    /** Default: 2000 */
-    delayBetweenLoops: number;
-
-    /** Default: 300 */
-    drawingFadeDuration: number;
-    /** Default: 4 */
-    drawingWidth: number;
-    /** Default: 2 */
-    strokeWidth: number;
-    /** Default: 2 */
-    outlineWidth: number;
-
-    rendererOverride: {
-      HanziWriterRenderer?: HanziWriterRendererConstructor;
-      createRenderTarget?: RenderTargetInitFunction<any>;
-    };
-
-    /** @deprecated Use `strokeAnimationSpeed` */
-    strokeAnimationDuration?: number;
-    /** @deprecated Use `strokeHighlightSpeed` */
-    strokeHighlightDuration: number;
+export type ParsedHanziWriterOptions = QuizOptions &
+  LoadingManagerOptions &
+  BaseHanziWriterOptions &
+  ColorOptions & {
+    width: number;
+    height: number;
+    padding: number;
   };
 
 export type RecursivePartial<T> = {

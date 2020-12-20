@@ -1,9 +1,9 @@
-import { isMsBrowser } from "../../utils";
-import StrokeRenderer from "./StrokeRenderer";
-import SVGRenderTarget from "./RenderTarget";
-import Character from "../../models/Character";
-import { ColorObject } from "../../typings/types";
-import { StrokeRenderState } from "../../RenderState";
+import { isMsBrowser } from '../../utils';
+import StrokeRenderer from './StrokeRenderer';
+import SVGRenderTarget from './RenderTarget';
+import Character from '../../models/Character';
+import { ColorObject } from '../../typings/types';
+import { StrokeRenderState } from '../../RenderState';
 
 type SvgCharacterRenderProps = {
   opacity: number;
@@ -43,9 +43,9 @@ export default class CharacterRenderer {
       // this is just a perf improvement, so disable for MS browsers
       if (!isMsBrowser) {
         if (opacity === 0) {
-          this._group.style.display = "none";
+          this._group.style.display = 'none';
         } else if (this._oldProps?.opacity === 0) {
-          this._group.style.removeProperty("display");
+          this._group.style.removeProperty('display');
         }
       }
     }

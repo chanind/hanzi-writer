@@ -394,33 +394,29 @@ export default class HanziWriter {
       resetDisplay?: boolean;
     } = {},
   ) {
-    if (this._quiz) {
-      const promise = this._quiz.cancel();
-
-      const onCancelled = () => {
-        if (options.resetDisplay) {
-          if (this._options.showCharacter) {
-            this.showCharacter();
-          } else {
-            this.hideCharacter();
-          }
-          if (this._options.showOutline) {
-            this.showOutline();
-          } else {
-            this.hideOutline();
-          }
-        }
-      };
-
-      if (process.env.NODE_ENV === 'test') {
-        // In test environments, the "Quiz" module is mocked (resulting in promise being undefined)
-        onCancelled();
-      } else {
-        promise.then(onCancelled);
-      }
-
-      this._quiz = undefined;
+    if (!this._quiz) {
+      return;
     }
+
+    const onCancelled = () => {
+      if (options.resetDisplay) {
+        if (this._options.showCharacter) {
+          this.showCharacter();
+        } else {
+          this.hideCharacter();
+        }
+        if (this._options.showOutline) {
+          this.showOutline();
+        } else {
+          this.hideOutline();
+        }
+      }
+    };
+
+    const promise = this._quiz.cancel();
+    // In test environments, the "Quiz" module is mocked (resulting in promise being undefined)
+    process.env.NODE_ENV === 'test' ? onCancelled() : promise.then(onCancelled);
+    this._quiz = undefined;
   }
 
   setCharacter(char: string) {

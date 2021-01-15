@@ -22,8 +22,7 @@ export const round = (point: Point, precision = 1) => {
 
 export const length = (points: Point[]) => {
   let lastPoint = points[0];
-  const pointsSansFirst = points.slice(1);
-  return pointsSansFirst.reduce((acc, point) => {
+  return points.slice(1).reduce((acc, point) => {
     const dist = distance(point, lastPoint);
     lastPoint = point;
     return acc + dist;
@@ -47,8 +46,8 @@ export const _extendPointOnLine = (p1: Point, p2: Point, dist: number) => {
 
 /** based on http://www.kr.tuwien.ac.at/staff/eiter/et-archive/cdtr9464.pdf */
 export const frechetDist = (curve1: Point[], curve2: Point[]) => {
-  const longCurve = curve1.length >= curve2.length ? curve1 : curve2;
-  const shortCurve = curve1.length >= curve2.length ? curve2 : curve1;
+  const [shortCurve, longCurve] =
+    curve1.length >= curve2.length ? [curve2, curve1] : [curve1, curve2];
 
   const calcVal = (
     i: number,
@@ -77,6 +76,7 @@ export const frechetDist = (curve1: Point[], curve2: Point[]) => {
   };
 
   let prevResultsCol: number[] = [];
+
   for (let i = 0; i < longCurve.length; i++) {
     const curResultsCol: number[] = [];
     for (let j = 0; j < shortCurve.length; j++) {
@@ -177,9 +177,13 @@ export const rotate = (curve: Point[], theta: number) => {
 
 // remove intermediate points that are on the same line as the points to either side
 export const _filterParallelPoints = (points: Point[]) => {
-  if (points.length < 3) return points;
+  if (points.length < 3) {
+    return points;
+  }
+
   const filteredPoints = [points[0], points[1]];
-  points.slice(2).forEach((point) => {
+
+  for (const point of points.slice(2)) {
     const numFilteredPoints = filteredPoints.length;
     const curVect = subtract(point, filteredPoints[numFilteredPoints - 1]);
     const prevVect = subtract(
@@ -192,7 +196,8 @@ export const _filterParallelPoints = (points: Point[]) => {
       filteredPoints.pop();
     }
     filteredPoints.push(point);
-  });
+  }
+
   return filteredPoints;
 };
 
@@ -213,9 +218,10 @@ export function getPathString(points: Point[], close = false) {
 /** take points on a path and move their start point backwards by distance */
 export const extendStart = (points: Point[], dist: number) => {
   const filteredPoints = _filterParallelPoints(points);
-  if (filteredPoints.length < 2) return filteredPoints;
-  const p1 = filteredPoints[1];
-  const p2 = filteredPoints[0];
+  if (filteredPoints.length < 2) {
+    return filteredPoints;
+  }
+  const [p2, p1] = filteredPoints;
   const newStart = _extendPointOnLine(p1, p2, dist);
   const extendedPoints = filteredPoints.slice(1);
   extendedPoints.unshift(newStart);

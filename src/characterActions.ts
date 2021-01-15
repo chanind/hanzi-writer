@@ -36,57 +36,50 @@ export const showCharacter = (
   charName: CharacterName,
   character: Character,
   duration: number,
-) => {
-  return [
-    new Mutation<RenderState>(
-      {
-        character: {
-          [charName]: {
-            opacity: 1,
-            strokes: objRepeat(
-              { opacity: 1, displayPortion: 1 },
-              character.strokes.length,
-            ),
-          },
+) => [
+  new Mutation<RenderState>(
+    {
+      character: {
+        [charName]: {
+          opacity: 1,
+          strokes: objRepeat({ opacity: 1, displayPortion: 1 }, character.strokes.length),
         },
       },
-      {
-        duration,
-        force: true,
-      },
-    ),
-  ];
-};
+    },
+    {
+      duration,
+      force: true,
+    },
+  ),
+];
 
 export const hideCharacter = (
   charName: CharacterName,
   character: Character,
   duration = 0,
-) => {
-  return [
-    new Mutation<RenderState>(
-      {
-        character: {
-          [charName]: {
-            opacity: 0,
-          },
+) => [
+  new Mutation<RenderState>(
+    {
+      character: {
+        [charName]: {
+          opacity: 0,
         },
       },
-      {
-        duration,
-        force: true,
-      },
-    ),
-    ...showStrokes(charName, character, 0),
-  ];
-};
+    },
+    {
+      duration,
+      force: true,
+    },
+  ),
+  ...showStrokes(charName, character, 0),
+];
 
 export const updateColor = (
   colorName: keyof ColorOptions,
   colorVal: ColorObject | null,
   duration: number,
-) => {
-  return new Mutation<RenderState>(
+) =>
+  new Mutation<RenderState>(
     {
       options: {
         [colorName]: colorVal!,
@@ -96,7 +89,6 @@ export const updateColor = (
       duration,
     },
   );
-};
 
 export const highlightStroke = (stroke: Stroke, color: string | null, speed: number) => {
   const strokeNum = stroke.strokeNum;

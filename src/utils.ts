@@ -42,10 +42,6 @@ export function average(arr: number[]) {
   return sum / arr.length;
 }
 
-export function timeout(duration = 0) {
-  return new Promise((resolve) => setTimeout(resolve, duration));
-}
-
 export function colorStringToVals(colorString: string | null) {
   if (typeof colorString !== 'string') {
     return {

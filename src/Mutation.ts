@@ -1,6 +1,6 @@
-import { cancelAnimationFrame } from "./utils";
-import RenderState, { RenderStateObject } from "./RenderState";
-import { RecursivePartial } from "typings/types";
+import { cancelAnimationFrame } from './utils';
+import RenderState, { RenderStateObject } from './RenderState';
+import { RecursivePartial } from 'typings/types';
 
 /** Used by `Mutation` & `Delay` */
 export interface GenericMutation<
@@ -79,7 +79,7 @@ type GenericRenderStateClass<T = any> = {
 
 export default class Mutation<
   TRenderStateClass extends GenericRenderStateClass,
-  TRenderStateObj = TRenderStateClass["state"]
+  TRenderStateObj = TRenderStateClass['state']
 > implements GenericMutation<TRenderStateClass> {
   static Delay = Delay;
 
@@ -109,7 +109,7 @@ export default class Mutation<
       force?: boolean;
     } = {},
   ) {
-    this.scope = options.scope || "mutation";
+    this.scope = options.scope || 'mutation';
     this._valuesOrCallable = valuesOrCallable;
     this._duration = options.duration || 0;
     this._force = options.force;
@@ -191,7 +191,7 @@ export default class Mutation<
     }
 
     this._values = ((): RecursivePartial<TRenderStateObj> => {
-      if (typeof this._valuesOrCallable === "function") {
+      if (typeof this._valuesOrCallable === 'function') {
         return this._valuesOrCallable(renderState.state);
       }
       return this._valuesOrCallable;
@@ -223,7 +223,7 @@ function getPartialValues<T>(
   for (const key in endValues) {
     const endValue = endValues[key];
     const startValue = startValues?.[key];
-    if (typeof startValue === "number" && typeof endValue === "number" && endValue >= 0) {
+    if (typeof startValue === 'number' && typeof endValue === 'number' && endValue >= 0) {
       target[key] = progress * (endValue - startValue) + startValue;
     } else {
       target[key] = getPartialValues(startValue, endValue, progress);

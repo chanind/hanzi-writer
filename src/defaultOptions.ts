@@ -1,6 +1,6 @@
-import { HanziWriterOptions, CharacterJson } from "./typings/types";
+import { HanziWriterOptions, CharacterJson } from './typings/types';
 
-const VERSION = "2.0";
+const VERSION = '2.0';
 
 const getCharDataUrl = (char: string) =>
   `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
@@ -28,7 +28,7 @@ const defaultOptions: HanziWriterOptions = {
   onLoadCharDataSuccess: null,
   showOutline: true,
   showCharacter: true,
-  renderer: "svg",
+  renderer: 'svg',
 
   // positioning options
 
@@ -47,11 +47,11 @@ const defaultOptions: HanziWriterOptions = {
 
   // colors
 
-  strokeColor: "#555",
+  strokeColor: '#555',
   radicalColor: null,
-  highlightColor: "#AAF",
-  outlineColor: "#DDD",
-  drawingColor: "#333",
+  highlightColor: '#AAF',
+  outlineColor: '#DDD',
+  drawingColor: '#333',
 
   // quiz options
 

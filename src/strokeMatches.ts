@@ -1,4 +1,4 @@
-import { average } from "./utils";
+import { average } from './utils';
 import {
   cosineSimilarity,
   equals,
@@ -8,10 +8,10 @@ import {
   normalizeCurve,
   rotate,
   length,
-} from "./geometry";
-import { Point } from "./typings/types";
-import UserStroke from "./models/UserStroke";
-import Stroke from "./models/Stroke";
+} from './geometry';
+import { Point } from './typings/types';
+import UserStroke from './models/UserStroke';
+import Stroke from './models/Stroke';
 
 const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient

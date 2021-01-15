@@ -1,11 +1,11 @@
-import Mutation, { GenericMutation } from "./Mutation";
-import { colorStringToVals, objRepeat } from "./utils";
-import Stroke from "./models/Stroke";
-import { ColorObject, ColorOptions } from "./typings/types";
-import Character from "./models/Character";
-import RenderState, { CharacterRenderState, RenderStateObject } from "./RenderState";
+import Mutation, { GenericMutation } from './Mutation';
+import { colorStringToVals, objRepeat } from './utils';
+import Stroke from './models/Stroke';
+import { ColorObject, ColorOptions } from './typings/types';
+import Character from './models/Character';
+import RenderState, { CharacterRenderState, RenderStateObject } from './RenderState';
 
-type CharacterName = keyof RenderStateObject["character"];
+type CharacterName = keyof RenderStateObject['character'];
 
 export const showStrokes = (
   charName: CharacterName,

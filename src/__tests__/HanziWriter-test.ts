@@ -1,83 +1,83 @@
-import ren from "hanzi-writer-data/人.json";
-import yi from "hanzi-writer-data/一.json";
-import HanziWriter from "../HanziWriter";
-import { timeout } from "../utils";
-import Quiz from "../Quiz";
-import { CharDataLoaderFn } from "../typings/types";
-import { resolvePromises } from "../testUtils";
+import ren from 'hanzi-writer-data/人.json';
+import yi from 'hanzi-writer-data/一.json';
+import HanziWriter from '../HanziWriter';
+import { timeout } from '../utils';
+import Quiz from '../Quiz';
+import { CharDataLoaderFn } from '../typings/types';
+import { resolvePromises } from '../testUtils';
 
 const charDataLoader: CharDataLoaderFn = () => ren;
 
-jest.mock("../Quiz");
+jest.mock('../Quiz');
 
-describe("HanziWriter", () => {
+describe('HanziWriter', () => {
   beforeEach(() => {
     // @ts-ignore
     Quiz.mockClear();
   });
 
-  describe("constructor", () => {
-    it("can optionally run init() if element and options are passed in", async () => {
+  describe('constructor', () => {
+    it('can optionally run init() if element and options are passed in', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create("target", { charDataLoader });
-      writer.setCharacter("人");
+      const writer = HanziWriter.create('target', { charDataLoader });
+      writer.setCharacter('人');
 
       await writer._withDataPromise;
 
-      expect(document.querySelectorAll("#target svg").length).toBe(1);
-      const svg = document.querySelector("#target svg") as SVGElement;
+      expect(document.querySelectorAll('#target svg').length).toBe(1);
+      const svg = document.querySelector('#target svg') as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      expect(svg.childNodes[0].nodeName).toBe("defs");
-      expect(svg.childNodes[1].nodeName).toBe("g");
+      expect(svg.childNodes[0].nodeName).toBe('defs');
+      expect(svg.childNodes[1].nodeName).toBe('g');
       // the characters are repeated 3 times - one for outline, character, and highlight
       expect(svg.childNodes[1].childNodes.length).toBe(3);
       svg.childNodes[1].childNodes.forEach((charNode) => {
-        expect(charNode.nodeName).toBe("g");
+        expect(charNode.nodeName).toBe('g');
         // 2 strokes per character
         expect(charNode.childNodes.length).toBe(2);
       });
     });
 
-    it("[deprecated] loads data and builds an instance in a dom element", async () => {
+    it('[deprecated] loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create("target", "人", { charDataLoader });
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
 
       await writer._withDataPromise;
 
-      expect(document.querySelectorAll("#target svg").length).toBe(1);
-      const svg = document.querySelector("#target svg") as SVGElement;
+      expect(document.querySelectorAll('#target svg').length).toBe(1);
+      const svg = document.querySelector('#target svg') as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      expect(svg.childNodes[0].nodeName).toBe("defs");
-      expect(svg.childNodes[1].nodeName).toBe("g");
+      expect(svg.childNodes[0].nodeName).toBe('defs');
+      expect(svg.childNodes[1].nodeName).toBe('g');
       // the characters are repeated 3 times - one for outline, character, and highlight
       expect(svg.childNodes[1].childNodes.length).toBe(3);
       svg.childNodes[1].childNodes.forEach((charNode) => {
-        expect(charNode.nodeName).toBe("g");
+        expect(charNode.nodeName).toBe('g');
         // 2 strokes per character
         expect(charNode.childNodes.length).toBe(2);
       });
     });
   });
 
-  describe("HanziWriter.create", () => {
-    it("loads data and builds an instance in a dom element", async () => {
+  describe('HanziWriter.create', () => {
+    it('loads data and builds an instance in a dom element', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create("target", "人", { charDataLoader });
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
 
       await writer._withDataPromise;
 
-      expect(document.querySelectorAll("#target svg").length).toBe(1);
-      const svg = document.querySelector("#target svg") as SVGElement;
+      expect(document.querySelectorAll('#target svg').length).toBe(1);
+      const svg = document.querySelector('#target svg') as SVGElement;
       expect(svg.childNodes.length).toBe(2);
-      expect(svg.childNodes[0].nodeName).toBe("defs");
-      expect(svg.childNodes[1].nodeName).toBe("g");
+      expect(svg.childNodes[0].nodeName).toBe('defs');
+      expect(svg.childNodes[1].nodeName).toBe('g');
       // the characters are repeated 3 times - one for outline, character, and highlight
       expect(svg.childNodes[1].childNodes.length).toBe(3);
       svg.childNodes[1].childNodes.forEach((charNode) => {
-        expect(charNode.nodeName).toBe("g");
+        expect(charNode.nodeName).toBe('g');
         // 2 strokes per character
         expect(charNode.childNodes.length).toBe(2);
       });
@@ -86,50 +86,50 @@ describe("HanziWriter", () => {
     it("Errors if the target element can't be found", () => {
       document.body.innerHTML = '<div id="target"></div>';
       expect(() => {
-        HanziWriter.create("wrong-target", "人", { charDataLoader });
-      }).toThrow("HanziWriter target element not found: wrong-target");
+        HanziWriter.create('wrong-target', '人', { charDataLoader });
+      }).toThrow('HanziWriter target element not found: wrong-target');
     });
 
-    it("can optionally use a canvas for rendering instead of SVG", async () => {
+    it('can optionally use a canvas for rendering instead of SVG', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader,
-        renderer: "canvas",
+        renderer: 'canvas',
       });
 
       await writer._withDataPromise;
 
-      expect(document.querySelectorAll("#target canvas").length).toBe(1);
-      const canvas = document.querySelector("#target canvas") as HTMLCanvasElement;
-      expect(canvas.getContext("2d")).toMatchSnapshot();
+      expect(document.querySelectorAll('#target canvas').length).toBe(1);
+      const canvas = document.querySelector('#target canvas') as HTMLCanvasElement;
+      expect(canvas.getContext('2d')).toMatchSnapshot();
     });
   });
 
-  describe("data loading", () => {
-    it("calls onLoadCharDataError if provided on loading failure", async () => {
+  describe('data loading', () => {
+    it('calls onLoadCharDataError if provided on loading failure', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const onLoadCharDataError = jest.fn();
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         onLoadCharDataError,
-        charDataLoader: () => Promise.reject("reasons"),
+        charDataLoader: () => Promise.reject('reasons'),
       });
 
       await writer._withDataPromise;
 
       expect(onLoadCharDataError.mock.calls.length).toBe(1);
-      expect(onLoadCharDataError.mock.calls[0][0]).toBe("reasons");
+      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
     });
 
-    it("throws when calling an animatable method after loading failure", async () => {
+    it('throws when calling an animatable method after loading failure', async () => {
       document.body.innerHTML = '<div id="target"></div>';
 
       const onLoadCharDataError = jest.fn();
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         onLoadCharDataError,
         charDataLoader(char, onComplete, onErr) {
-          onErr("reasons");
+          onErr('reasons');
         },
       });
 
@@ -137,14 +137,14 @@ describe("HanziWriter", () => {
       expect(() => writer.showCharacter()).toThrow();
 
       expect(onLoadCharDataError).toHaveBeenCalledTimes(1);
-      expect(onLoadCharDataError).toHaveBeenCalledWith("reasons");
+      expect(onLoadCharDataError).toHaveBeenCalledWith('reasons');
     });
 
-    it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
+    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const error = new Error("reasons");
+      const error = new Error('reasons');
 
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader(char, onComplete, onErr) {
           onErr(error);
         },
@@ -154,70 +154,70 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("setCharacter", () => {
-    it("deletes the current character while loading", async () => {
+  describe('setCharacter', () => {
+    it('deletes the current character while loading', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader(char) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() => (char === '人' ? ren : yi));
         },
       });
       await writer._withDataPromise;
 
-      expect(document.querySelector("#target svg g")).not.toBe(null);
-      expect(document.querySelector("#target svg defs *")).not.toBe(null);
-      writer.setCharacter("一");
-      expect(document.querySelector("#target svg g")).toBe(null);
-      expect(document.querySelector("#target svg defs *")).toBe(null);
+      expect(document.querySelector('#target svg g')).not.toBe(null);
+      expect(document.querySelector('#target svg defs *')).not.toBe(null);
+      writer.setCharacter('一');
+      expect(document.querySelector('#target svg g')).toBe(null);
+      expect(document.querySelector('#target svg defs *')).toBe(null);
 
       await writer._withDataPromise;
-      expect(document.querySelector("#target svg g")?.childNodes.length).toBe(3);
-      expect(document.querySelector("#target svg defs *")).not.toBe(null);
+      expect(document.querySelector('#target svg g')?.childNodes.length).toBe(3);
+      expect(document.querySelector('#target svg defs *')).not.toBe(null);
     });
 
-    it("maintains the visibility of the character from the last character rendered", async () => {
+    it('maintains the visibility of the character from the last character rendered', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader(char) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() => (char === '人' ? ren : yi));
         },
       });
       await writer._withDataPromise;
 
       writer.hideOutline();
-      await writer.setCharacter("一");
+      await writer.setCharacter('一');
       expect(writer._renderState?.state.character.main.opacity).toBe(1);
       expect(writer._renderState?.state.character.outline.opacity).toBe(0);
     });
 
-    it("maintains the visibility of the outline from the last character rendered", async () => {
+    it('maintains the visibility of the outline from the last character rendered', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader(char) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() => (char === '人' ? ren : yi));
         },
       });
       await writer._withDataPromise;
 
       writer.hideCharacter();
-      writer.setCharacter("一");
+      writer.setCharacter('一');
       await writer._withDataPromise;
       expect(writer._renderState?.state.character.main.opacity).toBe(0);
       expect(writer._renderState?.state.character.outline.opacity).toBe(1);
     });
 
-    it("maintains colors from the last character rendered", async () => {
+    it('maintains colors from the last character rendered', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader(char) {
-          return timeout(1).then(() => (char === "人" ? ren : yi));
+          return timeout(1).then(() => (char === '人' ? ren : yi));
         },
       });
       await writer._withDataPromise;
 
-      writer.updateColor("strokeColor", "rgba(30, 30, 30, 0.8)");
-      writer.updateColor("outlineColor", "rgba(10, 20, 30, 0.1)");
-      writer.setCharacter("一");
+      writer.updateColor('strokeColor', 'rgba(30, 30, 30, 0.8)');
+      writer.updateColor('outlineColor', 'rgba(10, 20, 30, 0.1)');
+      writer.setCharacter('一');
       await writer._withDataPromise;
       expect(writer._renderState?.state.options.strokeColor).toEqual({
         r: 30,
@@ -234,10 +234,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("animateCharacter", () => {
-    it("animates and returns promise that resolves when animation is finished", async () => {
+  describe('animateCharacter', () => {
+    it('animates and returns promise that resolves when animation is finished', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -287,10 +287,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("animateStroke", () => {
-    it("animates and returns promise that resolves when animation is finished", async () => {
+  describe('animateStroke', () => {
+    it('animates and returns promise that resolves when animation is finished', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -327,9 +327,9 @@ describe("HanziWriter", () => {
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
 
-    it("keeps other stroke opacities where they were originally", async () => {
+    it('keeps other stroke opacities where they were originally', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -372,10 +372,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("pauseAnimation and resumeAnimation", () => {
-    it("pauses and resumes the currently running animations", async () => {
+  describe('pauseAnimation and resumeAnimation', () => {
+    it('pauses and resumes the currently running animations', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -440,11 +440,11 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("highlightStroke", () => {
+  describe('highlightStroke', () => {
     it("doesn't do anything if no character has been set", async () => {
       const onComplete = jest.fn();
 
-      const writer = HanziWriter.create("target", {
+      const writer = HanziWriter.create('target', {
         showCharacter: true,
         charDataLoader,
       });
@@ -453,9 +453,9 @@ describe("HanziWriter", () => {
 
       expect(onComplete).not.toHaveBeenCalled();
     });
-    it("highlights a single stroke", async () => {
+    it('highlights a single stroke', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -505,10 +505,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("loopCharacterAnimation", () => {
-    it("animates and then repeats until something else stops it", async () => {
+  describe('loopCharacterAnimation', () => {
+    it('animates and then repeats until something else stops it', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
+      const writer = HanziWriter.create('target', '人', {
         showCharacter: true,
         charDataLoader,
       });
@@ -576,24 +576,24 @@ describe("HanziWriter", () => {
   });
 
   const hideMethods: Array<{
-    method: "hideCharacter" | "hideOutline";
-    stateLabel: "main" | "outline";
+    method: 'hideCharacter' | 'hideOutline';
+    stateLabel: 'main' | 'outline';
   }> = [
     {
-      method: "hideCharacter",
-      stateLabel: "main",
+      method: 'hideCharacter',
+      stateLabel: 'main',
     },
     {
-      method: "hideOutline",
-      stateLabel: "outline",
+      method: 'hideOutline',
+      stateLabel: 'outline',
     },
   ];
 
   hideMethods.forEach(({ method, stateLabel }) => {
     describe(method, () => {
-      it("animates and returns promise that resolves when finished", async () => {
+      it('animates and returns promise that resolves when finished', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           showCharacter: true,
           charDataLoader,
         });
@@ -626,9 +626,9 @@ describe("HanziWriter", () => {
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      it("returns instantly if char is already hidden", async () => {
+      it('returns instantly if char is already hidden', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           showCharacter: false,
           showOutline: false,
           charDataLoader,
@@ -655,9 +655,9 @@ describe("HanziWriter", () => {
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      it("resolves immediately if duration: 0 is passed", async () => {
+      it('resolves immediately if duration: 0 is passed', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           showCharacter: true,
           showOutline: true,
           charDataLoader,
@@ -687,24 +687,24 @@ describe("HanziWriter", () => {
   });
 
   const showMethods: Array<{
-    method: "showCharacter" | "showOutline";
-    stateLabel: "main" | "outline";
+    method: 'showCharacter' | 'showOutline';
+    stateLabel: 'main' | 'outline';
   }> = [
     {
-      method: "showCharacter",
-      stateLabel: "main",
+      method: 'showCharacter',
+      stateLabel: 'main',
     },
     {
-      method: "showOutline",
-      stateLabel: "outline",
+      method: 'showOutline',
+      stateLabel: 'outline',
     },
   ];
 
   showMethods.forEach(({ method, stateLabel }) => {
     describe(method, () => {
-      it("animates and returns promise that resolves when finished", async () => {
+      it('animates and returns promise that resolves when finished', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           [method]: false,
           charDataLoader,
         });
@@ -735,9 +735,9 @@ describe("HanziWriter", () => {
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      it("returns instantly if already shown", async () => {
+      it('returns instantly if already shown', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           [method]: true,
           charDataLoader,
         });
@@ -763,9 +763,9 @@ describe("HanziWriter", () => {
         expect(onComplete).toHaveBeenCalledWith({ canceled: false });
       });
 
-      it("resolves immediately if duration: 0 is passed", async () => {
+      it('resolves immediately if duration: 0 is passed', async () => {
         document.body.innerHTML = '<div id="target"></div>';
-        const writer = HanziWriter.create("target", "人", {
+        const writer = HanziWriter.create('target', '人', {
           [method]: false,
           charDataLoader,
         });
@@ -793,11 +793,11 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("updateColor", () => {
-    it("animates and returns promise that resolves when finished", async () => {
+  describe('updateColor', () => {
+    it('animates and returns promise that resolves when finished', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
-        strokeColor: "#123",
+      const writer = HanziWriter.create('target', '人', {
+        strokeColor: '#123',
         charDataLoader,
       });
       await writer._withDataPromise;
@@ -807,7 +807,7 @@ describe("HanziWriter", () => {
       const onComplete = jest.fn();
 
       writer
-        .updateColor("strokeColor", "rgba(30, 30, 30, 0.8)", { onComplete })
+        .updateColor('strokeColor', 'rgba(30, 30, 30, 0.8)', { onComplete })
         .then((result) => {
           isResolved = true;
           resolvedVal = result;
@@ -839,11 +839,11 @@ describe("HanziWriter", () => {
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
 
-    it("uses strokeColor for the tween if radicalColor is set to null", async () => {
+    it('uses strokeColor for the tween if radicalColor is set to null', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", {
-        strokeColor: "rgba(30, 30, 30, 0.8)",
-        radicalColor: "#EEE",
+      const writer = HanziWriter.create('target', '人', {
+        strokeColor: 'rgba(30, 30, 30, 0.8)',
+        radicalColor: '#EEE',
         charDataLoader,
       });
 
@@ -853,7 +853,7 @@ describe("HanziWriter", () => {
       let resolvedVal;
       const onComplete = jest.fn();
 
-      const promise = writer.updateColor("radicalColor", null, {
+      const promise = writer.updateColor('radicalColor', null, {
         onComplete,
         duration: 1000,
       });
@@ -894,10 +894,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("quiz", () => {
-    it("sets up and starts the quiz", async () => {
+  describe('quiz', () => {
+    it('sets up and starts the quiz', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", { charDataLoader });
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
       const onComplete = jest.fn();
       writer.quiz({ onComplete });
       expect(Quiz).not.toHaveBeenCalled();
@@ -916,8 +916,8 @@ describe("HanziWriter", () => {
       });
     });
 
-    it("resets display options if cancelQuiz is called with `resetDisplay`", async () => {
-      const writer = HanziWriter.create("target", "人", {
+    it('resets display options if cancelQuiz is called with `resetDisplay`', async () => {
+      const writer = HanziWriter.create('target', '人', {
         charDataLoader,
         showCharacter: true,
         showOutline: false,
@@ -946,7 +946,7 @@ describe("HanziWriter", () => {
     });
 
     it("doesn't reset display options if no options are provided to cancelQuiz", async () => {
-      const writer = HanziWriter.create("target", "人", { charDataLoader });
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
 
       writer.showCharacter = jest.fn();
       writer.hideCharacter = jest.fn();
@@ -969,10 +969,10 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("cancelQuiz", () => {
-    it("cancels the existing quiz", async () => {
+  describe('cancelQuiz', () => {
+    it('cancels the existing quiz', async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      const writer = HanziWriter.create("target", "人", { charDataLoader });
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
       await writer.quiz();
       const quiz = writer._quiz;
       writer.cancelQuiz();
@@ -981,22 +981,22 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("mouse and touch events", () => {
+  describe('mouse and touch events', () => {
     let writer: HanziWriter;
     beforeEach(async () => {
       document.body.innerHTML = '<div id="target"></div>';
-      writer = HanziWriter.create("target", "人", { charDataLoader });
+      writer = HanziWriter.create('target', '人', { charDataLoader });
       await writer.quiz();
     });
 
-    it("starts a user stroke on mousedown", () => {
-      const evt = new MouseEvent("mousedown", {
+    it('starts a user stroke on mousedown', () => {
+      const evt = new MouseEvent('mousedown', {
         bubbles: true,
         cancelable: true,
         clientX: 170,
         clientY: 127,
       });
-      const svg = document.querySelector("#target svg");
+      const svg = document.querySelector('#target svg');
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
       const canceled = !svg?.dispatchEvent(evt);
@@ -1005,8 +1005,8 @@ describe("HanziWriter", () => {
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    it("starts a user stroke on touchstart", () => {
-      const evt = new TouchEvent("touchstart", {
+    it('starts a user stroke on touchstart', () => {
+      const evt = new TouchEvent('touchstart', {
         bubbles: true,
         cancelable: true,
         touches: [
@@ -1016,7 +1016,7 @@ describe("HanziWriter", () => {
           } as Touch,
         ],
       });
-      const svg = document.querySelector("#target svg") as SVGElement;
+      const svg = document.querySelector('#target svg') as SVGElement;
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 } as DOMRect);
       const canceled = !svg.dispatchEvent(evt);
       expect(canceled).toBe(true);
@@ -1024,14 +1024,14 @@ describe("HanziWriter", () => {
       expect(writer._quiz?.startUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    it("continues a user stroke on mousemove", () => {
-      const evt = new MouseEvent("mousemove", {
+    it('continues a user stroke on mousemove', () => {
+      const evt = new MouseEvent('mousemove', {
         bubbles: true,
         cancelable: true,
         clientX: 170,
         clientY: 127,
       });
-      const svg = document.querySelector("#target svg") as SVGElement;
+      const svg = document.querySelector('#target svg') as SVGElement;
       // @ts-ignore
       svg.getBoundingClientRect = () => ({ left: 50, top: 60 });
       const canceled = !svg.dispatchEvent(evt);
@@ -1040,8 +1040,8 @@ describe("HanziWriter", () => {
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    it("continues a user stroke on touchmove", () => {
-      const evt = new TouchEvent("touchmove", {
+    it('continues a user stroke on touchmove', () => {
+      const evt = new TouchEvent('touchmove', {
         bubbles: true,
         cancelable: true,
         touches: [
@@ -1051,7 +1051,7 @@ describe("HanziWriter", () => {
           } as Touch,
         ],
       });
-      const svg = document.querySelector("#target svg");
+      const svg = document.querySelector('#target svg');
       expect(svg).toBeTruthy();
 
       // @ts-ignore (overriding default getBoundingClientRect)
@@ -1062,50 +1062,50 @@ describe("HanziWriter", () => {
       expect(writer._quiz?.continueUserStroke).toHaveBeenCalledWith({ x: 120, y: 67 });
     });
 
-    it("ends a user stroke on mouseup", () => {
-      const evt = new MouseEvent("mouseup", { bubbles: true, cancelable: true });
-      const svg = document.querySelector("#target svg");
+    it('ends a user stroke on mouseup', () => {
+      const evt = new MouseEvent('mouseup', { bubbles: true, cancelable: true });
+      const svg = document.querySelector('#target svg');
       svg?.dispatchEvent(evt);
       expect(writer._quiz?.endUserStroke).toHaveBeenCalledTimes(1);
     });
 
-    it("ends a user stroke on touchend", () => {
-      const evt = new TouchEvent("touchend", { bubbles: true, cancelable: true });
-      const svg = document.querySelector("#target svg");
+    it('ends a user stroke on touchend', () => {
+      const evt = new TouchEvent('touchend', { bubbles: true, cancelable: true });
+      const svg = document.querySelector('#target svg');
       // @ts-expect-error ts-migrate(2531) FIXME: Object is possibly 'null'.
       svg.dispatchEvent(evt);
       expect(writer._quiz?.endUserStroke).toHaveBeenCalledTimes(1);
     });
   });
 
-  describe("loadCharacterData", () => {
-    it("calls onLoadCharDataError if provided on loading failure", async () => {
+  describe('loadCharacterData', () => {
+    it('calls onLoadCharDataError if provided on loading failure', async () => {
       const onLoadCharDataError = jest.fn();
-      const loadingPromise = HanziWriter.loadCharacterData("人", {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
         onLoadCharDataError,
         charDataLoader() {
-          return Promise.reject("reasons");
+          return Promise.reject('reasons');
         },
       });
 
       await loadingPromise;
 
       expect(onLoadCharDataError.mock.calls.length).toBe(1);
-      expect(onLoadCharDataError.mock.calls[0][0]).toBe("reasons");
+      expect(onLoadCharDataError.mock.calls[0][0]).toBe('reasons');
     });
 
-    it("throws an error on loading fauire if onLoadCharDataError is not provided", async () => {
-      const loadingPromise = HanziWriter.loadCharacterData("人", {
+    it('throws an error on loading fauire if onLoadCharDataError is not provided', async () => {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
         charDataLoader(char, onComplete, onErr) {
-          onErr(new Error("reasons"));
+          onErr(new Error('reasons'));
         },
       });
 
-      await expect(loadingPromise).rejects.toThrow(new Error("reasons"));
+      await expect(loadingPromise).rejects.toThrow(new Error('reasons'));
     });
 
-    it("returns the character data in a promise on success", async () => {
-      const loadingPromise = HanziWriter.loadCharacterData("人", {
+    it('returns the character data in a promise on success', async () => {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
         charDataLoader() {
           return ren;
         },
@@ -1115,9 +1115,9 @@ describe("HanziWriter", () => {
       expect(result).toBe(ren);
     });
 
-    it("returns the character data in onLoadCharDataSuccess if provided", async () => {
+    it('returns the character data in onLoadCharDataSuccess if provided', async () => {
       const onLoadCharDataSuccess = jest.fn();
-      const loadingPromise = HanziWriter.loadCharacterData("人", {
+      const loadingPromise = HanziWriter.loadCharacterData('人', {
         onLoadCharDataSuccess,
         charDataLoader() {
           return ren;
@@ -1130,29 +1130,29 @@ describe("HanziWriter", () => {
       expect(onLoadCharDataSuccess.mock.calls[0][0]).toBe(ren);
     });
 
-    it("uses lastLoadingManager if options match", async () => {
+    it('uses lastLoadingManager if options match', async () => {
       const options = {
         charDataLoader() {
           return ren;
         },
       };
 
-      HanziWriter.loadCharacterData("人", options);
+      HanziWriter.loadCharacterData('人', options);
       const loadingManager = HanziWriter._loadingManager;
 
-      HanziWriter.loadCharacterData("人", options);
+      HanziWriter.loadCharacterData('人', options);
       const loadingManagerTwo = HanziWriter._loadingManager;
       expect(loadingManager).toBe(loadingManagerTwo);
     });
 
     it("doesn't use lastLoadingManager if options change", async () => {
-      HanziWriter.loadCharacterData("人", {
+      HanziWriter.loadCharacterData('人', {
         charDataLoader() {
           return ren;
         },
       });
       const loadingManager = HanziWriter._loadingManager;
-      HanziWriter.loadCharacterData("人", {
+      HanziWriter.loadCharacterData('人', {
         charDataLoader() {
           return yi;
         },
@@ -1162,29 +1162,29 @@ describe("HanziWriter", () => {
     });
   });
 
-  describe("getScalingTransform", () => {
-    it("returns an object with info that can be used for scaling a makemeahanzi character in SVG", () => {
+  describe('getScalingTransform', () => {
+    it('returns an object with info that can be used for scaling a makemeahanzi character in SVG', () => {
       expect(HanziWriter.getScalingTransform(100, 120, 10)).toEqual({
         scale: 0.078125,
-        transform: "translate(10, 90.3125) scale(0.078125, -0.078125)",
+        transform: 'translate(10, 90.3125) scale(0.078125, -0.078125)',
         x: 10,
         y: 29.6875,
       });
     });
 
-    it("uses 0 as the default padding", () => {
+    it('uses 0 as the default padding', () => {
       expect(HanziWriter.getScalingTransform(100, 100)).toEqual({
         scale: 0.09765625,
-        transform: "translate(0, 87.890625) scale(0.09765625, -0.09765625)",
+        transform: 'translate(0, 87.890625) scale(0.09765625, -0.09765625)',
         x: 0,
         y: 12.109375,
       });
     });
   });
 
-  describe("option defaults", () => {
-    it("works with legacy strokeAnimationDuration and strokeHighlightDuration if present", () => {
-      const writer = HanziWriter.create("target", "人", {
+  describe('option defaults', () => {
+    it('works with legacy strokeAnimationDuration and strokeHighlightDuration if present', () => {
+      const writer = HanziWriter.create('target', '人', {
         strokeAnimationDuration: 1000,
         strokeHighlightDuration: 250,
       });
@@ -1192,14 +1192,14 @@ describe("HanziWriter", () => {
       expect(writer._options.strokeHighlightSpeed).toBe(2);
     });
 
-    it("sets highlightCompleteColor to highlightColor if not explicitly set", () => {
-      const writer = HanziWriter.create("target", "人", { highlightColor: "#ABC" });
-      expect(writer._options.highlightCompleteColor).toBe("#ABC");
+    it('sets highlightCompleteColor to highlightColor if not explicitly set', () => {
+      const writer = HanziWriter.create('target', '人', { highlightColor: '#ABC' });
+      expect(writer._options.highlightCompleteColor).toBe('#ABC');
     });
 
-    it("sets highlightCompleteColor to the default highlightColor if none is passed", () => {
-      const writer = HanziWriter.create("target", "人");
-      expect(writer._options.highlightCompleteColor).toBe("#AAF");
+    it('sets highlightCompleteColor to the default highlightColor if none is passed', () => {
+      const writer = HanziWriter.create('target', '人');
+      expect(writer._options.highlightCompleteColor).toBe('#AAF');
     });
   });
 });

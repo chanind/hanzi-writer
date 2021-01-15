@@ -1,55 +1,55 @@
-import ren from "hanzi-writer-data/人.json";
-import ta from "hanzi-writer-data/他.json";
-import LoadingManager from "../LoadingManager";
-import { CharacterJson, CharDataLoaderFn } from "../typings/types";
+import ren from 'hanzi-writer-data/人.json';
+import ta from 'hanzi-writer-data/他.json';
+import LoadingManager from '../LoadingManager';
+import { CharacterJson, CharDataLoaderFn } from '../typings/types';
 
-describe("LoadingManager", () => {
-  describe("loadCharData", () => {
-    it("resolves when data is loaded via async callback", async () => {
+describe('LoadingManager', () => {
+  describe('loadCharData', () => {
+    it('resolves when data is loaded via async callback', async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete) {
           setTimeout(() => onComplete(ren), 1);
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via sync callback", async () => {
+    it('resolves when data is loaded via sync callback', async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete) {
           onComplete(ren);
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via promise", async () => {
+    it('resolves when data is loaded via promise', async () => {
       const manager = new LoadingManager({
         charDataLoader() {
           return Promise.resolve(ren);
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("resolves when data is loaded via sync return", async () => {
+    it('resolves when data is loaded via sync return', async () => {
       const manager = new LoadingManager({
         charDataLoader() {
           return ren;
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("passes data to onLoadCharDataSuccess if provided", async () => {
+    it('passes data to onLoadCharDataSuccess if provided', async () => {
       let successVal: CharacterJson | undefined;
       const manager = new LoadingManager({
         charDataLoader() {
@@ -59,51 +59,51 @@ describe("LoadingManager", () => {
           successVal = returnedData;
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(data).toBe(ren);
       expect(successVal).toBe(ren);
       expect(manager.loadingFailed).toBe(false);
     });
 
-    it("throws an error if loading fails via onErr callback and no callback is provided", async () => {
+    it('throws an error if loading fails via onErr callback and no callback is provided', async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete, onErr) {
-          onErr("OMG");
+          onErr('OMG');
         },
       });
-      await expect(manager.loadCharData("人")).rejects.toThrow(
-        new Error("Failed to load char data for 人"),
+      await expect(manager.loadCharData('人')).rejects.toThrow(
+        new Error('Failed to load char data for 人'),
       );
       expect(manager.loadingFailed).toBe(true);
     });
 
-    it("rethrows if loading fails via onErr callback passing an Error and no callback is provided", async () => {
+    it('rethrows if loading fails via onErr callback passing an Error and no callback is provided', async () => {
       const manager = new LoadingManager({
         charDataLoader(char, onComplete, onErr) {
-          onErr(new Error("OMG"));
+          onErr(new Error('OMG'));
         },
       });
-      await expect(manager.loadCharData("人")).rejects.toThrow(new Error("OMG"));
+      await expect(manager.loadCharData('人')).rejects.toThrow(new Error('OMG'));
       expect(manager.loadingFailed).toBe(true);
     });
 
-    it("resolves if loading fails via onErr callback and a callback is provided", async () => {
+    it('resolves if loading fails via onErr callback and a callback is provided', async () => {
       let failureReason;
       const manager = new LoadingManager({
         charDataLoader(char, onComplete, onErr) {
-          onErr("everything is terrible");
+          onErr('everything is terrible');
         },
         onLoadCharDataError(reason) {
           failureReason = reason;
         },
       });
-      const data = await manager.loadCharData("人");
+      const data = await manager.loadCharData('人');
       expect(manager.loadingFailed).toBe(true);
       expect(data).toBe(undefined);
-      expect(failureReason).toBe("everything is terrible");
+      expect(failureReason).toBe('everything is terrible');
     });
 
-    it("debounces if multiple loads are called at the same time", async () => {
+    it('debounces if multiple loads are called at the same time', async () => {
       const onLoadCharDataSuccess = jest.fn();
       const onCompleteFns: Array<Parameters<CharDataLoaderFn>[1]> = [];
       const manager = new LoadingManager({
@@ -113,8 +113,8 @@ describe("LoadingManager", () => {
         },
       });
 
-      const loadPromise1 = manager.loadCharData("人");
-      const loadPromise2 = manager.loadCharData("他");
+      const loadPromise1 = manager.loadCharData('人');
+      const loadPromise2 = manager.loadCharData('他');
       expect(loadPromise1).not.toBe(loadPromise2);
 
       let hasPromise1Resolved = false;

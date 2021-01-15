@@ -1,6 +1,6 @@
-import Stroke from "./models/Stroke";
-import Character from "./models/Character";
-import { CharacterJson } from "./typings/types";
+import Stroke from './models/Stroke';
+import Character from './models/Character';
+import { CharacterJson } from './typings/types';
 
 function generateStrokes({ radStrokes, strokes, medians }: CharacterJson) {
   const isInRadical = (strokeNum: number) => (radStrokes?.indexOf(strokeNum) ?? -1) >= 0;

@@ -1,16 +1,16 @@
-import ren from "hanzi-writer-data/人.json";
-import Mutation from "../Mutation";
-import RenderState from "../RenderState";
-import parseCharData from "../parseCharData";
+import ren from 'hanzi-writer-data/人.json';
+import Mutation from '../Mutation';
+import RenderState from '../RenderState';
+import parseCharData from '../parseCharData';
 
-const char = parseCharData("人", ren);
+const char = parseCharData('人', ren);
 
 const opts = {
-  strokeColor: "#555",
-  radicalColor: "#123",
-  highlightColor: "#AAF",
-  outlineColor: "#DDD",
-  drawingColor: "#333",
+  strokeColor: '#555',
+  radicalColor: '#123',
+  highlightColor: '#AAF',
+  outlineColor: '#DDD',
+  drawingColor: '#333',
   drawingFadeDuration: 300,
   drawingWidth: 4,
   outlineWidth: 2,
@@ -18,8 +18,8 @@ const opts = {
   showOutline: false,
 };
 
-describe("RenderState", () => {
-  it("sets up state based on options and character", () => {
+describe('RenderState', () => {
+  it('sets up state based on options and character', () => {
     const renderState = new RenderState(char, opts);
 
     expect(renderState.state).toEqual({
@@ -77,8 +77,8 @@ describe("RenderState", () => {
     });
   });
 
-  describe("run", () => {
-    it("returns a promise which resolves when all mutations are complete", async () => {
+  describe('run', () => {
+    it('returns a promise which resolves when all mutations are complete', async () => {
       const updateState = jest.fn();
       const renderState = new RenderState(char, opts, updateState);
 
@@ -152,7 +152,7 @@ describe("RenderState", () => {
       expect(resolvedVal).toEqual({ canceled: false });
     });
 
-    it("resolves its promise with canceled: true if mutations are canceled before completion", async () => {
+    it('resolves its promise with canceled: true if mutations are canceled before completion', async () => {
       const updateState = jest.fn();
       const renderState = new RenderState(char, opts, updateState);
 
@@ -170,7 +170,7 @@ describe("RenderState", () => {
               },
             },
             {
-              scope: "character",
+              scope: 'character',
             },
           ),
           new Mutation<RenderState>(
@@ -182,7 +182,7 @@ describe("RenderState", () => {
               },
             },
             {
-              scope: "character",
+              scope: 'character',
               duration: 50,
             },
           ),
@@ -196,7 +196,7 @@ describe("RenderState", () => {
               },
             },
             {
-              scope: "character",
+              scope: 'character',
               duration: 50,
             },
           ),
@@ -212,7 +212,7 @@ describe("RenderState", () => {
       expect(isResolved).toBe(false);
       expect(renderState.state.character.main.opacity).toBe(0.3);
 
-      renderState.cancelMutations(["delay", "character"]);
+      renderState.cancelMutations(['delay', 'character']);
 
       await Promise.resolve();
       expect(renderState.state.character.main.opacity).toBe(0.3);

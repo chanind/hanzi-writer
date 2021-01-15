@@ -1,5 +1,5 @@
-import RenderTargetBase from "renderers/RenderTargetBase";
-import { HanziWriterRendererConstructor } from "../renderers/HanziWriterRendererBase";
+import RenderTargetBase from 'renderers/RenderTargetBase';
+import { HanziWriterRendererConstructor } from '../renderers/HanziWriterRendererBase';
 
 export type CharacterJson = {
   strokes: string[];
@@ -92,7 +92,7 @@ export type HanziWriterOptions = PositionerOptions &
     showOutline: boolean;
     showCharacter: boolean;
     /** Default: svg */
-    renderer: "svg" | "canvas";
+    renderer: 'svg' | 'canvas';
 
     // Animation options
 

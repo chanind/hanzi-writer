@@ -1,4 +1,4 @@
-import { Point, PositionerOptions } from "./typings/types";
+import { Point, PositionerOptions } from './typings/types';
 
 // All makemeahanzi characters have the same bounding box
 const CHARACTER_BOUNDS = [

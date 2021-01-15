@@ -1,19 +1,19 @@
-import yi from "hanzi-writer-data/一.json";
-import StrokeRenderer from "../StrokeRenderer";
-import parseCharData from "../../../parseCharData";
+import yi from 'hanzi-writer-data/一.json';
+import StrokeRenderer from '../StrokeRenderer';
+import parseCharData from '../../../parseCharData';
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
-import "jest-canvas-mock";
+import 'jest-canvas-mock';
 
-const char = parseCharData("一", yi);
+const char = parseCharData('一', yi);
 
-describe("StrokeRenderer", () => {
+describe('StrokeRenderer', () => {
   let ctx: CanvasRenderingContext2D;
 
   beforeEach(() => {
-    ctx = document.createElement("canvas").getContext("2d")!;
+    ctx = document.createElement('canvas').getContext('2d')!;
   });
 
-  it("renders a path and clipPath", () => {
+  it('renders a path and clipPath', () => {
     const props = {
       strokeColor: { r: 12, g: 101, b: 20, a: 0.3 },
       radicalColor: null,
@@ -27,7 +27,7 @@ describe("StrokeRenderer", () => {
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
-  it("works without using Path2D if needed", () => {
+  it('works without using Path2D if needed', () => {
     const props = {
       strokeColor: { r: 12, g: 101, b: 20, a: 1 },
       radicalColor: null,
@@ -41,7 +41,7 @@ describe("StrokeRenderer", () => {
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
-  it("skips rendering if opacity is close to 0", () => {
+  it('skips rendering if opacity is close to 0', () => {
     const props = {
       strokeColor: { r: 12, g: 101, b: 20, a: 0.3 },
       radicalColor: null,

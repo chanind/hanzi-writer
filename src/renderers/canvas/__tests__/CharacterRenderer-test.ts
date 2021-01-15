@@ -1,19 +1,19 @@
-import ren from "hanzi-writer-data/人.json";
-import CharacterRenderer from "../CharacterRenderer";
-import parseCharData from "../../../parseCharData";
+import ren from 'hanzi-writer-data/人.json';
+import CharacterRenderer from '../CharacterRenderer';
+import parseCharData from '../../../parseCharData';
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
-import "jest-canvas-mock";
+import 'jest-canvas-mock';
 
-const char = parseCharData("人", ren);
+const char = parseCharData('人', ren);
 
-describe("CharacterRenderer", () => {
+describe('CharacterRenderer', () => {
   let ctx: CanvasRenderingContext2D;
 
   beforeEach(() => {
-    ctx = document.createElement("canvas").getContext("2d")!;
+    ctx = document.createElement('canvas').getContext('2d')!;
   });
 
-  it("renders the strokes of the character", () => {
+  it('renders the strokes of the character', () => {
     const props = {
       strokeColor: { r: 120, g: 17, b: 101, a: 0.3 },
       radicalColor: null,
@@ -37,7 +37,7 @@ describe("CharacterRenderer", () => {
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
-  it("skips rendering if opacity is close to 0", () => {
+  it('skips rendering if opacity is close to 0', () => {
     const props = {
       strokeColor: { r: 101, g: 101, b: 101, a: 1 },
       radicalColor: null,

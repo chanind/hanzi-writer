@@ -1,11 +1,11 @@
-import Character from "../../models/Character";
-import Positioner from "../../Positioner";
-import HanziWriterRendererBase from "../HanziWriterRendererBase";
-import CanvasRenderTarget from "../canvas/RenderTarget";
-import CharacterRenderer from "./CharacterRenderer";
-import renderUserStroke from "./renderUserStroke";
-import { RenderStateObject } from "../../RenderState";
-import { noop } from "../../utils";
+import Character from '../../models/Character';
+import Positioner from '../../Positioner';
+import HanziWriterRendererBase from '../HanziWriterRendererBase';
+import CanvasRenderTarget from '../canvas/RenderTarget';
+import CharacterRenderer from './CharacterRenderer';
+import renderUserStroke from './renderUserStroke';
+import { RenderStateObject } from '../../RenderState';
+import { noop } from '../../utils';
 
 export default class HanziWriterRenderer
   implements HanziWriterRendererBase<HTMLCanvasElement, CanvasRenderTarget> {

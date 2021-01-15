@@ -1,13 +1,13 @@
-import Mutation from "./Mutation";
-import * as characterActions from "./characterActions";
-import { colorStringToVals, objRepeat } from "./utils";
-import { Point } from "./typings/types";
-import Character from "./models/Character";
-import RenderState from "RenderState";
+import Mutation from './Mutation';
+import * as characterActions from './characterActions';
+import { colorStringToVals, objRepeat } from './utils';
+import { Point } from './typings/types';
+import Character from './models/Character';
+import RenderState from 'RenderState';
 
 export const startQuiz = (character: Character, fadeDuration: number) => {
   return [
-    ...characterActions.hideCharacter("main", character, fadeDuration),
+    ...characterActions.hideCharacter('main', character, fadeDuration),
     new Mutation<RenderState>(
       {
         character: {
@@ -104,8 +104,8 @@ export const highlightCompleteChar = (
         highlightColor: colorStringToVals(color),
       },
     }),
-    ...characterActions.hideCharacter("highlight", character),
-    ...characterActions.showCharacter("highlight", character, duration / 2),
-    ...characterActions.hideCharacter("highlight", character, duration / 2),
+    ...characterActions.hideCharacter('highlight', character),
+    ...characterActions.showCharacter('highlight', character, duration / 2),
+    ...characterActions.hideCharacter('highlight', character, duration / 2),
   ];
 };

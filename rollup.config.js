@@ -1,48 +1,48 @@
-import { terser } from "rollup-plugin-terser";
-import ts from "@wessberg/rollup-plugin-ts";
-import resolve from "@rollup/plugin-node-resolve";
-import babel from "@rollup/plugin-babel";
-import pkg from "./package.json";
-import license from "rollup-plugin-license";
-import filesize from "rollup-plugin-filesize";
+import { terser } from 'rollup-plugin-terser';
+import ts from '@wessberg/rollup-plugin-ts';
+import resolve from '@rollup/plugin-node-resolve';
+import babel from '@rollup/plugin-babel';
+import pkg from './package.json';
+import license from 'rollup-plugin-license';
+import filesize from 'rollup-plugin-filesize';
 
-const extensions = [".js", ".ts"];
+const extensions = ['.js', '.ts'];
 
 export default [
   {
-    input: "src/HanziWriter.ts",
+    input: 'src/HanziWriter.ts',
     output: [
       {
         file: pkg.main,
-        format: "cjs",
+        format: 'cjs',
         sourcemap: true,
-        exports: "auto",
+        exports: 'auto',
       },
       {
-        file: "dist/hanzi-writer.min.js",
-        format: "iife",
-        name: "HanziWriter",
+        file: 'dist/hanzi-writer.min.js',
+        format: 'iife',
+        name: 'HanziWriter',
         sourcemap: true,
         plugins: [terser()],
-        exports: "default",
+        exports: 'default',
       },
       {
         file: pkg.module,
-        format: "es",
+        format: 'es',
         sourcemap: true,
-        exports: "default",
+        exports: 'default',
       },
     ],
     plugins: [
       filesize(),
       ts({
-        transpiler: "babel",
+        transpiler: 'babel',
       }),
       resolve({ extensions }),
       babel({
-        exclude: "node_modules/**",
+        exclude: 'node_modules/**',
         extensions,
-        babelHelpers: "bundled",
+        babelHelpers: 'bundled',
       }),
       license({
         banner: `Hanzi Writer v<%= pkg.version %> | https://chanind.github.io/hanzi-writer`,

@@ -1,7 +1,7 @@
-import Mutation from "../Mutation";
+import Mutation from '../Mutation';
 
-describe("Mutation", () => {
-  it("resolves immediately if there is no (or 0) duration passed", async () => {
+describe('Mutation', () => {
+  it('resolves immediately if there is no (or 0) duration passed', async () => {
     const renderState = {
       state: {
         a: {
@@ -33,7 +33,7 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("resolves immediately if there are no changes with the current state", async () => {
+  it('resolves immediately if there are no changes with the current state', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
@@ -59,7 +59,7 @@ describe("Mutation", () => {
     expect(renderState.updateState).not.toHaveBeenCalled();
   });
 
-  it("tweens to the target state over duration", async () => {
+  it('tweens to the target state over duration', async () => {
     const renderState = {
       state: { a: { b: 10 } },
       updateState: jest.fn(),
@@ -102,7 +102,7 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("can pause and resume during the tween", async () => {
+  it('can pause and resume during the tween', async () => {
     const renderState = {
       state: { a: { b: 10 } },
       updateState: jest.fn(),
@@ -163,7 +163,7 @@ describe("Mutation", () => {
     expect(isResolved).toBe(true);
   });
 
-  it("updates state on cancel if force: true", async () => {
+  it('updates state on cancel if force: true', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
@@ -184,7 +184,7 @@ describe("Mutation", () => {
     expect(renderState.updateState).toHaveBeenLastCalledWith({ a: { b: 10 } });
   });
 
-  it("does not update state on cancel if force: false", async () => {
+  it('does not update state on cancel if force: false', async () => {
     const renderState = {
       state: { a: { b: 7 } },
       updateState: jest.fn(),
@@ -202,8 +202,8 @@ describe("Mutation", () => {
   });
 });
 
-describe("Mutation.Delay", () => {
-  it("can pause and resume during the delay", async () => {
+describe('Mutation.Delay', () => {
+  it('can pause and resume during the delay', async () => {
     const delay = new Mutation.Delay(1000);
     let isResolved = false;
 

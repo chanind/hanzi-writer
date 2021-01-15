@@ -1,13 +1,13 @@
-import strokeMatches from "./strokeMatches";
-import UserStroke from "./models/UserStroke";
-import Positioner from "./Positioner";
-import { counter } from "./utils";
-import * as quizActions from "./quizActions";
-import * as geometry from "./geometry";
-import * as characterActions from "./characterActions";
-import Character from "./models/Character";
-import { HanziWriterOptions, Point, StrokeData } from "./typings/types";
-import RenderState from "./RenderState";
+import strokeMatches from './strokeMatches';
+import UserStroke from './models/UserStroke';
+import Positioner from './Positioner';
+import { counter } from './utils';
+import * as quizActions from './quizActions';
+import * as geometry from './geometry';
+import * as characterActions from './characterActions';
+import Character from './models/Character';
+import { HanziWriterOptions, Point, StrokeData } from './typings/types';
+import RenderState from './RenderState';
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -179,7 +179,7 @@ export default class Quiz {
     onCorrectStroke?.(this._getStrokeData(true));
 
     const animation = [
-      characterActions.showStroke("main", this._currentStrokeIndex, strokeFadeDuration),
+      characterActions.showStroke('main', this._currentStrokeIndex, strokeFadeDuration),
     ];
 
     this._mistakesOnStroke = 0;

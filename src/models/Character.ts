@@ -1,4 +1,4 @@
-import Stroke from "./Stroke";
+import Stroke from './Stroke';
 
 export default class Character {
   symbol: string;

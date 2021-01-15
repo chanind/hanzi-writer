@@ -1,15 +1,15 @@
-import renderUserStroke from "../renderUserStroke";
+import renderUserStroke from '../renderUserStroke';
 // Include test-only typings for "CanvasRenderingContext2D.xxxxxx"
-import "jest-canvas-mock";
+import 'jest-canvas-mock';
 
-describe("renderUserStroke", () => {
+describe('renderUserStroke', () => {
   let ctx: CanvasRenderingContext2D;
 
   beforeEach(() => {
-    ctx = document.createElement("canvas").getContext("2d")!;
+    ctx = document.createElement('canvas').getContext('2d')!;
   });
 
-  it("renders a user stroke path", () => {
+  it('renders a user stroke path', () => {
     const props = {
       strokeColor: { r: 12, g: 101, b: 20, a: 0.3 },
       strokeWidth: 2,
@@ -24,7 +24,7 @@ describe("renderUserStroke", () => {
     expect(ctx.__getEvents()).toMatchSnapshot();
   });
 
-  it("skips rendering if opacity is close to 0", () => {
+  it('skips rendering if opacity is close to 0', () => {
     const props = {
       strokeColor: { r: 12, g: 101, b: 20, a: 0.3 },
       strokeWidth: 2,

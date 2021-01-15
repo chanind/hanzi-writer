@@ -1,8 +1,8 @@
-import { extendStart } from "../../geometry";
-import { drawPath, pathStringToCanvas } from "./canvasUtils";
-import StrokeRendererBase from "../StrokeRendererBase";
-import Stroke from "../../models/Stroke";
-import { ColorObject, Point } from "../../typings/types";
+import { extendStart } from '../../geometry';
+import { drawPath, pathStringToCanvas } from './canvasUtils';
+import StrokeRendererBase from '../StrokeRendererBase';
+import Stroke from '../../models/Stroke';
+import { ColorObject, Point } from '../../typings/types';
 
 /** this is a stroke composed of several stroke parts */
 export default class StrokeRenderer extends StrokeRendererBase {
@@ -57,8 +57,8 @@ export default class StrokeRenderer extends StrokeRendererBase {
     ctx.strokeStyle = color;
     ctx.fillStyle = color;
     ctx.lineWidth = StrokeRendererBase.STROKE_WIDTH;
-    ctx.lineCap = "round";
-    ctx.lineJoin = "round";
+    ctx.lineCap = 'round';
+    ctx.lineJoin = 'round';
     // wechat sets dashOffset as a second param here. Should be harmless for browsers to add here too
     // @ts-ignore
     ctx.setLineDash([this._pathLength, this._pathLength], dashOffset);

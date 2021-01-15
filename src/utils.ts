@@ -1,4 +1,4 @@
-import { RecursivePartial } from "typings/types";
+import { RecursivePartial } from 'typings/types';
 
 export const cancelAnimationFrame = window.cancelAnimationFrame || clearTimeout;
 
@@ -17,8 +17,8 @@ export function copyAndMergeDeep<T>(base: T, override: RecursivePartial<T> | und
     if (
       baseVal &&
       overrideVal &&
-      typeof baseVal === "object" &&
-      typeof overrideVal === "object" &&
+      typeof baseVal === 'object' &&
+      typeof overrideVal === 'object' &&
       !Array.isArray(overrideVal)
     ) {
       output[key] = copyAndMergeDeep(baseVal, overrideVal);
@@ -47,7 +47,7 @@ export function timeout(duration = 0) {
 }
 
 export function colorStringToVals(colorString: string | null) {
-  if (typeof colorString !== "string") {
+  if (typeof colorString !== 'string') {
     return {
       r: 0,
       g: 0,
@@ -58,7 +58,7 @@ export function colorStringToVals(colorString: string | null) {
   const normalizedColor = colorString.toUpperCase().trim();
   // based on https://stackoverflow.com/a/21648508
   if (/^#([A-F0-9]{3}){1,2}$/.test(normalizedColor)) {
-    let hexParts = normalizedColor.substring(1).split("");
+    let hexParts = normalizedColor.substring(1).split('');
     if (hexParts.length === 3) {
       hexParts = [
         hexParts[0],
@@ -69,7 +69,7 @@ export function colorStringToVals(colorString: string | null) {
         hexParts[2],
       ];
     }
-    const hexStr = `${hexParts.join("")}`;
+    const hexStr = `${hexParts.join('')}`;
     return {
       r: parseInt(hexStr.slice(0, 2), 16),
       g: parseInt(hexStr.slice(2, 4), 16),
@@ -92,7 +92,7 @@ export function colorStringToVals(colorString: string | null) {
   throw new Error(`Invalid color: ${colorString}`);
 }
 
-export const trim = (string: string) => string.replace(/^\s+/, "").replace(/\s+$/, "");
+export const trim = (string: string) => string.replace(/^\s+/, '').replace(/\s+$/, '');
 
 // return a new array-like object with int keys where each key is item
 // ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
@@ -104,10 +104,10 @@ export function objRepeat<T>(item: T, times: number) {
   return obj;
 }
 
-const ua = window.navigator?.userAgent || "";
+const ua = window.navigator?.userAgent || '';
 
 export const isMsBrowser =
-  ua.indexOf("MSIE ") > 0 || ua.indexOf("Trident/") > 0 || ua.indexOf("Edge/") > 0;
+  ua.indexOf('MSIE ') > 0 || ua.indexOf('Trident/') > 0 || ua.indexOf('Edge/') > 0;
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop = () => {};

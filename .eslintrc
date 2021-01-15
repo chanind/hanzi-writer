@@ -12,6 +12,7 @@
   "rules": {
     "no-multi-spaces": "error",
     "no-nested-ternary": "error",
+    "quotes": ["error", "single", { "avoidEscape": true, "allowTemplateLiterals": true }],
     "no-trailing-spaces": "error",
     "no-irregular-whitespace": "error",
     "no-param-reassign": "error",

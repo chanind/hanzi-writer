@@ -2,7 +2,7 @@ import Mutation, { MutationChain } from './Mutation';
 import * as characterActions from './characterActions';
 import { objRepeat } from './utils';
 import Character from './models/Character';
-import { Point } from 'typings/types';
+import { Point } from './typings/types';
 
 export const startQuiz = (character: Character, fadeDuration: number): MutationChain => {
   return [

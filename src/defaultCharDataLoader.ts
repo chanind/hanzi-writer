@@ -1,4 +1,4 @@
-import { CharacterJson } from 'typings/types';
+import { CharacterJson } from './typings/types';
 
 const VERSION = '2.0';
 const getCharDataUrl = (char: string) =>
@@ -10,7 +10,7 @@ const defaultCharDataLoader = (
   onError: (error?: any, context?: any) => void,
 ) => {
   // load char data from hanziwriter cdn (currently hosted on jsdelivr)
-  const xhr = new global.XMLHttpRequest();
+  const xhr = new XMLHttpRequest();
   if (xhr.overrideMimeType) {
     // IE 9 and 10 don't seem to support this...
     xhr.overrideMimeType('application/json');

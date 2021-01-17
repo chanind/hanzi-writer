@@ -1,5 +1,5 @@
-import Stroke from 'models/Stroke';
-import { ColorObject, RecursivePartial } from 'typings/types';
+import Stroke from './models/Stroke';
+import { ColorObject, RecursivePartial } from './typings/types';
 import Character from './models/Character';
 import Mutation, { MutationChain } from './Mutation';
 import { objRepeat } from './utils';

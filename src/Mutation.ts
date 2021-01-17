@@ -5,7 +5,7 @@ import {
   performanceNow,
 } from './utils';
 import RenderState from './RenderState';
-import { RecursivePartial } from 'typings/types';
+import { RecursivePartial } from './typings/types';
 
 /** Used by `Mutation` & `Delay` */
 export interface GenericMutation<

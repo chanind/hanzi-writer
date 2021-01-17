@@ -12,7 +12,7 @@ import {
 import { Point } from './typings/types';
 import UserStroke from './models/UserStroke';
 import Stroke from './models/Stroke';
-import Character from 'models/Character';
+import Character from './models/Character';
 
 const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient

@@ -8,7 +8,7 @@ import RenderState from '../RenderState';
 import Positioner from '../Positioner';
 import { resolvePromises } from '../testUtils';
 import strokeMatches from '../strokeMatches';
-import { ParsedHanziWriterOptions, Point } from 'typings/types';
+import { Point } from '../typings/types';
 
 (Positioner as any).mockImplementation(() => ({
   convertExternalPoint: (point: Point) => ({ x: point.x + 5, y: point.y + 5 }),
@@ -20,7 +20,7 @@ beforeEach(() => {
 });
 
 const char = parseCharData('人', ren);
-const opts: ParsedHanziWriterOptions = {
+const opts: any = {
   onLoadCharDataError: null,
   onLoadCharDataSuccess: null,
   showOutline: true,

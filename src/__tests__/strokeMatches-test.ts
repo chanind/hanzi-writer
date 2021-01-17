@@ -2,8 +2,8 @@ import strokeMatches from '../strokeMatches';
 import Stroke from '../models/Stroke';
 import UserStroke from '../models/UserStroke';
 import parseCharData from '../parseCharData';
-import { Point } from 'typings/types';
-import Character from 'models/Character';
+import { Point } from '../typings/types';
+import Character from '../models/Character';
 
 const getChar = (charStr: string): Character => {
   // eslint-disable-next-line @typescript-eslint/no-var-requires
@@ -13,7 +13,7 @@ const getChar = (charStr: string): Character => {
 
 const assertMatches = (
   charStr: string,
-  strokeNum: string,
+  strokeNum: number,
   points: Point[],
   options = {},
 ) => {
@@ -24,7 +24,7 @@ const assertMatches = (
 
 const assertNotMatches = (
   charStr: string,
-  strokeNum: string,
+  strokeNum: number,
   points: Point[],
   options = {},
 ) => {
@@ -48,7 +48,7 @@ describe('strokeMatches', () => {
     userStroke.appendPoint({ x: 5, y: 25 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10, y: 51 }, { x: 9999, y: 9999 });
 
-    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(true);
+    expect(strokeMatches(userStroke, new Character('X', [stroke]), 0)).toBe(true);
   });
 
   it('does not match if the user stroke is in the wrong direction', () => {
@@ -65,7 +65,7 @@ describe('strokeMatches', () => {
     userStroke.appendPoint({ x: 5, y: 25 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 2, y: 1 }, { x: 9999, y: 9999 });
 
-    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(false);
+    expect(strokeMatches(userStroke, new Character('X', [stroke]), 0)).toBe(false);
   });
 
   it('does not match if the user stroke is too far away', () => {
@@ -86,7 +86,7 @@ describe('strokeMatches', () => {
     userStroke.appendPoint({ x: 5 + 200, y: 25 + 200 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10 + 200, y: 51 + 200 }, { x: 9999, y: 9999 });
 
-    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0)).toBe(false);
+    expect(strokeMatches(userStroke, new Character('X', [stroke]), 0)).toBe(false);
   });
 
   it('is more lenient depending on how large leniency is', () => {
@@ -107,12 +107,12 @@ describe('strokeMatches', () => {
     userStroke.appendPoint({ x: 5 + 200, y: 25 + 200 }, { x: 9999, y: 9999 });
     userStroke.appendPoint({ x: 10 + 200, y: 51 + 200 }, { x: 9999, y: 9999 });
 
-    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0, { leniency: 0.2 })).toBe(
-      false,
-    );
-    expect(strokeMatches(userStroke, { strokes: [stroke] }, 0, { leniency: 20 })).toBe(
-      true,
-    );
+    expect(
+      strokeMatches(userStroke, new Character('X', [stroke]), 0, { leniency: 0.2 }),
+    ).toBe(false);
+    expect(
+      strokeMatches(userStroke, new Character('X', [stroke]), 0, { leniency: 20 }),
+    ).toBe(true);
   });
 
   it('matches using real data 1', () => {

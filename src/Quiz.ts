@@ -8,7 +8,7 @@ import * as characterActions from './characterActions';
 import Character from './models/Character';
 import { ParsedHanziWriterOptions, Point, StrokeData } from './typings/types';
 import RenderState from './RenderState';
-import { MutationChain } from 'Mutation';
+import { MutationChain } from './Mutation';
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -137,15 +137,14 @@ export default class Quiz {
 
   cancel() {
     this._isActive = false;
-    if (!this._userStroke) {
-      return Promise.resolve({ canceled: false });
+    if (this._userStroke) {
+      this._renderState.run(
+        quizActions.removeUserStroke(
+          this._userStroke.id,
+          this._options!.drawingFadeDuration,
+        ),
+      );
     }
-    return this._renderState.run(
-      quizActions.removeUserStroke(
-        this._userStroke.id,
-        this._options!.drawingFadeDuration,
-      ),
-    );
   }
 
   _getStrokeData(isCorrect = false): StrokeData {

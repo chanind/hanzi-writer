@@ -1,4 +1,4 @@
-import RenderTargetBase from 'renderers/RenderTargetBase';
+import RenderTargetBase from '../renderers/RenderTargetBase';
 import { HanziWriterRendererConstructor } from '../renderers/HanziWriterRendererBase';
 
 export type CharacterJson = {

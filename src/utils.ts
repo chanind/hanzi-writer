@@ -1,11 +1,14 @@
-import { ColorObject, RecursivePartial } from 'typings/types';
+import { ColorObject, RecursivePartial } from './typings/types';
+
+// hacky way to get around rollup not properly setting `global` to `window` in browser
+const globalObj = typeof window === 'undefined' ? global : window;
 
 export const performanceNow =
-  (global.performance && (() => global.performance.now())) || (() => Date.now());
+  (globalObj.performance && (() => globalObj.performance.now())) || (() => Date.now());
 export const requestAnimationFrame =
-  global.requestAnimationFrame ||
+  globalObj.requestAnimationFrame ||
   ((callback) => setTimeout(() => callback(performanceNow()), 1000 / 60));
-export const cancelAnimationFrame = global.cancelAnimationFrame || clearTimeout;
+export const cancelAnimationFrame = globalObj.cancelAnimationFrame || clearTimeout;
 
 // Object.assign polyfill, because IE :/
 export const _assign = function (target: any, ...overrides: any[]) {

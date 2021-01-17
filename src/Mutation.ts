@@ -202,7 +202,7 @@ export default class Mutation<
 
     if (this._force) {
       if (!this._values) this._inflateValues(renderState);
-      renderState.updateState(this._values);
+      renderState.updateState(this._values!);
     }
   }
 }

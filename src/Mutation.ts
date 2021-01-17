@@ -193,21 +193,6 @@ export default class Mutation<
     }
   };
 
-  getValues(renderState: TRenderStateClass) {
-    if (this._values) {
-      return this._values;
-    }
-
-    this._values = ((): RecursivePartial<TRenderStateObj> => {
-      if (typeof this._valuesOrCallable === 'function') {
-        return this._valuesOrCallable(renderState.state);
-      }
-      return this._valuesOrCallable;
-    })();
-
-    return this._values;
-  }
-
   cancel(renderState: TRenderStateClass) {
     this._resolve?.();
     this._resolve = undefined;
@@ -217,7 +202,7 @@ export default class Mutation<
 
     if (this._force) {
       if (!this._values) this._inflateValues(renderState);
-      renderState.updateState(this.getValues(renderState));
+      renderState.updateState(this._values);
     }
   }
 }

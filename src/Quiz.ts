@@ -73,23 +73,19 @@ export default class Quiz {
   }
 
   endUserStroke() {
-    if (!this._userStroke) {
-      return Promise.resolve();
-    }
+    if (!this._userStroke) return;
 
-    const promises: Promise<any>[] = [
-      this._renderState.run(
-        quizActions.removeUserStroke(
-          this._userStroke.id,
-          this._options!.drawingFadeDuration ?? 300,
-        ),
+    this._renderState.run(
+      quizActions.removeUserStroke(
+        this._userStroke.id,
+        this._options!.drawingFadeDuration ?? 300,
       ),
-    ];
+    );
 
     // skip single-point strokes
     if (this._userStroke.points.length === 1) {
       this._userStroke = undefined;
-      return Promise.all(promises);
+      return;
     }
 
     const currentStroke = this._getCurrentStroke();
@@ -104,7 +100,7 @@ export default class Quiz {
     );
 
     if (isMatch) {
-      promises.push(this._handleSuccess());
+      this._handleSuccess();
     } else {
       this._handleFailure();
 
@@ -118,21 +114,17 @@ export default class Quiz {
         showHintAfterMisses !== false &&
         this._mistakesOnStroke >= showHintAfterMisses
       ) {
-        promises.push(
-          this._renderState.run(
-            characterActions.highlightStroke(
-              currentStroke,
-              colorStringToVals(highlightColor),
-              strokeHighlightSpeed,
-            ),
+        this._renderState.run(
+          characterActions.highlightStroke(
+            currentStroke,
+            colorStringToVals(highlightColor),
+            strokeHighlightSpeed,
           ),
         );
       }
     }
 
     this._userStroke = undefined;
-
-    return Promise.all(promises);
   }
 
   cancel() {
@@ -160,16 +152,13 @@ export default class Quiz {
   }
 
   _handleSuccess() {
-    if (!this._options) {
-      return Promise.resolve();
-    }
+    if (!this._options) return;
 
     const { strokes, symbol } = this._character;
 
     const {
       onCorrectStroke,
       onComplete,
-      onHighlightComplete,
       highlightOnComplete,
       strokeFadeDuration,
       strokeHighlightDuration,
@@ -177,13 +166,11 @@ export default class Quiz {
 
     onCorrectStroke?.(this._getStrokeData(true));
 
-    const animation: MutationChain = [
-      ...characterActions.showStroke(
-        'main',
-        this._currentStrokeIndex,
-        strokeFadeDuration,
-      ),
-    ];
+    let animation: MutationChain = characterActions.showStroke(
+      'main',
+      this._currentStrokeIndex,
+      strokeFadeDuration,
+    );
 
     this._mistakesOnStroke = 0;
     this._currentStrokeIndex += 1;
@@ -197,8 +184,8 @@ export default class Quiz {
         totalMistakes: this._totalMistakes,
       });
       if (highlightOnComplete) {
-        animation.push(
-          ...quizActions.highlightCompleteChar(
+        animation = animation.concat(
+          quizActions.highlightCompleteChar(
             this._character,
             (strokeHighlightDuration || 0) * 2,
           ),
@@ -206,15 +193,7 @@ export default class Quiz {
       }
     }
 
-    return this._renderState.run(animation).then((res) => {
-      if (isComplete) {
-        onHighlightComplete?.({
-          character: symbol,
-          totalMistakes: this._totalMistakes,
-        });
-      }
-      return res;
-    });
+    this._renderState.run(animation);
   }
 
   _handleFailure() {

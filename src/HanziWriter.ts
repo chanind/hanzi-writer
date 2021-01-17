@@ -354,9 +354,9 @@ export default class HanziWriter {
       return colorVal;
     })();
 
-    const mappedColor = colorStringToVals(fixedColorVal);
+    const mappedColor = colorStringToVals(fixedColorVal as string);
 
-    this._options[colorName] = colorVal;
+    this._options[colorName] = colorVal as any;
 
     const duration = options.duration ?? this._options.strokeFadeDuration;
 

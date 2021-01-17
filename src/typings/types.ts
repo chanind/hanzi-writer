@@ -19,15 +19,15 @@ export type ColorObject = { r: number; g: number; b: number; a: number };
 
 export type ColorOptions = {
   /** (Hex string, Default: "#555"). The color to draw each stroke. */
-  strokeColor: string | null;
+  strokeColor: string;
   /** (Hex string, Default: null). The color to draw the radical in the stroke, if radical data is present. Radicals will be drawn the same color as other strokes if this is not set. */
   radicalColor: string | null;
   /** (Hex string, Default: "#AAF"). The color to use for highlighting in quizzes. */
-  highlightColor: string | null;
+  highlightColor: string;
   /** (Hex string, Default: "#DDD"). The color of the character outline.  */
-  outlineColor: string | null;
+  outlineColor: string;
   /** (Hex string, Default: "#333"). The color of the lines drawn by users during quizzing. */
-  drawingColor: string | null;
+  drawingColor: string;
   /** (Hex string, Default: null). The color to use when highlighting the character on complete in quizzes. If not set, `highlightColor` will be used instead. Only relevant if `highlightOnComplete` is `true`. */
   highlightCompleteColor: string | null;
 };
@@ -66,8 +66,6 @@ export type QuizOptions = {
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
-  /** Callback when the quiz highlight animation is complete */
-  onHighlightComplete?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
 export type PositionerOptions = {

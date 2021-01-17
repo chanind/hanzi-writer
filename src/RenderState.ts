@@ -60,11 +60,11 @@ type MutationChain = {
 };
 
 export type RenderStateOptions = {
-  strokeColor: string | null;
+  strokeColor: string;
   radicalColor: string | null;
-  highlightColor: string | null;
-  outlineColor: string | null;
-  drawingColor: string | null;
+  highlightColor: string;
+  outlineColor: string;
+  drawingColor: string;
   drawingFadeDuration: number;
   drawingWidth: number;
   outlineWidth: number;

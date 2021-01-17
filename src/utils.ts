@@ -84,15 +84,7 @@ export function timeout(duration = 0) {
   return new Promise((resolve) => setTimeout(resolve, duration));
 }
 
-export function colorStringToVals(colorString: string | null): ColorObject {
-  if (typeof colorString !== 'string') {
-    return {
-      r: 0,
-      g: 0,
-      b: 0,
-      a: 0,
-    };
-  }
+export function colorStringToVals(colorString: string): ColorObject {
   const normalizedColor = colorString.toUpperCase().trim();
   // based on https://stackoverflow.com/a/21648508
   if (/^#([A-F0-9]{3}){1,2}$/.test(normalizedColor)) {
@@ -142,7 +134,7 @@ export function objRepeat<T>(item: T, times: number) {
   return obj;
 }
 
-const ua = window.navigator?.userAgent || '';
+const ua = globalObj.navigator?.userAgent || '';
 
 export const isMsBrowser =
   ua.indexOf('MSIE ') > 0 || ua.indexOf('Trident/') > 0 || ua.indexOf('Edge/') > 0;

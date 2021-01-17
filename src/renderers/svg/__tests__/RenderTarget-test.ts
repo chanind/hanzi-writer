@@ -1,37 +1,37 @@
-import RenderTarget from "../RenderTarget";
+import RenderTarget from '../RenderTarget';
 
-describe("RenderTarget", () => {
+describe('RenderTarget', () => {
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
   });
 
-  it("correctly initializes with an id selector", () => {
-    const target = RenderTarget.init("target");
+  it('correctly initializes with an id selector', () => {
+    const target = RenderTarget.init('target');
     expect(target.node).toBeTruthy();
-    expect(target.node.nodeName.toUpperCase()).toBe("SVG");
+    expect(target.node.nodeName.toUpperCase()).toBe('SVG');
   });
 
-  it("correctly initializes with an element as an argument", () => {
-    const targetElement = document.querySelector("#target")!;
+  it('correctly initializes with an element as an argument', () => {
+    const targetElement = document.querySelector('#target')!;
     const target = RenderTarget.init(targetElement);
     expect(target.node).toBeTruthy();
-    expect(target.node.nodeName.toUpperCase()).toBe("SVG");
+    expect(target.node.nodeName.toUpperCase()).toBe('SVG');
   });
 
   it("doesn't create a new SVG element when an SVG target is given", () => {
     document.body.innerHTML = `<svg id="target"></svg>`;
-    const targetElement = document.querySelector("#target")!;
+    const targetElement = document.querySelector('#target')!;
     const target = RenderTarget.init(targetElement);
     expect(target.node).toEqual(targetElement);
   });
 
-  it("invokes callback after mouse/touch start events", () => {
+  it('invokes callback after mouse/touch start events', () => {
     const map: Record<string, any> = {};
     EventTarget.prototype.addEventListener = function (type, fn) {
       map[type] = fn;
     };
 
-    const targetElement = document.querySelector("#target")!;
+    const targetElement = document.querySelector('#target')!;
 
     const target = RenderTarget.init(targetElement);
 
@@ -50,13 +50,13 @@ describe("RenderTarget", () => {
     expect(pointerStartCallback).toBeCalledTimes(3);
   });
 
-  it("invokes callback after mouse/touch move events", () => {
+  it('invokes callback after mouse/touch move events', () => {
     const map: Record<string, any> = {};
     EventTarget.prototype.addEventListener = function (type, fn) {
       map[type] = fn;
     };
 
-    const targetElement = document.querySelector("#target")!;
+    const targetElement = document.querySelector('#target')!;
 
     const target = RenderTarget.init(targetElement);
 

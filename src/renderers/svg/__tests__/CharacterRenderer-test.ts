@@ -1,20 +1,20 @@
-import ren from "hanzi-writer-data/人.json";
-import CharacterRenderer from "../CharacterRenderer";
-import RenderTarget from "../RenderTarget";
-import { copyAndMergeDeep } from "../../../utils";
-import parseCharData from "../../../parseCharData";
+import ren from 'hanzi-writer-data/人.json';
+import CharacterRenderer from '../CharacterRenderer';
+import RenderTarget from '../RenderTarget';
+import { copyAndMergeDeep } from '../../../utils';
+import parseCharData from '../../../parseCharData';
 
-const char = parseCharData("人", ren);
+const char = parseCharData('人', ren);
 
-describe("CharacterRenderer", () => {
+describe('CharacterRenderer', () => {
   let target: RenderTarget;
 
   beforeEach(() => {
     document.body.innerHTML = '<div id="target"></div>';
-    target = RenderTarget.init("target");
+    target = RenderTarget.init('target');
   });
 
-  it("renders a g element and puts strokes inside", () => {
+  it('renders a g element and puts strokes inside', () => {
     const props = {
       strokeColor: { r: 120, g: 17, b: 101, a: 0.3 },
       radicalColor: null,
@@ -37,17 +37,17 @@ describe("CharacterRenderer", () => {
     charRenderer.render(props);
 
     const subCanvas = target.svg.childNodes[1] as SVGElement;
-    expect(subCanvas.nodeName).toBe("g");
-    expect(subCanvas.style.opacity).toBe("0.7");
+    expect(subCanvas.nodeName).toBe('g');
+    expect(subCanvas.style.opacity).toBe('0.7');
     // 2 strokes of 人
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach((node) => {
-      expect(node.nodeName).toBe("path");
-      expect((node as SVGElement).getAttribute("stroke")).toBe("rgba(120,17,101,0.3)");
+      expect(node.nodeName).toBe('path');
+      expect((node as SVGElement).getAttribute('stroke')).toBe('rgba(120,17,101,0.3)');
     });
   });
 
-  it("updates opacity and updates passed-through props", () => {
+  it('updates opacity and updates passed-through props', () => {
     const props1 = {
       strokeColor: { r: 120, g: 17, b: 101, a: 0.3 },
       radicalColor: null,
@@ -76,18 +76,18 @@ describe("CharacterRenderer", () => {
     charRenderer.render(props2);
 
     const subCanvas = target.svg.childNodes[1];
-    expect(subCanvas.nodeName).toBe("g");
+    expect(subCanvas.nodeName).toBe('g');
     // @ts-ignore
-    expect(subCanvas.style.opacity).toBe("0.9");
+    expect(subCanvas.style.opacity).toBe('0.9');
     // 2 strokes of 人
     expect(subCanvas.childNodes.length).toBe(2);
     subCanvas.childNodes.forEach((node) => {
-      expect(node.nodeName).toBe("path");
-      expect((node as HTMLElement).getAttribute("stroke")).toBe("rgba(255,255,0,0.1)");
+      expect(node.nodeName).toBe('path');
+      expect((node as HTMLElement).getAttribute('stroke')).toBe('rgba(255,255,0,0.1)');
     });
   });
 
-  it("sets display: none if opacity is 0", () => {
+  it('sets display: none if opacity is 0', () => {
     const props1 = {
       strokeColor: { r: 101, g: 101, b: 101, a: 1 },
       radicalColor: null,
@@ -115,12 +115,12 @@ describe("CharacterRenderer", () => {
     charRenderer.render(props1);
     const subCanvas = target.svg.childNodes[1] as SVGElement;
 
-    expect(subCanvas.style.opacity).toBe("0");
-    expect(subCanvas.style.display).toBe("none");
+    expect(subCanvas.style.opacity).toBe('0');
+    expect(subCanvas.style.display).toBe('none');
 
     charRenderer.render(props2);
 
-    expect(subCanvas.style.opacity).toBe("0.9");
-    expect(subCanvas.style.display).toBe("");
+    expect(subCanvas.style.opacity).toBe('0.9');
+    expect(subCanvas.style.display).toBe('');
   });
 });

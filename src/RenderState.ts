@@ -215,9 +215,7 @@ export default class RenderState {
   }
 
   cancelAll() {
-    for (const chain of this._mutationChains) {
-      this._cancelMutationChain(chain);
-    }
+    this.cancelMutations(['']);
   }
 
   _cancelMutationChain(mutationChain: MutationChain) {

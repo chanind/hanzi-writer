@@ -58,23 +58,9 @@ export default class HanziWriter {
     element: string | HTMLElement,
     character: string,
     options?: Partial<HanziWriterOptions>,
-  ): HanziWriter;
-  static create(
-    element: string | HTMLElement,
-    options: Partial<HanziWriterOptions>,
-  ): HanziWriter;
-  static create(
-    element: string | HTMLElement,
-    characterOrOptions: string | Partial<HanziWriterOptions>,
-    options: Partial<HanziWriterOptions> = {},
   ) {
-    if (typeof characterOrOptions === 'object') {
-      const writer = new HanziWriter(element, characterOrOptions);
-      return writer;
-    }
-
     const writer = new HanziWriter(element, options);
-    writer.setCharacter(characterOrOptions);
+    writer.setCharacter(character);
 
     return writer;
   }
@@ -114,7 +100,7 @@ export default class HanziWriter {
     };
   }
 
-  constructor(element: string | HTMLElement, options: Partial<HanziWriterOptions>) {
+  constructor(element: string | HTMLElement, options: Partial<HanziWriterOptions> = {}) {
     const { HanziWriterRenderer, createRenderTarget } =
       options.renderer === 'canvas' ? canvasRenderer : svgRenderer;
     const rendererOverride = options.rendererOverride || {};

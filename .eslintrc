@@ -1,33 +1,26 @@
 {
-  "extends": "airbnb",
-  "parser": "babel-eslint",
-  "plugins": [
-    "no-for-of-loops"
+  "extends": ["eslint:recommended", "plugin:@typescript-eslint/recommended"],
+  "parser": "@typescript-eslint/parser",
+  "plugins": ["@typescript-eslint"],
+  "ignorePatterns": [
+    "dist/*",
+    "build/*",
+    "examples/*",
+    "babel.config.js",
+    "jest-setup.js"
   ],
   "rules": {
-    "id-length": [2, {"exceptions": ["x", "y", "i", "j", "r", "g", "b", "a"]}],
-    "no-unused-vars": [2, {"vars": "all", "args": "none"}],
-    "max-len":[0],
-    "no-loop-func": [0],
-    "no-plusplus": [0],
-    "no-continue": [0],
-    "no-prototype-builtins": [0],
-    "no-underscore-dangle": [0],
-    "jsx-a11y/href-no-hash": [0],
-    "no-restricted-syntax": [0],
-    "arrow-body-style": [0],
-    "object-curly-spacing": [0],
-    "padded-blocks": [0],
-    "no-mixed-operators": [0],
-    "arrow-parens": [0],
-    "prefer-spread": [0],
-    "func-names": [0],
-    "class-methods-use-this": [0],
-    "no-restricted-properties": [0],
-    "import/no-extraneous-dependencies": [0],
-    "import/first": [0],
-    "space-before-function-paren": [0],
-    "consistent-return": [0],
-    "no-for-of-loops/no-for-of-loops": 2,
+    "no-multi-spaces": "error",
+    "no-nested-ternary": "error",
+    "no-trailing-spaces": "error",
+    "no-irregular-whitespace": "error",
+    "no-param-reassign": "error",
+    "no-unused-vars": [2, { "vars": "all", "args": "none" }],
+    "comma-dangle": ["error", "always-multiline"],
+    // @typescript-eslint settings
+    "@typescript-eslint/ban-ts-comment": "off",
+    "@typescript-eslint/no-non-null-assertion": "off",
+    "@typescript-eslint/no-explicit-any": "off",
+    "@typescript-eslint/explicit-module-boundary-types": "off"
   }
 }

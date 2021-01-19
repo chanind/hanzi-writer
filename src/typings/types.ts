@@ -116,7 +116,7 @@ type BaseHanziWriterOptions = {
   strokeHighlightDuration: number;
 };
 
-export type HanziWriterOptions = PositionerOptions &
+export type HanziWriterOptions = Partial<PositionerOptions> &
   QuizOptions &
   ColorOptions &
   LoadingManagerOptions &

@@ -23,7 +23,7 @@
     "codecov": "^3.8.1",
     "eslint": "^7.18.0",
     "hanzi-writer-data": "^2.0.1",
-    "jest-canvas-mock": "2.3.0",
+    "jest-canvas-mock": "2.1.0",
     "jest-cli": "^26.6.3",
     "jest-fetch-mock": "^3.0.3",
     "nise": "^4.0.4",

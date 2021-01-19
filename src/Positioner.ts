@@ -9,11 +9,14 @@ const [from, to] = CHARACTER_BOUNDS;
 const preScaledWidth = to.x - from.x;
 const preScaledHeight = to.y - from.y;
 
-interface PositionerOptions {
+export type PositionerOptions = {
+  /** Default: 0 */
   width: number;
+  /** Default: 0 */
   height: number;
+  /** Default: 20 */
   padding: number;
-}
+};
 
 export default class Positioner {
   padding: number;

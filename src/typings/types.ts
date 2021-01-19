@@ -1,5 +1,8 @@
 import RenderTargetBase from '../renderers/RenderTargetBase';
 import { HanziWriterRendererConstructor } from '../renderers/HanziWriterRendererBase';
+import type { PositionerOptions } from '../Positioner';
+
+export type { PositionerOptions };
 
 export type CharacterJson = {
   strokes: string[];
@@ -68,15 +71,6 @@ export type QuizOptions = {
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
-export type PositionerOptions = {
-  /** Default: 20 */
-  padding?: number;
-  /** Default: 0 */
-  width?: number;
-  /** Default: 0 */
-  height?: number;
-};
-
 export type LoadingManagerOptions = {
   charDataLoader: CharDataLoaderFn;
   onLoadCharDataSuccess?: null | ((data: CharacterJson) => void);
@@ -122,7 +116,7 @@ type BaseHanziWriterOptions = {
   strokeHighlightDuration: number;
 };
 
-export type HanziWriterOptions = PositionerOptions &
+export type HanziWriterOptions = Partial<PositionerOptions> &
   QuizOptions &
   ColorOptions &
   LoadingManagerOptions &

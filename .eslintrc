@@ -7,6 +7,7 @@
     "build/*",
     "examples/*",
     "babel.config.js",
+    "rollup.config.js",
     "jest-setup.js"
   ],
   "rules": {

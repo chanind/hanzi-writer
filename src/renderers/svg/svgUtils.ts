@@ -14,9 +14,9 @@ export function attrs(elm: Element, attrsMap: Record<string, string>) {
 export function urlIdRef(id: string) {
   let prefix = '';
   if (window.location && window.location.href) {
-    prefix = window.location.href.replace(/#[^#]*$/, '');
+    prefix = window.location.href.replace(/#[^#]*$/, '').replace(/"/gi, '%22');
   }
-  return `url(${prefix}#${id})`;
+  return `url("${prefix}#${id}")`;
 }
 
 export function removeElm(elm: Element | undefined) {

@@ -12,11 +12,7 @@ export function attrs(elm: Element, attrsMap: Record<string, string>) {
 
 // inspired by https://talk.observablehq.com/t/hanzi-writer-renders-incorrectly-inside-an-observable-notebook-on-a-mobile-browser/1898
 export function urlIdRef(id: string) {
-  let prefix = '';
-  if (window.location && window.location.href) {
-    prefix = window.location.href.replace(/#[^#]*$/, '');
-  }
-  return `url(${prefix}#${id})`;
+  return `url(#${id})`;
 }
 
 export function removeElm(elm: Element | undefined) {

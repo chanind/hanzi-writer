@@ -37,7 +37,7 @@ describe('StrokeRenderer', () => {
       'rgba(12,101,20,0.3)',
     );
     expect((target.svg.childNodes[1] as Element).getAttribute('clip-path')).toBe(
-      `url(https://test.com/url#${maskId})`,
+      `url("https://test.com/url#${maskId}")`,
     );
 
     expect(maskPath).toMatchSnapshot();

@@ -58,6 +58,7 @@
     "rootDir": "src",
     "coverageDirectory": "../coverage/",
     "testURL": "https://test.com/url#tag",
-    "collectCoverage": true
+    "collectCoverage": true,
+    "testEnvironment": "<rootDir>/../jest-jsdom-env"
   }
 }

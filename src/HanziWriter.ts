@@ -419,6 +419,14 @@ export default class HanziWriter {
     return this._withDataPromise;
   }
 
+  async getCharacterData(): Promise<Character> {
+    if (!this._char) {
+      throw new Error('setCharacter() must be called before calling getCharacterData()');
+    }
+    const character = await this._withData(() => this._character);
+    return character!;
+  }
+
   _assignOptions(options: Partial<HanziWriterOptions>): ParsedHanziWriterOptions {
     const mergedOptions = {
       ...defaultOptions,

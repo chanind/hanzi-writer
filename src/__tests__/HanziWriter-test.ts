@@ -9,6 +9,7 @@ import HanziWriter from '../HanziWriter';
 import { timeout } from '../utils';
 import { resolvePromises } from '../testUtils';
 import Quiz from '../Quiz';
+import parseCharData from '../parseCharData';
 
 const charDataLoader = () => ren;
 
@@ -222,6 +223,60 @@ describe('HanziWriter', () => {
         b: 30,
         a: 0.1,
       });
+    });
+  });
+
+  describe('getCharacterData', () => {
+    it('returns a promise with the loaded character', async () => {
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+      });
+      const character = await writer.getCharacterData();
+      expect(character).toEqual(parseCharData('人', ren));
+    });
+
+    it('returns a promise with the loaded character after initial loading is done', async () => {
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+      const character = await writer.getCharacterData();
+      expect(character).toEqual(parseCharData('人', ren));
+    });
+
+    it('errors if no character has been set yet', async () => {
+      const writer = new HanziWriter('target', {
+        charDataLoader,
+      });
+      await expect(writer.getCharacterData()).rejects.toThrow(
+        new Error('setCharacter() must be called before calling getCharacterData()'),
+      );
+    });
+
+    it('errors if loading fails', async () => {
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader: async () => {
+          throw new Error('omg!');
+        },
+      });
+
+      await expect(writer.getCharacterData()).rejects.toThrow(new Error('omg!'));
+    });
+
+    it('errors if loading fails before this method is called', async () => {
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader: async () => {
+          throw new Error('omg!');
+        },
+      });
+      try {
+        await writer._withDataPromise;
+        // eslint-disable-next-line no-empty
+      } catch (err) {}
+
+      await expect(writer.getCharacterData()).rejects.toThrow(
+        new Error('Failed to load character data. Call setCharacter and try again.'),
+      );
     });
   });
 

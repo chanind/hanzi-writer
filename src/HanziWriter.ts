@@ -94,8 +94,8 @@ export default class HanziWriter {
       y: positioner.yOffset,
       scale: positioner.scale,
       transform: trim(`
-        translate(${positioner.xOffset}, ${positioner.height - positioner.yOffset})
-        scale(${positioner.scale}, ${-1 * positioner.scale})
+        translate(${positioner.xOffset}, ${positioner.yOffset})
+        scale(${positioner.scale})
       `).replace(/\s+/g, ' '),
     };
   }

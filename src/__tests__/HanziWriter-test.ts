@@ -1079,18 +1079,18 @@ describe('HanziWriter', () => {
     it('returns an object with info that can be used for scaling a makemeahanzi character in SVG', () => {
       expect(HanziWriter.getScalingTransform(100, 120, 10)).toEqual({
         scale: 0.078125,
-        transform: 'translate(10, 90.3125) scale(0.078125, -0.078125)',
+        transform: 'translate(10, 20) scale(0.078125)',
         x: 10,
-        y: 29.6875,
+        y: 20,
       });
     });
 
     it('uses 0 as the default padding', () => {
       expect(HanziWriter.getScalingTransform(100, 100)).toEqual({
         scale: 0.09765625,
-        transform: 'translate(0, 87.890625) scale(0.09765625, -0.09765625)',
+        transform: 'translate(0, 0) scale(0.09765625)',
         x: 0,
-        y: 12.109375,
+        y: 0,
       });
     });
   });

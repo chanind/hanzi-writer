@@ -130,6 +130,10 @@ export default class RenderState {
     }
   }
 
+  overwriteOnStateChange(onStateChange: OnStateChangeCallback) {
+    this._onStateChange = onStateChange;
+  }
+
   updateState(stateChanges: RecursivePartial<RenderStateObject>) {
     const nextState = copyAndMergeDeep(this.state, stateChanges);
     this._onStateChange(nextState, this.state);

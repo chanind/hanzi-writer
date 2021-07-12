@@ -60,5 +60,6 @@
     "testURL": "https://test.com/url#tag",
     "collectCoverage": true,
     "testEnvironment": "<rootDir>/../jest-jsdom-env"
-  }
+  },
+  "dependencies": {}
 }

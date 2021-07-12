@@ -76,7 +76,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.0/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.2/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -956,6 +956,17 @@ Page({
         <ul>
           <li><code>onComplete:</code> function. Called when the hiding animation is complete.</li>
           <li><code>duration:</code> number, optional. How long the hiding animation should take to complete. If not provided then <code>strokeFadeDuration</code> is used. Passing 0 will make the operation instant.</li>
+        </ul>
+      </p>
+      
+      <h4>writer.updateDimensions(options = {})</h4>
+      <p>Update the size of the writer instance</p>
+      <p>
+        <code>options</code> object containing additional configuration options. Full options include:
+        <ul>
+          <li><code>width:</code> number, optional, the new width in px</li>
+          <li><code>height:</code> number, optional, the new height in px</li>
+          <li><code>padding:</code> number, optional, the new padding in px</li>
         </ul>
       </p>
 

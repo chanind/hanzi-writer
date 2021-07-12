@@ -121,32 +121,6 @@ export default class HanziWriter {
     this._setupListeners();
   }
 
-  updateDimensions({ width, height, padding }: Partial<DimensionOptions>) {
-    if (width !== undefined) this._options.width = width;
-    if (height !== undefined) this._options.height = height;
-    if (padding !== undefined) this._options.padding = padding;
-    this.target.updateDimensions(this._options.width, this._options.height);
-    // if there's already a character drawn, destroy and recreate the renderer in the same state
-    if (
-      this._character &&
-      this._renderState &&
-      this._hanziWriterRenderer &&
-      this._positioner
-    ) {
-      this._hanziWriterRenderer.destroy();
-      const hanziWriterRenderer = this._initAndMountRenderer(this._character);
-      // TODO: this should probably implement EventEmitter instead of manually tracking updates like this
-      this._renderState.overwriteOnStateChange((nextState) =>
-        hanziWriterRenderer.render(nextState),
-      );
-      hanziWriterRenderer.render(this._renderState.state);
-      // update the current quiz as well, if one is active
-      if (this._quiz) {
-        this._quiz.setPositioner(this._positioner);
-      }
-    }
-  }
-
   showCharacter(
     options: {
       onComplete?: OnCompleteFunction;
@@ -349,6 +323,33 @@ export default class HanziWriter {
     );
   }
 
+  /** Updates the size of the writer instance without resetting render state */
+  updateDimensions({ width, height, padding }: Partial<DimensionOptions>) {
+    if (width !== undefined) this._options.width = width;
+    if (height !== undefined) this._options.height = height;
+    if (padding !== undefined) this._options.padding = padding;
+    this.target.updateDimensions(this._options.width, this._options.height);
+    // if there's already a character drawn, destroy and recreate the renderer in the same state
+    if (
+      this._character &&
+      this._renderState &&
+      this._hanziWriterRenderer &&
+      this._positioner
+    ) {
+      this._hanziWriterRenderer.destroy();
+      const hanziWriterRenderer = this._initAndMountHanziWriterRenderer(this._character);
+      // TODO: this should probably implement EventEmitter instead of manually tracking updates like this
+      this._renderState.overwriteOnStateChange((nextState) =>
+        hanziWriterRenderer.render(nextState),
+      );
+      hanziWriterRenderer.render(this._renderState.state);
+      // update the current quiz as well, if one is active
+      if (this._quiz) {
+        this._quiz.setPositioner(this._positioner);
+      }
+    }
+  }
+
   updateColor(
     colorName: keyof ColorOptions,
     colorVal: string | null,
@@ -434,13 +435,15 @@ export default class HanziWriter {
           hanziWriterRenderer.render(nextState),
         );
 
-        const hanziWriterRenderer = this._initAndMountRenderer(this._character);
+        const hanziWriterRenderer = this._initAndMountHanziWriterRenderer(
+          this._character,
+        );
         hanziWriterRenderer.render(this._renderState.state);
       });
     return this._withDataPromise;
   }
 
-  _initAndMountRenderer(character: Character) {
+  _initAndMountHanziWriterRenderer(character: Character) {
     const { width, height, padding } = this._options;
     this._positioner = new Positioner({ width, height, padding });
     const hanziWriterRenderer = new this._renderer.HanziWriterRenderer(

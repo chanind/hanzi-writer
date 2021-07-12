@@ -35,16 +35,12 @@ export default class HanziWriterRenderer
     const ctx = this._target!.getContext()!;
     ctx.clearRect(0, 0, width, height);
     ctx.save();
-    ctx.translate(xOffset, height - yOffset);
-    ctx.transform(1, 0, 0, -1, 0, 0);
+    ctx.translate(xOffset, yOffset);
     ctx.scale(scale, scale);
     cb(ctx);
     ctx.restore();
     // @ts-expect-error Verify if this is still needed for the "wechat miniprogram".
-    if (ctx.draw) {
-      // @ts-expect-error
-      ctx.draw();
-    }
+    ctx.draw?.();
   }
 
   render(props: RenderStateObject) {
@@ -60,19 +56,16 @@ export default class HanziWriterRenderer
 
     this._animationFrame((ctx) => {
       this._outlineCharRenderer.render(ctx, {
-        opacity: outline.opacity,
-        strokes: outline.strokes,
+        ...outline,
         strokeColor: outlineColor,
       });
       this._mainCharRenderer.render(ctx, {
-        opacity: main.opacity,
-        strokes: main.strokes,
+        ...main,
         strokeColor: strokeColor,
         radicalColor: radicalColor,
       });
       this._highlightCharRenderer.render(ctx, {
-        opacity: highlight.opacity,
-        strokes: highlight.strokes,
+        ...highlight,
         strokeColor: highlightColor,
       });
 

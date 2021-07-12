@@ -1,13 +1,7 @@
 import { Point } from './typings/types';
 
 // All makemeahanzi characters have the same bounding box
-const CHARACTER_BOUNDS = [
-  { x: 0, y: -124 },
-  { x: 1024, y: 900 },
-];
-const [from, to] = CHARACTER_BOUNDS;
-const preScaledWidth = to.x - from.x;
-const preScaledHeight = to.y - from.y;
+const BOUNDING_BOX = 1024;
 
 export type PositionerOptions = {
   /** Default: 0 */
@@ -34,22 +28,16 @@ export default class Positioner {
 
     const effectiveWidth = width - 2 * padding;
     const effectiveHeight = height - 2 * padding;
-    const scaleX = effectiveWidth / preScaledWidth;
-    const scaleY = effectiveHeight / preScaledHeight;
 
-    this.scale = Math.min(scaleX, scaleY);
+    this.scale = Math.min(effectiveWidth / BOUNDING_BOX, effectiveHeight / BOUNDING_BOX);
 
-    const xCenteringBuffer = padding + (effectiveWidth - this.scale * preScaledWidth) / 2;
-    const yCenteringBuffer =
-      padding + (effectiveHeight - this.scale * preScaledHeight) / 2;
-
-    this.xOffset = -1 * from.x * this.scale + xCenteringBuffer;
-    this.yOffset = -1 * from.y * this.scale + yCenteringBuffer;
+    this.xOffset = padding + (effectiveWidth - this.scale * BOUNDING_BOX) / 2;
+    this.yOffset = padding + (effectiveHeight - this.scale * BOUNDING_BOX) / 2;
   }
 
   convertExternalPoint(point: Point) {
     const x = (point.x - this.xOffset) / this.scale;
-    const y = (this.height - this.yOffset - point.y) / this.scale;
+    const y = (point.y - this.yOffset) / this.scale;
     return { x, y };
   }
 }

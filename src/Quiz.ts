@@ -72,6 +72,10 @@ export default class Quiz {
     );
   }
 
+  setPositioner(positioner: Positioner) {
+    this._positioner = positioner;
+  }
+
   endUserStroke() {
     if (!this._userStroke) return;
 

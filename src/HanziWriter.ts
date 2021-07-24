@@ -18,6 +18,7 @@ import { GenericMutation } from './Mutation';
 // Typings
 import {
   ColorOptions,
+  DimensionOptions,
   HanziWriterOptions,
   LoadingManagerOptions,
   OnCompleteFunction,
@@ -322,6 +323,33 @@ export default class HanziWriter {
     );
   }
 
+  /** Updates the size of the writer instance without resetting render state */
+  updateDimensions({ width, height, padding }: Partial<DimensionOptions>) {
+    if (width !== undefined) this._options.width = width;
+    if (height !== undefined) this._options.height = height;
+    if (padding !== undefined) this._options.padding = padding;
+    this.target.updateDimensions(this._options.width, this._options.height);
+    // if there's already a character drawn, destroy and recreate the renderer in the same state
+    if (
+      this._character &&
+      this._renderState &&
+      this._hanziWriterRenderer &&
+      this._positioner
+    ) {
+      this._hanziWriterRenderer.destroy();
+      const hanziWriterRenderer = this._initAndMountHanziWriterRenderer(this._character);
+      // TODO: this should probably implement EventEmitter instead of manually tracking updates like this
+      this._renderState.overwriteOnStateChange((nextState) =>
+        hanziWriterRenderer.render(nextState),
+      );
+      hanziWriterRenderer.render(this._renderState.state);
+      // update the current quiz as well, if one is active
+      if (this._quiz) {
+        this._quiz.setPositioner(this._positioner);
+      }
+    }
+  }
+
   updateColor(
     colorName: keyof ColorOptions,
     colorVal: string | null,
@@ -403,20 +431,28 @@ export default class HanziWriter {
         }
 
         this._character = parseCharData(char, pathStrings);
-        const { width, height, padding } = this._options;
-        this._positioner = new Positioner({ width, height, padding });
-        const hanziWriterRenderer = new this._renderer.HanziWriterRenderer(
-          this._character,
-          this._positioner,
-        );
-        this._hanziWriterRenderer = hanziWriterRenderer;
         this._renderState = new RenderState(this._character, this._options, (nextState) =>
           hanziWriterRenderer.render(nextState),
         );
-        this._hanziWriterRenderer.mount(this.target);
-        this._hanziWriterRenderer.render(this._renderState.state);
+
+        const hanziWriterRenderer = this._initAndMountHanziWriterRenderer(
+          this._character,
+        );
+        hanziWriterRenderer.render(this._renderState.state);
       });
     return this._withDataPromise;
+  }
+
+  _initAndMountHanziWriterRenderer(character: Character) {
+    const { width, height, padding } = this._options;
+    this._positioner = new Positioner({ width, height, padding });
+    const hanziWriterRenderer = new this._renderer.HanziWriterRenderer(
+      character,
+      this._positioner,
+    );
+    hanziWriterRenderer.mount(this.target);
+    this._hanziWriterRenderer = hanziWriterRenderer;
+    return hanziWriterRenderer;
   }
 
   async getCharacterData(): Promise<Character> {

@@ -122,14 +122,17 @@ export type HanziWriterOptions = Partial<PositionerOptions> &
   LoadingManagerOptions &
   BaseHanziWriterOptions;
 
+export type DimensionOptions = {
+  width: number;
+  height: number;
+  padding: number;
+};
+
 export type ParsedHanziWriterOptions = QuizOptions &
   LoadingManagerOptions &
   BaseHanziWriterOptions &
-  ColorOptions & {
-    width: number;
-    height: number;
-    padding: number;
-  };
+  ColorOptions &
+  DimensionOptions;
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;

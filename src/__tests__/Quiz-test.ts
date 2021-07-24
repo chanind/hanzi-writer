@@ -639,6 +639,19 @@ describe('Quiz', () => {
     });
   });
 
+  describe('setPositioner', () => {
+    it('replaces the internal positioner', () => {
+      const quiz = new Quiz(
+        char,
+        createRenderState(),
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const newPositoner = new Positioner({ padding: 30, width: 300, height: 300 });
+      quiz.setPositioner(newPositoner);
+      expect(quiz._positioner).toBe(newPositoner);
+    });
+  });
+
   it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
     (strokeMatches as any).mockImplementation(() => true);
     const renderState = createRenderState();

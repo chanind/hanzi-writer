@@ -153,6 +153,83 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('updateDimensions', () => {
+    it('resizes the SVG target', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+        width: 200,
+        height: 200,
+        padding: 10,
+      });
+      await writer.setCharacter('人');
+      writer.updateDimensions({ width: 300, height: 350, padding: 20 });
+      expect(document.querySelector('#target svg')?.attributes['width'].value).toBe(
+        '300',
+      );
+      expect(document.querySelector('#target svg')?.attributes['height'].value).toBe(
+        '350',
+      );
+      expect(writer._positioner?.width).toBe(300);
+      expect(writer._positioner?.height).toBe(350);
+      expect(writer._positioner?.padding).toBe(20);
+    });
+
+    it('resizes the target when using canvas', () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+        width: 200,
+        height: 200,
+        padding: 10,
+        renderer: 'canvas',
+      });
+      writer.updateDimensions({ width: 300, height: 350, padding: 20 });
+      expect(document.querySelector('#target canvas')?.attributes['width'].value).toBe(
+        '300',
+      );
+      expect(document.querySelector('#target canvas')?.attributes['height'].value).toBe(
+        '350',
+      );
+    });
+
+    it('updates the positioner for the active quiz, if it exists', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+        width: 200,
+        height: 200,
+        padding: 10,
+      });
+      await writer.setCharacter('人');
+      writer.quiz();
+      await resolvePromises();
+      writer.updateDimensions({ width: 300, height: 350, padding: 20 });
+      expect(writer._quiz!.setPositioner).toHaveBeenCalledWith(writer._positioner);
+    });
+
+    it('destroys the old renderer before recreating a new resized one', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        charDataLoader,
+        width: 200,
+        height: 200,
+        padding: 10,
+      });
+      await writer.setCharacter('人');
+      const originalRenderer = writer._hanziWriterRenderer;
+      const destroyRendererSpy = jest.spyOn(writer._hanziWriterRenderer!, 'destroy');
+      writer.updateDimensions({ width: 300, height: 350, padding: 20 });
+      await resolvePromises();
+
+      // old renderer should be destroyed
+      expect(destroyRendererSpy).toHaveBeenCalledTimes(1);
+      expect(writer._hanziWriterRenderer?._positioner).toBe(writer._positioner);
+      // the renderer should be replaced
+      expect(writer._hanziWriterRenderer).not.toBe(originalRenderer);
+    });
+  });
+
   describe('setCharacter', () => {
     it('deletes the current character while loading', async () => {
       document.body.innerHTML = '<div id="target"></div>';

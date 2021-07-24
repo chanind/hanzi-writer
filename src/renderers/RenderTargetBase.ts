@@ -47,6 +47,11 @@ export default class RenderTargetBase<
     return this.node.getBoundingClientRect();
   }
 
+  updateDimensions(width: string | number, height: string | number) {
+    this.node.setAttribute('width', `${width}`);
+    this.node.setAttribute('height', `${height}`);
+  }
+
   _eventify<TEvent extends Event>(evt: TEvent, pointFunc: (event: TEvent) => Point) {
     return {
       getPoint: () => pointFunc.call(this, evt),

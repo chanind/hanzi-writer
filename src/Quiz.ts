@@ -92,21 +92,28 @@ export default class Quiz {
       return;
     }
 
+    const { checkBackwardsStrokes } = this._options!;
+
     const currentStroke = this._getCurrentStroke();
-    const isMatch = strokeMatches(
+    const matchType = strokeMatches(
       this._userStroke,
       this._character,
       this._currentStrokeIndex,
       {
         isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
         leniency: this._options!.leniency,
+        checkBackwards: Boolean(checkBackwardsStrokes),
       },
     );
 
-    if (isMatch) {
-      this._handleSuccess();
+    const isBackwards = matchType === 'backwards-match';
+    const isAccepted =
+      matchType === 'match' || (isBackwards && checkBackwardsStrokes === 'accept');
+
+    if (isAccepted) {
+      this._handleSuccess(isBackwards);
     } else {
-      this._handleFailure();
+      this._handleFailure(isBackwards);
 
       const {
         showHintAfterMisses,
@@ -143,7 +150,13 @@ export default class Quiz {
     }
   }
 
-  _getStrokeData(isCorrect = false): StrokeData {
+  _getStrokeData({
+    isCorrect,
+    isBackwards,
+  }: {
+    isCorrect: boolean;
+    isBackwards: boolean;
+  }): StrokeData {
     return {
       character: this._character.symbol,
       strokeNum: this._currentStrokeIndex,
@@ -152,10 +165,11 @@ export default class Quiz {
       strokesRemaining:
         this._character.strokes.length - this._currentStrokeIndex - (isCorrect ? 1 : 0),
       drawnPath: getDrawnPath(this._userStroke!),
+      isBackwards,
     };
   }
 
-  _handleSuccess() {
+  _handleSuccess(isBackwards: boolean) {
     if (!this._options) return;
 
     const { strokes, symbol } = this._character;
@@ -168,7 +182,9 @@ export default class Quiz {
       strokeHighlightDuration,
     } = this._options;
 
-    onCorrectStroke?.(this._getStrokeData(true));
+    onCorrectStroke?.({
+      ...this._getStrokeData({ isCorrect: true, isBackwards }),
+    });
 
     let animation: MutationChain = characterActions.showStroke(
       'main',
@@ -200,10 +216,10 @@ export default class Quiz {
     this._renderState.run(animation);
   }
 
-  _handleFailure() {
+  _handleFailure(isBackwards: boolean) {
     this._mistakesOnStroke += 1;
     this._totalMistakes += 1;
-    this._options!.onMistake?.(this._getStrokeData());
+    this._options!.onMistake?.(this._getStrokeData({ isCorrect: false, isBackwards }));
   }
 
   _getCurrentStroke() {

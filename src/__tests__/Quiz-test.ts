@@ -278,7 +278,7 @@ describe('Quiz', () => {
 
   describe('endUserStroke', () => {
     it('finishes the stroke and moves on if it was correct', async () => {
-      (strokeMatches as any).mockImplementation(() => true);
+      (strokeMatches as any).mockImplementation(() => 'match');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -318,6 +318,7 @@ describe('Quiz', () => {
             { x: 105, y: 205 },
           ],
         },
+        isBackwards: false,
       });
       expect(onMistake).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -331,8 +332,132 @@ describe('Quiz', () => {
       expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
 
+    it('accepts backwards stroke when allowed', async () => {
+      (strokeMatches as any).mockImplementation(() => 'backwards-match');
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          checkBackwardsStrokes: 'accept',
+        }),
+      );
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({ x: 100, y: 200 });
+      quiz.continueUserStroke({ x: 10, y: 20 });
+
+      const currentStrokeId = quiz._userStroke!.id;
+      expect(quiz._currentStrokeIndex).toBe(0);
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBeUndefined();
+      expect(quiz._isActive).toBe(true);
+      expect(quiz._currentStrokeIndex).toBe(1);
+      expect(onCorrectStroke).toHaveBeenCalledTimes(1);
+      expect(onCorrectStroke).toHaveBeenCalledWith({
+        character: '人',
+        mistakesOnStroke: 0,
+        strokeNum: 0,
+        strokesRemaining: 1,
+        totalMistakes: 0,
+        drawnPath: {
+          pathString: 'M 100 200 L 10 20',
+          points: [
+            { x: 105, y: 205 },
+            { x: 15, y: 25 },
+          ],
+        },
+        isBackwards: true,
+      });
+      expect(onMistake).not.toHaveBeenCalled();
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+      // should fade and disappear
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+    });
+
+    it('notes backwards stroke when checking', async () => {
+      (strokeMatches as any).mockImplementation(() => 'backwards-match');
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          checkBackwardsStrokes: 'reject',
+        }),
+      );
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({ x: 100, y: 200 });
+      quiz.continueUserStroke({ x: 10, y: 20 });
+
+      const currentStrokeId = quiz._userStroke!.id;
+      expect(quiz._currentStrokeIndex).toBe(0);
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBeUndefined();
+      expect(quiz._isActive).toBe(true);
+      expect(quiz._currentStrokeIndex).toBe(0);
+      expect(onMistake).toHaveBeenCalledTimes(1);
+      expect(onMistake).toHaveBeenCalledWith({
+        character: '人',
+        mistakesOnStroke: 1,
+        strokeNum: 0,
+        strokesRemaining: 2,
+        totalMistakes: 1,
+        drawnPath: {
+          pathString: 'M 100 200 L 10 20',
+          points: [
+            { x: 105, y: 205 },
+            { x: 15, y: 25 },
+          ],
+        },
+        isBackwards: true,
+      });
+      expect(onCorrectStroke).not.toHaveBeenCalled();
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+      // should fade and disappear
+      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+    });
+
     it('ignores single point strokes', async () => {
-      (strokeMatches as any).mockImplementation(() => false);
+      (strokeMatches as any).mockImplementation(() => 'miss');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -369,7 +494,7 @@ describe('Quiz', () => {
     });
 
     it('stays on the stroke if it was incorrect', async () => {
-      (strokeMatches as any).mockImplementation(() => false);
+      (strokeMatches as any).mockImplementation(() => 'miss');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -409,6 +534,7 @@ describe('Quiz', () => {
             { x: 105, y: 205 },
           ],
         },
+        isBackwards: false,
       });
       expect(onCorrectStroke).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -423,7 +549,7 @@ describe('Quiz', () => {
     });
 
     it('highlights the stroke if the number of mistakes exceeds showHintAfterMisses', async () => {
-      (strokeMatches as any).mockImplementation(() => false);
+      (strokeMatches as any).mockImplementation(() => 'miss');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -477,6 +603,7 @@ describe('Quiz', () => {
             { x: 16, y: 26 },
           ],
         },
+        isBackwards: false,
       });
       expect(onCorrectStroke).not.toHaveBeenCalled();
       expect(onComplete).not.toHaveBeenCalled();
@@ -495,7 +622,7 @@ describe('Quiz', () => {
     });
 
     it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
-      (strokeMatches as any).mockImplementation(() => false);
+      (strokeMatches as any).mockImplementation(() => 'miss');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -528,7 +655,7 @@ describe('Quiz', () => {
     });
 
     it('finishes the quiz when all strokes are successful', async () => {
-      (strokeMatches as any).mockImplementation(() => true);
+      (strokeMatches as any).mockImplementation(() => 'match');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -579,6 +706,7 @@ describe('Quiz', () => {
             { x: 16, y: 26 },
           ],
         },
+        isBackwards: false,
       });
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenLastCalledWith({
@@ -603,7 +731,7 @@ describe('Quiz', () => {
     });
 
     it('rounds drawn path data', async () => {
-      (strokeMatches as any).mockImplementation(() => true);
+      (strokeMatches as any).mockImplementation(() => 'match');
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -635,6 +763,7 @@ describe('Quiz', () => {
             { x: 16.9, y: 28.4 },
           ],
         },
+        isBackwards: false,
       });
     });
   });
@@ -653,7 +782,7 @@ describe('Quiz', () => {
   });
 
   it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
-    (strokeMatches as any).mockImplementation(() => true);
+    (strokeMatches as any).mockImplementation(() => 'match');
     const renderState = createRenderState();
     const quiz = new Quiz(
       char,
@@ -686,7 +815,7 @@ describe('Quiz', () => {
   });
 
   it('sets up character opacities correctly if the users starts drawing during char fading', async () => {
-    (strokeMatches as any).mockImplementation(() => true);
+    (strokeMatches as any).mockImplementation(() => 'match');
     const renderState = createRenderState();
     const quiz = new Quiz(
       char,

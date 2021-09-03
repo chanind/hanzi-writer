@@ -20,6 +20,8 @@ const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.4; // bigger = more lenient
 const MIN_LEN_THRESHOLD = 0.35; // smaller = more lenient
 
+export type StrokeMatchType = 'miss' | 'match' | 'backwards-match';
+
 export default function strokeMatches(
   userStroke: UserStroke,
   character: Character,
@@ -27,8 +29,9 @@ export default function strokeMatches(
   options: {
     leniency?: number;
     isOutlineVisible?: boolean;
+    checkBackwards?: boolean;
   } = {},
-) {
+): StrokeMatchType | null {
   const strokes = character.strokes;
   const points = stripDuplicates(userStroke.points);
 
@@ -36,10 +39,14 @@ export default function strokeMatches(
     return null;
   }
 
-  const { isMatch, avgDist } = getMatchData(points, strokes[strokeNum], options);
+  const { isMatch, isBackwards, avgDist } = getMatchData(
+    points,
+    strokes[strokeNum],
+    options,
+  );
 
   if (!isMatch) {
-    return false;
+    return getMatchType({ isMatch, isBackwards });
   }
 
   // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
@@ -47,7 +54,10 @@ export default function strokeMatches(
   let closestMatchDist = avgDist;
 
   for (let i = 0; i < laterStrokes.length; i++) {
-    const { isMatch, avgDist } = getMatchData(points, laterStrokes[i], options);
+    const { isMatch, avgDist } = getMatchData(points, laterStrokes[i], {
+      ...options,
+      checkBackwards: false,
+    });
     if (isMatch && avgDist < closestMatchDist) {
       closestMatchDist = avgDist;
     }
@@ -57,14 +67,26 @@ export default function strokeMatches(
   if (closestMatchDist < avgDist) {
     // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
     const leniencyAdjustment = (0.6 * (closestMatchDist + avgDist)) / (2 * avgDist);
-    const { isMatch } = getMatchData(points, strokes[strokeNum], {
+    const matchData = getMatchData(points, strokes[strokeNum], {
       ...options,
       leniency: (options.leniency || 1) * leniencyAdjustment,
     });
-    return isMatch;
+    return getMatchType(matchData);
   }
-  return true;
+  return getMatchType({ isMatch, isBackwards });
 }
+
+const getMatchType = ({
+  isMatch,
+  isBackwards,
+}: {
+  isMatch: boolean;
+  isBackwards: boolean;
+}): StrokeMatchType => {
+  if (isBackwards) return 'backwards-match';
+  if (isMatch) return 'match';
+  return 'miss';
+};
 
 const startAndEndMatches = (points: Point[], closestStroke: Stroke, leniency: number) => {
   const startingDist = distance(closestStroke.getStartingPoint(), points[0]);
@@ -143,23 +165,37 @@ const shapeFit = (curve1: Point[], curve2: Point[], leniency: number) => {
 const getMatchData = (
   points: Point[],
   stroke: Stroke,
-  options: { leniency?: number; isOutlineVisible?: boolean },
+  options: { leniency?: number; isOutlineVisible?: boolean; checkBackwards?: boolean },
 ) => {
-  const { leniency = 1, isOutlineVisible = false } = options;
+  const { leniency = 1, isOutlineVisible = false, checkBackwards = false } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
   const withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
   // short circuit for faster matching
   if (!withinDistThresh) {
-    return { isMatch: false, avgDist };
+    return { isMatch: false, isBackwards: false, avgDist };
   }
   const startAndEndMatch = startAndEndMatches(points, stroke, leniency);
   const directionMatch = directionMatches(points, stroke);
   const shapeMatch = shapeFit(points, stroke.points, leniency);
   const lengthMatch = lengthMatches(points, stroke, leniency);
-  return {
-    isMatch:
-      withinDistThresh && startAndEndMatch && directionMatch && shapeMatch && lengthMatch,
-    avgDist,
-  };
+
+  const isMatch =
+    withinDistThresh && startAndEndMatch && directionMatch && shapeMatch && lengthMatch;
+
+  if (checkBackwards && !isMatch) {
+    const backwardsMatchData = getMatchData([...points].reverse(), stroke, {
+      ...options,
+      checkBackwards: false,
+    });
+
+    if (backwardsMatchData.isMatch) {
+      return {
+        ...backwardsMatchData,
+        isBackwards: true,
+      };
+    }
+  }
+
+  return { isMatch, isBackwards: false, avgDist };
 };

@@ -166,7 +166,7 @@ const getMatchData = (
   points: Point[],
   stroke: Stroke,
   options: { leniency?: number; isOutlineVisible?: boolean; checkBackwards?: boolean },
-) => {
+): { isMatch: boolean; isBackwards: boolean; avgDist: number } => {
   const { leniency = 1, isOutlineVisible = false, checkBackwards = false } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;

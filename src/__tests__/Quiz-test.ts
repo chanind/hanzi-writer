@@ -278,7 +278,10 @@ describe('Quiz', () => {
 
   describe('endUserStroke', () => {
     it('finishes the stroke and moves on if it was correct', async () => {
-      (strokeMatches as any).mockImplementation(() => 'match');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: true,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -333,7 +336,10 @@ describe('Quiz', () => {
     });
 
     it('accepts backwards stroke when allowed', async () => {
-      (strokeMatches as any).mockImplementation(() => 'backwards-match');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: true },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -349,7 +355,7 @@ describe('Quiz', () => {
           onCorrectStroke,
           onComplete,
           onMistake,
-          checkBackwardsStrokes: 'accept',
+          acceptBackwardsStrokes: true,
         }),
       );
       clock.tick(1000);
@@ -395,7 +401,10 @@ describe('Quiz', () => {
     });
 
     it('notes backwards stroke when checking', async () => {
-      (strokeMatches as any).mockImplementation(() => 'backwards-match');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: true },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -411,7 +420,7 @@ describe('Quiz', () => {
           onCorrectStroke,
           onComplete,
           onMistake,
-          checkBackwardsStrokes: 'reject',
+          acceptBackwardsStrokes: false,
         }),
       );
       clock.tick(1000);
@@ -457,7 +466,10 @@ describe('Quiz', () => {
     });
 
     it('ignores single point strokes', async () => {
-      (strokeMatches as any).mockImplementation(() => 'miss');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -494,7 +506,10 @@ describe('Quiz', () => {
     });
 
     it('stays on the stroke if it was incorrect', async () => {
-      (strokeMatches as any).mockImplementation(() => 'miss');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -549,7 +564,10 @@ describe('Quiz', () => {
     });
 
     it('highlights the stroke if the number of mistakes exceeds showHintAfterMisses', async () => {
-      (strokeMatches as any).mockImplementation(() => 'miss');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -622,7 +640,10 @@ describe('Quiz', () => {
     });
 
     it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
-      (strokeMatches as any).mockImplementation(() => 'miss');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -655,7 +676,10 @@ describe('Quiz', () => {
     });
 
     it('finishes the quiz when all strokes are successful', async () => {
-      (strokeMatches as any).mockImplementation(() => 'match');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: true,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -731,7 +755,10 @@ describe('Quiz', () => {
     });
 
     it('rounds drawn path data', async () => {
-      (strokeMatches as any).mockImplementation(() => 'match');
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: true,
+        meta: { isStrokeBackwards: false },
+      }));
 
       const renderState = createRenderState();
       const quiz = new Quiz(
@@ -782,7 +809,10 @@ describe('Quiz', () => {
   });
 
   it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
-    (strokeMatches as any).mockImplementation(() => 'match');
+    (strokeMatches as any).mockImplementation(() => ({
+      isMatch: true,
+      meta: { isStrokeBackwards: false },
+    }));
     const renderState = createRenderState();
     const quiz = new Quiz(
       char,
@@ -815,7 +845,10 @@ describe('Quiz', () => {
   });
 
   it('sets up character opacities correctly if the users starts drawing during char fading', async () => {
-    (strokeMatches as any).mockImplementation(() => 'match');
+    (strokeMatches as any).mockImplementation(() => ({
+      isMatch: true,
+      meta: { isStrokeBackwards: false },
+    }));
     const renderState = createRenderState();
     const quiz = new Quiz(
       char,

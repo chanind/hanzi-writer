@@ -38,7 +38,7 @@ const defaultOptions: HanziWriterOptions = {
   showHintAfterMisses: 3,
   highlightOnComplete: true,
   highlightCompleteColor: null,
-  checkBackwardsStrokes: false,
+  acceptBackwardsStrokes: false,
 
   // undocumented obscure options
 

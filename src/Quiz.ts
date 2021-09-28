@@ -1,4 +1,4 @@
-import strokeMatches from './strokeMatches';
+import strokeMatches, { StrokeMatchResultMeta } from './strokeMatches';
 import UserStroke from './models/UserStroke';
 import Positioner from './Positioner';
 import { counter, colorStringToVals } from './utils';
@@ -92,28 +92,25 @@ export default class Quiz {
       return;
     }
 
-    const { checkBackwardsStrokes } = this._options!;
+    const { acceptBackwardsStrokes } = this._options!;
 
     const currentStroke = this._getCurrentStroke();
-    const matchType = strokeMatches(
+    const { isMatch, meta } = strokeMatches(
       this._userStroke,
       this._character,
       this._currentStrokeIndex,
       {
         isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
         leniency: this._options!.leniency,
-        checkBackwards: Boolean(checkBackwardsStrokes),
       },
     );
 
-    const isBackwards = matchType === 'backwards-match';
-    const isAccepted =
-      matchType === 'match' || (isBackwards && checkBackwardsStrokes === 'accept');
+    const isAccepted = isMatch || (meta.isStrokeBackwards && acceptBackwardsStrokes);
 
     if (isAccepted) {
-      this._handleSuccess(isBackwards);
+      this._handleSuccess(meta);
     } else {
-      this._handleFailure(isBackwards);
+      this._handleFailure(meta);
 
       const {
         showHintAfterMisses,
@@ -152,10 +149,10 @@ export default class Quiz {
 
   _getStrokeData({
     isCorrect,
-    isBackwards,
+    meta,
   }: {
     isCorrect: boolean;
-    isBackwards: boolean;
+    meta: StrokeMatchResultMeta;
   }): StrokeData {
     return {
       character: this._character.symbol,
@@ -165,11 +162,11 @@ export default class Quiz {
       strokesRemaining:
         this._character.strokes.length - this._currentStrokeIndex - (isCorrect ? 1 : 0),
       drawnPath: getDrawnPath(this._userStroke!),
-      isBackwards,
+      isBackwards: meta.isStrokeBackwards,
     };
   }
 
-  _handleSuccess(isBackwards: boolean) {
+  _handleSuccess(meta: StrokeMatchResultMeta) {
     if (!this._options) return;
 
     const { strokes, symbol } = this._character;
@@ -183,7 +180,7 @@ export default class Quiz {
     } = this._options;
 
     onCorrectStroke?.({
-      ...this._getStrokeData({ isCorrect: true, isBackwards }),
+      ...this._getStrokeData({ isCorrect: true, meta }),
     });
 
     let animation: MutationChain = characterActions.showStroke(
@@ -216,10 +213,10 @@ export default class Quiz {
     this._renderState.run(animation);
   }
 
-  _handleFailure(isBackwards: boolean) {
+  _handleFailure(meta: StrokeMatchResultMeta) {
     this._mistakesOnStroke += 1;
     this._totalMistakes += 1;
-    this._options!.onMistake?.(this._getStrokeData({ isCorrect: false, isBackwards }));
+    this._options!.onMistake?.(this._getStrokeData({ isCorrect: false, meta }));
   }
 
   _getCurrentStroke() {

@@ -66,8 +66,8 @@ export type QuizOptions = {
   showHintAfterMisses: number | false;
   /** After a quiz is completed successfully, the character will flash briefly. Default: true */
   highlightOnComplete: boolean;
-  /** Whether to check if strokes are correct besides their direction. When checking, backwards strokes can be considered correct (`'accept'`) or incorrect (`'reject'`). */
-  checkBackwardsStrokes?: 'accept' | 'reject' | false;
+  /** Whether to treat strokes which are correct besides their direction as correct. */
+  acceptBackwardsStrokes: boolean;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */

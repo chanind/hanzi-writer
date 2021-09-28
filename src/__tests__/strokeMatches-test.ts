@@ -34,6 +34,21 @@ const assertNotMatches = (
 };
 
 describe('strokeMatches', () => {
+  it('does not match if the user stroke is a single point', () => {
+    const stroke = new Stroke(
+      '',
+      [
+        { x: 0, y: 0 },
+        { x: 10, y: 50 },
+      ],
+      0,
+    );
+
+    const userStroke = new UserStroke(1, { x: 2, y: 1 }, { x: 9999, y: 9999 });
+
+    expect(strokeMatches(userStroke, new Character('X', [stroke]), 0)).toBe(null);
+  });
+
   it('matches if the user stroke roughly matches the stroke medians', () => {
     const stroke = new Stroke(
       '',

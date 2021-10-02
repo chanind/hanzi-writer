@@ -52,6 +52,7 @@ export type StrokeData = {
     pathString: string;
     points: Point[];
   };
+  isBackwards: boolean;
   strokeNum: number;
   mistakesOnStroke: number;
   totalMistakes: number;
@@ -65,6 +66,8 @@ export type QuizOptions = {
   showHintAfterMisses: number | false;
   /** After a quiz is completed successfully, the character will flash briefly. Default: true */
   highlightOnComplete: boolean;
+  /** Whether to treat strokes which are correct besides their direction as correct. */
+  acceptBackwardsStrokes: boolean;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */

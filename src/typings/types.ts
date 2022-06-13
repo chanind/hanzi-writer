@@ -39,7 +39,7 @@ export type OnCompleteFunction = (res: { canceled: boolean }) => void;
 
 /** Creates a render target (e.g. svg, canvas) */
 export type RenderTargetInitFunction<
-  TElement extends HTMLElement | SVGElement | SVGSVGElement | HTMLCanvasElement
+  TElement extends HTMLElement | SVGElement | SVGSVGElement | HTMLCanvasElement,
 > = (
   elmOrId: string | TElement,
   width?: string | number | null,
@@ -85,6 +85,15 @@ type BaseHanziWriterOptions = {
   showCharacter: boolean;
   /** Default: svg */
   renderer: 'svg' | 'canvas';
+
+  /**
+   * Post process the character data after loading from server.
+   *
+   * Provide `null` for no post-processing.
+   *
+   * Default: applies a "900-Y" transform to strokes/medians for `hanzi-writer-data@v2` characters
+   */
+  processCharData?: (charData: CharacterJson) => CharacterJson;
 
   // Animation options
 

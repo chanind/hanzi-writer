@@ -201,8 +201,8 @@ export function getPathString(points: Point[], close = false) {
   const remainingPoints = points.slice(1);
   let pathString = `M ${start.x} ${start.y}`;
   remainingPoints.forEach((point) => {
-    const roundedPoint = round(point);
-    pathString += ` L ${roundedPoint.x} ${roundedPoint.y}`;
+    const { x, y } = round(point);
+    pathString += ` L ${x} ${y}`;
   });
   if (close) {
     pathString += 'Z';

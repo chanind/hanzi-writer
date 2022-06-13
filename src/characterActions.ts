@@ -13,10 +13,7 @@ export const showStrokes = (
   return [
     new Mutation(
       `character.${charName}.strokes`,
-      objRepeat(
-        { opacity: 1, displayPortion: 1 },
-        character.strokes.length,
-      ) as CharacterRenderState['strokes'],
+      objRepeat({ opacity: 1, displayPortion: 1 }, character.strokes.length),
       { duration, force: true },
     ),
   ];

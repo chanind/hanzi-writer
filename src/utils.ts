@@ -3,29 +3,11 @@ import { ColorObject, RecursivePartial } from './typings/types';
 // hacky way to get around rollup not properly setting `global` to `window` in browser
 const globalObj = typeof window === 'undefined' ? global : window;
 
-export const performanceNow =
-  (globalObj.performance && (() => globalObj.performance.now())) || (() => Date.now());
+export const performanceNow = () => (globalObj?.performance || Date).now();
 export const requestAnimationFrame =
   globalObj.requestAnimationFrame ||
   ((callback) => setTimeout(() => callback(performanceNow()), 1000 / 60));
 export const cancelAnimationFrame = globalObj.cancelAnimationFrame || clearTimeout;
-
-// Object.assign polyfill, because IE :/
-export const _assign = function (target: any, ...overrides: any[]) {
-  const overrideTarget = Object(target);
-  overrides.forEach((override) => {
-    if (override != null) {
-      for (const key in override) {
-        if (Object.prototype.hasOwnProperty.call(override, key)) {
-          overrideTarget[key] = override[key];
-        }
-      }
-    }
-  });
-  return overrideTarget;
-};
-
-export const assign = Object.assign || _assign;
 
 export function arrLast<TValue>(arr: Array<TValue>) {
   return arr[arr.length - 1];
@@ -122,17 +104,13 @@ export function colorStringToVals(colorString: string): ColorObject {
   throw new Error(`Invalid color: ${colorString}`);
 }
 
-export const trim = (string: string) => string.replace(/^\s+/, '').replace(/\s+$/, '');
-
-// return a new array-like object with int keys where each key is item
-// ex: objRepeat({x: 8}, 3) === {0: {x: 8}, 1: {x: 8}, 2: {x: 8}}
-export function objRepeat<T>(item: T, times: number) {
-  const obj: Record<number, T> = {};
-  for (let i = 0; i < times; i++) {
-    obj[i] = item;
-  }
-  return obj;
-}
+/**
+ * Creates a new array with a given value and fills the array with the value a given number of times.
+ *
+ * e.g. objRepeat({x: 8}, 3) === [{x: 8}, {x: 8}, {x: 8}]
+ */
+export const objRepeat = <T>(value: T, times: number): T[] =>
+  new Array(times).fill(value);
 
 const ua = globalObj.navigator?.userAgent || '';
 
@@ -141,3 +119,22 @@ export const isMsBrowser =
 
 // eslint-disable-next-line @typescript-eslint/no-empty-function
 export const noop = () => {};
+
+/**
+ * Parses a given SVG path string and returns an array of path commands
+ */
+export const getPathCommands = (pathString: string): string[] => {
+  return pathString.split(/(^|\s+)(?=[A-Z])/).filter((part) => part !== ' ');
+};
+
+const pathCommandSeparatorRegex = /\s+|[, ]+/;
+
+export const getPathCommandParams = (
+  pathCommand: string,
+): {
+  cmd: string;
+  values: number[];
+} => {
+  const [cmd, ...params] = pathCommand.split(pathCommandSeparatorRegex);
+  return { cmd, values: params.map((param) => parseFloat(param)) };
+};

@@ -6,6 +6,7 @@ import * as quizActions from './quizActions';
 import * as geometry from './geometry';
 import * as characterActions from './characterActions';
 import Character from './models/Character';
+import Stroke from './models/Stroke';
 import { ParsedHanziWriterOptions, Point, StrokeData } from './typings/types';
 import RenderState from './RenderState';
 import { MutationChain } from './Mutation';
@@ -112,11 +113,8 @@ export default class Quiz {
     } else {
       this._handleFailure(meta);
 
-      const {
-        showHintAfterMisses,
-        highlightColor,
-        strokeHighlightSpeed,
-      } = this._options!;
+      const { showHintAfterMisses, highlightColor, strokeHighlightSpeed } =
+        this._options!;
 
       if (
         showHintAfterMisses !== false &&
@@ -219,7 +217,7 @@ export default class Quiz {
     this._options!.onMistake?.(this._getStrokeData({ isCorrect: false, meta }));
   }
 
-  _getCurrentStroke() {
+  _getCurrentStroke(): Stroke {
     return this._character.strokes[this._currentStrokeIndex];
   }
 }

@@ -1,9 +1,9 @@
 import yi from 'hanzi-writer-data/一.json';
 import StrokeRenderer from '../StrokeRenderer';
 import RenderTarget from '../RenderTarget';
-import parseCharData from '../../../parseCharData';
+import Character from '../../../models/Character';
 
-const char = parseCharData('一', yi);
+const char = Character.fromObject('一', yi);
 
 describe('StrokeRenderer', () => {
   let target: RenderTarget;

@@ -9,7 +9,7 @@ import HanziWriter from '../HanziWriter';
 import { timeout } from '../utils';
 import { resolvePromises } from '../testUtils';
 import Quiz from '../Quiz';
-import parseCharData from '../parseCharData';
+import Character from '../models/Character';
 
 const charDataLoader = () => ren;
 
@@ -309,7 +309,7 @@ describe('HanziWriter', () => {
         charDataLoader,
       });
       const character = await writer.getCharacterData();
-      expect(character).toEqual(parseCharData('人', ren));
+      expect(character).toEqual(Character.fromObject('人', ren));
     });
 
     it('returns a promise with the loaded character after initial loading is done', async () => {
@@ -318,7 +318,7 @@ describe('HanziWriter', () => {
       });
       await writer._withDataPromise;
       const character = await writer.getCharacterData();
-      expect(character).toEqual(parseCharData('人', ren));
+      expect(character).toEqual(Character.fromObject('人', ren));
     });
 
     it('errors if no character has been set yet', async () => {
@@ -526,8 +526,8 @@ describe('HanziWriter', () => {
       clock.tick(50);
       await resolvePromises();
 
-      const pausedDisplayPortion = writer._renderState!.state.character.main.strokes[1]
-        .displayPortion;
+      const pausedDisplayPortion =
+        writer._renderState!.state.character.main.strokes[1].displayPortion;
       expect(pausedDisplayPortion).toBeGreaterThan(0);
       expect(pausedDisplayPortion).toBeLessThan(1);
       expect(isResolved).toBe(false);
@@ -549,8 +549,8 @@ describe('HanziWriter', () => {
       clock.tick(50);
       await resolvePromises();
 
-      const newDisplayPortion = writer._renderState!.state.character.main.strokes[1]
-        .displayPortion;
+      const newDisplayPortion =
+        writer._renderState!.state.character.main.strokes[1].displayPortion;
       expect(newDisplayPortion).not.toBe(pausedDisplayPortion);
       expect(newDisplayPortion).toBeGreaterThan(0);
       expect(newDisplayPortion).toBeLessThan(1);
@@ -617,6 +617,18 @@ describe('HanziWriter', () => {
       expect(resolvedVal).toEqual({ canceled: false });
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+
+    it('resolves with undefined if no character has been set', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+
+      const writer = new HanziWriter('target', { charDataLoader });
+      const onComplete = jest.fn();
+
+      const returnValue = await writer.highlightStroke(1, { onComplete });
+
+      expect(onComplete).toHaveBeenCalledTimes(0);
+      expect(returnValue).toBeUndefined();
     });
   });
 
@@ -690,10 +702,12 @@ describe('HanziWriter', () => {
     });
   });
 
-  ([
-    { methodLabel: 'Character', stateLabel: 'main' },
-    { methodLabel: 'Outline', stateLabel: 'outline' },
-  ] as const).forEach(({ methodLabel, stateLabel }) => {
+  (
+    [
+      { methodLabel: 'Character', stateLabel: 'main' },
+      { methodLabel: 'Outline', stateLabel: 'outline' },
+    ] as const
+  ).forEach(({ methodLabel, stateLabel }) => {
     const hideMethod = methodLabel === 'Character' ? 'hideCharacter' : 'hideOutline';
     const showMethod = methodLabel === 'Character' ? 'showCharacter' : 'showOutline';
 
@@ -992,9 +1006,10 @@ describe('HanziWriter', () => {
         writer._positioner,
       );
       expect(writer._quiz!.startQuiz).toHaveBeenCalledTimes(1);
-      expect(writer._quiz!.startQuiz).toHaveBeenCalledWith(
-        Object.assign({}, writer._options, { onComplete }),
-      );
+      expect(writer._quiz!.startQuiz).toHaveBeenCalledWith({
+        ...writer._options,
+        onComplete,
+      });
     });
   });
 
@@ -1106,6 +1121,15 @@ describe('HanziWriter', () => {
   });
 
   describe('loadCharacterData', () => {
+    it('avoids creating a new "LoadingManager" instance if options and character dont change', async () => {
+      const options = {
+        charDataLoader: () => ren,
+      };
+      HanziWriter.loadCharacterData('人', options);
+      const instance = HanziWriter._loadingManager;
+      HanziWriter.loadCharacterData('人', options);
+      expect(instance).toStrictEqual(HanziWriter._loadingManager);
+    });
     it('calls onLoadCharDataError if provided on loading failure', async () => {
       const onLoadCharDataError = jest.fn();
       const loadingPromise = HanziWriter.loadCharacterData('人', {

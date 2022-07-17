@@ -25,7 +25,7 @@ export default class RenderTargetBase<
     });
     this.node.addEventListener('touchstart', (evt) => {
       callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
-    });
+    }, {passive: true});
   }
 
   addPointerMoveListener(callback: (arg: BoundEvent) => void) {
@@ -34,7 +34,7 @@ export default class RenderTargetBase<
     });
     this.node.addEventListener('touchmove', (evt) => {
       callback(this._eventify(evt as TouchEvent, this._getTouchPoint));
-    });
+    }, {passive: true});
   }
 
   addPointerEndListener(callback: () => void) {

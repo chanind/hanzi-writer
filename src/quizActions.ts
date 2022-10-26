@@ -1,10 +1,14 @@
 import Mutation, { MutationChain } from './Mutation';
 import * as characterActions from './characterActions';
-import { objRepeat } from './utils';
+import { objRepeat, objRepeatCb } from './utils';
 import Character from './models/Character';
 import { Point } from './typings/types';
 
-export const startQuiz = (character: Character, fadeDuration: number): MutationChain => {
+export const startQuiz = (
+  character: Character,
+  fadeDuration: number,
+  startStrokeNum: number,
+): MutationChain => {
   return [
     ...characterActions.hideCharacter('main', character, fadeDuration),
     new Mutation(
@@ -19,7 +23,9 @@ export const startQuiz = (character: Character, fadeDuration: number): MutationC
       'character.main',
       {
         opacity: 1,
-        strokes: objRepeat({ opacity: 0 }, character.strokes.length),
+        strokes: objRepeatCb(character.strokes.length, (i) => ({
+          opacity: i < startStrokeNum ? 1 : 0,
+        })),
       },
       { force: true },
     ),

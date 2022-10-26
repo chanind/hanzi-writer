@@ -1,7 +1,7 @@
 import strokeMatches, { StrokeMatchResultMeta } from './strokeMatches';
 import UserStroke from './models/UserStroke';
 import Positioner from './Positioner';
-import { counter, colorStringToVals } from './utils';
+import { counter, colorStringToVals, fixIndex } from './utils';
 import * as quizActions from './quizActions';
 import * as geometry from './geometry';
 import * as characterActions from './characterActions';
@@ -38,12 +38,20 @@ export default class Quiz {
   startQuiz(options: ParsedHanziWriterOptions) {
     this._isActive = true;
     this._options = options;
-    this._currentStrokeIndex = 0;
+    const startIndex = fixIndex(
+      options.quizStartStrokeNum,
+      this._character.strokes.length,
+    );
+    this._currentStrokeIndex = Math.min(startIndex, this._character.strokes.length - 1);
     this._mistakesOnStroke = 0;
     this._totalMistakes = 0;
 
     return this._renderState.run(
-      quizActions.startQuiz(this._character, options.strokeFadeDuration),
+      quizActions.startQuiz(
+        this._character,
+        options.strokeFadeDuration,
+        this._currentStrokeIndex,
+      ),
     );
   }
 

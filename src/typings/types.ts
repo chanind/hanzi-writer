@@ -68,6 +68,8 @@ export type QuizOptions = {
   highlightOnComplete: boolean;
   /** Whether to treat strokes which are correct besides their direction as correct. */
   acceptBackwardsStrokes: boolean;
+  /** Begin quiz on this stroke number rather than stroke 0 */
+  quizStartStrokeNum: number;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */

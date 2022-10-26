@@ -55,6 +55,7 @@ const opts: any = {
   showHintAfterMisses: 3,
   highlightOnComplete: true,
   highlightCompleteColor: null,
+  quizStartStrokeNum: 0,
 
   // undocumented obscure options
 
@@ -120,6 +121,64 @@ describe('Quiz', () => {
       Object.keys(renderState.state.character.main.strokes).forEach((strokeNum) => {
         expect(renderState.state.character.highlight.strokes[strokeNum].opacity).toBe(0);
       });
+    });
+
+    it('starts at the stroke set by quizStartStrokeNum', async () => {
+      const renderState = createRenderState();
+      renderState.updateState({
+        character: {
+          highlight: {
+            opacity: 0,
+            strokes: {
+              0: { opacity: 1 },
+              1: { opacity: 1 },
+            },
+          },
+        },
+      });
+
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts, { quizStartStrokeNum: 1 }));
+      expect(quiz._currentStrokeIndex).toBe(1);
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+    });
+
+    it('respects negative numbers passed to quizStartStrokeNum', async () => {
+      const renderState = createRenderState();
+      renderState.updateState({
+        character: {
+          highlight: {
+            opacity: 0,
+            strokes: {
+              0: { opacity: 1 },
+              1: { opacity: 1 },
+            },
+          },
+        },
+      });
+
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      quiz.startQuiz(Object.assign({}, opts, { quizStartStrokeNum: -1 }));
+      expect(quiz._currentStrokeIndex).toBe(1);
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
     });
   });
 

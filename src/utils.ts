@@ -31,6 +31,19 @@ export function arrLast<TValue>(arr: Array<TValue>) {
   return arr[arr.length - 1];
 }
 
+export const fixIndex = (index: number, length: number) => {
+  // helper to handle negative indexes in array indices
+  if (index < 0) {
+    return length + index;
+  }
+  return index;
+};
+
+export const selectIndex = <T>(arr: Array<T>, index: number) => {
+  // helper to select item from array at index, supporting negative indexes
+  return arr[fixIndex(index, arr.length)];
+};
+
 export function copyAndMergeDeep<T>(base: T, override: RecursivePartial<T> | undefined) {
   const output = { ...base };
   for (const key in override) {
@@ -130,6 +143,15 @@ export function objRepeat<T>(item: T, times: number) {
   const obj: Record<number, T> = {};
   for (let i = 0; i < times; i++) {
     obj[i] = item;
+  }
+  return obj;
+}
+
+// similar to objRepeat, but takes in a callback which is called for each index in the object
+export function objRepeatCb<T>(times: number, cb: (i: number) => T) {
+  const obj: Record<number, T> = {};
+  for (let i = 0; i < times; i++) {
+    obj[i] = cb(i);
   }
   return obj;
 }

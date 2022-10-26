@@ -39,6 +39,7 @@ const defaultOptions: HanziWriterOptions = {
   highlightOnComplete: true,
   highlightCompleteColor: null,
   acceptBackwardsStrokes: false,
+  quizStartStrokeNum: 0,
 
   // undocumented obscure options
 

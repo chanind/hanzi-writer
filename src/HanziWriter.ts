@@ -7,7 +7,7 @@ import canvasRenderer from './renderers/canvas';
 import defaultOptions from './defaultOptions';
 import LoadingManager from './LoadingManager';
 import * as characterActions from './characterActions';
-import { trim, colorStringToVals } from './utils';
+import { trim, colorStringToVals, selectIndex, fixIndex } from './utils';
 import Character from './models/Character';
 import HanziWriterRendererBase, {
   HanziWriterRendererConstructor,
@@ -209,7 +209,7 @@ export default class HanziWriter {
           characterActions.animateSingleStroke(
             'main',
             this._character!,
-            strokeNum,
+            fixIndex(strokeNum, this._character!.strokes.length),
             this._options.strokeAnimationSpeed,
           ),
         )
@@ -234,7 +234,7 @@ export default class HanziWriter {
       return this._renderState
         .run(
           characterActions.highlightStroke(
-            this._character.strokes[strokeNum],
+            selectIndex(this._character.strokes, strokeNum),
             colorStringToVals(this._options.highlightColor),
             this._options.strokeHighlightSpeed,
           ),

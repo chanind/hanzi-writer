@@ -454,6 +454,45 @@ describe('HanziWriter', () => {
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
 
+    it('supports negative indices', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        showCharacter: true,
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.animateStroke(-1, { onComplete }).then((result) => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState!.state.character.main.opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[0].opacity).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].opacity).toBe(1);
+
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(0);
+      expect(isResolved).toBe(false);
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(writer._renderState!.state.character.main.strokes[0].displayPortion).toBe(1);
+      expect(writer._renderState!.state.character.main.strokes[1].displayPortion).toBe(1);
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
+    });
+
     it('keeps other stroke opacities where they were originally', async () => {
       document.body.innerHTML = '<div id="target"></div>';
       const writer = HanziWriter.create('target', '人', {
@@ -629,6 +668,57 @@ describe('HanziWriter', () => {
 
       expect(onComplete).toHaveBeenCalledTimes(0);
       expect(returnValue).toBeUndefined();
+    });
+
+    it('works with negative indices', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        showCharacter: true,
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+
+      let isResolved = false;
+      let resolvedVal;
+      const onComplete = jest.fn();
+
+      writer.highlightStroke(-1, { onComplete }).then((result) => {
+        isResolved = true;
+        resolvedVal = result;
+      });
+
+      await resolvePromises();
+
+      expect(writer._renderState!.state.character.highlight.opacity).toBe(1);
+      expect(writer._renderState!.state.character.highlight.strokes[0].opacity).toBe(0);
+      expect(writer._renderState!.state.character.highlight.strokes[1].opacity).toBe(0);
+
+      expect(
+        writer._renderState!.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(0);
+      expect(isResolved).toBe(false);
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(
+        writer._renderState!.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(1);
+      expect(writer._renderState!.state.character.highlight.strokes[1].opacity).toBe(1);
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(
+        writer._renderState!.state.character.highlight.strokes[1].displayPortion,
+      ).toBe(1);
+      expect(writer._renderState!.state.character.highlight.strokes[1].opacity).toBe(0);
+
+      expect(isResolved).toBe(true);
+      expect(resolvedVal).toEqual({ canceled: false });
+      expect(onComplete).toHaveBeenCalledTimes(1);
+      expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
   });
 

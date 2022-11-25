@@ -185,15 +185,3 @@ export function* pathCommandGenerator(pathString: string): Generator<[string, nu
     }
   }
 }
-
-const pathCommandSeparatorRegex = /\s+|[, ]+/;
-
-export const getPathCommandParams = (
-  pathCommand: string,
-): {
-  cmd: string;
-  values: number[];
-} => {
-  const [cmd, ...params] = pathCommand.split(pathCommandSeparatorRegex);
-  return { cmd, values: params.map((param) => parseFloat(param)) };
-};

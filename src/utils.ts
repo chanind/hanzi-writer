@@ -153,7 +153,7 @@ export function* pathCommandGenerator(pathString: string): Generator<[string, nu
   let chars = '';
 
   for (let i = 0; i < pathString.length; i++) {
-    const char = pathString[i];
+    const char = pathString[i].toUpperCase();
 
     // New command
     if (char === 'M' || char === 'C' || char === 'Q' || char === 'L' || char === 'Z') {
@@ -173,19 +173,16 @@ export function* pathCommandGenerator(pathString: string): Generator<[string, nu
       // Else, start a new command
       activeCommand = char;
       args = [];
-      continue;
-    }
-
-    // Numbers are separated by spaces or commas
-    if (char === ' ' || char === ',') {
+    } else if (char === ' ' || char === ',') {
+      // Numbers are separated by spaces or commas
       if (chars) {
         args.push(parseFloat(chars));
       }
       chars = '';
-      continue;
+    } else {
+      // This *should* be a number or a decimal point
+      chars += char;
     }
-
-    chars += char;
   }
 }
 

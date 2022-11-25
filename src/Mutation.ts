@@ -29,7 +29,7 @@ class Delay implements GenericMutation {
   _duration: number;
   _startTime: number | null;
   _paused: boolean;
-  _timeout!: NodeJS.Timeout;
+  _timeout!: ReturnType<typeof setTimeout>;
   _resolve: (() => void) | undefined;
 
   constructor(duration: number) {
@@ -43,7 +43,6 @@ class Delay implements GenericMutation {
     this._startTime = performanceNow();
     this._runningPromise = new Promise((resolve) => {
       this._resolve = resolve;
-      // @ts-ignore return type of "setTimeout" in builds is parsed as `number` instead of `Timeout`
       this._timeout = setTimeout(() => this.cancel(), this._duration);
     }) as Promise<void>;
     return this._runningPromise;
@@ -61,13 +60,12 @@ class Delay implements GenericMutation {
   resume() {
     if (!this._paused) return;
     this._startTime = performance.now();
-    // @ts-ignore return type of "setTimeout" in builds is parsed as `number` instead of `Timeout`
     this._timeout = setTimeout(() => this.cancel(), this._duration);
     this._paused = false;
   }
 
   cancel() {
-    clearTimeout(this._timeout!);
+    clearTimeout(this._timeout);
     if (this._resolve) {
       this._resolve();
     }
@@ -140,10 +138,11 @@ export default class Mutation<
   }
 
   private _inflateValues(renderState: TRenderStateClass) {
-    let values = this._valuesOrCallable;
-    if (typeof this._valuesOrCallable === 'function') {
-      values = this._valuesOrCallable(renderState.state);
-    }
+    const values =
+      typeof this._valuesOrCallable === 'function'
+        ? this._valuesOrCallable(renderState.state)
+        : this._valuesOrCallable;
+
     this._values = inflate(this.scope, values);
   }
 

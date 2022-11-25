@@ -1,3 +1,4 @@
+import { pathCommandGenerator } from '../../utils';
 import { Point } from '../../typings/types';
 
 export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
@@ -18,22 +19,19 @@ export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
  * @param pathString
  */
 export const pathStringToCanvas = (pathString: string) => {
-  const pathParts = pathString.split(/(^|\s+)(?=[A-Z])/).filter((part) => part !== ' ');
   const commands = [(ctx: CanvasRenderingContext2D) => ctx.beginPath()];
-  for (const part of pathParts) {
-    const [cmd, ...rawParams] = part.split(/\s+/);
-    const params = rawParams.map((param) => parseFloat(param)) as any[];
+  for (const [cmd, values] of pathCommandGenerator(pathString)) {
     if (cmd === 'M') {
-      commands.push((ctx) => ctx.moveTo(...(params as [number, number])));
+      commands.push((ctx) => ctx.moveTo(...(values as [number, number])));
     } else if (cmd === 'L') {
-      commands.push((ctx) => ctx.lineTo(...(params as [number, number])));
+      commands.push((ctx) => ctx.lineTo(...(values as [number, number])));
     } else if (cmd === 'C') {
       commands.push((ctx) =>
-        ctx.bezierCurveTo(...(params as Parameters<typeof ctx.bezierCurveTo>)),
+        ctx.bezierCurveTo(...(values as Parameters<typeof ctx.bezierCurveTo>)),
       );
     } else if (cmd === 'Q') {
       commands.push((ctx) =>
-        ctx.quadraticCurveTo(...(params as Parameters<typeof ctx.quadraticCurveTo>)),
+        ctx.quadraticCurveTo(...(values as Parameters<typeof ctx.quadraticCurveTo>)),
       );
     } else if (cmd === 'Z') {
       // commands.push((ctx) => ctx.closePath());

@@ -8,12 +8,11 @@
 		<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
 	</head>
 	<body>
-
 		<h1 class="title">Hanzi Writer</h1>
 		<form class="js-char-form char-form">
 			<label>
 				Character
-				<input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
+				<input type="text" class="js-char char-input" size="1" maxlength="1" value="廊" />
 			</label>
 			<button type="submit">Update</button>
 		</form>
@@ -24,11 +23,16 @@
 			<button class="js-quiz">Quiz yourself</button>
 		</div>
 
-		<div id="target">
-
+		<div id="target"></div>
+		<div class="actions">
+			<select class="char-selection" style="align-self: flex-end;">
+				<option selected value="hanzi-writer-data">hanzi-writer-data (v2.0.1)</option>
+				<option value="hanzi-writer-data-fixed">hanzi-writer-data, fixed set</option>
+				<option value="hanzi-writer-data-jp">hanzi-writer-data-jp (v0.0.2)</option>
+				<option value="hanzi-writer-data-jp-fixed">hanzi-writer-data-jp, fixed set</option>
+			</select>
 		</div>
 
-		<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script> -->
 		<script type="application/javascript" src="../dist/hanzi-writer.js"></script>
 		<script type="application/javascript" src="test.js"></script>
 

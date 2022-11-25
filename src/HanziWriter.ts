@@ -1,5 +1,4 @@
 import RenderState from './RenderState';
-import parseCharData from './parseCharData';
 import Positioner from './Positioner';
 import Quiz from './Quiz';
 import svgRenderer from './renderers/svg';
@@ -7,7 +6,7 @@ import canvasRenderer from './renderers/canvas';
 import defaultOptions from './defaultOptions';
 import LoadingManager from './LoadingManager';
 import * as characterActions from './characterActions';
-import { trim, colorStringToVals, selectIndex, fixIndex } from './utils';
+import { colorStringToVals, selectIndex, fixIndex } from './utils';
 import Character from './models/Character';
 import HanziWriterRendererBase, {
   HanziWriterRendererConstructor,
@@ -90,14 +89,12 @@ export default class HanziWriter {
 
   static getScalingTransform(width: number, height: number, padding = 0) {
     const positioner = new Positioner({ width, height, padding });
+    const { xOffset: x, yOffset: y, scale } = positioner;
     return {
-      x: positioner.xOffset,
-      y: positioner.yOffset,
-      scale: positioner.scale,
-      transform: trim(`
-        translate(${positioner.xOffset}, ${positioner.height - positioner.yOffset})
-        scale(${positioner.scale}, ${-1 * positioner.scale})
-      `).replace(/\s+/g, ' '),
+      x,
+      y,
+      scale,
+      transform: `translate(${x}, ${y}) scale(${scale})`,
     };
   }
 
@@ -424,13 +421,18 @@ export default class HanziWriter {
     this._hanziWriterRenderer = null;
     this._withDataPromise = this._loadingManager
       .loadCharData(char)
-      .then((pathStrings) => {
+      .then((characterJson) => {
         // if "pathStrings" isn't set, ".catch()"" was probably called and loading likely failed
-        if (!pathStrings || this._loadingManager.loadingFailed) {
+        if (!characterJson || this._loadingManager.loadingFailed) {
           return;
         }
 
-        this._character = parseCharData(char, pathStrings);
+        this._character = Character.fromObject(
+          char,
+          characterJson,
+          this._options.processCharData,
+        );
+
         this._renderState = new RenderState(this._character, this._options, (nextState) =>
           hanziWriterRenderer.render(nextState),
         );

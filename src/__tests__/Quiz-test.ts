@@ -3,12 +3,12 @@ jest.mock('../Positioner');
 
 import ren from 'hanzi-writer-data/人.json';
 import Quiz from '../Quiz';
-import parseCharData from '../parseCharData';
 import RenderState from '../RenderState';
 import Positioner from '../Positioner';
 import { resolvePromises } from '../testUtils';
 import strokeMatches from '../strokeMatches';
 import { Point } from '../typings/types';
+import Character from '../models/Character';
 
 (Positioner as any).mockImplementation(() => ({
   convertExternalPoint: (point: Point) => ({ x: point.x + 5, y: point.y + 5 }),
@@ -19,7 +19,7 @@ beforeEach(() => {
   (Positioner as any).mockClear();
 });
 
-const char = parseCharData('人', ren);
+const char = Character.fromObject('人', ren);
 const opts: any = {
   onLoadCharDataError: null,
   onLoadCharDataSuccess: null,
@@ -210,6 +210,20 @@ describe('Quiz', () => {
   });
 
   describe('startUserStroke', () => {
+    it('returns null if the quiz hasnt started', async () => {
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const returnValue = quiz.startUserStroke({ x: 10, y: 20 });
+      expect(returnValue).toBe(null);
+
+      await resolvePromises();
+
+      expect(renderState.state.userStrokes).toBe(null);
+    });
     it('begins a stroke with the provided point', async () => {
       const renderState = createRenderState();
       const quiz = new Quiz(

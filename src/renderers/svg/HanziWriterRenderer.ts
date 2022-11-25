@@ -29,13 +29,9 @@ export default class HanziWriterRenderer
   mount(target: SVGRenderTarget) {
     const positionedTarget = target.createSubRenderTarget();
     const group = positionedTarget.svg;
-    const { xOffset, yOffset, height, scale } = this._positioner;
+    const { xOffset, yOffset, scale } = this._positioner;
 
-    svg.attr(
-      group,
-      'transform',
-      `translate(${xOffset}, ${height - yOffset}) scale(${scale}, ${-1 * scale})`,
-    );
+    svg.attr(group, 'transform', `translate(${xOffset}, ${yOffset}) scale(${scale})`);
     this._outlineCharRenderer.mount(positionedTarget);
     this._mainCharRenderer.mount(positionedTarget);
     this._highlightCharRenderer.mount(positionedTarget);

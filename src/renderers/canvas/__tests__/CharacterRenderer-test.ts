@@ -1,8 +1,8 @@
 import ren from 'hanzi-writer-data/人.json';
+import Character from '../../../models/Character';
 import CharacterRenderer from '../CharacterRenderer';
-import parseCharData from '../../../parseCharData';
 
-const char = parseCharData('人', ren);
+const char = Character.fromObject('人', ren);
 
 describe('CharacterRenderer', () => {
   let ctx;

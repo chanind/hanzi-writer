@@ -1,9 +1,10 @@
 import ren from 'hanzi-writer-data/人.json';
+import Character from '../models/Character';
 import Mutation from '../Mutation';
 import RenderState from '../RenderState';
-import parseCharData from '../parseCharData';
 
-const char = parseCharData('人', ren);
+const char = Character.fromObject('人', ren);
+
 const opts = {
   strokeColor: '#555',
   radicalColor: '#123',

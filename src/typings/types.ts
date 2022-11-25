@@ -88,6 +88,15 @@ type BaseHanziWriterOptions = {
   /** Default: svg */
   renderer: 'svg' | 'canvas';
 
+  /**
+   * Post process the character data after loading from server.
+   *
+   * Provide `null` for no post-processing.
+   *
+   * Default: applies a "900-Y" transform to strokes/medians for `hanzi-writer-data@v2` characters
+   */
+  processCharData?: ((charData: CharacterJson) => CharacterJson) | null;
+
   // Animation options
 
   /** Default: 1 */

@@ -3,10 +3,11 @@ import HanziWriterRenderer from '../HanziWriterRenderer';
 import RenderTarget from '../RenderTarget';
 import { copyAndMergeDeep } from '../../../utils';
 import Positioner from '../../../Positioner';
-import parseCharData from '../../../parseCharData';
 import { RenderStateObject } from '../../../RenderState';
+import Character from '../../../models/Character';
 
-const char = parseCharData('人', ren);
+const char = Character.fromObject('人', ren);
+
 const positioner = new Positioner({
   width: 100,
   height: 100,

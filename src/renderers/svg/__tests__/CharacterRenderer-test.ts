@@ -2,9 +2,9 @@ import ren from 'hanzi-writer-data/人.json';
 import CharacterRenderer from '../CharacterRenderer';
 import RenderTarget from '../RenderTarget';
 import { copyAndMergeDeep } from '../../../utils';
-import parseCharData from '../../../parseCharData';
+import Character from '../../../models/Character';
 
-const char = parseCharData('人', ren);
+const char = Character.fromObject('人', ren);
 
 describe('CharacterRenderer', () => {
   let target;

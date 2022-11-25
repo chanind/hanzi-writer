@@ -143,11 +143,51 @@ export const isMsBrowser =
 export const noop = () => {};
 
 /**
- * Parses a given SVG path string and returns an array of path commands
+ * A generator function to parse a given SVG path string and yield each command with its arguments
+ *
+ * This algo runs in O(n) time, which should be faster than applying regex parsing, splitting, filtering, and trimming
  */
-export const getPathCommands = (pathString: string): string[] => {
-  return pathString.split(/(^|\s+)(?=[A-Z])/).filter((part) => part !== ' ');
-};
+export function* pathCommandGenerator(pathString: string): Generator<[string, number[]]> {
+  let activeCommand = '';
+  let args: number[] = [];
+  let chars = '';
+
+  for (let i = 0; i < pathString.length; i++) {
+    const char = pathString[i];
+
+    // New command
+    if (char === 'M' || char === 'C' || char === 'Q' || char === 'L' || char === 'Z') {
+      // If we have a pending command, yield it along with its arguments
+      if (activeCommand) {
+        if (chars) {
+          args.push(parseFloat(chars));
+          chars = '';
+        }
+        yield [activeCommand, args];
+      }
+      // End path and break the loop
+      if (char === 'Z') {
+        yield ['Z', []];
+        break;
+      }
+      // Else, start a new command
+      activeCommand = char;
+      args = [];
+      continue;
+    }
+
+    // Numbers are separated by spaces or commas
+    if (char === ' ' || char === ',') {
+      if (chars) {
+        args.push(parseFloat(chars));
+      }
+      chars = '';
+      continue;
+    }
+
+    chars += char;
+  }
+}
 
 const pathCommandSeparatorRegex = /\s+|[, ]+/;
 

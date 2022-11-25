@@ -1,6 +1,6 @@
 import Stroke from './Stroke';
 import type { CharacterJson } from '../typings/types';
-import { getPathCommands, getPathCommandParams } from '../utils';
+import { pathCommandGenerator } from '../utils';
 
 export default class Character {
   symbol: string;
@@ -40,25 +40,29 @@ const generateStrokes = ({ radStrokes, strokes, medians }: CharacterJson) => {
 /** Inverts the Y axis. This is for backwards compatibility with "hanzi-writer-data@v2" */
 const defaultProcessCharData = (charData: CharacterJson): CharacterJson => {
   const newStrokes = charData.strokes.map((stroke) => {
-    const newStroke = getPathCommands(stroke).reduce((acc, command) => {
-      const { cmd, values } = getPathCommandParams(command);
+    let newStroke = '';
+    for (const [cmd, values] of pathCommandGenerator(stroke)) {
       if (cmd === 'M' || cmd === 'L') {
         const [x, y] = values;
-        return acc + `${cmd} ${x} ${900 - y} `;
+        newStroke += `${cmd} ${x} ${900 - y} `;
+        continue;
       }
       if (cmd === 'Q') {
         const [x1, y1, x2, y2] = values;
-        return acc + `${cmd} ${x1} ${900 - y1} ${x2} ${900 - y2} `;
+        newStroke += `${cmd} ${x1} ${900 - y1} ${x2} ${900 - y2} `;
+        continue;
       }
       if (cmd === 'C') {
         const [x1, y1, x2, y2, x, y] = values;
-        return acc + `${cmd} ${x1} ${900 - y1} ${x2} ${900 - y2} ${x} ${900 - y} `;
+        newStroke += `${cmd} ${x1} ${900 - y1} ${x2} ${900 - y2} ${x} ${900 - y} `;
+        continue;
       }
       if (cmd === 'Z') {
-        return acc + 'Z';
+        newStroke += 'Z';
+        continue;
       }
-      return acc + `${cmd} ${values.join(' ')}`;
-    }, '');
+      newStroke += `${cmd} ${values.join(' ')}`;
+    }
 
     return newStroke;
   });

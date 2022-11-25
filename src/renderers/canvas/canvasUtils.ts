@@ -1,4 +1,4 @@
-import { getPathCommandParams, getPathCommands } from '../../utils';
+import { pathCommandGenerator } from '../../utils';
 import { Point } from '../../typings/types';
 
 export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
@@ -20,8 +20,7 @@ export const drawPath = (ctx: CanvasRenderingContext2D, points: Point[]) => {
  */
 export const pathStringToCanvas = (pathString: string) => {
   const commands = [(ctx: CanvasRenderingContext2D) => ctx.beginPath()];
-  for (const command of getPathCommands(pathString)) {
-    const { cmd, values } = getPathCommandParams(command);
+  for (const [cmd, values] of pathCommandGenerator(pathString)) {
     if (cmd === 'M') {
       commands.push((ctx) => ctx.moveTo(...(values as [number, number])));
     } else if (cmd === 'L') {

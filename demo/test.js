@@ -1,6 +1,8 @@
 var writer;
 var isCharVisible;
 var isOutlineVisible;
+var processCharData;
+var charDataLoader;
 
 function printStrokePoints(data) {
   var pointStrs = data.drawnPath.points.map((point) => `{x: ${point.x}, y: ${point.y}}`);
@@ -12,7 +14,8 @@ function updateCharacter() {
 
   var character = document.querySelector('.js-char').value;
   window.location.hash = character;
-  writer = HanziWriter.create('target', character, {
+
+  const options = {
     width: 400,
     height: 400,
     renderer: 'svg',
@@ -20,7 +23,13 @@ function updateCharacter() {
     onCorrectStroke: printStrokePoints,
     onMistake: printStrokePoints,
     showCharacter: false,
-  });
+    processCharData,
+  };
+  if (charDataLoader) {
+    options.charDataLoader = charDataLoader;
+  }
+
+  writer = HanziWriter.create('target', character, options);
   isCharVisible = true;
   isOutlineVisible = true;
   window.writer = writer;
@@ -55,4 +64,52 @@ window.onload = function () {
       showOutline: true,
     });
   });
+
+  document.querySelector('.char-selection').addEventListener('input', (ev) => {
+    const value = ev.target.value; // "hanzi-writer-data" | "hanzi-writer-data-fixed" | "hanzi-writer-data-jp"
+    const char = document.querySelector('.js-char').value;
+
+    switch (value) {
+      case 'hanzi-writer-data':
+        charDataLoader = undefined;
+        processCharData = undefined;
+        break;
+      case 'hanzi-writer-data-fixed': {
+        charDataLoader = createCharDataLoader(
+          (char) =>
+            `https://raw.githubusercontent.com/jamsch/hanzi-writer-data/fixed-set/data/${char}.json`,
+        );
+        processCharData = null; // We don't need to process the character data
+        break;
+      }
+      case 'hanzi-writer-data-jp': {
+        charDataLoader = createCharDataLoader(
+          (char) =>
+            `https://raw.githubusercontent.com/jamsch/hanzi-writer-data-jp/master/data/${char}.json`,
+        );
+        processCharData = undefined; // We need to process the character data
+        break;
+      }
+      case 'hanzi-writer-data-jp-fixed': {
+        charDataLoader = createCharDataLoader(
+          (char) =>
+            `https://raw.githubusercontent.com/jamsch/hanzi-writer-data-jp/fixed-set/data/${char}.json`,
+        );
+        processCharData = null; // We don't need to process the character data
+        break;
+      }
+      default:
+        break;
+    }
+
+    updateCharacter();
+  });
+};
+
+const createCharDataLoader = (getUrl) => {
+  return (char, onLoad, onError) =>
+    fetch(getUrl(char))
+      .then((res) => res.json())
+      .then(onLoad)
+      .catch(onError);
 };

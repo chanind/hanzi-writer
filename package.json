@@ -39,7 +39,7 @@
     "test": "jest",
     "lint-test": "eslint -c .eslintrc src",
     "lint-fix": "eslint --fix --ext .tsx,.ts .",
-    "build": "rm -rf dist && rollup -c",
+    "build": "rollup -c",
     "prepublishOnly": "rollup -c",
     "semantic-release": "semantic-release",
     "prettier": "prettier -w src",

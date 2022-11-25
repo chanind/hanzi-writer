@@ -62,15 +62,12 @@ button, #target {
 .actions {
 	width: 400px;
 	margin: 0 auto;
+	display: flex;
+	gap: 4px;
+	margin: 4px auto;
+	justify-content: center;
 }
 
-.actions button {
-	display: block;
-	width: 97px;
-	float: left;
-	margin-right: 4px;
-	margin-bottom: 4px;
-}
 .actions button:last-child {
 	margin-right: 0;
 }

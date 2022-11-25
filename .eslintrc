@@ -6,6 +6,7 @@
     "dist/*",
     "build/*",
     "examples/*",
+    "demo/*",
     "babel.config.js",
     "rollup.config.js",
     "jest-setup.js"

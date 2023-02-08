@@ -84,7 +84,10 @@ export const highlightStroke = (
       },
       { duration },
     ),
-    new Mutation(`character.highlight.strokes.${strokeNum}.opacity`, 0, { duration }),
+    new Mutation(`character.highlight.strokes.${strokeNum}.opacity`, 0, {
+      duration,
+      force: true,
+    }),
   ];
 };
 

@@ -708,6 +708,44 @@ describe('HanziWriter', () => {
       expect(onComplete).toHaveBeenCalledTimes(1);
       expect(onComplete).toHaveBeenCalledWith({ canceled: false });
     });
+
+    it("doesn't freeze and leave the highlight showing if another highlight happens before the first finishes", async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', {
+        showCharacter: true,
+        charDataLoader,
+      });
+      await writer._withDataPromise;
+
+      let stroke1Resolved = false;
+      let stroke1ResolvedVal;
+      const onComplete1 = jest.fn();
+
+      // start highlighting the first stroke
+      writer.highlightStroke(0, { onComplete: onComplete1 }).then((result) => {
+        stroke1Resolved = true;
+        stroke1ResolvedVal = result;
+      });
+
+      await resolvePromises();
+      clock.tick(200);
+      await resolvePromises();
+      expect(writer._renderState!.state.character.highlight.strokes[0].opacity).not.toBe(
+        0,
+      );
+
+      expect(stroke1Resolved).toBe(false);
+
+      // starting another stroke highlight cancels the first one
+      // NOTE: In the future this may not be the case, there's no reason we can't have strokes animate independently
+      writer.highlightStroke(1);
+
+      await resolvePromises();
+      expect(stroke1Resolved).toBe(true);
+      expect(stroke1ResolvedVal).toEqual({ canceled: true });
+
+      expect(writer._renderState!.state.character.highlight.strokes[0].opacity).toBe(0);
+    });
   });
 
   describe('loopCharacterAnimation', () => {

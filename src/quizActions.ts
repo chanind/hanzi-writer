@@ -1,14 +1,14 @@
-import Mutation, { MutationChain } from './Mutation';
+import Mutation, { GenericMutation } from './Mutation';
 import * as characterActions from './characterActions';
 import { objRepeat, objRepeatCb } from './utils';
 import Character from './models/Character';
-import { Point } from './typings/types';
+import { ColorObject, Point } from './typings/types';
 
 export const startQuiz = (
   character: Character,
   fadeDuration: number,
   startStrokeNum: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     ...characterActions.hideCharacter('main', character, fadeDuration),
     new Mutation(
@@ -32,7 +32,7 @@ export const startQuiz = (
   ];
 };
 
-export const startUserStroke = (id: string | number, point: Point): MutationChain => {
+export const startUserStroke = (id: string | number, point: Point): GenericMutation[] => {
   return [
     new Mutation('quiz.activeUserStrokeId', id, { force: true }),
     new Mutation(
@@ -49,14 +49,14 @@ export const startUserStroke = (id: string | number, point: Point): MutationChai
 export const updateUserStroke = (
   userStrokeId: string | number,
   points: Point[],
-): MutationChain => {
+): GenericMutation[] => {
   return [new Mutation(`userStrokes.${userStrokeId}.points`, points, { force: true })];
 };
 
 export const removeUserStroke = (
   userStrokeId: string | number,
   duration: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     new Mutation(`userStrokes.${userStrokeId}.opacity`, 0, { duration }),
     new Mutation(`userStrokes.${userStrokeId}`, null, { force: true }),
@@ -65,9 +65,11 @@ export const removeUserStroke = (
 
 export const highlightCompleteChar = (
   character: Character,
+  color: ColorObject | null,
   duration: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
+    new Mutation('options.highlightColor', color),
     ...characterActions.hideCharacter('highlight', character),
     ...characterActions.showCharacter('highlight', character, duration / 2),
     ...characterActions.hideCharacter('highlight', character, duration / 2),

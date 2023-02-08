@@ -9,6 +9,7 @@ import Positioner from '../Positioner';
 import { resolvePromises } from '../testUtils';
 import strokeMatches from '../strokeMatches';
 import { Point } from '../typings/types';
+import { colorStringToVals } from '../utils';
 
 (Positioner as any).mockImplementation(() => ({
   convertExternalPoint: (point: Point) => ({ x: point.x + 5, y: point.y + 5 }),
@@ -807,6 +808,7 @@ describe('Quiz', () => {
       clock.tick(1000);
       await resolvePromises();
 
+      expect(renderState.state.options.highlightColor).toEqual(colorStringToVals('#0F0'));
       expect(renderState.state.character.highlight.opacity).toBe(1);
       clock.tick(1000);
       await resolvePromises();

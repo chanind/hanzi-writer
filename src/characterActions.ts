@@ -1,7 +1,7 @@
 import Stroke from './models/Stroke';
 import { ColorObject, RecursivePartial } from './typings/types';
 import Character from './models/Character';
-import Mutation, { MutationChain } from './Mutation';
+import Mutation, { GenericMutation } from './Mutation';
 import { objRepeat } from './utils';
 import { CharacterName, CharacterRenderState, RenderStateObject } from './RenderState';
 
@@ -9,7 +9,7 @@ export const showStrokes = (
   charName: CharacterName,
   character: Character,
   duration: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     new Mutation(
       `character.${charName}.strokes`,
@@ -26,7 +26,7 @@ export const showCharacter = (
   charName: CharacterName,
   character: Character,
   duration: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     new Mutation(
       `character.${charName}`,
@@ -43,7 +43,7 @@ export const hideCharacter = (
   charName: CharacterName,
   character: Character,
   duration?: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     new Mutation(`character.${charName}.opacity`, 0, { duration, force: true }),
     ...showStrokes(charName, character, 0),
@@ -62,11 +62,11 @@ export const highlightStroke = (
   stroke: Stroke,
   color: ColorObject | null,
   speed: number,
-): MutationChain => {
+): GenericMutation[] => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
-    new Mutation('character.highlight.strokeColor', color),
+    new Mutation('options.highlightColor', color),
     new Mutation('character.highlight', {
       opacity: 1,
       strokes: {
@@ -92,7 +92,7 @@ export const animateStroke = (
   charName: CharacterName,
   stroke: Stroke,
   speed: number,
-): MutationChain => {
+): GenericMutation[] => {
   const strokeNum = stroke.strokeNum;
   const duration = (stroke.getLength() + 600) / (3 * speed);
   return [
@@ -116,7 +116,7 @@ export const animateSingleStroke = (
   character: Character,
   strokeNum: number,
   speed: number,
-): MutationChain => {
+): GenericMutation[] => {
   const mutationStateFunc = (state: RenderStateObject) => {
     const curCharState = state.character[charName];
     const mutationState: RecursivePartial<CharacterRenderState> = {
@@ -141,7 +141,7 @@ export const showStroke = (
   charName: CharacterName,
   strokeNum: number,
   duration: number,
-): MutationChain => {
+): GenericMutation[] => {
   return [
     new Mutation(
       `character.${charName}.strokes.${strokeNum}`,
@@ -160,8 +160,8 @@ export const animateCharacter = (
   fadeDuration: number,
   speed: number,
   delayBetweenStrokes: number,
-): MutationChain => {
-  let mutations: MutationChain = hideCharacter(charName, character, fadeDuration);
+): GenericMutation[] => {
+  let mutations: GenericMutation[] = hideCharacter(charName, character, fadeDuration);
   mutations = mutations.concat(showStrokes(charName, character, 0));
   mutations.push(
     new Mutation(
@@ -187,7 +187,7 @@ export const animateCharacterLoop = (
   speed: number,
   delayBetweenStrokes: number,
   delayBetweenLoops: number,
-): MutationChain => {
+): GenericMutation[] => {
   const mutations = animateCharacter(
     charName,
     character,

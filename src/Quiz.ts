@@ -8,7 +8,7 @@ import * as characterActions from './characterActions';
 import Character from './models/Character';
 import { ParsedHanziWriterOptions, Point, StrokeData } from './typings/types';
 import RenderState from './RenderState';
-import { MutationChain } from './Mutation';
+import { GenericMutation } from './Mutation';
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
@@ -184,6 +184,8 @@ export default class Quiz {
       onComplete,
       highlightOnComplete,
       strokeFadeDuration,
+      highlightCompleteColor,
+      highlightColor,
       strokeHighlightDuration,
     } = this._options;
 
@@ -191,7 +193,7 @@ export default class Quiz {
       ...this._getStrokeData({ isCorrect: true, meta }),
     });
 
-    let animation: MutationChain = characterActions.showStroke(
+    let animation: GenericMutation[] = characterActions.showStroke(
       'main',
       this._currentStrokeIndex,
       strokeFadeDuration,
@@ -212,6 +214,7 @@ export default class Quiz {
         animation = animation.concat(
           quizActions.highlightCompleteChar(
             this._character,
+            colorStringToVals(highlightCompleteColor || highlightColor),
             (strokeHighlightDuration || 0) * 2,
           ),
         );

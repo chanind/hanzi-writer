@@ -21,8 +21,6 @@ export interface GenericMutation<
   cancel(renderState: TRenderStateClass): void;
 }
 
-export type MutationChain = GenericMutation<any>[];
-
 class Delay implements GenericMutation {
   scope: string;
   _runningPromise: Promise<void> | undefined;

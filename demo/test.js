@@ -17,7 +17,6 @@ function updateCharacter() {
     height: 400,
     renderer: 'svg',
     radicalColor: '#166E16',
-    highlightCompleteColor: '#FF0000',
     onCorrectStroke: printStrokePoints,
     onMistake: printStrokePoints,
     showCharacter: false,

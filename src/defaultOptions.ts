@@ -38,6 +38,7 @@ const defaultOptions: HanziWriterOptions = {
   showHintAfterMisses: 3,
   highlightOnComplete: true,
   highlightCompleteColor: null,
+  markStrokeCorrectAfterMisses: false,
   acceptBackwardsStrokes: false,
   quizStartStrokeNum: 0,
 

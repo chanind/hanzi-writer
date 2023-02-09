@@ -699,6 +699,93 @@ describe('Quiz', () => {
       expect(renderState.state.character.highlight.strokes[0].opacity).toBe(0);
     });
 
+    it('marks the stroke as correct if the number of mistakes exceeds markStrokeCorrectAfterMisses', async () => {
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: false,
+        meta: { isStrokeBackwards: false },
+      }));
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(
+        Object.assign({}, opts, {
+          onCorrectStroke,
+          onComplete,
+          onMistake,
+          markStrokeCorrectAfterMisses: 2,
+        }),
+      );
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 11, y: 21 });
+      quiz.endUserStroke();
+      await resolvePromises();
+      clock.tick(1000);
+      await resolvePromises();
+
+      // should not draw the stroke yet
+      expect(quiz._currentStrokeIndex).toBe(0);
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
+
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 11, y: 21 });
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBeUndefined();
+      expect(quiz._isActive).toBe(true);
+      expect(quiz._currentStrokeIndex).toBe(1);
+      expect(onMistake).toHaveBeenCalledTimes(1);
+      expect(onMistake).toHaveBeenLastCalledWith({
+        character: '人',
+        mistakesOnStroke: 1,
+        strokeNum: 0,
+        strokesRemaining: 2,
+        totalMistakes: 1,
+        drawnPath: {
+          pathString: 'M 10 20 L 11 21',
+          points: [
+            { x: 15, y: 25 },
+            { x: 16, y: 26 },
+          ],
+        },
+        isBackwards: false,
+      });
+      expect(onCorrectStroke).toHaveBeenCalledTimes(1);
+      expect(onCorrectStroke).toHaveBeenLastCalledWith({
+        character: '人',
+        mistakesOnStroke: 1,
+        strokeNum: 0,
+        strokesRemaining: 1,
+        totalMistakes: 1,
+        drawnPath: {
+          pathString: 'M 10 20 L 11 21',
+          points: [
+            { x: 15, y: 25 },
+            { x: 16, y: 26 },
+          ],
+        },
+        isBackwards: false,
+      });
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      // should draw the stroke now
+      clock.tick(1000);
+      await resolvePromises();
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+    });
+
     it('does not highlight strokes if showHintAfterMisses is set to false', async () => {
       (strokeMatches as any).mockImplementation(() => ({
         isMatch: false,

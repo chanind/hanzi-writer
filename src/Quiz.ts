@@ -100,7 +100,7 @@ export default class Quiz {
       return;
     }
 
-    const { acceptBackwardsStrokes } = this._options!;
+    const { acceptBackwardsStrokes, markStrokeCorrectAfterMisses } = this._options!;
 
     const currentStroke = this._getCurrentStroke();
     const { isMatch, meta } = strokeMatches(
@@ -113,7 +113,13 @@ export default class Quiz {
       },
     );
 
-    const isAccepted = isMatch || (meta.isStrokeBackwards && acceptBackwardsStrokes);
+    // if markStrokeCorrectAfterMisses is passed, just force the stroke to count as correct after n tries
+    const isForceAccepted =
+      markStrokeCorrectAfterMisses &&
+      this._mistakesOnStroke + 1 >= markStrokeCorrectAfterMisses;
+
+    const isAccepted =
+      isMatch || isForceAccepted || (meta.isStrokeBackwards && acceptBackwardsStrokes);
 
     if (isAccepted) {
       this._handleSuccess(meta);

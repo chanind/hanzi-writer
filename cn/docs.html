@@ -1004,6 +1004,12 @@ Page({
         <li><code>showHintAfterMisses:</code> 整数, 默认 3
           中风高亮提示之前的未命中数被给予用户。 设置为 false 以禁用。 创建测验时也可以设置此项。
         </li>
+        <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke
+          to be marked correct. This can also be set when creating a quiz.</li>
+        <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the
+          first stroke. This can also be set when creating a quiz.</li>
+        <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing.
+          This can also be set when creating a quiz.</li>
         <li><code>highlightOnComplete:</code> 布尔值, 默认 true。
           控制当用户完成绘制整个字符时，测验是否会短暂突出显示字符。 创建测验时也可以设置此项。
         </li>
@@ -1222,6 +1228,12 @@ Page({
           设置 false 禁用。
           这也可以在创建编写器实例时设置。
         </li>
+        <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke
+          to be marked correct.</li>
+        <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the
+          first stroke.</li>
+        <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing.
+        </li>
         <li><code>leniency:</code> 浮点数, 默认 1.0。
           这可以设置为使笔划分级或多或少地宽松。 越接近于0，测验的评分就越严格。
         </li>
@@ -1296,6 +1308,12 @@ Page({
         <li><code>showHintAfterMisses:</code> 整数， 默认 3。
           中风高亮提示之前的未命中数被给予用户。 设置为 false 以禁用。 创建测验时也可以设置此项。
         </li>
+        <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke
+          to be marked correct. This can also be set when creating a quiz.</li>
+        <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the
+          first stroke. This can also be set when creating a quiz.</li>
+        <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing.
+          This can also be set when creating a quiz.</li>
         <li><code>highlightOnComplete:</code> 布尔值， 默认 true。
           控制当用户完成绘制整个角色时，测验是否会短暂突出显示角色。 创建测验时也可以设置此项。
         </li>

@@ -76,7 +76,7 @@ js: docs.js
       <p>
         The simplest option is to load the Hanzi Writer JS directly from the jsdelivr CDN. Just put the following in the head of your webpage:
         {% highlight html %}
-<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.2/dist/hanzi-writer.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/hanzi-writer@3.5/dist/hanzi-writer.min.js"></script>
         {% endhighlight %}
       </p>
       <p>
@@ -910,6 +910,9 @@ Page({
           <li><code>drawingColor:</code> hex string, default '#333'. The color of the lines drawn by users during quizzing.</li>
           <li><code>drawingWidth:</code> number, default 4. The width of the lines drawn by users during quizzing in px.</li>
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
+          <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke to be marked correct. This can also be set when creating a quiz.</li>
+          <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the first stroke. This can also be set when creating a quiz.</li>
+          <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing. This can also be set when creating a quiz.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
           <li><code>highlightCompleteColor:</code> hex string, default null. The color to use when highlighting the character on complete in quizzes. If not set, <code>highlightColor</code> will be used instead. Only relevant if <code>highlightOnComplete</code> is <code>true</code>.</li>
           <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>
@@ -1081,6 +1084,9 @@ Page({
             </ul>
           </li>
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating the writer instance.</li>
+          <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke to be marked correct.</li>
+          <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the first stroke.</li>
+          <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing.</li>
           <li><code>leniency:</code> float, default 1.0. This can be set to make stroke grading more or less lenient. The closer this is to 0 the more strictly the quiz is graded.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating the writer instance.</li>
         </ul>
@@ -1118,6 +1124,9 @@ Page({
           <li><code>drawingColor:</code> hex string, default '#333'. The color of the lines drawn by users during quizzing.</li>
           <li><code>drawingWidth:</code> number, default 4. The width of the lines drawn by users during quizzing in px.</li>
           <li><code>showHintAfterMisses:</code> integer, default 3. The number of misses before a stroke highlight hint is given to the user. Set to false to disable. This can also be set when creating a quiz.</li>
+          <li><code>markStrokeCorrectAfterMisses:</code> integer, default disabled. The number of misses before forcing the stroke to be marked correct. This can also be set when creating a quiz.</li>
+          <li><code>quizStartStrokeNum:</code> integer, default 0. This can be set to start the quiz at a stroke other than the first stroke. This can also be set when creating a quiz.</li>
+          <li><code>acceptBackwardsStrokes:</code> boolean, default false. Allow stroke to be drawn backwards during quizzing. This can also be set when creating a quiz.</li>
           <li><code>highlightOnComplete:</code> boolean, default true. Controls whether a quiz briefly highlights the character when the user finishes drawing the whole character. This can also be set when creating a quiz.</li>
           <li><code>highlightCompleteColor:</code> hex string, default null. The color to use when highlighting the character on complete in quizzes. If not set, <code>highlightColor</code> will be used instead. Only relevant if <code>highlightOnComplete</code> is <code>true</code>.</li>
           <li><code>charDataLoader:</code> function. Custom function to load charater data. See the section on <a href="#loading-character-data-link">Loading character data</a> for more info on usage.</li>

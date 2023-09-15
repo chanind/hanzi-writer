@@ -110,7 +110,7 @@ export default class Quiz {
       {
         isOutlineVisible: this._renderState.state.character.outline.opacity > 0,
         leniency: this._options!.leniency,
-        averageDistanceThreshold: this._options!.averageDistanceThreshold
+        averageDistanceThreshold: this._options!.averageDistanceThreshold,
       },
     );
 
@@ -127,11 +127,8 @@ export default class Quiz {
     } else {
       this._handleFailure(meta);
 
-      const {
-        showHintAfterMisses,
-        highlightColor,
-        strokeHighlightSpeed,
-      } = this._options!;
+      const { showHintAfterMisses, highlightColor, strokeHighlightSpeed } =
+        this._options!;
 
       if (
         showHintAfterMisses !== false &&

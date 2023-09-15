@@ -156,9 +156,19 @@ const shapeFit = (curve1: Point[], curve2: Point[], leniency: number) => {
 const getMatchData = (
   points: Point[],
   stroke: Stroke,
-  options: { leniency?: number; isOutlineVisible?: boolean; checkBackwards?: boolean; averageDistanceThreshold?: number },
+  options: {
+    leniency?: number;
+    isOutlineVisible?: boolean;
+    checkBackwards?: boolean;
+    averageDistanceThreshold?: number;
+  },
 ): StrokeMatchResult & { avgDist: number } => {
-  const { leniency = 1, isOutlineVisible = false, checkBackwards = true, averageDistanceThreshold = 350 } = options;
+  const {
+    leniency = 1,
+    isOutlineVisible = false,
+    checkBackwards = true,
+    averageDistanceThreshold = 350,
+  } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
   const withinDistThresh = avgDist <= averageDistanceThreshold * distMod * leniency;

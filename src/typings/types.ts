@@ -72,6 +72,8 @@ export type QuizOptions = {
   quizStartStrokeNum: number;
   /** After a user makes this many mistakes, just mark the stroke correct and move on. Default: false */
   markStrokeCorrectAfterMisses: number | false;
+  /** bigger = more lenient */
+  averageDistanceThreshold: number;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */

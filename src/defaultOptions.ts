@@ -41,6 +41,7 @@ const defaultOptions: HanziWriterOptions = {
   markStrokeCorrectAfterMisses: false,
   acceptBackwardsStrokes: false,
   quizStartStrokeNum: 0,
+  averageDistanceThreshold: 350,
 
   // undocumented obscure options
 

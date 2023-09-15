@@ -14,7 +14,6 @@ import UserStroke from './models/UserStroke';
 import Stroke from './models/Stroke';
 import Character from './models/Character';
 
-const AVG_DIST_THRESHOLD = 350; // bigger = more lenient
 const COSINE_SIMILARITY_THRESHOLD = 0; // -1 to 1, smaller = more lenient
 const START_AND_END_DIST_THRESHOLD = 250; // bigger = more lenient
 const FRECHET_THRESHOLD = 0.4; // bigger = more lenient
@@ -36,6 +35,7 @@ export default function strokeMatches(
   options: {
     leniency?: number;
     isOutlineVisible?: boolean;
+    averageDistanceThreshold?: number;
   } = {},
 ): StrokeMatchResult {
   const strokes = character.strokes;
@@ -156,12 +156,12 @@ const shapeFit = (curve1: Point[], curve2: Point[], leniency: number) => {
 const getMatchData = (
   points: Point[],
   stroke: Stroke,
-  options: { leniency?: number; isOutlineVisible?: boolean; checkBackwards?: boolean },
+  options: { leniency?: number; isOutlineVisible?: boolean; checkBackwards?: boolean; averageDistanceThreshold?: number },
 ): StrokeMatchResult & { avgDist: number } => {
-  const { leniency = 1, isOutlineVisible = false, checkBackwards = true } = options;
+  const { leniency = 1, isOutlineVisible = false, checkBackwards = true, averageDistanceThreshold = 350 } = options;
   const avgDist = stroke.getAverageDistance(points);
   const distMod = isOutlineVisible || stroke.strokeNum > 0 ? 0.5 : 1;
-  const withinDistThresh = avgDist <= AVG_DIST_THRESHOLD * distMod * leniency;
+  const withinDistThresh = avgDist <= averageDistanceThreshold * distMod * leniency;
   // short circuit for faster matching
   if (!withinDistThresh) {
     return { isMatch: false, avgDist, meta: { isStrokeBackwards: false } };

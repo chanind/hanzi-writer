@@ -59,9 +59,6 @@ js: docs.js
               <li>
                 <a href="#custom-backgrounds">Custom backgrounds</a>
               </li>
-              <li>
-                <a href="#wechat-miniprograms">Wechat / 微信小程序</a>
-              </li>
             </ul>
           </li>
           <li>
@@ -815,70 +812,6 @@ var writer = HanziWriter.create('grid-background-target', '酷', {
           });
         })()
       </script>
-
-      <h1 id="wechat-miniprograms">Wechat miniprograms / 微信小程序</h1>
-
-      <p>
-        Hanzi Writer can be used inside of Wechat miniprograms via a <a href="https://github.com/chanind/hanzi-writer-miniprogram">miniprogram component plugin</a>.
-        You can install this plugin using npm like below:
-      </p>
-
-      <code>npm install hanzi-writer-miniprogram</code>
-      <p>
-        In your page.json, first add the following to enable the hanzi-writer-view component:
-      </p>
-
-      {% highlight javascript %}
-{
-  "usingComponents": {
-    "hanzi-writer-view": "hanzi-writer-miniprogram/hanzi-writer-view"
-  }
-}
-      {% endhighlight %}
-
-      <p>
-        Then, add a <code>hanzi-writer-view</code> component to your page.
-        You must add an <code>id</code>, <code>width</code>, and <code>height</code>, like below:
-      </p>
-
-      {% highlight html %}
-<hanzi-writer-view id="hz-writer" width="300" height="300" />
-      {% endhighlight %}
-
-      <p>
-        Then in your page, you can control the view via <code>createHanziWriterContext(options)</code>, like below:
-      </p>
-
-      {% highlight javascript %}
-import createHanziWriterContext from 'hanzi-writer-miniprogram';
-
-Page({
-  onLoad: function() {
-    this.writerCtx = createHanziWriterContext({
-      id: 'hz-writer',
-      character: '你',
-      page: this,
-    });
-
-    // You can call any normal HanziWriter method here
-    this.writerCtx.loopCharacterAnimation();
-  }
-});
-      {% endhighlight %}
-
-      <p>
-        This method requires the id from the hanzi-writer-view component in wxml, and the current page.
-      </p>
-      <p>
-        By default, character data is loaded from the hanzi-writer CDN, so you'll need to add <code>https://cdn.jsdelivr.net</code> to your
-        <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html"></a>list of approved domain names</a>.
-        Otherwise, you can provide your own <code>charDataLoader</code> function and load character data however you like. 
-        You can read more about <a href="#loading-character-data-link">loading character data here</a>.
-      </p>
-      <p>
-        You can also pass any other normal Hanzi Writer options to <code>createHanziWriterContext</code>,
-        except for <code>width</code> and <code>height</code> which are set in the <code>hanzi-writer-view</code> component. 
-      </p>
 
       <h1 id="api-link">API</h1>
 

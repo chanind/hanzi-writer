@@ -59,9 +59,6 @@ js: ../docs.js
               <li>
                 <a href="#custom-backgrounds">自定义背景</a>
               </li>
-              <li>
-                <a href="#wechat-miniprograms">Wechat / 微信小程序</a>
-              </li>
             </ul>
           </li>
           <li>
@@ -878,77 +875,6 @@ var writer = HanziWriter.create('grid-background-target', '酷', {
         });
       })()
     </script>
-
-
-    <h1 id="wechat-miniprograms">Wechat miniprograms / 微信小程序</h1>
-
-    <p>
-      <a href="https://github.com/chanind/hanzi-writer-miniprogram">微信小程序组件插件</a>
-      在微信小程序中使用。 可以使用npm安装此插件，如下所示：
-    </p>
-
-    <code>npm install hanzi-writer-miniprogram</code>
-    <p>
-      在 page.json中，首先添加以下内容以启用 hanzi-writer-view组件：
-    </p>
-
-    {% highlight javascript %}
-{
-  "usingComponents": {
-    "hanzi-writer-view": "hanzi-writer-miniprogram/hanzi-writer-view"
-  }
-}
-    {% endhighlight %}
-
-    <p>
-      然后，在页面中添加<code>hanzi-writer-view</code></code>组件。 你必须添加<code>id</code>，
-      <code>width</code>和<code>height</code>，如下所示：
-
-    </p>
-
-    {% highlight html %}
-<hanzi-writer-view id="hz-writer" width="300" height="300" />
-    {% endhighlight %}
-
-    <p>
-      然后在您的页面中，你可以通过<code>createHanziWriterContext(options)</code>控制视图，如下所示：
-    </p>
-
-    {% highlight javascript %}
-import createHanziWriterContext from 'hanzi-writer-miniprogram';
-
-Page({
-  onLoad: function() {
-    this.writerCtx = createHanziWriterContext({
-      id: 'hz-writer',
-      character: '你',
-      page: this,
-    });
-
-    // You can call any normal HanziWriter method here
-    this.writerCtx.loopCharacterAnimation();
-  }
-});
-    {% endhighlight %}
-
-    <p>
-      此方法需要来自 <code>wxml</code> 中 <code>hanzi-writer-view</code> 组件的id和当前页面。
-    </p>
-    <p>
-      默认情况下，字符数据是从 hanzi-writer CDN 加载的，因此您需要将
-      <code>https://cdn.jsdelivr.net</code>
-      添加到已批准的
-      <a href="https://developers.weixin.qq.com/miniprogram/dev/framework/ability/network.html">
-        域名列表中
-      </a>。
-      否则，你可以提供自己的<code>charDataLoader</code>函数并加载你喜欢的字符数据。
-      你可以在此处阅读有关<a href="#loading-character-data-link">加载字符数据</a>的更多信息。
-    </p>
-    <p>
-      您还可以将任何其他正常的 Hanzi Writer 选项传递给
-      <code>createHanziWriterContext</code>，但在<code>hanzi-writer-view</code>组件中设置的<code>宽度</code>和
-      <code>高度</code>除外。
-    </p>
 
     <h1 id="api-link">API</h1>
 

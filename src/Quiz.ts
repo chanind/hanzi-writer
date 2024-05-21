@@ -178,13 +178,12 @@ export default class Quiz {
     };
   }
 
-  _handleSuccess(meta: StrokeMatchResultMeta) {
+  _showNextStroke() {
     if (!this._options) return;
 
     const { strokes, symbol } = this._character;
 
     const {
-      onCorrectStroke,
       onComplete,
       highlightOnComplete,
       strokeFadeDuration,
@@ -192,10 +191,6 @@ export default class Quiz {
       highlightColor,
       strokeHighlightDuration,
     } = this._options;
-
-    onCorrectStroke?.({
-      ...this._getStrokeData({ isCorrect: true, meta }),
-    });
 
     let animation: GenericMutation[] = characterActions.showStroke(
       'main',
@@ -226,6 +221,18 @@ export default class Quiz {
     }
 
     this._renderState.run(animation);
+  }
+
+  _handleSuccess(meta: StrokeMatchResultMeta) {
+    if (!this._options) return;
+
+    const { onCorrectStroke } = this._options;
+
+    onCorrectStroke?.({
+      ...this._getStrokeData({ isCorrect: true, meta }),
+    });
+
+    this._showNextStroke();
   }
 
   _handleFailure(meta: StrokeMatchResultMeta) {

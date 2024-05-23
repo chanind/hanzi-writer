@@ -405,6 +405,12 @@ export default class HanziWriter {
     });
   }
 
+  skipQuizStroke() {
+    if (this._quiz) {
+      this._quiz.nextStroke();
+    }
+  }
+
   cancelQuiz() {
     if (this._quiz) {
       this._quiz.cancel();

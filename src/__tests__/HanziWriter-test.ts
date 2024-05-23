@@ -1140,6 +1140,27 @@ describe('HanziWriter', () => {
     });
   });
 
+  describe('skipQuizStroke', () => {
+    it('returns if there is not active quiz', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
+      await writer._withDataPromise;
+      expect(writer.skipQuizStroke()).toBe(undefined);
+      expect(writer._quiz).toBe(undefined);
+    });
+
+    it('skips the current stroke if a quiz is active', async () => {
+      document.body.innerHTML = '<div id="target"></div>';
+      const writer = HanziWriter.create('target', '人', { charDataLoader });
+      writer.quiz();
+      await resolvePromises();
+      const quiz = writer._quiz!;
+      writer.skipQuizStroke();
+      expect(quiz.nextStroke).toHaveBeenCalledTimes(1);
+      expect(quiz._handleSuccess).not.toHaveBeenCalled();
+    });
+  });
+
   describe('mouse and touch events', () => {
     let writer: HanziWriter;
     beforeEach(async () => {

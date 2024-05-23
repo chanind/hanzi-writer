@@ -405,9 +405,9 @@ export default class HanziWriter {
     });
   }
 
-  skipStrokeQuiz() {
+  skipQuizStroke() {
     if (this._quiz) {
-      this._quiz._showNextStroke();
+      this._quiz.nextStroke();
     }
   }
 

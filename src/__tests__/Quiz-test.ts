@@ -956,6 +956,40 @@ describe('Quiz', () => {
     });
   });
 
+  describe('nextStroke', () => {
+    it('shows the current stroke and moves to the next stroke', async () => {
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const onCorrectStroke = jest.fn();
+      const onMistake = jest.fn();
+      const onComplete = jest.fn();
+      quiz.startQuiz(Object.assign({}, opts, { onCorrectStroke, onComplete, onMistake }));
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(quiz._currentStrokeIndex).toBe(0);
+      quiz.nextStroke();
+      await resolvePromises();
+
+      expect(quiz._userStroke).toBeUndefined();
+      expect(quiz._isActive).toBe(true);
+      expect(quiz._currentStrokeIndex).toBe(1);
+      expect(onCorrectStroke).not.toHaveBeenCalled();
+      expect(onMistake).not.toHaveBeenCalled();
+      expect(onComplete).not.toHaveBeenCalled();
+
+      clock.tick(1000);
+      await resolvePromises();
+
+      expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
+      expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
+    });
+  });
+
   it('doesnt leave strokes partially drawn if the users finishes the quiz really fast', async () => {
     (strokeMatches as any).mockImplementation(() => ({
       isMatch: true,

@@ -127,8 +127,11 @@ export default class Quiz {
     } else {
       this._handleFailure(meta);
 
-      const { showHintAfterMisses, highlightColor, strokeHighlightSpeed } =
-        this._options!;
+      const {
+        showHintAfterMisses,
+        highlightColor,
+        strokeHighlightSpeed,
+      } = this._options!;
 
       if (
         showHintAfterMisses !== false &&
@@ -178,7 +181,7 @@ export default class Quiz {
     };
   }
 
-  _showNextStroke() {
+  nextStroke() {
     if (!this._options) return;
 
     const { strokes, symbol } = this._character;
@@ -232,7 +235,7 @@ export default class Quiz {
       ...this._getStrokeData({ isCorrect: true, meta }),
     });
 
-    this._showNextStroke();
+    this.nextStroke();
   }
 
   _handleFailure(meta: StrokeMatchResultMeta) {

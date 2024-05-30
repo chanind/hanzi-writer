@@ -160,6 +160,16 @@ export default class Quiz {
         ),
       );
     }
+
+    if (!this._options) return;
+
+    const { symbol } = this._character;
+    const { onCancel } = this._options;
+
+    onCancel?.({
+      character: symbol,
+      totalMistakes: this._totalMistakes,
+    });
   }
 
   _getStrokeData({

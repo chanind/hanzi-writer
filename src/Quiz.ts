@@ -39,7 +39,7 @@ export default class Quiz {
   startQuiz(options: ParsedHanziWriterOptions) {
     if (this._userStrokesIds) {
       this._renderState.run(
-        quizActions.removeAllUserStroke( this._userStrokesIds ),
+        quizActions.removeAllUserStrokes( this._userStrokesIds ),
       );
     }
     this._userStrokesIds = []
@@ -73,6 +73,7 @@ export default class Quiz {
     const point = this._positioner.convertExternalPoint(externalPoint);
     const strokeId = counter();
     this._userStroke = new UserStroke(strokeId, point, externalPoint);
+    this._userStrokesIds?.push(strokeId)
     return this._renderState.run(quizActions.startUserStroke(strokeId, point));
   }
 
@@ -101,8 +102,6 @@ export default class Quiz {
         this._options!.drawingFadeDuration ?? 300,
       ),
     );
-
-    this._userStrokesIds?.push(this._userStroke.id)
 
     // skip single-point strokes
     if (this._userStroke.points.length === 1) {
@@ -164,7 +163,7 @@ export default class Quiz {
     this._isActive = false;
     if (this._userStrokesIds) {
       this._renderState.run(
-        quizActions.removeAllUserStroke( this._userStrokesIds ),
+        quizActions.removeAllUserStrokes( this._userStrokesIds ),
       );
     }
   }

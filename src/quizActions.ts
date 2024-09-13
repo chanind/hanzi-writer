@@ -62,16 +62,15 @@ export const hideUserStroke = (
     // Do not remove the stroke, keep it hidden until quiz ends
     // This avoids a bug in which touchmove stops being triggered in the middle of a stroke
     // the only doc i found https://stackoverflow.com/questions/29384973/touchmove-event-stops-triggering-after-any-element-is-removed-from-dom
-    // so if user is too quick to start his new stroke, (less than duration), the new stroke stops in mid air
+    // so if the user on his phone is too quick to start his new stroke, the new stroke may stops in mid air
     //new Mutation(`userStrokes.${userStrokeId}`, null, { force: true }),
   ];
 };
 
-export const removeAllUserStroke = (userStrokeIds: Array<number>): GenericMutation[] => {
-  console.log("removeAllUserStroke")
-  return userStrokeIds.map(userStrokeId =>
+export const removeAllUserStrokes = (userStrokeIds: Array<number>): GenericMutation[] => {
+  return userStrokeIds?.map(userStrokeId =>
     new Mutation(`userStrokes.${userStrokeId}`, null, { force: true })
-  );
+  ) || [];
 };
 
 export const highlightCompleteChar = (

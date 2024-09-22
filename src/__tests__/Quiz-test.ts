@@ -206,6 +206,7 @@ describe('Quiz', () => {
       clock.tick(1000);
       await resolvePromises();
 
+      // should disappear
       expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
     });
   });
@@ -268,8 +269,8 @@ describe('Quiz', () => {
       clock.tick(1000);
       await resolvePromises();
 
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
   });
 
@@ -391,8 +392,8 @@ describe('Quiz', () => {
 
       expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
     it('accepts backwards stroke when allowed', async () => {
@@ -456,8 +457,8 @@ describe('Quiz', () => {
 
       expect(renderState.state.character.main.strokes[0].opacity).toBe(1);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
     it('notes backwards stroke when checking', async () => {
@@ -521,8 +522,8 @@ describe('Quiz', () => {
 
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
     it('ignores single point strokes', async () => {
@@ -561,8 +562,8 @@ describe('Quiz', () => {
 
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
     it('stays on the stroke if it was incorrect', async () => {
@@ -619,8 +620,8 @@ describe('Quiz', () => {
 
       expect(renderState.state.character.main.strokes[0].opacity).toBe(0);
       expect(renderState.state.character.main.strokes[1].opacity).toBe(0);
-      // should fade and disappear
-      expect(renderState.state.userStrokes![currentStrokeId]).toBe(null);
+      // should fade
+      expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
     it('highlights the stroke if the number of mistakes exceeds showHintAfterMisses', async () => {

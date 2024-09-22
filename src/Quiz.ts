@@ -27,6 +27,7 @@ export default class Quiz {
   _mistakesOnStroke = 0;
   _totalMistakes = 0;
   _userStroke: UserStroke | undefined;
+  _userStrokesIds: Array<number> | undefined;
 
   constructor(character: Character, renderState: RenderState, positioner: Positioner) {
     this._character = character;
@@ -36,6 +37,13 @@ export default class Quiz {
   }
 
   startQuiz(options: ParsedHanziWriterOptions) {
+    if (this._userStrokesIds) {
+      this._renderState.run(
+        quizActions.removeAllUserStrokes( this._userStrokesIds ),
+      );
+    }
+    this._userStrokesIds = []
+
     this._isActive = true;
     this._options = options;
     const startIndex = fixIndex(
@@ -65,6 +73,7 @@ export default class Quiz {
     const point = this._positioner.convertExternalPoint(externalPoint);
     const strokeId = counter();
     this._userStroke = new UserStroke(strokeId, point, externalPoint);
+    this._userStrokesIds?.push(strokeId)
     return this._renderState.run(quizActions.startUserStroke(strokeId, point));
   }
 
@@ -88,7 +97,7 @@ export default class Quiz {
     if (!this._userStroke) return;
 
     this._renderState.run(
-      quizActions.removeUserStroke(
+      quizActions.hideUserStroke(
         this._userStroke.id,
         this._options!.drawingFadeDuration ?? 300,
       ),
@@ -152,12 +161,9 @@ export default class Quiz {
 
   cancel() {
     this._isActive = false;
-    if (this._userStroke) {
+    if (this._userStrokesIds) {
       this._renderState.run(
-        quizActions.removeUserStroke(
-          this._userStroke.id,
-          this._options!.drawingFadeDuration,
-        ),
+        quizActions.removeAllUserStrokes( this._userStrokesIds ),
       );
     }
   }

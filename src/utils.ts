@@ -6,9 +6,10 @@ const globalObj = typeof window === 'undefined' ? global : window;
 export const performanceNow =
   (globalObj.performance && (() => globalObj.performance.now())) || (() => Date.now());
 export const requestAnimationFrame =
-  globalObj.requestAnimationFrame ||
+  globalObj.requestAnimationFrame?.bind(globalObj) ||
   ((callback) => setTimeout(() => callback(performanceNow()), 1000 / 60));
-export const cancelAnimationFrame = globalObj.cancelAnimationFrame || clearTimeout;
+export const cancelAnimationFrame =
+  globalObj.cancelAnimationFrame?.bind(globalObj) || clearTimeout;
 
 // Object.assign polyfill, because IE :/
 export const _assign = function (target: any, ...overrides: any[]) {

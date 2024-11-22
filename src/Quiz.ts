@@ -166,6 +166,16 @@ export default class Quiz {
         quizActions.removeAllUserStrokes( this._userStrokesIds ),
       );
     }
+
+    if (!this._options) return;
+
+    const { symbol } = this._character;
+    const { onCancel } = this._options;
+
+    onCancel?.({
+      character: symbol,
+      totalMistakes: this._totalMistakes,
+    });
   }
 
   _getStrokeData({

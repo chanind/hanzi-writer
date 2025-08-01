@@ -259,7 +259,7 @@ export default class Quiz {
   }
 
   // Método público para mostrar traços corretos e calcular nota
-  showCorrectStrokesAndScore() {
+  showCorrectStrokesAndScore(scoreContainer?: HTMLElement | string) {
     // Mostrar traços corretos padrão
     this._renderState.run(
       characterActions.showCharacter('main', this._character, this._options?.strokeFadeDuration || 400)
@@ -288,11 +288,18 @@ export default class Quiz {
     }
     const finalScore = Math.round(sumPercent / totalStrokes);
 
-    // Exibir nota dentro da div 'target', no canto inferior direito
+    // Permitir exibir a nota em qualquer container passado
     const scoreDivId = 'hanzi-writer-score';
-    const targetDiv = document.getElementById('target');
-    if (!targetDiv) return;
-    let scoreDiv = targetDiv.querySelector('#' + scoreDivId) as HTMLElement | null;
+    let container: HTMLElement | null = null;
+    if (scoreContainer) {
+      container = typeof scoreContainer === 'string'
+        ? document.getElementById(scoreContainer)
+        : scoreContainer;
+    } else {
+      container = this._renderState && (this._renderState._element as HTMLElement | null);
+    }
+    if (!container) return;
+    let scoreDiv = container.querySelector('#' + scoreDivId) as HTMLElement | null;
     if (!scoreDiv) {
       scoreDiv = document.createElement('div') as HTMLElement;
       scoreDiv.id = scoreDivId;
@@ -308,8 +315,8 @@ export default class Quiz {
       scoreDiv.style.pointerEvents = 'none';
       scoreDiv.style.opacity = '0.85';
       scoreDiv.style.userSelect = 'none';
-      targetDiv.style.position = 'relative';
-      targetDiv.appendChild(scoreDiv);
+      container.style.position = 'relative';
+      container.appendChild(scoreDiv);
     }
     scoreDiv.textContent = `${finalScore}%`;
   }

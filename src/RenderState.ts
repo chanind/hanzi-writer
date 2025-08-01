@@ -73,6 +73,7 @@ export type RenderStateOptions = {
 };
 
 export default class RenderState {
+  public _element: HTMLElement | null = null;
   _mutationChains: MutationChain[] = [];
   _onStateChange: OnStateChangeCallback;
 

@@ -26,7 +26,7 @@ describe('defaultCharDataLoader', () => {
 
     expect(requests.length).toBe(1);
     expect(requests[0].url).toBe(
-      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/人.json',
+      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/人.json',
     );
 
     requests[0].respond(200, { 'Content-Type': 'application/json' }, JSON.stringify(ren));
@@ -44,7 +44,7 @@ describe('defaultCharDataLoader', () => {
 
     expect(requests.length).toBe(1);
     expect(requests[0].url).toBe(
-      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0/Q.json',
+      'https://cdn.jsdelivr.net/npm/hanzi-writer-data@2.0.1/Q.json',
     );
 
     requests[0].respond(

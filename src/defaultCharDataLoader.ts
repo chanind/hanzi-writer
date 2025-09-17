@@ -1,6 +1,6 @@
 import { CharacterJson } from './typings/types';
 
-const VERSION = '2.0';
+const VERSION = '2.0.1';
 const getCharDataUrl = (char: string) =>
   `https://cdn.jsdelivr.net/npm/hanzi-writer-data@${VERSION}/${char}.json`;
 

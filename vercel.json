@@ -1,0 +1,38 @@
+{
+  "buildCommand": "yarn install && yarn build",
+  "devCommand": "yarn build",
+  "installCommand": "yarn install",
+  "framework": null,
+  "outputDirectory": ".",
+  "cleanUrls": true,
+  "rewrites": [
+    {
+      "source": "/",
+      "destination": "/demo/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/dist/(.*).js",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "application/javascript; charset=utf-8"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=31536000, immutable"
+        }
+      ]
+    },
+    {
+      "source": "/demo/(.*).css",
+      "headers": [
+        {
+          "key": "Content-Type",
+          "value": "text/css; charset=utf-8"
+        }
+      ]
+    }
+  ]
+}

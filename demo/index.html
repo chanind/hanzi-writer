@@ -1,36 +1,141 @@
 <!DOCTYPE html>
 <html lang="en-us">
-	<head>
-		<meta charset="utf-8">
-		<title>Hanzi Writer</title>
-		<!-- <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'> -->
-		<link rel="stylesheet" href="styles.css" />
-		<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
-	</head>
-	<body>
+<head>
+    <meta charset="utf-8">
+    <title>Hanzi Writer</title>
+    <style>
+        /* 保持图片中的精确样式 */
+        body {
+            background: #F5F5DC; /* 浅米色背景 */ 
+            margin: 0;
+            font-family: Arial, sans-serif;
+        }
+        .title {
+            background: #000; /* 黑色标题栏 */
+            color: white;
+            padding: 15px;
+            margin: 0;
+            text-align: center;
+        }
+        .char-form {
+            text-align: center;
+            margin: 20px 0;
+        }
+        .char-input {
+            font-size: 24px;
+            width: 60px; /* 保持原输入框宽度 */
+            border: 1px solid #ccc;
+            text-align: center;
+            padding: 2px;
+        }
+        .actions {
+            text-align: center;
+            margin: 20px 0;
+        }
+        button {
+            background: #4CAF50; /* 绿色按钮 */
+            color: white;
+            border: none;
+            padding: 8px 16px;
+            margin: 0 5px;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        #target {
+            width: 200px;
+            height: 200px;
+            margin: 30px auto;
+            background: white;
+            border: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <h1 class="title">Hanzi Writer</h1>
 
-		<h1 class="title">Hanzi Writer</h1>
-		<form class="js-char-form char-form">
-			<label>
-				Character
-				<input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
-			</label>
-			<button type="submit">Update</button>
-		</form>
-		<div class="actions">
-			<button class="js-toggle">Show/hide</button>
-			<button class="js-toggle-hint">Outline on/off</button>
-			<button class="js-animate">Animate</button>
-			<button class="js-quiz">Quiz yourself</button>
-		</div>
+    <form class="char-form">
+        <label>Character</label>
+        <input type="text" class="char-input" value="学" maxlength="10"> <!-- 扩展为最多10字 -->
+        <button type="submit">Update</button>
+    </form>
 
-		<div id="target">
+    <div class="actions">
+        <button class="js-toggle">Show/hide</button>
+        <button class="js-toggle-hint">Outline on/off</button>
+        <button class="js-animate">Animate</button>
+        <button class="js-quiz">Quiz yourself</button>
+        <button class="js-pause">Pause</button>
+        <button class="js-resume">Resume</button>
+    </div>
 
-		</div>
+    <div id="target"></div>
 
-		<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script> -->
-		<script type="application/javascript" src="../dist/hanzi-writer.js"></script>
-		<script type="application/javascript" src="test.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/hanzi-writer@2.2/dist/hanzi-writer.js"></script>
+    <script>
+        // 初始化配置
+        let writer = null;
+        let charQueue = [];
+        let currentIndex = 0;
+        let isPaused = false;
 
-	</body>
+        // 初始化书写区域
+        function initWriter(char) {
+            document.getElementById('target').innerHTML = '';
+            writer = HanziWriter.create('target', char, {
+                width: 200,
+                height: 200,
+                padding: 5,
+                showOutline: true,
+                strokeColor: '#666' // 灰色笔画
+            });
+        }
+
+        // 表单提交处理
+        document.querySelector('.char-form').addEventListener('submit', function(e) {
+            e.preventDefault();
+            const input = document.querySelector('.char-input').value.trim();
+            charQueue = [...input]; // 转换为字符数组
+            currentIndex = 0;
+            isPaused = false;
+            startAnimation();
+        });
+
+        // 核心动画队列控制
+        function startAnimation() {
+            if (currentIndex >= charQueue.length || isPaused) return;
+            
+            initWriter(charQueue[currentIndex]);
+            writer.animateCharacter().then(() => {
+                if (!isPaused) {
+                    currentIndex++;
+                    if (currentIndex < charQueue.length) {
+                        setTimeout(startAnimation, 500); // 0.5秒间隔
+                    }
+                }
+            });
+        }
+
+        // 功能按钮绑定
+        document.querySelector('.js-toggle').addEventListener('click', () => writer?.toggleCharacter());
+        document.querySelector('.js-toggle-hint').addEventListener('click', () => writer?.toggleOutline());
+        document.querySelector('.js-animate').addEventListener('click', startAnimation);
+        document.querySelector('.js-quiz').addEventListener('click', () => writer?.quiz());
+        document.querySelector('.js-pause').addEventListener('click', () => {
+            isPaused = true;
+            writer?.pauseAnimation();
+        });
+        document.querySelector('.js-resume').addEventListener('click', () => {
+            isPaused = false;
+            if (currentIndex < charQueue.length) {
+                startAnimation();
+            } else {
+                currentIndex = 0;
+                startAnimation();
+            }
+        });
+
+        // 初始化默认显示
+        initWriter('学');
+    </script>
+</body>
 </html>

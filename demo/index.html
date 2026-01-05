@@ -1,36 +1,114 @@
 <!DOCTYPE html>
 <html lang="en-us">
-	<head>
-		<meta charset="utf-8">
-		<title>Hanzi Writer</title>
-		<!-- <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'> -->
-		<link rel="stylesheet" href="styles.css" />
-		<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
-	</head>
-	<body>
+<head>
+	<meta charset="utf-8">
+	<title>Hanzi Writer Enhanced</title>
+	<link rel="stylesheet" href="styles.css" />
+	<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+	<script src="https://unpkg.com/hanzi-writer@2.0.2/dist/hanzi-writer.min.js"></script>
+	<style>
+		body { font-family: sans-serif; padding: 20px; }
+		.char-input { font-size: 24px; width: 3em; }
+		#target { width: 300px; height: 300px; margin-top: 20px; }
+		.status { margin-top: 10px; font-weight: bold; }
+		.char-list button { margin: 0 5px; padding: 5px 10px; }
+	</style>
+</head>
+<body>
 
-		<h1 class="title">Hanzi Writer</h1>
-		<form class="js-char-form char-form">
-			<label>
-				Character
-				<input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
-			</label>
-			<button type="submit">Update</button>
-		</form>
-		<div class="actions">
-			<button class="js-toggle">Show/hide</button>
-			<button class="js-toggle-hint">Outline on/off</button>
-			<button class="js-animate">Animate</button>
-			<button class="js-quiz">Quiz yourself</button>
-		</div>
+<h1 class="title">Hanzi Writer - 多汉字练习</h1>
 
-		<div id="target">
+<!-- 输入框 -->
+<form class="js-char-form char-form">
+	<label>
+		输入汉字串：
+		<input type="text" class="js-char char-input" maxlength="20" value="我爱你" />
+	</label>
+	<button type="submit">开始练习</button>
+</form>
 
-		</div>
+<!-- 汉字选择器 -->
+<div class="char-list"></div>
 
-		<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script> -->
-		<script type="application/javascript" src="../dist/hanzi-writer.js"></script>
-		<script type="application/javascript" src="test.js"></script>
+<!-- 控制按钮 -->
+<div class="actions" style="margin-top: 10px;">
+	<button class="js-toggle">显示/隐藏</button>
+	<button class="js-toggle-hint">轮廓开/关</button>
+	<button class="js-animate">播放动画</button>
+	<button class="js-quiz">练习书写</button>
+</div>
 
-	</body>
+<!-- 显示目标区域 -->
+<div id="target"></div>
+
+<div class="status js-status">当前汉字：-</div>
+
+<script>
+	let writer = null;
+	let currentIndex = 0;
+	let charList = [];
+
+	const targetEl = document.getElementById('target');
+	const form = document.querySelector('.js-char-form');
+	const input = document.querySelector('.js-char');
+	const charListContainer = document.querySelector('.char-list');
+	const status = document.querySelector('.js-status');
+
+	function loadChar(character) {
+		targetEl.innerHTML = '';
+		status.textContent = `当前汉字：${character}`;
+
+		writer = HanziWriter.create('target', character, {
+			width: 300,
+			height: 300,
+			padding: 10,
+			showOutline: true,
+			strokeAnimationSpeed: 1,
+			delayBetweenStrokes: 150,
+		});
+	}
+
+	function renderCharButtons(chars) {
+		charListContainer.innerHTML = '';
+		chars.forEach((char, index) => {
+			const btn = document.createElement('button');
+			btn.textContent = char;
+			btn.onclick = () => {
+				currentIndex = index;
+				loadChar(char);
+			};
+			charListContainer.appendChild(btn);
+		});
+	}
+
+	form.addEventListener('submit', (e) => {
+		e.preventDefault();
+		const chars = input.value.trim().split('').filter(c => c);
+		if (chars.length === 0) return;
+
+		charList = chars;
+		currentIndex = 0;
+		renderCharButtons(charList);
+		loadChar(charList[0]);
+	});
+
+	document.querySelector('.js-toggle').addEventListener('click', () => {
+		if (writer) writer.hideCharacter();
+		setTimeout(() => { if (writer) writer.showCharacter(); }, 500);
+	});
+
+	document.querySelector('.js-toggle-hint').addEventListener('click', () => {
+		if (writer) writer.toggleOutline();
+	});
+
+	document.querySelector('.js-animate').addEventListener('click', () => {
+		if (writer) writer.animateCharacter();
+	});
+
+	document.querySelector('.js-quiz').addEventListener('click', () => {
+		if (writer) writer.quiz();
+	});
+</script>
+
+</body>
 </html>

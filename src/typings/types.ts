@@ -78,6 +78,8 @@ export type QuizOptions = {
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
+  /** Callback when the quiz got canceled */
+  onCancel?: (summary: { character: string; totalMistakes: number }) => void;
 };
 
 export type LoadingManagerOptions = {

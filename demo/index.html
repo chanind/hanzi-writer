@@ -5,32 +5,47 @@
 		<title>Hanzi Writer</title>
 		<!-- <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'> -->
 		<link rel="stylesheet" href="styles.css" />
-		<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
+		<!--<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>-->
 	</head>
 	<body>
 
 		<h1 class="title">Hanzi Writer</h1>
-		<form class="js-char-form char-form">
-			<label>
-				Character
-				<input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
-			</label>
-			<button type="submit">Update</button>
-		</form>
-		<div class="actions">
-			<button class="js-toggle">Show/hide</button>
-			<button class="js-toggle-hint">Outline on/off</button>
-			<button class="js-animate">Animate</button>
-			<button class="js-quiz">Quiz yourself</button>
+<form class="js-char-form char-form">
+  <label>
+	Character 1
+	<input type="text" class="js-char1 char-input" size="1" maxlength="1" value="我" />
+  </label>
+  <label>
+	Character 2
+	<input type="text" class="js-char2 char-input" size="1" maxlength="1" value="你" />
+  </label>
+  <button type="submit">Update</button>
+</form>
+		<div class="actions1">
+	  <button class="js-toggle1">Show/hide1</button>
+	  <button class="js-toggle-hint1">Outline on/off1</button>
+	  <button class="js-animate1">Animate1</button>
+	  <button class="js-quiz1">Quiz yourself1</button>
+	  <button class="js-show-correct1">Show result1</button>
 		</div>
 
-		<div id="target">
+		<div id="target1"></div>
+		<div id="meuDivDeNota1"></div>
 
+				<div class="actions2">
+	  <button class="js-toggle2">Show/hide2</button>
+	  <button class="js-toggle-hint2">Outline on/off2</button>
+	  <button class="js-animate2">Animate2</button>
+	  <button class="js-quiz2">Quiz yourself2</button>
+	  <button class="js-show-correct2">Show result2</button>
 		</div>
+
+		<div id="target2"></div>
+		<div id="meuDivDeNota2"></div>
 
 		<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script> -->
 		<script type="application/javascript" src="../dist/hanzi-writer.js"></script>
-		<script type="application/javascript" src="test.js"></script>
+	<script type="application/javascript" src="test-multi.js"></script>
 
 	</body>
 </html>

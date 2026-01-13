@@ -20,6 +20,8 @@ function updateCharacter() {
     onCorrectStroke: printStrokePoints,
     onMistake: printStrokePoints,
     showCharacter: false,
+    drawingWidth: 50,    
+    keepUserStrokesVisible: true,
   });
   isCharVisible = true;
   isOutlineVisible = true;
@@ -52,7 +54,14 @@ window.onload = function () {
   });
   document.querySelector('.js-quiz').addEventListener('click', function () {
     writer.quiz({
-      showOutline: true,
+      showOutline: false,
+      highlightOnComplete: false,
+      leniency: 0.7,
     });
+  });
+  document.querySelector('.js-show-correct').addEventListener('click', function () {
+    if (writer && writer._quiz && typeof writer._quiz.showCorrectStrokesAndScore === 'function') {
+      writer._quiz.showCorrectStrokesAndScore();
+    }
   });
 };

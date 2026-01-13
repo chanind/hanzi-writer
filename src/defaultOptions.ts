@@ -43,6 +43,9 @@ const defaultOptions: HanziWriterOptions = {
   quizStartStrokeNum: 0,
   averageDistanceThreshold: 350,
 
+  // novo parâmetro para manter traços do usuário visíveis
+  keepUserStrokesVisible: false,
+
   // undocumented obscure options
 
   drawingFadeDuration: 300,

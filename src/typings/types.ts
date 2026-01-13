@@ -78,6 +78,9 @@ export type QuizOptions = {
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */
   onComplete?: (summary: { character: string; totalMistakes: number }) => void;
+
+  /** Se true, mantém todos os traços do usuário visíveis durante e após o quiz. */
+  keepUserStrokesVisible?: boolean;
 };
 
 export type LoadingManagerOptions = {

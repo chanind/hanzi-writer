@@ -27,6 +27,10 @@ export type RenderStateObject = {
     outlineColor: ColorObject;
     radicalColor: ColorObject;
     highlightColor: ColorObject;
+    enhancedDrawing?: boolean;
+    minDrawingWidthRatio?: number;
+    maxDrawingWidthRatio?: number;
+    drawingSpeedSensitivity?: number;
   };
   character: {
     main: CharacterRenderState;
@@ -70,6 +74,10 @@ export type RenderStateOptions = {
   outlineWidth: number;
   showCharacter: boolean;
   showOutline: boolean;
+  enhancedDrawing?: boolean;
+  minDrawingWidthRatio?: number;
+  maxDrawingWidthRatio?: number;
+  drawingSpeedSensitivity?: number;
 };
 
 export default class RenderState {
@@ -94,6 +102,10 @@ export default class RenderState {
         outlineColor: colorStringToVals(options.outlineColor),
         radicalColor: colorStringToVals(options.radicalColor || options.strokeColor),
         highlightColor: colorStringToVals(options.highlightColor),
+        enhancedDrawing: options.enhancedDrawing ?? false,
+        minDrawingWidthRatio: options.minDrawingWidthRatio ?? 0.5,
+        maxDrawingWidthRatio: options.maxDrawingWidthRatio ?? 1.5,
+        drawingSpeedSensitivity: options.drawingSpeedSensitivity ?? 0.5,
       },
       character: {
         main: {

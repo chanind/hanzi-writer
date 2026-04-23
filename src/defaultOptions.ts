@@ -49,6 +49,13 @@ const defaultOptions: HanziWriterOptions = {
   drawingWidth: 4,
   strokeWidth: 2,
   outlineWidth: 2,
+
+  // Enhanced drawing options
+  enhancedDrawing: false,
+  minDrawingWidthRatio: 0.5,
+  maxDrawingWidthRatio: 1.5,
+  drawingSpeedSensitivity: 0.5,
+
   rendererOverride: {},
 };
 

@@ -114,6 +114,16 @@ type BaseHanziWriterOptions = {
   /** Default: 2 */
   outlineWidth: number;
 
+  // Enhanced drawing options
+  /** Default: false. Enable enhanced drawing effect with variable stroke width */
+  enhancedDrawing: boolean;
+  /** Default: 0.5. Minimum stroke width ratio relative to drawingWidth */
+  minDrawingWidthRatio: number;
+  /** Default: 1.5. Maximum stroke width ratio relative to drawingWidth */
+  maxDrawingWidthRatio: number;
+  /** Default: 0.5. Speed sensitivity factor for variable stroke width */
+  drawingSpeedSensitivity: number;
+
   rendererOverride: {
     HanziWriterRenderer?: HanziWriterRendererConstructor;
     createRenderTarget?: RenderTargetInitFunction<any>;

@@ -30,6 +30,10 @@ describe('RenderState', () => {
         radicalColor: { r: 17, g: 34, b: 51, a: 1 },
         highlightColor: { r: 170, g: 170, b: 255, a: 1 },
         outlineColor: { r: 221, g: 221, b: 221, a: 1 },
+        enhancedDrawing: false,
+        minDrawingWidthRatio: 0.5,
+        maxDrawingWidthRatio: 1.5,
+        drawingSpeedSensitivity: 0.5,
       },
       character: {
         main: {

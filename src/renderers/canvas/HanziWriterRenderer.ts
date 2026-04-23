@@ -85,6 +85,12 @@ export default class HanziWriterRenderer
             strokeWidth: drawingWidth,
             strokeColor: drawingColor,
             ...userStroke,
+            enhancedOptions: {
+              enhancedDrawing: props.options.enhancedDrawing ?? false,
+              minDrawingWidthRatio: props.options.minDrawingWidthRatio ?? 0.5,
+              maxDrawingWidthRatio: props.options.maxDrawingWidthRatio ?? 1.5,
+              drawingSpeedSensitivity: props.options.drawingSpeedSensitivity ?? 0.5,
+            },
           };
           renderUserStroke(ctx, userStrokeProps);
         }

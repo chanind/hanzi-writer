@@ -37,6 +37,7 @@ function updateCharacter() {
 
 function updateEnhancedOptions() {
   if (writer && writer._character) {
+    document.querySelector('#target').innerHTML = '';
     var character = document.querySelector('.js-char').value;
     writer = HanziWriter.create('target', character, {
       width: 400,

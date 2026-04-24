@@ -1,36 +1,86 @@
 <!DOCTYPE html>
-<html lang="en-us">
+<html lang="zh-CN">
 	<head>
 		<meta charset="utf-8">
-		<title>Hanzi Writer</title>
-		<!-- <link href='http://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'> -->
+		<meta name="viewport" content="width=device-width, initial-scale=1.0">
+		<title>Hanzi Writer - 汉字笔画演示</title>
 		<link rel="stylesheet" href="styles.css" />
 		<script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script>
 	</head>
 	<body>
+		<div class="container">
+			<header class="header">
+				<h1 class="title">
+					<span class="title-icon">✍️</span>
+					Hanzi Writer
+				</h1>
+				<p class="subtitle">汉字笔画演示与学习工具</p>
+			</header>
 
-		<h1 class="title">Hanzi Writer</h1>
-		<form class="js-char-form char-form">
-			<label>
-				Character
-				<input type="text" class="js-char char-input" size="1" maxlength="1" value="我" />
-			</label>
-			<button type="submit">Update</button>
-		</form>
-		<div class="actions">
-			<button class="js-toggle">Show/hide</button>
-			<button class="js-toggle-hint">Outline on/off</button>
-			<button class="js-animate">Animate</button>
-			<button class="js-quiz">Quiz yourself</button>
+			<main class="main-content">
+				<div class="search-section">
+					<div class="search-box">
+						<label for="char-input" class="search-label">输入汉字</label>
+						<div class="search-input-wrapper">
+							<input 
+								type="text" 
+								id="char-input"
+								class="js-char char-input" 
+								placeholder="请输入汉字..."
+								maxlength="10"
+								value="我" 
+								autocomplete="off"
+							/>
+							<span class="search-icon">🔍</span>
+						</div>
+						<p class="search-hint">实时输入汉字，自动显示笔画动画</p>
+					</div>
+				</div>
+
+				<div class="character-display">
+					<div id="target" class="character-canvas">
+					</div>
+				</div>
+
+				<div class="control-panel">
+					<div class="control-group">
+						<button class="control-btn js-play" title="播放">
+							<span class="btn-icon">▶</span>
+							<span class="btn-text">播放</span>
+						</button>
+						<button class="control-btn js-pause" title="暂停">
+							<span class="btn-icon">⏸</span>
+							<span class="btn-text">暂停</span>
+						</button>
+						<button class="control-btn js-reset" title="重置">
+							<span class="btn-icon">⏮</span>
+							<span class="btn-text">重置</span>
+						</button>
+					</div>
+
+					<div class="control-group">
+						<button class="control-btn secondary js-toggle" title="显示/隐藏汉字">
+							<span class="btn-icon">👁</span>
+							<span class="btn-text">显示/隐藏</span>
+						</button>
+						<button class="control-btn secondary js-toggle-hint" title="显示/隐藏轮廓">
+							<span class="btn-icon">📐</span>
+							<span class="btn-text">轮廓</span>
+						</button>
+						<button class="control-btn secondary js-quiz" title="开始练习">
+							<span class="btn-icon">✏️</span>
+							<span class="btn-text">练习</span>
+						</button>
+					</div>
+				</div>
+			</main>
+
+			<footer class="footer">
+				<p>Hanzi Writer - 汉字学习工具</p>
+			</footer>
 		</div>
 
-		<div id="target">
-
-		</div>
-
-		<!-- <script src="https://cdn.polyfill.io/v2/polyfill.min.js"></script> -->
 		<script type="application/javascript" src="../dist/hanzi-writer.js"></script>
 		<script type="application/javascript" src="test.js"></script>
-
 	</body>
 </html>

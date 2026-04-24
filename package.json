@@ -40,7 +40,7 @@
     "test": "jest",
     "lint-test": "eslint -c .eslintrc src",
     "lint-fix": "eslint --fix --ext .tsx,.ts .",
-    "build": "node -e \"try { require('fs').rmSync('dist', { recursive: true, force: true }); } catch(e) {}\" && rollup -c",
+    "build": "rm -rf dist && rollup -c",
     "prepublishOnly": "rollup -c",
     "semantic-release": "semantic-release",
     "prettier": "prettier -w src",

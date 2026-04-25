@@ -1,0 +1,495 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hanzi Writer - 现代汉字书写练习</title>
+  <link rel="stylesheet" href="modern-styles.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <h1 class="title">汉写大师</h1>
+      <button class="theme-toggle" id="themeToggle">
+        <svg class="theme-icon" id="sunIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="5"></circle>
+          <line x1="12" y1="1" x2="12" y2="3"></line>
+          <line x1="12" y1="21" x2="12" y2="23"></line>
+          <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+          <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+          <line x1="1" y1="12" x2="3" y2="12"></line>
+          <line x1="21" y1="12" x2="23" y2="12"></line>
+          <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+          <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+        </svg>
+        <svg class="theme-icon" id="moonIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="display: none;">
+          <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+        </svg>
+        <span id="themeText">深色模式</span>
+      </button>
+    </header>
+
+    <main class="main-content">
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">书写练习</h2>
+        </div>
+        <div class="card-body">
+          <form class="char-form" id="charForm">
+            <input type="text" class="char-input" id="charInput" maxlength="1" value="我" placeholder="输入汉字">
+            <button type="submit" class="btn btn-primary">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M5 12h14M12 5l7 7-7 7"/>
+              </svg>
+              切换
+            </button>
+          </form>
+
+          <div class="actions-grid">
+            <button class="btn btn-secondary" id="btnAnimate">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polygon points="5,3 19,12 5,21"/>
+              </svg>
+              动画演示
+            </button>
+            <button class="btn btn-success" id="btnQuiz">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+              </svg>
+              开始测验
+            </button>
+            <button class="btn btn-secondary" id="btnShowHide">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                <circle cx="12" cy="12" r="3"/>
+              </svg>
+              显示/隐藏
+            </button>
+            <button class="btn btn-warning" id="btnOutline">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"/>
+              </svg>
+              轮廓开关
+            </button>
+          </div>
+
+          <div class="character-display">
+            <div id="target"></div>
+          </div>
+
+          <div class="stroke-progress" id="strokeProgress" style="display: none;">
+            <div class="stroke-progress-bar">
+              <div class="stroke-progress-fill" id="strokeProgressFill" style="width: 0%"></div>
+            </div>
+            <span class="stroke-progress-text" id="strokeProgressText">0 / 0 笔画</span>
+          </div>
+
+          <div class="score-panel" id="scorePanel" style="display: none;">
+            <div class="score-header">
+              <span class="score-title">书写评分</span>
+              <div class="score-badge grade-a" id="gradeBadge">--</div>
+            </div>
+            <div class="score-bar">
+              <div class="score-bar-fill success" id="scoreBarFill" style="width: 0%"></div>
+            </div>
+            <div class="score-details">
+              <div class="score-detail">
+                <span class="score-detail-label">总分</span>
+                <span class="score-detail-value" id="scoreTotal">--</span>
+              </div>
+              <div class="score-detail">
+                <span class="score-detail-label">正确笔画</span>
+                <span class="score-detail-value" id="scoreCorrectStrokes">--</span>
+              </div>
+              <div class="score-detail">
+                <span class="score-detail-label">结构分</span>
+                <span class="score-detail-value" id="scoreStructure">--</span>
+              </div>
+              <div class="score-detail">
+                <span class="score-detail-label">总笔画</span>
+                <span class="score-detail-value" id="scoreTotalStrokes">--</span>
+              </div>
+            </div>
+            <div class="feedback-box" id="feedbackBox">
+              <p class="feedback-text" id="feedbackText">完成测验后将显示评分结果</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="card-header">
+          <h2 class="card-title">词汇学习</h2>
+        </div>
+        <div class="card-body vocabulary-panel" id="vocabularyPanel">
+          <div class="empty-state">
+            <div class="empty-state-icon">📚</div>
+            <p class="empty-state-text">输入汉字后点击"切换"按钮<br>即可查看相关词汇和例句</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <p>基于 <a href="https://github.com/chanind/hanzi-writer" target="_blank">Hanzi Writer</a> 开发 | 现代汉字书写练习工具</p>
+    </footer>
+  </div>
+
+  <script src="../dist/hanzi-writer.js"></script>
+  <script>
+    (function() {
+      let writer;
+      let currentChar = '我';
+      let isQuizMode = false;
+      let currentTheme = 'light';
+
+      const themeToggle = document.getElementById('themeToggle');
+      const sunIcon = document.getElementById('sunIcon');
+      const moonIcon = document.getElementById('moonIcon');
+      const themeText = document.getElementById('themeText');
+      const charForm = document.getElementById('charForm');
+      const charInput = document.getElementById('charInput');
+      const vocabularyPanel = document.getElementById('vocabularyPanel');
+      const scorePanel = document.getElementById('scorePanel');
+      const strokeProgress = document.getElementById('strokeProgress');
+
+      const themes = {
+        light: {
+          strokeColor: '#555',
+          outlineColor: '#DDD',
+          highlightColor: '#6366f1',
+          drawingColor: '#333',
+        },
+        dark: {
+          strokeColor: '#E0E0E0',
+          outlineColor: '#424242',
+          highlightColor: '#818cf8',
+          drawingColor: '#BBDEFB',
+        }
+      };
+
+      function updateThemeIcons() {
+        if (currentTheme === 'dark') {
+          sunIcon.style.display = 'block';
+          moonIcon.style.display = 'none';
+          themeText.textContent = '浅色模式';
+        } else {
+          sunIcon.style.display = 'none';
+          moonIcon.style.display = 'block';
+          themeText.textContent = '深色模式';
+        }
+      }
+
+      function toggleTheme() {
+        currentTheme = currentTheme === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', currentTheme);
+        updateThemeIcons();
+        updateWriterTheme();
+      }
+
+      function updateWriterTheme() {
+        if (writer) {
+          const theme = themes[currentTheme];
+          writer.updateColor('strokeColor', theme.strokeColor);
+          writer.updateColor('outlineColor', theme.outlineColor);
+          writer.updateColor('highlightColor', theme.highlightColor);
+          writer.updateColor('drawingColor', theme.drawingColor);
+        }
+      }
+
+      function initWriter(char) {
+        const theme = themes[currentTheme];
+        
+        writer = HanziWriter.create('target', char, {
+          width: 300,
+          height: 300,
+          padding: 20,
+          strokeColor: theme.strokeColor,
+          outlineColor: theme.outlineColor,
+          highlightColor: theme.highlightColor,
+          drawingColor: theme.drawingColor,
+          showOutline: true,
+          showCharacter: true,
+          strokeAnimationSpeed: 1,
+          delayBetweenStrokes: 1000,
+          leniency: 1,
+          showHintAfterMisses: 3,
+          highlightOnComplete: true,
+          acceptBackwardsStrokes: false,
+          onLoadCharDataSuccess: function() {
+            loadVocabulary(char);
+          },
+          onCorrectStroke: function(data) {
+            updateStrokeProgress();
+            if (data.score && writer._options.scoreOptions?.enableScoring) {
+              console.log('Stroke score:', data.score);
+            }
+          },
+          onMistake: function(data) {
+            console.log('Mistake on stroke', data.strokeNum);
+            if (data.score) {
+              console.log('Stroke feedback:', data.score.feedback);
+            }
+          },
+          onComplete: function(summary) {
+            isQuizMode = false;
+            document.getElementById('btnQuiz').textContent = '开始测验';
+            document.getElementById('btnQuiz').classList.remove('btn-warning');
+            document.getElementById('btnQuiz').classList.add('btn-success');
+            
+            strokeProgress.style.display = 'none';
+            
+            if (summary.writingScore) {
+              showScore(summary.writingScore);
+            }
+          }
+        });
+
+        hideScore();
+      }
+
+      function loadVocabulary(char) {
+        if (!writer) return;
+
+        const vocabulary = writer._vocabDataLoader(char, {
+          maxWords: 5,
+          maxIdioms: 3,
+          maxExamples: 3
+        });
+
+        if (!vocabulary || vocabulary.words.length === 0) {
+          vocabularyPanel.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-state-icon">🔍</div>
+              <p class="empty-state-text">暂无 "${char}" 的词汇数据<br>请尝试其他汉字，如：我、你、好、学、爱</p>
+            </div>
+          `;
+          return;
+        }
+
+        let html = '';
+
+        html += `
+          <div class="vocabulary-section">
+            <div class="vocabulary-section-header">
+              <span class="vocabulary-section-title">汉字信息</span>
+            </div>
+            <div class="word-item animate-fade-in">
+              <div class="word-main">
+                <span class="word-text">${vocabulary.character}</span>
+                <span class="word-pinyin">${vocabulary.pinyin}</span>
+              </div>
+              <p class="word-translation">${vocabulary.meaning}</p>
+              ${vocabulary.radicals ? `<span class="word-pos">部首: ${vocabulary.radicals}</span>` : ''}
+              ${vocabulary.strokeCount ? `<span class="word-pos">笔画: ${vocabulary.strokeCount}</span>` : ''}
+            </div>
+          </div>
+        `;
+
+        if (vocabulary.words.length > 0) {
+          html += `
+            <div class="vocabulary-section">
+              <div class="vocabulary-section-header">
+                <span class="vocabulary-section-title">相关词语</span>
+                <span class="vocabulary-badge">${vocabulary.words.length}</span>
+              </div>
+          `;
+
+          vocabulary.words.forEach(word => {
+            html += `
+              <div class="word-item animate-fade-in">
+                <div class="word-main">
+                  <span class="word-text">${word.word}</span>
+                  <span class="word-pinyin">${word.pinyin}</span>
+                </div>
+                <p class="word-translation">${word.translation}</p>
+                ${word.partOfSpeech ? `<span class="word-pos">${word.partOfSpeech}</span>` : ''}
+              </div>
+            `;
+          });
+
+          html += `</div>`;
+        }
+
+        if (vocabulary.idioms.length > 0) {
+          html += `
+            <div class="vocabulary-section">
+              <div class="vocabulary-section-header">
+                <span class="vocabulary-section-title">成语</span>
+                <span class="vocabulary-badge">${vocabulary.idioms.length}</span>
+              </div>
+          `;
+
+          vocabulary.idioms.forEach(idiom => {
+            html += `
+              <div class="idiom-item animate-fade-in">
+                <div class="word-main">
+                  <span class="word-text">${idiom.idiom}</span>
+                  <span class="word-pinyin">${idiom.pinyin}</span>
+                </div>
+                <p class="word-translation">${idiom.translation}</p>
+                <p class="idiom-meaning">${idiom.meaning}</p>
+              </div>
+            `;
+          });
+
+          html += `</div>`;
+        }
+
+        if (vocabulary.examples.length > 0) {
+          html += `
+            <div class="vocabulary-section">
+              <div class="vocabulary-section-header">
+                <span class="vocabulary-section-title">例句</span>
+                <span class="vocabulary-badge">${vocabulary.examples.length}</span>
+              </div>
+          `;
+
+          vocabulary.examples.forEach(example => {
+            html += `
+              <div class="example-item animate-fade-in">
+                <div class="word-main">
+                  <span class="word-text">${example.sentence}</span>
+                </div>
+                <p class="word-pinyin">${example.pinyin}</p>
+                <p class="word-translation">${example.translation}</p>
+              </div>
+            `;
+          });
+
+          html += `</div>`;
+        }
+
+        vocabularyPanel.innerHTML = html;
+      }
+
+      function updateStrokeProgress() {
+        if (!writer || !writer._character) return;
+        
+        const totalStrokes = writer._character.strokes.length;
+        const currentStroke = writer._quiz ? writer._quiz._currentStrokeIndex + 1 : 0;
+        
+        const progressFill = document.getElementById('strokeProgressFill');
+        const progressText = document.getElementById('strokeProgressText');
+        
+        const progress = (currentStroke / totalStrokes) * 100;
+        progressFill.style.width = `${progress}%`;
+        progressText.textContent = `${currentStroke} / ${totalStrokes} 笔画`;
+      }
+
+      function showScore(score) {
+        scorePanel.style.display = 'block';
+        
+        document.getElementById('gradeBadge').textContent = score.grade;
+        document.getElementById('gradeBadge').className = `score-badge grade-${score.grade.toLowerCase()}`;
+        
+        const scoreFill = document.getElementById('scoreBarFill');
+        scoreFill.style.width = `${score.totalScore}%`;
+        
+        if (score.totalScore >= 80) {
+          scoreFill.className = 'score-bar-fill success';
+        } else if (score.totalScore >= 60) {
+          scoreFill.className = 'score-bar-fill warning';
+        } else {
+          scoreFill.className = 'score-bar-fill error';
+        }
+        
+        document.getElementById('scoreTotal').textContent = `${score.totalScore} 分`;
+        document.getElementById('scoreCorrectStrokes').textContent = `${score.correctStrokes}/${score.totalStrokes}`;
+        document.getElementById('scoreStructure').textContent = `${Math.round(score.structureScore.totalScore * 100)} 分`;
+        document.getElementById('scoreTotalStrokes').textContent = score.totalStrokes;
+        document.getElementById('feedbackText').textContent = score.overallFeedback;
+      }
+
+      function hideScore() {
+        scorePanel.style.display = 'none';
+      }
+
+      function handleCharSubmit(e) {
+        e.preventDefault();
+        const char = charInput.value.trim();
+        
+        if (char && char.length > 0) {
+          currentChar = char[0];
+          charInput.value = currentChar;
+          
+          if (writer) {
+            writer.cancelQuiz();
+            isQuizMode = false;
+            document.getElementById('btnQuiz').textContent = '开始测验';
+            document.getElementById('btnQuiz').classList.remove('btn-warning');
+            document.getElementById('btnQuiz').classList.add('btn-success');
+            strokeProgress.style.display = 'none';
+            hideScore();
+          }
+          
+          initWriter(currentChar);
+        }
+      }
+
+      function handleAnimate() {
+        if (writer) {
+          writer.animateCharacter();
+        }
+      }
+
+      function handleQuiz() {
+        if (!writer) return;
+        
+        if (isQuizMode) {
+          writer.cancelQuiz();
+          isQuizMode = false;
+          document.getElementById('btnQuiz').textContent = '开始测验';
+          document.getElementById('btnQuiz').classList.remove('btn-warning');
+          document.getElementById('btnQuiz').classList.add('btn-success');
+          strokeProgress.style.display = 'none';
+        } else {
+          hideScore();
+          writer.quiz();
+          isQuizMode = true;
+          document.getElementById('btnQuiz').textContent = '取消测验';
+          document.getElementById('btnQuiz').classList.remove('btn-success');
+          document.getElementById('btnQuiz').classList.add('btn-warning');
+          
+          strokeProgress.style.display = 'flex';
+          updateStrokeProgress();
+        }
+      }
+
+      function handleShowHide() {
+        if (writer) {
+          writer._options.showCharacter = !writer._options.showCharacter;
+          if (writer._options.showCharacter) {
+            writer.showCharacter();
+          } else {
+            writer.hideCharacter();
+          }
+        }
+      }
+
+      function handleOutline() {
+        if (writer) {
+          writer._options.showOutline = !writer._options.showOutline;
+          if (writer._options.showOutline) {
+            writer.showOutline();
+          } else {
+            writer.hideOutline();
+          }
+        }
+      }
+
+      themeToggle.addEventListener('click', toggleTheme);
+      charForm.addEventListener('submit', handleCharSubmit);
+      document.getElementById('btnAnimate').addEventListener('click', handleAnimate);
+      document.getElementById('btnQuiz').addEventListener('click', handleQuiz);
+      document.getElementById('btnShowHide').addEventListener('click', handleShowHide);
+      document.getElementById('btnOutline').addEventListener('click', handleOutline);
+
+      initWriter(currentChar);
+    })();
+  </script>
+</body>
+</html>

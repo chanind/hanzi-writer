@@ -15,6 +15,9 @@ import HanziWriterRendererBase, {
 import RenderTargetBase from './renderers/RenderTargetBase';
 import { GenericMutation } from './Mutation';
 
+// New modules
+import { defaultVocabDataLoader, hasBuiltInVocabulary } from './vocabulary';
+
 // Typings
 import {
   ColorOptions,
@@ -25,6 +28,12 @@ import {
   ParsedHanziWriterOptions,
   QuizOptions,
   RenderTargetInitFunction,
+  VocabularyData,
+  WritingScore,
+  UITheme,
+  ThemeMode,
+  ScoreOptions,
+  VocabularyOptions,
 } from './typings/types';
 
 // Export type interfaces
@@ -53,6 +62,10 @@ export default class HanziWriter {
   };
 
   target: RenderTargetBase;
+
+  _vocabularyData: VocabularyData | undefined;
+  _vocabDataLoader: typeof defaultVocabDataLoader;
+  _currentTheme: ThemeMode = 'light';
 
   /** Main entry point */
   static create(
@@ -118,6 +131,10 @@ export default class HanziWriter {
     );
     this._options = this._assignOptions(options);
     this._loadingManager = new LoadingManager(this._options);
+    
+    this._vocabDataLoader = defaultVocabDataLoader;
+    this._currentTheme = this._options.theme || 'light';
+    
     this._setupListeners();
   }
 
@@ -538,5 +555,120 @@ export default class HanziWriter {
     this.target.addPointerEndListener(() => {
       this._quiz?.endUserStroke();
     });
+  }
+
+  getVocabulary(): VocabularyData | undefined {
+    return this._vocabularyData;
+  }
+
+  async loadVocabulary(
+    options?: Partial<VocabularyOptions>
+  ): Promise<VocabularyData> {
+    if (!this._char) {
+      throw new Error('setCharacter() must be called before calling loadVocabulary()');
+    }
+
+    const vocabOptions = { ...this._options.vocabularyOptions, ...options };
+    const vocabulary = this._vocabDataLoader(this._char, vocabOptions);
+    
+    this._vocabularyData = vocabulary;
+
+    if (this._options.onVocabularyLoad) {
+      this._options.onVocabularyLoad(vocabulary);
+    }
+
+    return vocabulary;
+  }
+
+  setVocabDataLoader(loader: typeof defaultVocabDataLoader): void {
+    this._vocabDataLoader = loader;
+  }
+
+  hasBuiltInVocabulary(char?: string): boolean {
+    const targetChar = char || this._char;
+    if (!targetChar) return false;
+    return hasBuiltInVocabulary(targetChar);
+  }
+
+  getWritingScore(): WritingScore | undefined {
+    if (!this._quiz) {
+      return undefined;
+    }
+    return this._quiz.calculateWritingScore();
+  }
+
+  getCurrentStrokeScores(): {
+    strokeScores: any[];
+    writingScore?: WritingScore;
+  } {
+    if (!this._quiz) {
+      return { strokeScores: [] };
+    }
+    return this._quiz.getCurrentScores();
+  }
+
+  getTheme(): ThemeMode {
+    return this._currentTheme;
+  }
+
+  setTheme(theme: ThemeMode): void {
+    this._currentTheme = theme;
+    this._options.theme = theme;
+    this._applyThemeColors();
+  }
+
+  toggleTheme(): ThemeMode {
+    const newTheme = this._currentTheme === 'light' ? 'dark' : 'light';
+    this.setTheme(newTheme);
+    return newTheme;
+  }
+
+  _applyThemeColors(): void {
+    const isDark = this._currentTheme === 'dark';
+    
+    if (isDark) {
+      if (!this._options.customTheme) {
+        this._options.strokeColor = '#E0E0E0';
+        this._options.outlineColor = '#424242';
+        this._options.highlightColor = '#64B5F6';
+        this._options.drawingColor = '#BBDEFB';
+        this._options.radicalColor = '#FFAB91';
+      }
+    } else {
+      if (!this._options.customTheme) {
+        this._options.strokeColor = '#555';
+        this._options.outlineColor = '#DDD';
+        this._options.highlightColor = '#AAF';
+        this._options.drawingColor = '#333';
+        this._options.radicalColor = null;
+      }
+    }
+
+    if (this._options.customTheme) {
+      const custom = this._options.customTheme;
+      if (custom.strokeColor) this._options.strokeColor = custom.strokeColor;
+      if (custom.outlineColor) this._options.outlineColor = custom.outlineColor;
+      if (custom.highlightColor) this._options.highlightColor = custom.highlightColor;
+      if (custom.drawingColor) this._options.drawingColor = custom.drawingColor;
+      if (custom.radicalColor !== undefined) this._options.radicalColor = custom.radicalColor;
+    }
+  }
+
+  updateScoringOptions(options: Partial<ScoreOptions>): void {
+    this._options.scoreOptions = {
+      ...this._options.scoreOptions,
+      ...options,
+    };
+  }
+
+  updateVocabularyOptions(options: Partial<VocabularyOptions>): void {
+    this._options.vocabularyOptions = {
+      ...this._options.vocabularyOptions,
+      ...options,
+    };
+  }
+
+  getCurrentOptions(): ParsedHanziWriterOptions {
+    return { ...this._options };
   }
 }

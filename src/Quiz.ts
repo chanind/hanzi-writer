@@ -6,14 +6,37 @@ import * as quizActions from './quizActions';
 import * as geometry from './geometry';
 import * as characterActions from './characterActions';
 import Character from './models/Character';
-import { ParsedHanziWriterOptions, Point, StrokeData } from './typings/types';
+import { 
+  ParsedHanziWriterOptions, 
+  Point, 
+  StrokeData,
+  StrokeScore,
+  StructureScore,
+  WritingScore,
+  ScoreOptions,
+} from './typings/types';
 import RenderState from './RenderState';
 import { GenericMutation } from './Mutation';
+import {
+  scoreStroke,
+  calculateStructureScore,
+  calculateOverallScore,
+} from './scoring';
 
 const getDrawnPath = (userStroke: UserStroke) => ({
   pathString: geometry.getPathString(userStroke.externalPoints),
   points: userStroke.points.map((point) => geometry.round(point)),
 });
+
+export type ExtendedStrokeData = StrokeData & {
+  score?: StrokeScore;
+};
+
+export type QuizCompleteData = {
+  character: string;
+  totalMistakes: number;
+  writingScore?: WritingScore;
+};
 
 export default class Quiz {
   _character: Character;
@@ -29,6 +52,10 @@ export default class Quiz {
   _userStroke: UserStroke | undefined;
   _userStrokesIds: Array<number> | undefined;
 
+  _strokeScores: StrokeScore[] = [];
+  _userStrokesData: { points: Point[] }[] = [];
+  _lastUserStroke: UserStroke | undefined;
+
   constructor(character: Character, renderState: RenderState, positioner: Positioner) {
     this._character = character;
     this._renderState = renderState;
@@ -42,7 +69,10 @@ export default class Quiz {
         quizActions.removeAllUserStrokes( this._userStrokesIds ),
       );
     }
-    this._userStrokesIds = []
+    this._userStrokesIds = [];
+    this._strokeScores = [];
+    this._userStrokesData = [];
+    this._lastUserStroke = undefined;
 
     this._isActive = true;
     this._options = options;
@@ -93,8 +123,37 @@ export default class Quiz {
     this._positioner = positioner;
   }
 
+  _calculateStrokeScore(
+    userStroke: UserStroke,
+    isBackwards: boolean
+  ): StrokeScore | undefined {
+    const options = this._options;
+    if (!options || !options.scoreOptions?.enableScoring) {
+      return undefined;
+    }
+
+    const currentStroke = this._getCurrentStroke();
+    const scoreOptions = options.scoreOptions;
+
+    const strokeScore = scoreStroke(
+      userStroke,
+      currentStroke,
+      this._currentStrokeIndex,
+      {
+        leniency: options.leniency,
+        weightShape: scoreOptions.weightShape,
+        weightDirection: scoreOptions.weightDirection,
+        weightPosition: scoreOptions.weightPosition,
+      },
+    );
+
+    return strokeScore;
+  }
+
   endUserStroke() {
     if (!this._userStroke) return;
+
+    this._lastUserStroke = this._userStroke;
 
     this._renderState.run(
       quizActions.hideUserStroke(
@@ -132,6 +191,9 @@ export default class Quiz {
       isMatch || isForceAccepted || (meta.isStrokeBackwards && acceptBackwardsStrokes);
 
     if (isAccepted) {
+      this._userStrokesData.push({
+        points: [...this._userStroke.points],
+      });
       this._handleSuccess(meta);
     } else {
       this._handleFailure(meta);
@@ -168,22 +230,62 @@ export default class Quiz {
     }
   }
 
-  _getStrokeData({
+  _getExtendedStrokeData({
     isCorrect,
     meta,
+    strokeScore,
   }: {
     isCorrect: boolean;
     meta: StrokeMatchResultMeta;
-  }): StrokeData {
-    return {
+    strokeScore?: StrokeScore;
+  }): ExtendedStrokeData {
+    const baseData: StrokeData = {
       character: this._character.symbol,
       strokeNum: this._currentStrokeIndex,
       mistakesOnStroke: this._mistakesOnStroke,
       totalMistakes: this._totalMistakes,
       strokesRemaining:
         this._character.strokes.length - this._currentStrokeIndex - (isCorrect ? 1 : 0),
-      drawnPath: getDrawnPath(this._userStroke!),
+      drawnPath: this._userStroke ? getDrawnPath(this._userStroke) : { pathString: '', points: [] },
       isBackwards: meta.isStrokeBackwards,
+    };
+
+    return {
+      ...baseData,
+      score: strokeScore,
+    };
+  }
+
+  calculateWritingScore(): WritingScore | undefined {
+    const options = this._options;
+    if (!options || !options.scoreOptions?.enableScoring) {
+      return undefined;
+    }
+
+    const scoreOptions = options.scoreOptions;
+    const structureScore = calculateStructureScore(
+      this._character,
+      this._strokeScores,
+      this._userStrokesData,
+    );
+
+    const writingScore = calculateOverallScore(
+      this._character,
+      this._strokeScores,
+      structureScore,
+      scoreOptions,
+    );
+
+    return writingScore;
+  }
+
+  getCurrentScores(): {
+    strokeScores: StrokeScore[];
+    writingScore?: WritingScore;
+  } {
+    return {
+      strokeScores: [...this._strokeScores],
+      writingScore: this.calculateWritingScore(),
     };
   }
 
@@ -194,11 +296,13 @@ export default class Quiz {
 
     const {
       onComplete,
+      onScoreUpdate,
       highlightOnComplete,
       strokeFadeDuration,
       highlightCompleteColor,
       highlightColor,
       strokeHighlightDuration,
+      scoreOptions,
     } = this._options;
 
     let animation: GenericMutation[] = characterActions.showStroke(
@@ -214,10 +318,22 @@ export default class Quiz {
 
     if (isComplete) {
       this._isActive = false;
-      onComplete?.({
-        character: symbol,
-        totalMistakes: this._totalMistakes,
-      });
+
+      const writingScore = this.calculateWritingScore();
+
+      if (onComplete) {
+        const completeData: QuizCompleteData = {
+          character: symbol,
+          totalMistakes: this._totalMistakes,
+          writingScore,
+        };
+        onComplete(completeData as any);
+      }
+
+      if (onScoreUpdate && writingScore) {
+        onScoreUpdate(writingScore);
+      }
+
       if (highlightOnComplete) {
         animation = animation.concat(
           quizActions.highlightCompleteChar(
@@ -235,11 +351,29 @@ export default class Quiz {
   _handleSuccess(meta: StrokeMatchResultMeta) {
     if (!this._options) return;
 
-    const { onCorrectStroke } = this._options;
+    const { onCorrectStroke, onScoreUpdate, scoreOptions } = this._options;
+
+    let strokeScore: StrokeScore | undefined;
+    
+    if (this._lastUserStroke && scoreOptions?.enableScoring) {
+      strokeScore = this._calculateStrokeScore(this._lastUserStroke, meta.isStrokeBackwards);
+      
+      if (strokeScore) {
+        this._strokeScores.push(strokeScore);
+
+        if (onScoreUpdate) {
+          const partialScore = calculateStructureScore(
+            this._character,
+            this._strokeScores,
+            this._userStrokesData,
+          );
+        }
+      }
+    }
 
     onCorrectStroke?.({
-      ...this._getStrokeData({ isCorrect: true, meta }),
-    });
+      ...this._getExtendedStrokeData({ isCorrect: true, meta, strokeScore }),
+    } as any);
 
     this.nextStroke();
   }
@@ -247,7 +381,20 @@ export default class Quiz {
   _handleFailure(meta: StrokeMatchResultMeta) {
     this._mistakesOnStroke += 1;
     this._totalMistakes += 1;
-    this._options!.onMistake?.(this._getStrokeData({ isCorrect: false, meta }));
+
+    let strokeScore: StrokeScore | undefined;
+    
+    if (this._lastUserStroke && this._options?.scoreOptions?.enableScoring) {
+      strokeScore = this._calculateStrokeScore(this._lastUserStroke, meta.isStrokeBackwards);
+      
+      if (strokeScore) {
+        strokeScore.correct = false;
+      }
+    }
+
+    this._options!.onMistake?.(
+      this._getExtendedStrokeData({ isCorrect: false, meta, strokeScore }) as any
+    );
   }
 
   _getCurrentStroke() {

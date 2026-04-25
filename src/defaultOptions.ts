@@ -50,6 +50,50 @@ const defaultOptions: HanziWriterOptions = {
   strokeWidth: 2,
   outlineWidth: 2,
   rendererOverride: {},
+
+  // theme options
+
+  theme: 'light',
+  customTheme: undefined,
+
+  // scoring options
+
+  scoreOptions: {
+    enableScoring: true,
+    showScorePanel: true,
+    scorePerStroke: 100,
+    weightShape: 0.4,
+    weightDirection: 0.3,
+    weightPosition: 0.3,
+    weightStructure: 0.2,
+    passingScore: 60,
+    showGrade: true,
+  },
+
+  // vocabulary options
+
+  vocabularyOptions: {
+    showVocabulary: true,
+    vocabularyPosition: 'bottom',
+    showWords: true,
+    showIdioms: true,
+    showExamples: true,
+    maxWords: 5,
+    maxIdioms: 3,
+    maxExamples: 3,
+    translationLanguage: 'en',
+  },
+
+  // new UI options
+
+  showScoreFeedback: true,
+  showStrokeFeedback: true,
+  autoPlayAnimation: false,
+
+  // callbacks
+
+  onScoreUpdate: undefined,
+  onVocabularyLoad: undefined,
 };
 
 export default defaultOptions;

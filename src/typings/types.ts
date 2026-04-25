@@ -129,7 +129,8 @@ export type HanziWriterOptions = Partial<PositionerOptions> &
   QuizOptions &
   ColorOptions &
   LoadingManagerOptions &
-  BaseHanziWriterOptions;
+  BaseHanziWriterOptions &
+  Partial<ExtendedHanziWriterOptions>;
 
 export type DimensionOptions = {
   width: number;
@@ -141,8 +142,129 @@ export type ParsedHanziWriterOptions = QuizOptions &
   LoadingManagerOptions &
   BaseHanziWriterOptions &
   ColorOptions &
-  DimensionOptions;
+  DimensionOptions &
+  ExtendedHanziWriterOptions;
 
 export type RecursivePartial<T> = {
   [P in keyof T]?: RecursivePartial<T[P]>;
+};
+
+export type WordItem = {
+  word: string;
+  pinyin: string;
+  translation: string;
+  partOfSpeech?: string;
+};
+
+export type IdiomItem = {
+  idiom: string;
+  pinyin: string;
+  meaning: string;
+  story?: string;
+  translation: string;
+};
+
+export type ExampleSentence = {
+  sentence: string;
+  pinyin: string;
+  translation: string;
+  context?: string;
+};
+
+export type VocabularyData = {
+  character: string;
+  pinyin: string;
+  meaning: string;
+  words: WordItem[];
+  idioms: IdiomItem[];
+  examples: ExampleSentence[];
+  radicals?: string;
+  strokeCount?: number;
+};
+
+export type ThemeMode = 'light' | 'dark' | 'auto';
+
+export type UITheme = {
+  mode: ThemeMode;
+  backgroundColor: string;
+  textColor: string;
+  strokeColor: string;
+  outlineColor: string;
+  highlightColor: string;
+  drawingColor: string;
+  radicalColor: string | null;
+  panelBackgroundColor: string;
+  panelBorderColor: string;
+  successColor: string;
+  warningColor: string;
+  errorColor: string;
+};
+
+export type StrokeScore = {
+  strokeNum: number;
+  strokeName?: string;
+  correct: boolean;
+  isBackwards: boolean;
+  shapeScore: number;
+  directionScore: number;
+  positionScore: number;
+  speedScore?: number;
+  totalScore: number;
+  feedback: string;
+};
+
+export type StructureScore = {
+  balanceScore: number;
+  proportionScore: number;
+  symmetryScore: number;
+  compactnessScore: number;
+  totalScore: number;
+  feedback: string;
+};
+
+export type WritingScore = {
+  character: string;
+  totalStrokes: number;
+  correctStrokes: number;
+  strokeScores: StrokeScore[];
+  structureScore: StructureScore;
+  totalScore: number;
+  grade: 'A' | 'B' | 'C' | 'D' | 'F';
+  overallFeedback: string;
+};
+
+export type ScoreOptions = {
+  enableScoring: boolean;
+  showScorePanel: boolean;
+  scorePerStroke: number;
+  weightShape: number;
+  weightDirection: number;
+  weightPosition: number;
+  weightStructure: number;
+  passingScore: number;
+  showGrade: boolean;
+};
+
+export type VocabularyOptions = {
+  showVocabulary: boolean;
+  vocabularyPosition: 'top' | 'bottom' | 'left' | 'right';
+  showWords: boolean;
+  showIdioms: boolean;
+  showExamples: boolean;
+  maxWords: number;
+  maxIdioms: number;
+  maxExamples: number;
+  translationLanguage: 'en' | 'zh' | 'auto';
+};
+
+export type ExtendedHanziWriterOptions = {
+  theme: ThemeMode;
+  customTheme?: Partial<UITheme>;
+  scoreOptions: ScoreOptions;
+  vocabularyOptions: VocabularyOptions;
+  showScoreFeedback: boolean;
+  showStrokeFeedback: boolean;
+  autoPlayAnimation: boolean;
+  onScoreUpdate?: (score: WritingScore) => void;
+  onVocabularyLoad?: (vocabulary: VocabularyData) => void;
 };

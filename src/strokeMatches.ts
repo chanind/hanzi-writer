@@ -9,7 +9,7 @@ import {
   rotate,
   length,
 } from './geometry';
-import { Point } from './typings/types';
+import { Point, PreferCurrentStrokeData } from './typings/types';
 import UserStroke from './models/UserStroke';
 import Stroke from './models/Stroke';
 import Character from './models/Character';
@@ -36,6 +36,7 @@ export default function strokeMatches(
     leniency?: number;
     isOutlineVisible?: boolean;
     averageDistanceThreshold?: number;
+    preferCurrentStroke?: (data: PreferCurrentStrokeData) => boolean;
   } = {},
 ): StrokeMatchResult {
   const strokes = character.strokes;
@@ -45,7 +46,12 @@ export default function strokeMatches(
     return { isMatch: false, meta: { isStrokeBackwards: false } };
   }
 
-  const { isMatch, meta, avgDist } = getMatchData(points, strokes[strokeNum], options);
+  const { preferCurrentStroke, ...matchOptions } = options;
+  const { isMatch, meta, avgDist } = getMatchData(
+    points,
+    strokes[strokeNum],
+    matchOptions,
+  );
 
   if (!isMatch) {
     return { isMatch, meta };
@@ -54,24 +60,41 @@ export default function strokeMatches(
   // if there is a better match among strokes the user hasn't drawn yet, the user probably drew the wrong stroke
   const laterStrokes = strokes.slice(strokeNum + 1);
   let closestMatchDist = avgDist;
+  let closestStrokeNum = strokeNum;
 
   for (let i = 0; i < laterStrokes.length; i++) {
     const { isMatch, avgDist } = getMatchData(points, laterStrokes[i], {
-      ...options,
+      ...matchOptions,
       checkBackwards: false,
     });
     if (isMatch && avgDist < closestMatchDist) {
       closestMatchDist = avgDist;
+      closestStrokeNum = strokeNum + 1 + i;
     }
   }
+
+  // let the caller keep the match, e.g. when the user writes the whole character offset from the model
+  if (
+    closestMatchDist < avgDist &&
+    preferCurrentStroke?.({
+      character: character.symbol,
+      strokeNum,
+      closestStrokeNum,
+      drawnPoints: points,
+      strokes,
+    })
+  ) {
+    return { isMatch, meta };
+  }
+
   // if there's a better match, rather that returning false automatically, try reducing leniency instead
   // if leniency is already really high we can allow some similar strokes to pass
   if (closestMatchDist < avgDist) {
     // adjust leniency between 0.3 and 0.6 depending on how much of a better match the new match is
     const leniencyAdjustment = (0.6 * (closestMatchDist + avgDist)) / (2 * avgDist);
     const { isMatch, meta } = getMatchData(points, strokes[strokeNum], {
-      ...options,
-      leniency: (options.leniency || 1) * leniencyAdjustment,
+      ...matchOptions,
+      leniency: (matchOptions.leniency || 1) * leniencyAdjustment,
     });
     return { isMatch, meta };
   }

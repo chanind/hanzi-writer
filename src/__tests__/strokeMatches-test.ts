@@ -1348,4 +1348,68 @@ describe('strokeMatches', () => {
     assertMatches('阝', 0, points);
     assertNotMatches('阝', 1, points);
   });
+
+  describe('preferCurrentStroke', () => {
+    // 笔 written on a blank canvas with 毛 a bit lower than the model: the first 一 of 毛
+    // (stroke 7) drawn 100 units low lies nearer the next 一 (stroke 8)
+    const lowStroke7 = [
+      { x: 258, y: 254 },
+      { x: 281, y: 247 },
+      { x: 336, y: 248 },
+      { x: 474, y: 273 },
+      { x: 615, y: 308 },
+      { x: 659, y: 308 },
+    ];
+
+    it('refuses a stroke when a later stroke is closer and the option is absent', () => {
+      assertNotMatches('笔', 7, lowStroke7);
+    });
+
+    it('keeps the stroke when preferCurrentStroke returns true', () => {
+      const preferCurrentStroke = jest.fn(() => true);
+      assertMatches('笔', 7, lowStroke7, { preferCurrentStroke });
+      expect(preferCurrentStroke).toHaveBeenCalledTimes(1);
+      expect(preferCurrentStroke).toHaveBeenCalledWith({
+        character: '笔',
+        strokeNum: 7,
+        closestStrokeNum: 8,
+        drawnPoints: lowStroke7,
+        strokes: getChar('笔').strokes,
+      });
+    });
+
+    it('refuses the stroke as before when preferCurrentStroke returns false', () => {
+      const preferCurrentStroke = jest.fn(() => false);
+      assertNotMatches('笔', 7, lowStroke7, { preferCurrentStroke });
+      expect(preferCurrentStroke).toHaveBeenCalledTimes(1);
+    });
+
+    it('is not consulted when no later stroke is closer', () => {
+      const preferCurrentStroke = jest.fn(() => false);
+      const points = [
+        { x: 258, y: 354 },
+        { x: 281, y: 347 },
+        { x: 336, y: 348 },
+        { x: 474, y: 373 },
+        { x: 615, y: 408 },
+        { x: 659, y: 408 },
+      ];
+      assertMatches('笔', 7, points, { preferCurrentStroke });
+      expect(preferCurrentStroke).not.toHaveBeenCalled();
+    });
+
+    it('is not consulted when the stroke does not match the current stroke', () => {
+      const preferCurrentStroke = jest.fn(() => true);
+      const points = [
+        { x: 158, y: 189 },
+        { x: 180, y: 184 },
+        { x: 229, y: 187 },
+        { x: 481, y: 238 },
+        { x: 730, y: 275 },
+        { x: 816, y: 260 },
+      ];
+      assertNotMatches('笔', 0, points, { preferCurrentStroke });
+      expect(preferCurrentStroke).not.toHaveBeenCalled();
+    });
+  });
 });

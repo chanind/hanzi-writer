@@ -1,6 +1,7 @@
 import RenderTargetBase from '../renderers/RenderTargetBase';
 import { HanziWriterRendererConstructor } from '../renderers/HanziWriterRendererBase';
 import type { PositionerOptions } from '../Positioner';
+import type Stroke from '../models/Stroke';
 
 export type { PositionerOptions };
 
@@ -59,6 +60,18 @@ export type StrokeData = {
   strokesRemaining: number;
 };
 
+export type PreferCurrentStrokeData = {
+  character: string;
+  /** The stroke the quiz is currently expecting */
+  strokeNum: number;
+  /** The later stroke that lies closer to the drawn stroke */
+  closestStrokeNum: number;
+  /** The points the user drew, in the same coordinate space as the character's stroke points */
+  drawnPoints: Point[];
+  /** All strokes of the character */
+  strokes: Stroke[];
+};
+
 export type QuizOptions = {
   /** Default: 1. This can be set to make stroke grading more or less lenient. The closer this is to 0 the more strictly the quiz is graded. */
   leniency: number;
@@ -74,6 +87,12 @@ export type QuizOptions = {
   markStrokeCorrectAfterMisses: number | false;
   /** bigger = more lenient */
   averageDistanceThreshold: number;
+  /**
+   * Called when the drawn stroke matches the current stroke, but a later stroke lies closer to it.
+   * By default the stroke is then re-graded with reduced leniency, which usually fails.
+   * Return `true` to keep the stroke as a match instead. Default: undefined
+   */
+  preferCurrentStroke?: (data: PreferCurrentStrokeData) => boolean;
   onMistake?: (strokeData: StrokeData) => void;
   onCorrectStroke?: (strokeData: StrokeData) => void;
   /** Callback when the quiz completes */

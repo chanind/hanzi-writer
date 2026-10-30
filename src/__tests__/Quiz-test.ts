@@ -396,6 +396,34 @@ describe('Quiz', () => {
       expect(renderState.state.userStrokes![currentStrokeId]?.opacity).toBe(0);
     });
 
+    it('passes preferCurrentStroke through to strokeMatches', async () => {
+      (strokeMatches as any).mockImplementation(() => ({
+        isMatch: true,
+        meta: { isStrokeBackwards: false },
+      }));
+
+      const renderState = createRenderState();
+      const quiz = new Quiz(
+        char,
+        renderState,
+        new Positioner({ padding: 20, width: 200, height: 200 }),
+      );
+      const preferCurrentStroke = jest.fn(() => true);
+      quiz.startQuiz(Object.assign({}, opts, { preferCurrentStroke }));
+      clock.tick(1000);
+      await resolvePromises();
+
+      quiz.startUserStroke({ x: 10, y: 20 });
+      quiz.continueUserStroke({ x: 100, y: 200 });
+      quiz.endUserStroke();
+      await resolvePromises();
+
+      expect(strokeMatches).toHaveBeenCalledTimes(1);
+      expect((strokeMatches as any).mock.calls[0][3].preferCurrentStroke).toBe(
+        preferCurrentStroke,
+      );
+    });
+
     it('accepts backwards stroke when allowed', async () => {
       (strokeMatches as any).mockImplementation(() => ({
         isMatch: false,
